@@ -1,9 +1,8 @@
-﻿using CliWrap;
-using CliWrap.Formatters;
+﻿using CliWrap.Formatters;
+using CliWrap.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Tests.Mocks;
 
-namespace Tests
+namespace CliWrap.Tests
 {
     [TestClass]
     public class GnuArgumentFormatterTests

@@ -1,4 +1,4 @@
-﻿namespace Tests.Mocks
+﻿namespace CliWrap.Tests.Mocks
 {
     public class MockClass
     {

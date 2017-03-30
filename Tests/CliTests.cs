@@ -1,7 +1,6 @@
-﻿using CliWrap;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests
+namespace CliWrap.Tests
 {
     [TestClass]
     public class CliTests
