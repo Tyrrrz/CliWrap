@@ -52,12 +52,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="GnuArgumentFormatterTests.cs" />
-    <Compile Include="Mocks\MockClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CliTests.cs" />
-    <Compile Include="SpacedArgumentFormatterTests.cs" />
-    <Compile Include="DashSpacedArgumentFormatterTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CliWrap\CliWrap.csproj">

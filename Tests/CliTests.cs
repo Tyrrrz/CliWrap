@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CliWrap.Tests
 {
@@ -10,10 +11,34 @@ namespace CliWrap.Tests
         {
             var cli = new Cli("ArgsEcho.bat");
 
-            var args = new[] {new Argument("b"), new Argument("test"), new Argument("ke", "strel")};
-            string output = cli.Execute(args);
+            string output = cli.Execute();
+            Assert.AreEqual(string.Empty, output);
 
-            Assert.AreEqual(cli.Formatter.Format(args), output);
+            output = cli.Execute("Hello World");
+            Assert.AreEqual("Hello World", output);
+        }
+
+        [TestMethod]
+        public void ExecuteAndForgetTest()
+        {
+            var cli = new Cli("ArgsEcho.bat");
+
+            cli.ExecuteAndForget();
+            cli.ExecuteAndForget("Hello World");
+
+            // Better than nothing
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsyncTest()
+        {
+            var cli = new Cli("ArgsEcho.bat");
+
+            string output = await cli.ExecuteAsync();
+            Assert.AreEqual(string.Empty, output);
+
+            output = await cli.ExecuteAsync("Hello World");
+            Assert.AreEqual("Hello World", output);
         }
     }
 }

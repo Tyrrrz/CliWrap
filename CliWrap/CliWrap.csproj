@@ -42,12 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Argument.cs" />
     <Compile Include="Cli.cs" />
-    <Compile Include="Formatters\GnuArgumentFormatter.cs" />
-    <Compile Include="Formatters\IArgumentFormatter.cs" />
-    <Compile Include="Formatters\DashSpacedArgumentFormatter.cs" />
-    <Compile Include="Formatters\SpacedArgumentFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
