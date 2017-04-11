@@ -1,0 +1,20 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>CliWrap</id>
+    <version>1.0</version>
+    <authors>Tyrrrz</authors>
+    <owners>Tyrrrz</owners>
+    <licenseUrl>https://raw.githubusercontent.com/Tyrrrz/CliWrap/master/License.txt</licenseUrl>
+    <projectUrl>https://github.com/Tyrrrz/CliWrap</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Wrapper for command line interface executables</description>
+    <copyright>Copyright (C) Alexey 'Tyrrrz' Golub 2017</copyright>
+    <tags></tags>
+  </metadata>
+
+  <files>
+    <file src="CliWrap\bin\Release\CliWrap.dll" target="lib\net45\CliWrap.dll" />
+    <file src="CliWrap\bin\Release\CliWrap.xml" target="lib\net45\CliWrap.xml" />
+  </files>
+</package>
