@@ -16,11 +16,25 @@ namespace CliWrap
         public string FilePath { get; }
 
         /// <summary>
+        /// Working directory
+        /// </summary>
+        public string WorkingDirectory { get; }
+
+        /// <summary>
+        /// Initializes CLI wrapper on a target
+        /// </summary>
+        public Cli(string filePath, string workingDirectory)
+        {
+            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+            WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
+        }
+
+        /// <summary>
         /// Initializes CLI wrapper on a target
         /// </summary>
         public Cli(string filePath)
+            : this(filePath, Environment.CurrentDirectory)
         {
-            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
         }
 
         private Process SetupProcess(string arguments)
@@ -30,7 +44,7 @@ namespace CliWrap
                 StartInfo =
                 {
                     FileName = FilePath,
-                    WorkingDirectory = Environment.CurrentDirectory,
+                    WorkingDirectory = WorkingDirectory,
                     Arguments = arguments,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
