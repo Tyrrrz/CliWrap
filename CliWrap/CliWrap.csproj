@@ -5,19 +5,19 @@
     <AssemblyName>CliWrap</AssemblyName>
     <RootNamespace>CliWrap</RootNamespace>
     <PackageId>CliWrap</PackageId>
-    <Product>CliWrap</Product>
+    <Product>CLI Wrap</Product>
     <Description>Wrapper for command line interface executables</Description>
     <AssemblyVersion>1.0</AssemblyVersion>
-    <PackageVersion>1.0</PackageVersion>
-    <FileVersion>1.0</FileVersion>
+    <PackageVersion>$(AssemblyVersion)</PackageVersion>
+    <FileVersion>$(AssemblyVersion)</FileVersion>
     <Company>Tyrrrz</Company>
-    <Authors>Tyrrrz</Authors>
+    <Authors>$(Company)</Authors>
     <Copyright>Copyright (C) Alexey 'Tyrrrz' Golub 2017</Copyright>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/Tyrrrz/CliWrap/master/License.txt</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\CliWrap.xml</DocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>
