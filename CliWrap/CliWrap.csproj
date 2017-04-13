@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
@@ -17,16 +17,7 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/Tyrrrz/CliWrap/master/License.txt</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>bin\Debug\net45\CliWrap.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\net45\CliWrap.xml</DocumentationFile>
-    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\CliWrap.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>
