@@ -24,6 +24,9 @@
     <None Update="Bats\ArgsEcho.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Bats\LongRunning.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Bats\StdErr.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,6 +9,7 @@ namespace CliWrap.Tests
     public class CliTests
     {
         private const string ArgsEchoFilePath = "Bats\\ArgsEcho.bat";
+        private const string LongRunningFilePath = "Bats\\LongRunning.bat";
         private const string StdErrFilePath = "Bats\\StdErr.bat";
 
         [TestMethod]
@@ -56,6 +58,17 @@ namespace CliWrap.Tests
             string output = await cli.ExecuteAsync("Hello World");
 
             Assert.AreEqual("Hello World", output.TrimEnd());
+        }
+
+        [TestMethod, Timeout(5000)]
+        public async Task ExecuteAsync_Cancel_Test()
+        {
+            var cli = new Cli(LongRunningFilePath);
+
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
         }
 
         [TestMethod]
