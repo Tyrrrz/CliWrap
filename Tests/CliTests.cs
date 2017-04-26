@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CliWrap.Tests
@@ -6,39 +7,65 @@ namespace CliWrap.Tests
     [TestClass]
     public class CliTests
     {
-        private const string ArgsEchoFilePath = "ArgsEcho.bat";
+        private const string ArgsEchoFilePath = "Bats\\ArgsEcho.bat";
+        private const string StdErrFilePath = "Bats\\StdErr.bat";
 
         [TestMethod]
-        public void ExecuteTest()
+        public void Execute_Normal_Test()
         {
             var cli = new Cli(ArgsEchoFilePath);
 
-            string output = cli.Execute();
-            Assert.AreEqual(string.Empty, output);
+            string output = cli.Execute("Hello World");
 
-            output = cli.Execute("Hello World");
-            Assert.AreEqual("Hello World", output);
+            Assert.AreEqual("Hello World", output.TrimEnd());
         }
 
         [TestMethod]
-        public void ExecuteAndForgetTest()
+        public void Execute_StdErr_Test()
+        {
+            var cli = new Cli(StdErrFilePath);
+
+            var ex = Assert.ThrowsException<StdErrException>(() => cli.Execute());
+
+            Assert.AreEqual("Hello from standard error", ex.StdErr.TrimEnd());
+        }
+
+        [TestMethod]
+        public void ExecuteAndForget_Normal_Test()
         {
             var cli = new Cli(ArgsEchoFilePath);
 
             cli.ExecuteAndForget();
-            cli.ExecuteAndForget("Hello World");
         }
 
         [TestMethod]
-        public async Task ExecuteAsyncTest()
+        public void ExecuteAndForget_StdErr_Test()
+        {
+            var cli = new Cli(StdErrFilePath);
+
+            cli.ExecuteAndForget();
+
+            // No exception should be thrown regardless
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync_Normal_Test()
         {
             var cli = new Cli(ArgsEchoFilePath);
 
-            string output = await cli.ExecuteAsync();
-            Assert.AreEqual(string.Empty, output);
+            string output = await cli.ExecuteAsync("Hello World");
 
-            output = await cli.ExecuteAsync("Hello World");
-            Assert.AreEqual("Hello World", output);
+            Assert.AreEqual("Hello World", output.TrimEnd());
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync_StdErr_Test()
+        {
+            var cli = new Cli(StdErrFilePath);
+
+            var ex = await Assert.ThrowsExceptionAsync<StdErrException>(() => cli.ExecuteAsync());
+
+            Assert.AreEqual("Hello from standard error", ex.StdErr.TrimEnd());
         }
     }
 }

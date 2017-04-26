@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 
 namespace CliWrap
 {
@@ -74,8 +75,15 @@ namespace CliWrap
                 // Read stdout
                 string stdOut = process.StandardOutput.ReadToEnd();
 
+                // Read stderr
+                string stdErr = process.StandardError.ReadToEnd();
+
                 // Wait until exit
                 process.WaitForExit();
+
+                // Check if there is an error
+                if (!string.IsNullOrEmpty(stdErr))
+                    throw new StdErrException(stdErr);
 
                 return stdOut;
             }
@@ -146,8 +154,15 @@ namespace CliWrap
                 // Read stdout
                 string stdOut = await process.StandardOutput.ReadToEndAsync();
 
+                // Read stderr
+                string stdErr = await process.StandardError.ReadToEndAsync();
+
                 // Wait until exit
                 await tcs.Task;
+
+                // Check if there is an error
+                if (!string.IsNullOrEmpty(stdErr))
+                    throw new StdErrException(stdErr);
 
                 return stdOut;
             }
