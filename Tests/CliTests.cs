@@ -6,10 +6,12 @@ namespace CliWrap.Tests
     [TestClass]
     public class CliTests
     {
+        private const string ArgsEchoFilePath = "ArgsEcho.bat";
+
         [TestMethod]
         public void ExecuteTest()
         {
-            var cli = new Cli("ArgsEcho.bat");
+            var cli = new Cli(ArgsEchoFilePath);
 
             string output = cli.Execute();
             Assert.AreEqual(string.Empty, output);
@@ -21,18 +23,16 @@ namespace CliWrap.Tests
         [TestMethod]
         public void ExecuteAndForgetTest()
         {
-            var cli = new Cli("ArgsEcho.bat");
+            var cli = new Cli(ArgsEchoFilePath);
 
             cli.ExecuteAndForget();
             cli.ExecuteAndForget("Hello World");
-
-            // Better than nothing
         }
 
         [TestMethod]
         public async Task ExecuteAsyncTest()
         {
-            var cli = new Cli("ArgsEcho.bat");
+            var cli = new Cli(ArgsEchoFilePath);
 
             string output = await cli.ExecuteAsync();
             Assert.AreEqual(string.Empty, output);

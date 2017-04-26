@@ -37,7 +37,7 @@ namespace CliWrap
         {
         }
 
-        private Process SetupProcess(string arguments)
+        private Process CreateProcess(string arguments)
         {
             var process = new Process
             {
@@ -66,18 +66,19 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(arguments));
 
             // Create process
-            var process = SetupProcess(arguments);
+            using (var process = CreateProcess(arguments))
+            {
+                // Start process
+                process.Start();
 
-            // Start process
-            process.Start();
+                // Read stdout
+                string stdOut = process.StandardOutput.ReadToEnd();
 
-            // Read stdout
-            string stdOut = process.StandardOutput.ReadToEnd();
+                // Wait until exit
+                process.WaitForExit();
 
-            // Wait until exit
-            process.WaitForExit();
-
-            return stdOut;
+                return stdOut;
+            }
         }
 
         /// <summary>
@@ -95,10 +96,11 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(arguments));
 
             // Create process
-            var process = SetupProcess(arguments);
-
-            // Start process
-            process.Start();
+            using (var process = CreateProcess(arguments))
+            {
+                // Start process
+                process.Start();
+            }
         }
 
         /// <summary>
@@ -116,37 +118,39 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(arguments));
 
             // Create process
-            var process = SetupProcess(arguments);
-
-            // Create task completion source
-            var tcs = new TaskCompletionSource<object>();
-
-            // Setup cancellation token
-            if (cancellationToken != CancellationToken.None)
+            using (var process = CreateProcess(arguments))
             {
-                cancellationToken.Register(() =>
+                // Create task completion source
+                var tcs = new TaskCompletionSource<object>();
+
+                // Setup cancellation token
+                if (cancellationToken != CancellationToken.None)
                 {
-                    // Cancel task
-                    tcs.SetCanceled();
+                    cancellationToken.Register(() =>
+                    {
+                        // Cancel task
+                        tcs.SetCanceled();
 
-                    // Kill process
-                    TryKillProcess(process);
-                });
+                        // Kill process
+                        // ReSharper disable once AccessToDisposedClosure (exception-safe)
+                        TryKillProcess(process);
+                    });
+                }
+
+                // Wire an event that signals task completion
+                process.Exited += (sender, args) => tcs.TrySetResult(null);
+
+                // Start process
+                process.Start();
+
+                // Read stdout
+                string stdOut = await process.StandardOutput.ReadToEndAsync();
+
+                // Wait until exit
+                await tcs.Task;
+
+                return stdOut;
             }
-
-            // Wire an event that signals of task completion
-            process.Exited += (sender, args) => tcs.TrySetResult(null);
-
-            // Start process
-            process.Start();
-
-            // Read stdout
-            string stdOut = await process.StandardOutput.ReadToEndAsync();
-
-            // Wait until exit
-            await tcs.Task;
-
-            return stdOut;
         }
 
         /// <summary>
@@ -174,7 +178,7 @@ namespace CliWrap
         {
             try
             {
-                process.Kill();
+                process?.Kill();
             }
             catch
             {
