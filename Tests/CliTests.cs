@@ -1,6 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Exceptions;
+using CliWrap.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CliWrap.Tests
@@ -8,62 +9,120 @@ namespace CliWrap.Tests
     [TestClass]
     public class CliTests
     {
-        private const string ArgsEchoFilePath = "Bats\\ArgsEcho.bat";
-        private const string LongRunningFilePath = "Bats\\LongRunning.bat";
-        private const string StdErrFilePath = "Bats\\StdErr.bat";
+        private const string EchoArgsBat = "Bats\\EchoArgs.bat";
+        private const string EchoStdinBat = "Bats\\EchoStdin.bat";
+        private const string NeverEndingBat = "Bats\\NeverEnding.bat";
+        private const string ThrowErrorBat = "Bats\\ThrowError.bat";
 
         [TestMethod]
-        public void Execute_Normal_Test()
+        public void Execute_EchoArgs_Test()
         {
-            var cli = new Cli(ArgsEchoFilePath);
+            var cli = new Cli(EchoArgsBat);
 
-            string output = cli.Execute("Hello World");
+            var output = cli.Execute("Hello world");
 
-            Assert.AreEqual("Hello World", output.TrimEnd());
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
         [TestMethod]
-        public void Execute_StdErr_Test()
+        public void Execute_EchoStdin_Test()
         {
-            var cli = new Cli(StdErrFilePath);
+            var cli = new Cli(EchoStdinBat);
 
-            var ex = Assert.ThrowsException<StdErrException>(() => cli.Execute());
+            var input = new ExecutionInput(standardInput: "Hello world");
+            var output = cli.Execute(input);
 
-            Assert.AreEqual("Hello from standard error", ex.StdErr.TrimEnd());
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
         [TestMethod]
-        public void ExecuteAndForget_Normal_Test()
+        public void Execute_ThrowError_Test()
         {
-            var cli = new Cli(ArgsEchoFilePath);
+            var cli = new Cli(ThrowErrorBat);
+
+            var output = cli.Execute();
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
+        }
+
+        [TestMethod]
+        public void ExecuteAndForget_EchoArgs_Test()
+        {
+            var cli = new Cli(EchoArgsBat);
+
+            cli.ExecuteAndForget("Hello world");
+        }
+
+        [TestMethod]
+        public void ExecuteAndForget_EchoStdin_Test()
+        {
+            var cli = new Cli(EchoStdinBat);
+
+            var input = new ExecutionInput(standardInput: "Hello world");
+            cli.ExecuteAndForget(input);
+        }
+
+        [TestMethod]
+        public void ExecuteAndForget_ThrowError_Test()
+        {
+            var cli = new Cli(ThrowErrorBat);
 
             cli.ExecuteAndForget();
         }
 
         [TestMethod]
-        public void ExecuteAndForget_StdErr_Test()
+        public async Task ExecuteAsync_EchoArgs_Test()
         {
-            var cli = new Cli(StdErrFilePath);
+            var cli = new Cli(EchoArgsBat);
 
-            cli.ExecuteAndForget();
+            var output = await cli.ExecuteAsync("Hello world");
 
-            // No exception should be thrown regardless
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
         [TestMethod]
-        public async Task ExecuteAsync_Normal_Test()
+        public async Task ExecuteAsync_EchoStdin_Test()
         {
-            var cli = new Cli(ArgsEchoFilePath);
+            var cli = new Cli(EchoStdinBat);
 
-            string output = await cli.ExecuteAsync("Hello World");
+            var input = new ExecutionInput(standardInput: "Hello world");
+            var output = await cli.ExecuteAsync(input);
 
-            Assert.AreEqual("Hello World", output.TrimEnd());
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync_ThrowError_Test()
+        {
+            var cli = new Cli(ThrowErrorBat);
+
+            var output = await cli.ExecuteAsync();
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
         }
 
         [TestMethod, Timeout(5000)]
-        public async Task ExecuteAsync_Cancel_Test()
+        public async Task ExecuteAsync_CancelEarly_Test()
         {
-            var cli = new Cli(LongRunningFilePath);
+            var cli = new Cli(NeverEndingBat);
 
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -71,14 +130,15 @@ namespace CliWrap.Tests
             await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
         }
 
-        [TestMethod]
-        public async Task ExecuteAsync_StdErr_Test()
+        [TestMethod, Timeout(5000)]
+        public async Task ExecuteAsync_CancelLate_Test()
         {
-            var cli = new Cli(StdErrFilePath);
+            var cli = new Cli(NeverEndingBat);
 
-            var ex = await Assert.ThrowsExceptionAsync<StdErrException>(() => cli.ExecuteAsync());
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-            Assert.AreEqual("Hello from standard error", ex.StdErr.TrimEnd());
+            await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
         }
     }
 }

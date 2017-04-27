@@ -21,13 +21,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Bats\ArgsEcho.bat">
+    <None Update="Bats\EchoArgs.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Bats\LongRunning.bat">
+    <None Update="Bats\EchoStdin.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Bats\StdErr.bat">
+    <None Update="Bats\NeverEnding.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Bats\ThrowError.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

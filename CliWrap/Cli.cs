@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Exceptions;
+using CliWrap.Models;
 
 namespace CliWrap
 {
@@ -46,7 +46,7 @@ namespace CliWrap
                 {
                     FileName = FilePath,
                     WorkingDirectory = WorkingDirectory,
-                    Arguments = arguments,
+                    Arguments = arguments ?? string.Empty,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -59,18 +59,22 @@ namespace CliWrap
         }
 
         /// <summary>
-        /// Execute CLI with given arguments, wait until completion and return standard output
+        /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public string Execute(string arguments)
+        public ExecutionOutput Execute(ExecutionInput input)
         {
-            if (arguments == null)
-                throw new ArgumentNullException(nameof(arguments));
+            if (input == null)
+                throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(arguments))
+            using (var process = CreateProcess(input.Arguments))
             {
                 // Start process
                 process.Start();
+
+                // Write stdin
+                if (input.StandardInput != null)
+                    process.StandardInput.Write(input.StandardInput);
 
                 // Read stdout
                 string stdOut = process.StandardOutput.ReadToEnd();
@@ -81,55 +85,73 @@ namespace CliWrap
                 // Wait until exit
                 process.WaitForExit();
 
-                // Check if there is an error
-                if (!string.IsNullOrEmpty(stdErr))
-                    throw new StdErrException(stdErr);
-
-                return stdOut;
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
 
         /// <summary>
-        /// Execute CLI without arguments, wait until completion and return standard output
+        /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public string Execute()
-            => Execute(string.Empty);
+        public ExecutionOutput Execute(string arguments)
+            => Execute(new ExecutionInput(arguments));
 
         /// <summary>
-        /// Execute CLI with given arguments, without waiting for completion
+        /// Executes CLI without input, waits until completion and returns output
         /// </summary>
-        public void ExecuteAndForget(string arguments)
+        public ExecutionOutput Execute()
+            => Execute(ExecutionInput.Empty);
+
+        /// <summary>
+        /// Executes CLI with given input, without waiting for completion
+        /// </summary>
+        public void ExecuteAndForget(ExecutionInput input)
         {
-            if (arguments == null)
-                throw new ArgumentNullException(nameof(arguments));
+            if (input == null)
+                throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(arguments))
+            using (var process = CreateProcess(input.Arguments))
             {
                 // Start process
                 process.Start();
+
+                // Write stdin
+                if (input.StandardInput != null)
+                    process.StandardInput.Write(input.StandardInput);
             }
         }
 
         /// <summary>
-        /// Execute CLI without arguments, without waiting for completion
+        /// Executes CLI with given input, without waiting for completion
         /// </summary>
-        public void ExecuteAndForget()
-            => ExecuteAndForget(string.Empty);
+        public void ExecuteAndForget(string arguments)
+            => ExecuteAndForget(new ExecutionInput(arguments));
 
         /// <summary>
-        /// Execute CLI with given arguments, wait until completion asynchronously and return standard output
+        /// Executes CLI without input, without waiting for completion
         /// </summary>
-        public async Task<string> ExecuteAsync(string arguments, CancellationToken cancellationToken)
+        public void ExecuteAndForget()
+            => ExecuteAndForget(ExecutionInput.Empty);
+
+        /// <summary>
+        /// Executes CLI with given input, waits until completion asynchronously and returns output
+        /// </summary>
+        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken)
         {
-            if (arguments == null)
-                throw new ArgumentNullException(nameof(arguments));
+            if (input == null)
+                throw new ArgumentNullException(nameof(input));
+
+            // Create task completion source
+            var tcs = new TaskCompletionSource<object>();
 
             // Create process
-            using (var process = CreateProcess(arguments))
+            using (var process = CreateProcess(input.Arguments))
             {
-                // Create task completion source
-                var tcs = new TaskCompletionSource<object>();
+                // Wire an event that signals task completion
+                process.Exited += (sender, args) => tcs.TrySetResult(null);
+
+                // Start process
+                process.Start();
 
                 // Setup cancellation token
                 if (cancellationToken != CancellationToken.None)
@@ -137,7 +159,7 @@ namespace CliWrap
                     cancellationToken.Register(() =>
                     {
                         // Cancel task
-                        tcs.SetCanceled();
+                        tcs.TrySetCanceled();
 
                         // Kill process
                         // ReSharper disable once AccessToDisposedClosure (exception-safe)
@@ -145,11 +167,9 @@ namespace CliWrap
                     });
                 }
 
-                // Wire an event that signals task completion
-                process.Exited += (sender, args) => tcs.TrySetResult(null);
-
-                // Start process
-                process.Start();
+                // Write stdin
+                if (input.StandardInput != null)
+                    await process.StandardInput.WriteAsync(input.StandardInput);
 
                 // Read stdout
                 string stdOut = await process.StandardOutput.ReadToEndAsync();
@@ -160,40 +180,51 @@ namespace CliWrap
                 // Wait until exit
                 await tcs.Task;
 
-                // Check if there is an error
-                if (!string.IsNullOrEmpty(stdErr))
-                    throw new StdErrException(stdErr);
-
-                return stdOut;
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
 
         /// <summary>
-        /// Execute CLI with given arguments, wait until completion asynchronously and return standard output
+        /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<string> ExecuteAsync(string arguments)
-            => await ExecuteAsync(arguments, CancellationToken.None);
+        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input)
+            => await ExecuteAsync(input, CancellationToken.None);
 
         /// <summary>
-        /// Execute CLI without arguments, wait until completion asynchronously and return standard output
+        /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<string> ExecuteAsync(CancellationToken cancellationToken)
-            => await ExecuteAsync(string.Empty, cancellationToken);
+        public async Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken)
+            => await ExecuteAsync(new ExecutionInput(arguments), cancellationToken);
 
         /// <summary>
-        /// Execute CLI without arguments, wait until completion asynchronously and return standard output
+        /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<string> ExecuteAsync()
-            => await ExecuteAsync(string.Empty);
+        public async Task<ExecutionOutput> ExecuteAsync(string arguments)
+            => await ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None);
+
+        /// <summary>
+        /// Executes CLI without input, waits until completion asynchronously and returns output
+        /// </summary>
+        public async Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken)
+            => await ExecuteAsync(ExecutionInput.Empty, cancellationToken);
+
+        /// <summary>
+        /// Executes CLI without input, waits until completion asynchronously and returns output
+        /// </summary>
+        public async Task<ExecutionOutput> ExecuteAsync()
+            => await ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
     }
 
     public partial class Cli
     {
         private static void TryKillProcess(Process process)
         {
+            if (process == null)
+                return;
+
             try
             {
-                process?.Kill();
+                process.Kill();
             }
             catch
             {
