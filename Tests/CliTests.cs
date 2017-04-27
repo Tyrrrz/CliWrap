@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using CliWrap.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,6 +21,7 @@ namespace CliWrap.Tests
             var cli = new Cli(EchoArgsBat);
 
             var output = cli.Execute("Hello world");
+            output.ThrowIfError();
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
@@ -34,6 +36,7 @@ namespace CliWrap.Tests
 
             var input = new ExecutionInput(standardInput: "Hello world");
             var output = cli.Execute(input);
+            output.ThrowIfError();
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
@@ -47,6 +50,7 @@ namespace CliWrap.Tests
             var cli = new Cli(ThrowErrorBat);
 
             var output = cli.Execute();
+            Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
@@ -85,6 +89,7 @@ namespace CliWrap.Tests
             var cli = new Cli(EchoArgsBat);
 
             var output = await cli.ExecuteAsync("Hello world");
+            output.ThrowIfError();
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
@@ -99,6 +104,7 @@ namespace CliWrap.Tests
 
             var input = new ExecutionInput(standardInput: "Hello world");
             var output = await cli.ExecuteAsync(input);
+            output.ThrowIfError();
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
@@ -112,6 +118,7 @@ namespace CliWrap.Tests
             var cli = new Cli(ThrowErrorBat);
 
             var output = await cli.ExecuteAsync();
+            Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
