@@ -7,7 +7,7 @@
     <PackageId>CliWrap</PackageId>
     <Product>CLI Wrap</Product>
     <Description>Wrapper for command line interface executables</Description>
-    <AssemblyVersion>1.2.1</AssemblyVersion>
+    <AssemblyVersion>1.2.2</AssemblyVersion>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Company>Tyrrrz</Company>
