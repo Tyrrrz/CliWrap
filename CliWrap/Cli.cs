@@ -74,7 +74,10 @@ namespace CliWrap
 
                 // Write stdin
                 if (input.StandardInput != null)
-                    process.StandardInput.Write(input.StandardInput);
+                {
+                    using (process.StandardInput)
+                        process.StandardInput.Write(input.StandardInput);
+                }
 
                 // Read stdout
                 string stdOut = process.StandardOutput.ReadToEnd();
@@ -117,7 +120,10 @@ namespace CliWrap
 
                 // Write stdin
                 if (input.StandardInput != null)
-                    process.StandardInput.Write(input.StandardInput);
+                {
+                    using (process.StandardInput)
+                        process.StandardInput.Write(input.StandardInput);
+                }
             }
         }
 
@@ -169,7 +175,10 @@ namespace CliWrap
 
                 // Write stdin
                 if (input.StandardInput != null)
-                    await process.StandardInput.WriteAsync(input.StandardInput);
+                {
+                    using (process.StandardInput)
+                        await process.StandardInput.WriteAsync(input.StandardInput);
+                }
 
                 // Read stdout
                 string stdOut = await process.StandardOutput.ReadToEndAsync();
