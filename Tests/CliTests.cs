@@ -50,12 +50,13 @@ namespace CliWrap.Tests
             var cli = new Cli(ThrowErrorBat);
 
             var output = cli.Execute();
-            Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
+            var ex = Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("", output.StandardOutput.TrimEnd());
             Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
+            Assert.AreEqual(output.StandardError, ex.StandardError);
         }
 
         [TestMethod]
@@ -118,12 +119,13 @@ namespace CliWrap.Tests
             var cli = new Cli(ThrowErrorBat);
 
             var output = await cli.ExecuteAsync();
-            Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
+            var ex = Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
 
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("", output.StandardOutput.TrimEnd());
             Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
+            Assert.AreEqual(output.StandardError, ex.StandardError);
         }
 
         [TestMethod, Timeout(5000)]
