@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFrameworks>net45;netcoreapp1.0</TargetFrameworks>
     <AssemblyName>CliWrap</AssemblyName>
     <RootNamespace>CliWrap</RootNamespace>
     <PackageId>CliWrap</PackageId>
     <Product>CLI Wrap</Product>
     <Description>Wrapper for command line interface executables</Description>
-    <PackageTags>command line executable interface wrapper standard input output error arguments</PackageTags>
+    <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
     <AssemblyVersion>1.2.2</AssemblyVersion>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Models;
@@ -34,7 +35,7 @@ namespace CliWrap
         /// Initializes CLI wrapper on a target
         /// </summary>
         public Cli(string filePath)
-            : this(filePath, Environment.CurrentDirectory)
+            : this(filePath, Directory.GetCurrentDirectory())
         {
         }
 
