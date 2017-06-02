@@ -12,6 +12,7 @@ Provides a wrapper around command line interface executables
 - Execute commands in a synchronous, asynchronous, fire-and-forget manner
 - Pass in command line arguments as well as standard input
 - Get process exit code, standard output and standard error as the result
+- Stop the execution early using `System.Threading.CancellationToken`
 - Targets .NET Framework 4.5+ and .NET Core 1.0+
 
 **Usage examples:**
@@ -53,4 +54,14 @@ Standard input:
 var cli = new Cli("some_cli.exe");
 var input = new ExecutionInput("verb --option", "Hello World");
 var output = await cli.ExecuteAsync(input);
+````
+
+Cancel execution:
+````c#
+var cli = new Cli("some_cli.exe");
+
+var cts = new CancellationTokenSource();
+cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
+
+var output = await cli.ExecuteAsync("verb --option", cts.Token);
 ````
