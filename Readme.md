@@ -14,6 +14,7 @@ Provides a wrapper around command line interface executables
 - Get process exit code, standard output and standard error as the result
 - Stop the execution early using `System.Threading.CancellationToken`
 - Targets .NET Framework 4.5+ and .NET Core 1.0+
+- No external dependencies
 
 **Usage examples:**
 
