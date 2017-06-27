@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Models;
+using System.Text;
 
 namespace CliWrap
 {
@@ -70,26 +71,62 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input.Arguments))
             {
-                // Start process
-                process.Start();
+                var stdOut = new StringBuilder();
+                var stdErr = new StringBuilder();
 
-                // Write stdin
-                if (input.StandardInput != null)
+                using (var outputWaitHandle = new AutoResetEvent(false))
+                using (var errorWaitHandle = new AutoResetEvent(false))
                 {
-                    using (process.StandardInput)
-                        process.StandardInput.Write(input.StandardInput);
+
+                    // Set up stdout reveiver
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (e.Data == null)
+                        {
+                            outputWaitHandle.Set();
+                        }
+                        else
+                        {
+                            stdOut.AppendLine(e.Data);
+                        }
+                    };
+
+                    // Set up stderr reveiver
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (e.Data == null)
+                        {
+                            errorWaitHandle.Set();
+                        }
+                        else
+                        {
+                            stdErr.AppendLine(e.Data);
+                        }
+                    };
+
+                    // Start process
+                    process.Start();
+
+                    // Write stdin
+                    if (input.StandardInput != null)
+                    {
+                        using (process.StandardInput)
+                            process.StandardInput.Write(input.StandardInput);
+                    }
+
+                    // Write stdout
+                    process.BeginOutputReadLine();
+
+                    // Write stderr
+                    process.BeginErrorReadLine();
+
+                    // Wait until exit
+                    process.WaitForExit();
+                    outputWaitHandle.WaitOne();
+                    errorWaitHandle.WaitOne();
+
+                    return new ExecutionOutput(process.ExitCode, stdOut.ToString(), stdErr.ToString());
                 }
-
-                // Read stdout
-                string stdOut = process.StandardOutput.ReadToEnd();
-
-                // Read stderr
-                string stdErr = process.StandardError.ReadToEnd();
-
-                // Wait until exit
-                process.WaitForExit();
-
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
 
