@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
 
 namespace CliWrap.Tests
 {
@@ -14,6 +15,31 @@ namespace CliWrap.Tests
         private const string EchoStdinBat = "Bats\\EchoStdin.bat";
         private const string NeverEndingBat = "Bats\\NeverEnding.bat";
         private const string ThrowErrorBat = "Bats\\ThrowError.bat";
+
+        private const string Ffmpeg = "Ffmpeg\\ffmpeg.exe";
+        private const string FfmpegImageInput = "Ffmpeg\\picture.jpg";
+        private const string FfmpegVideoOutput = "Ffmpeg\\video.mp4";
+
+        ~CliTests()
+        {
+            if (File.Exists(FfmpegVideoOutput))
+                File.Delete(FfmpegVideoOutput);
+        }
+
+        [TestMethod, Timeout(5000)]
+        public void Execute_Ffmpeg_Test()
+        {
+            if (File.Exists(FfmpegVideoOutput))
+                File.Delete(FfmpegVideoOutput);
+
+            var cli = new Cli(Ffmpeg);
+            var output = cli.Execute($"-loop 1 -framerate 2 -i \"{FfmpegImageInput}\" -t 0:01 {FfmpegVideoOutput}");
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(0, output.ExitCode);
+            Assert.AreEqual(String.Empty, output.StandardOutput.TrimEnd());
+            Assert.AreNotEqual(String.Empty, output.StandardError.TrimEnd());
+        }
 
         [TestMethod]
         public void Execute_EchoArgs_Test()
