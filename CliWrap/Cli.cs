@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Models;
 using System.Text;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
     /// <summary>
     /// Wrapper for a Command Line Interface
     /// </summary>
-    public partial class Cli
+    public class Cli
     {
         /// <summary>
         /// Target file path
@@ -40,9 +40,9 @@ namespace CliWrap
         {
         }
 
-        private Process CreateProcess(string arguments)
+        private ProcessEx CreateProcess(string arguments)
         {
-            var process = new Process
+            var process = new ProcessEx
             {
                 StartInfo =
                 {
@@ -207,7 +207,7 @@ namespace CliWrap
 
                         // Kill process
                         // ReSharper disable once AccessToDisposedClosure (exception-safe)
-                        TryKillProcess(process);
+                        process.TryKill();
                     });
                 }
 
@@ -260,23 +260,5 @@ namespace CliWrap
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync()
             => await ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
-    }
-
-    public partial class Cli
-    {
-        private static void TryKillProcess(Process process)
-        {
-            if (process == null)
-                return;
-
-            try
-            {
-                process.Kill();
-            }
-            catch
-            {
-                // Ignored
-            }
-        }
     }
 }
