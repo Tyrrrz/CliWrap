@@ -21,10 +21,4 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Update="Internal\ProcessEx.cs">
-      <SubType>Component</SubType>
-    </Compile>
-  </ItemGroup>
-
 </Project>

@@ -2,13 +2,13 @@
 
 namespace CliWrap.Internal
 {
-    internal class ProcessEx : Process
+    internal static class ProcessExtensions
     {
-        public bool TryKill()
+        public static bool TryKill(this Process process)
         {
             try
             {
-                Kill();
+                process.Kill();
                 return true;
             }
             catch

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,9 +41,9 @@ namespace CliWrap
         {
         }
 
-        private ProcessEx CreateProcess(string arguments)
+        private Process CreateProcess(string arguments)
         {
-            var process = new ProcessEx
+            var process = new Process
             {
                 StartInfo =
                 {
