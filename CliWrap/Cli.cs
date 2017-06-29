@@ -72,62 +72,48 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input.Arguments))
             {
-                var stdOut = new StringBuilder();
-                var stdErr = new StringBuilder();
+                // Create buffers
+                var stdOutBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
 
-                using (var outputWaitHandle = new AutoResetEvent(false))
-                using (var errorWaitHandle = new AutoResetEvent(false))
+                // Wire events
+                process.OutputDataReceived += (sender, e) =>
                 {
-
-                    // Set up stdout reveiver
-                    process.OutputDataReceived += (sender, e) =>
+                    if (e.Data != null)
                     {
-                        if (e.Data == null)
-                        {
-                            outputWaitHandle.Set();
-                        }
-                        else
-                        {
-                            stdOut.AppendLine(e.Data);
-                        }
-                    };
-
-                    // Set up stderr reveiver
-                    process.ErrorDataReceived += (sender, e) =>
-                    {
-                        if (e.Data == null)
-                        {
-                            errorWaitHandle.Set();
-                        }
-                        else
-                        {
-                            stdErr.AppendLine(e.Data);
-                        }
-                    };
-
-                    // Start process
-                    process.Start();
-
-                    // Write stdin
-                    if (input.StandardInput != null)
-                    {
-                        using (process.StandardInput)
-                            process.StandardInput.Write(input.StandardInput);
+                        stdOutBuffer.AppendLine(e.Data);
                     }
+                };
+                process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (e.Data != null)
+                    {
+                        stdErrBuffer.AppendLine(e.Data);
+                    }
+                };
 
-                    // Write stdout
-                    process.BeginOutputReadLine();
+                // Start process
+                process.Start();
 
-                    // Write stderr
-                    process.BeginErrorReadLine();
-
-                    // Wait until exit
-                    process.WaitForExit();
-                    outputWaitHandle.WaitOne();
-                    errorWaitHandle.WaitOne();
-
-                    return new ExecutionOutput(process.ExitCode, stdOut.ToString(), stdErr.ToString());
+                // Write stdin
+                if (input.StandardInput != null)
+                {
+                    using (process.StandardInput)
+                        process.StandardInput.Write(input.StandardInput);
                 }
+
+                // Begin reading stdout and stderr
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                // Wait until exit
+                process.WaitForExit();
+
+                // Get stdout and stderr
+                string stdOut = stdOutBuffer.ToString();
+                string stdErr = stdErrBuffer.ToString();
+
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
 
