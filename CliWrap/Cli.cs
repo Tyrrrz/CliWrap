@@ -77,19 +77,15 @@ namespace CliWrap
                 var stdErrBuffer = new StringBuilder();
 
                 // Wire events
-                process.OutputDataReceived += (sender, e) =>
+                process.OutputDataReceived += (sender, args) =>
                 {
-                    if (e.Data != null)
-                    {
-                        stdOutBuffer.AppendLine(e.Data);
-                    }
+                    if (args.Data != null)
+                        stdOutBuffer.AppendLine(args.Data);
                 };
-                process.ErrorDataReceived += (sender, e) =>
+                process.ErrorDataReceived += (sender, args) =>
                 {
-                    if (e.Data != null)
-                    {
-                        stdErrBuffer.AppendLine(e.Data);
-                    }
+                    if (args.Data != null)
+                        stdErrBuffer.AppendLine(args.Data);
                 };
 
                 // Start process
@@ -178,7 +174,14 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input.Arguments))
             {
+                // Wire an event that signals task completion
+                process.Exited += (sender, args) => tcs.TrySetResult(null);
+
+                // Start process
+                process.Start();
+
                 // Setup cancellation token
+                // This has to be after process start so that it can actually be killed
                 if (cancellationToken != CancellationToken.None)
                 {
                     cancellationToken.Register(() =>
@@ -191,12 +194,6 @@ namespace CliWrap
                         process.TryKill();
                     });
                 }
-
-                // Wire an event that signals task completion
-                process.Exited += (sender, args) => tcs.TrySetResult(null);
-
-                // Start process
-                process.Start();
 
                 // Write stdin
                 if (input.StandardInput != null)
