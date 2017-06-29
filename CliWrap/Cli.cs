@@ -187,6 +187,7 @@ namespace CliWrap
                         tcs.TrySetCanceled();
 
                         // Kill process
+                        // ReSharper disable AccessToDisposedClosure
                         process.TryKill();
                     });
                 }
@@ -204,14 +205,14 @@ namespace CliWrap
                         await process.StandardInput.WriteAsync(input.StandardInput);
                 }
 
-                // Start tasks
+                // Start reading tasks
                 var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
                 var stdErrReadTask = process.StandardError.ReadToEndAsync();
 
                 // Wait until exit
                 await tcs.Task;
 
-                // Read stdout and stderr
+                // Get stdout and stderr
                 string stdOut = await stdOutReadTask;
                 string stdErr = await stdErrReadTask;
 
