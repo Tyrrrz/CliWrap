@@ -192,12 +192,6 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input.Arguments))
             {
-                // Wire an event that signals task completion
-                process.Exited += (sender, args) => tcs.TrySetResult(null);
-
-                // Start process
-                process.Start();
-
                 // Setup cancellation token
                 if (cancellationToken != CancellationToken.None)
                 {
@@ -207,10 +201,15 @@ namespace CliWrap
                         tcs.TrySetCanceled();
 
                         // Kill process
-                        // ReSharper disable once AccessToDisposedClosure (exception-safe)
                         process.TryKill();
                     });
                 }
+
+                // Wire an event that signals task completion
+                process.Exited += (sender, args) => tcs.TrySetResult(null);
+
+                // Start process
+                process.Start();
 
                 // Write stdin
                 if (input.StandardInput != null)
@@ -219,14 +218,16 @@ namespace CliWrap
                         await process.StandardInput.WriteAsync(input.StandardInput);
                 }
 
-                // Read stdout
-                string stdOut = await process.StandardOutput.ReadToEndAsync();
-
-                // Read stderr
-                string stdErr = await process.StandardError.ReadToEndAsync();
+                // Start tasks
+                var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
+                var stdErrReadTask = process.StandardError.ReadToEndAsync();
 
                 // Wait until exit
                 await tcs.Task;
+
+                // Read stdout and stderr
+                string stdOut = await stdOutReadTask;
+                string stdErr = await stdErrReadTask;
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }

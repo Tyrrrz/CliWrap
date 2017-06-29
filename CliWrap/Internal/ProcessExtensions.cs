@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace CliWrap.Internal
 {
@@ -6,6 +7,9 @@ namespace CliWrap.Internal
     {
         public static bool TryKill(this Process process)
         {
+            if (process == null)
+                throw new ArgumentNullException(nameof(process));
+
             try
             {
                 process.Kill();
