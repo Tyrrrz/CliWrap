@@ -187,7 +187,7 @@ namespace CliWrap
                         tcs.TrySetCanceled();
 
                         // Kill process
-                        // ReSharper disable AccessToDisposedClosure
+                        // ReSharper disable once AccessToDisposedClosure
                         process.TryKill();
                     });
                 }
