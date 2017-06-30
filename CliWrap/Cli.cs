@@ -72,62 +72,44 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input.Arguments))
             {
-                var stdOut = new StringBuilder();
-                var stdErr = new StringBuilder();
+                // Create buffers
+                var stdOutBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
 
-                using (var outputWaitHandle = new AutoResetEvent(false))
-                using (var errorWaitHandle = new AutoResetEvent(false))
+                // Wire events
+                process.OutputDataReceived += (sender, args) =>
                 {
+                    if (args.Data != null)
+                        stdOutBuffer.AppendLine(args.Data);
+                };
+                process.ErrorDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                        stdErrBuffer.AppendLine(args.Data);
+                };
 
-                    // Set up stdout reveiver
-                    process.OutputDataReceived += (sender, e) =>
-                    {
-                        if (e.Data == null)
-                        {
-                            outputWaitHandle.Set();
-                        }
-                        else
-                        {
-                            stdOut.AppendLine(e.Data);
-                        }
-                    };
+                // Start process
+                process.Start();
 
-                    // Set up stderr reveiver
-                    process.ErrorDataReceived += (sender, e) =>
-                    {
-                        if (e.Data == null)
-                        {
-                            errorWaitHandle.Set();
-                        }
-                        else
-                        {
-                            stdErr.AppendLine(e.Data);
-                        }
-                    };
-
-                    // Start process
-                    process.Start();
-
-                    // Write stdin
-                    if (input.StandardInput != null)
-                    {
-                        using (process.StandardInput)
-                            process.StandardInput.Write(input.StandardInput);
-                    }
-
-                    // Write stdout
-                    process.BeginOutputReadLine();
-
-                    // Write stderr
-                    process.BeginErrorReadLine();
-
-                    // Wait until exit
-                    process.WaitForExit();
-                    outputWaitHandle.WaitOne();
-                    errorWaitHandle.WaitOne();
-
-                    return new ExecutionOutput(process.ExitCode, stdOut.ToString(), stdErr.ToString());
+                // Write stdin
+                if (input.StandardInput != null)
+                {
+                    using (process.StandardInput)
+                        process.StandardInput.Write(input.StandardInput);
                 }
+
+                // Begin reading stdout and stderr
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                // Wait until exit
+                process.WaitForExit();
+
+                // Get stdout and stderr
+                string stdOut = stdOutBuffer.ToString();
+                string stdErr = stdErrBuffer.ToString();
+
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
 
@@ -199,18 +181,16 @@ namespace CliWrap
                 process.Start();
 
                 // Setup cancellation token
-                if (cancellationToken != CancellationToken.None)
+                // This has to be after process start so that it can actually be killed
+                cancellationToken.Register(() =>
                 {
-                    cancellationToken.Register(() =>
-                    {
-                        // Cancel task
-                        tcs.TrySetCanceled();
+                    // Cancel task
+                    tcs.TrySetCanceled();
 
-                        // Kill process
-                        // ReSharper disable once AccessToDisposedClosure (exception-safe)
-                        process.TryKill();
-                    });
-                }
+                    // Kill process
+                    // ReSharper disable once AccessToDisposedClosure
+                    process.TryKill();
+                });
 
                 // Write stdin
                 if (input.StandardInput != null)
@@ -219,14 +199,16 @@ namespace CliWrap
                         await process.StandardInput.WriteAsync(input.StandardInput);
                 }
 
-                // Read stdout
-                string stdOut = await process.StandardOutput.ReadToEndAsync();
-
-                // Read stderr
-                string stdErr = await process.StandardError.ReadToEndAsync();
+                // Start reading tasks
+                var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
+                var stdErrReadTask = process.StandardError.ReadToEndAsync();
 
                 // Wait until exit
                 await tcs.Task;
+
+                // Get stdout and stderr
+                string stdOut = await stdOutReadTask;
+                string stdErr = await stdErrReadTask;
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
