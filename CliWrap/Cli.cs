@@ -182,18 +182,15 @@ namespace CliWrap
 
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
-                if (cancellationToken != CancellationToken.None)
+                cancellationToken.Register(() =>
                 {
-                    cancellationToken.Register(() =>
-                    {
-                        // Cancel task
-                        tcs.TrySetCanceled();
+                    // Cancel task
+                    tcs.TrySetCanceled();
 
-                        // Kill process
-                        // ReSharper disable once AccessToDisposedClosure
-                        process.TryKill();
-                    });
-                }
+                    // Kill process
+                    // ReSharper disable once AccessToDisposedClosure
+                    process.TryKill();
+                });
 
                 // Write stdin
                 if (input.StandardInput != null)
