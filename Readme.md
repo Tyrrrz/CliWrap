@@ -2,11 +2,11 @@
 
 Provides a wrapper around command line interface executables
 
-**Download:**
+## Download:
 
 - Using nuget: `Install-Package CliWrap`
 
-**Features:**
+## Features:
 
 - Full abstraction over `System.Diagnostics.Process`
 - Execute commands in a synchronous, asynchronous, fire-and-forget manner
@@ -16,7 +16,7 @@ Provides a wrapper around command line interface executables
 - Targets .NET Framework 4.5+ and .NET Core 1.0+
 - No external dependencies
 
-**Usage examples:**
+## Usage examples:
 
 Execute a command and get standard output as a string:
 
