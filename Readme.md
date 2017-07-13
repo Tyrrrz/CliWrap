@@ -1,6 +1,6 @@
 # CliWrap
 
-Provides a wrapper around command line interface executables
+Provides a wrapper around command line interface executables.
 
 ## Download
 
@@ -16,10 +16,9 @@ Provides a wrapper around command line interface executables
 - Targets .NET Framework 4.5+ and .NET Core 1.0+
 - No external dependencies
 
-## Usage examples
+## Usage
 
 Execute a command and get standard output as a string:
-
 ````c#
 var cli = new Cli("some_cli.exe");
 string result = cli.Execute("verb --option").StandardOutput;
@@ -50,10 +49,10 @@ string stdOut = output.StandardOutput;
 output.ThrowIfError();
 ````
 
-Standard input:
+Pass in standard input:
 ````c#
 var cli = new Cli("some_cli.exe");
-var input = new ExecutionInput("verb --option", "Hello World");
+var input = new ExecutionInput("verb --option", "this is stdin");
 var output = await cli.ExecuteAsync(input);
 ````
 
