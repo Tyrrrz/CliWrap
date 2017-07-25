@@ -48,7 +48,7 @@ namespace CliWrap
                 {
                     FileName = FilePath,
                     WorkingDirectory = WorkingDirectory,
-                    Arguments = arguments ?? string.Empty,
+                    Arguments = arguments,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -91,11 +91,8 @@ namespace CliWrap
                 process.Start();
 
                 // Write stdin
-                if (input.StandardInput != null)
-                {
-                    using (process.StandardInput)
-                        process.StandardInput.Write(input.StandardInput);
-                }
+                using (process.StandardInput)
+                    process.StandardInput.Write(input.StandardInput);
 
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
@@ -211,11 +208,8 @@ namespace CliWrap
                 process.Start();
 
                 // Write stdin
-                if (input.StandardInput != null)
-                {
-                    using (process.StandardInput)
-                        await process.StandardInput.WriteAsync(input.StandardInput);
-                }
+                using (process.StandardInput)
+                    await process.StandardInput.WriteAsync(input.StandardInput);
 
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed

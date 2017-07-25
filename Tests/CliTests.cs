@@ -15,7 +15,7 @@ namespace CliWrap.Tests
         private const string NeverEndingBat = "Bats\\NeverEnding.bat";
         private const string ThrowErrorBat = "Bats\\ThrowError.bat";
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public void Execute_EchoArgs_Test()
         {
             var cli = new Cli(EchoArgsBat);
@@ -29,7 +29,7 @@ namespace CliWrap.Tests
             Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public void Execute_EchoStdin_Test()
         {
             var cli = new Cli(EchoStdinBat);
@@ -44,7 +44,21 @@ namespace CliWrap.Tests
             Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
+        public void Execute_EchoStdin_Empty_Test()
+        {
+            var cli = new Cli(EchoStdinBat);
+
+            var output = cli.Execute();
+            output.ThrowIfError();
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
+        }
+
+        [TestMethod, Timeout(5000)]
         public void Execute_ThrowError_Test()
         {
             var cli = new Cli(ThrowErrorBat);
@@ -60,7 +74,7 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public void Execute_CancelEarly_Test()
+        public void Execute_NeverEnding_CancelEarly_Test()
         {
             var cli = new Cli(NeverEndingBat);
 
@@ -71,7 +85,7 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public void Execute_CancelLate_Test()
+        public void Execute_NeverEnding_CancelLate_Test()
         {
             var cli = new Cli(NeverEndingBat);
 
@@ -81,7 +95,7 @@ namespace CliWrap.Tests
             Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public void ExecuteAndForget_EchoArgs_Test()
         {
             var cli = new Cli(EchoArgsBat);
@@ -89,7 +103,7 @@ namespace CliWrap.Tests
             cli.ExecuteAndForget("Hello world");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public void ExecuteAndForget_EchoStdin_Test()
         {
             var cli = new Cli(EchoStdinBat);
@@ -98,7 +112,7 @@ namespace CliWrap.Tests
             cli.ExecuteAndForget(input);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public void ExecuteAndForget_ThrowError_Test()
         {
             var cli = new Cli(ThrowErrorBat);
@@ -106,7 +120,7 @@ namespace CliWrap.Tests
             cli.ExecuteAndForget();
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public async Task ExecuteAsync_EchoArgs_Test()
         {
             var cli = new Cli(EchoArgsBat);
@@ -120,7 +134,7 @@ namespace CliWrap.Tests
             Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
         public async Task ExecuteAsync_EchoStdin_Test()
         {
             var cli = new Cli(EchoStdinBat);
@@ -135,7 +149,21 @@ namespace CliWrap.Tests
             Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(5000)]
+        public async Task ExecuteAsync_EchoStdin_Empty_Test()
+        {
+            var cli = new Cli(EchoStdinBat);
+
+            var output = await cli.ExecuteAsync();
+            output.ThrowIfError();
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
+        }
+
+        [TestMethod, Timeout(5000)]
         public async Task ExecuteAsync_ThrowError_Test()
         {
             var cli = new Cli(ThrowErrorBat);
@@ -151,7 +179,7 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public async Task ExecuteAsync_CancelEarly_Test()
+        public async Task ExecuteAsync_NeverEnding_CancelEarly_Test()
         {
             var cli = new Cli(NeverEndingBat);
 
@@ -162,7 +190,7 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public async Task ExecuteAsync_CancelLate_Test()
+        public async Task ExecuteAsync_NeverEnding_CancelLate_Test()
         {
             var cli = new Cli(NeverEndingBat);
 
