@@ -180,8 +180,16 @@ namespace CliWrap
                 // Start process
                 process.Start();
 
+                // Write stdin
+                if (input.StandardInput != null)
+                {
+                    using (process.StandardInput)
+                        await process.StandardInput.WriteAsync(input.StandardInput);
+                }
+
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
+                // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
                     // Cancel task
@@ -191,13 +199,6 @@ namespace CliWrap
                     // ReSharper disable once AccessToDisposedClosure
                     process.TryKill();
                 });
-
-                // Write stdin
-                if (input.StandardInput != null)
-                {
-                    using (process.StandardInput)
-                        await process.StandardInput.WriteAsync(input.StandardInput);
-                }
 
                 // Begin reading stdout and stderr
                 var stdOutReadTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
