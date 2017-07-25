@@ -199,9 +199,9 @@ namespace CliWrap
                         await process.StandardInput.WriteAsync(input.StandardInput);
                 }
 
-                // Start reading tasks
-                var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
-                var stdErrReadTask = process.StandardError.ReadToEndAsync();
+                // Begin reading stdout and stderr
+                var stdOutReadTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+                var stdErrReadTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
                 // Wait until exit
                 await tcs.Task;
