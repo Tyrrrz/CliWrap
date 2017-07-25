@@ -59,6 +59,28 @@ namespace CliWrap.Tests
             Assert.AreEqual(output.StandardError, ex.StandardError);
         }
 
+        [TestMethod, Timeout(5000)]
+        public void Execute_CancelEarly_Test()
+        {
+            var cli = new Cli(NeverEndingBat);
+
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+        }
+
+        [TestMethod, Timeout(5000)]
+        public void Execute_CancelLate_Test()
+        {
+            var cli = new Cli(NeverEndingBat);
+
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromSeconds(1));
+
+            Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+        }
+
         [TestMethod]
         public void ExecuteAndForget_EchoArgs_Test()
         {

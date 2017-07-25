@@ -63,7 +63,7 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(ExecutionInput input)
+        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -97,12 +97,25 @@ namespace CliWrap
                         process.StandardInput.Write(input.StandardInput);
                 }
 
+                // Setup cancellation token
+                // This has to be after process start so that it can actually be killed
+                // and also after standard input so that it can write correctly
+                cancellationToken.Register(() =>
+                {
+                    // Kill process
+                    // ReSharper disable once AccessToDisposedClosure
+                    process.Kill();
+                });
+
                 // Begin reading stdout and stderr
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
                 // Wait until exit
                 process.WaitForExit();
+
+                // Check cancellation
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 string stdOut = stdOutBuffer.ToString();
@@ -115,14 +128,32 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
+        public ExecutionOutput Execute(ExecutionInput input)
+            => Execute(input, CancellationToken.None);
+
+        /// <summary>
+        /// Executes CLI with given input, waits until completion and returns output
+        /// </summary>
+        public ExecutionOutput Execute(string arguments, CancellationToken cancellationToken)
+            => Execute(new ExecutionInput(arguments), cancellationToken);
+
+        /// <summary>
+        /// Executes CLI with given input, waits until completion and returns output
+        /// </summary>
         public ExecutionOutput Execute(string arguments)
-            => Execute(new ExecutionInput(arguments));
+            => Execute(new ExecutionInput(arguments), CancellationToken.None);
+
+        /// <summary>
+        /// Executes CLI without input, waits until completion and returns output
+        /// </summary>
+        public ExecutionOutput Execute(CancellationToken cancellationToken)
+            => Execute(ExecutionInput.Empty, cancellationToken);
 
         /// <summary>
         /// Executes CLI without input, waits until completion and returns output
         /// </summary>
         public ExecutionOutput Execute()
-            => Execute(ExecutionInput.Empty);
+            => Execute(ExecutionInput.Empty, CancellationToken.None);
 
         /// <summary>
         /// Executes CLI with given input, without waiting for completion
@@ -174,7 +205,7 @@ namespace CliWrap
             using (var process = CreateProcess(input.Arguments))
             {
                 // Wire an event that signals task completion
-                process.Exited += (sender, args) => tcs.TrySetResult(null);
+                process.Exited += (sender, args) => tcs.SetResult(null);
 
                 // Start process
                 process.Start();
