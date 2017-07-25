@@ -42,7 +42,7 @@ namespace CliWrap
 
         private Process CreateProcess(string arguments)
         {
-            var process = new Process
+            return new Process
             {
                 StartInfo =
                 {
@@ -57,7 +57,6 @@ namespace CliWrap
                 },
                 EnableRaisingEvents = true
             };
-            return process;
         }
 
         /// <summary>
@@ -167,11 +166,8 @@ namespace CliWrap
                 process.Start();
 
                 // Write stdin
-                if (input.StandardInput != null)
-                {
-                    using (process.StandardInput)
-                        process.StandardInput.Write(input.StandardInput);
-                }
+                using (process.StandardInput)
+                    process.StandardInput.Write(input.StandardInput);
             }
         }
 
@@ -209,7 +205,7 @@ namespace CliWrap
 
                 // Write stdin
                 using (process.StandardInput)
-                    await process.StandardInput.WriteAsync(input.StandardInput);
+                    await process.StandardInput.WriteAsync(input.StandardInput).ConfigureAwait(false);
 
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
@@ -226,14 +222,14 @@ namespace CliWrap
                 var stdErrReadTask = process.StandardError.ReadToEndAsync();
 
                 // Wait until exit
-                await tcs.Task;
+                await tcs.Task.ConfigureAwait(false);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
-                string stdOut = await stdOutReadTask;
-                string stdErr = await stdErrReadTask;
+                string stdOut = await stdOutReadTask.ConfigureAwait(false);
+                string stdErr = await stdErrReadTask.ConfigureAwait(false);
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
@@ -243,30 +239,30 @@ namespace CliWrap
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input)
-            => await ExecuteAsync(input, CancellationToken.None);
+            => await ExecuteAsync(input, CancellationToken.None).ConfigureAwait(false);
 
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken)
-            => await ExecuteAsync(new ExecutionInput(arguments), cancellationToken);
+            => await ExecuteAsync(new ExecutionInput(arguments), cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync(string arguments)
-            => await ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None);
+            => await ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None).ConfigureAwait(false);
 
         /// <summary>
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken)
-            => await ExecuteAsync(ExecutionInput.Empty, cancellationToken);
+            => await ExecuteAsync(ExecutionInput.Empty, cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync()
-            => await ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
+            => await ExecuteAsync(ExecutionInput.Empty, CancellationToken.None).ConfigureAwait(false);
     }
 }
