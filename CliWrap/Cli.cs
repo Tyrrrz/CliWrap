@@ -216,9 +216,6 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Cancel task
-                    tcs.SetCanceled();
-
                     // Kill process
                     // ReSharper disable once AccessToDisposedClosure
                     process.Kill();
@@ -230,6 +227,9 @@ namespace CliWrap
 
                 // Wait until exit
                 await tcs.Task;
+
+                // Check cancellation
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 string stdOut = await stdOutReadTask;

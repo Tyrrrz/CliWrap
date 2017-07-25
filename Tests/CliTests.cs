@@ -186,7 +186,7 @@ namespace CliWrap.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
         }
 
         [TestMethod, Timeout(5000)]
@@ -197,7 +197,7 @@ namespace CliWrap.Tests
             var cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-            await Assert.ThrowsExceptionAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
         }
     }
 }
