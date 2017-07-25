@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Models;
 using System.Text;
-using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -193,16 +192,16 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Cancel task
-                    tcs.TrySetCanceled();
+                    tcs.SetCanceled();
 
                     // Kill process
                     // ReSharper disable once AccessToDisposedClosure
-                    process.TryKill();
+                    process.Kill();
                 });
 
                 // Begin reading stdout and stderr
-                var stdOutReadTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-                var stdErrReadTask = process.StandardError.ReadToEndAsync(cancellationToken);
+                var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
+                var stdErrReadTask = process.StandardError.ReadToEndAsync();
 
                 // Wait until exit
                 await tcs.Task;
