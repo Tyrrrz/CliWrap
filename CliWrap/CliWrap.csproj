@@ -2,18 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;netcoreapp1.0</TargetFrameworks>
-    <AssemblyName>CliWrap</AssemblyName>
-    <RootNamespace>CliWrap</RootNamespace>
-    <PackageId>CliWrap</PackageId>
-    <Product>CLI Wrap</Product>
-    <Description>Wrapper for command line interface executables</Description>
-    <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
-    <AssemblyVersion>1.5</AssemblyVersion>
-    <PackageVersion>$(AssemblyVersion)</PackageVersion>
-    <FileVersion>$(AssemblyVersion)</FileVersion>
+    <Version>1.5</Version>
     <Company>Tyrrrz</Company>
     <Authors>$(Company)</Authors>
-    <Copyright>Copyright (C) Alexey 'Tyrrrz' Golub 2017</Copyright>
+    <Description>Wrapper for command line interface executables</Description>
+    <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
+    <Copyright>Copyright (C) 2017 Alexey Golub</Copyright>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/Tyrrrz/CliWrap/master/License.txt</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>

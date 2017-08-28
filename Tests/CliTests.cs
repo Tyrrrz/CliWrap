@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap;
 using CliWrap.Exceptions;
 using CliWrap.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CliWrap.Tests
+namespace Tests
 {
     [TestClass]
     public class CliTests

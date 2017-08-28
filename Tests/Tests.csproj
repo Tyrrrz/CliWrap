@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
-    <AssemblyName>CliWrap.Tests</AssemblyName>
-    <RootNamespace>CliWrap.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,10 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CliWrap\CliWrap.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 
   <ItemGroup>
