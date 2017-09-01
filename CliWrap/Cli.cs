@@ -114,8 +114,8 @@ namespace CliWrap
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
-                string stdOut = stdOutBuffer.ToString();
-                string stdErr = stdErrBuffer.ToString();
+                var stdOut = stdOutBuffer.ToString();
+                var stdErr = stdErrBuffer.ToString();
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
@@ -228,8 +228,8 @@ namespace CliWrap
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
-                string stdOut = await stdOutReadTask.ConfigureAwait(false);
-                string stdErr = await stdErrReadTask.ConfigureAwait(false);
+                var stdOut = await stdOutReadTask.ConfigureAwait(false);
+                var stdErr = await stdErrReadTask.ConfigureAwait(false);
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }

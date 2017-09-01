@@ -5,9 +5,9 @@
     <Version>1.5</Version>
     <Company>Tyrrrz</Company>
     <Authors>$(Company)</Authors>
+    <Copyright>Copyright (C) 2017 Alexey Golub</Copyright>
     <Description>Wrapper for command line interface executables</Description>
     <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
-    <Copyright>Copyright (C) 2017 Alexey Golub</Copyright>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/Tyrrrz/CliWrap/master/License.txt</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
