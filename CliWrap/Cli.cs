@@ -98,9 +98,16 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Kill process
-                    // ReSharper disable once AccessToDisposedClosure
-                    process.Kill();
+                    // Try to kill process
+                    try
+                    {
+                        // ReSharper disable once AccessToDisposedClosure
+                        process.Kill();
+                    }
+                    catch (Exception)
+                    {
+                        // Just ignore if you can't kill
+                    }
                 });
 
                 // Begin reading stdout and stderr
@@ -212,9 +219,16 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Kill process
-                    // ReSharper disable once AccessToDisposedClosure
-                    process.Kill();
+                    // Try to kill process
+                    try
+                    {
+                        // ReSharper disable once AccessToDisposedClosure
+                        process.Kill();
+                    }
+                    catch (Exception)
+                    {
+                        // Just ignore if you can't kill
+                    }
                 });
 
                 // Begin reading stdout and stderr
