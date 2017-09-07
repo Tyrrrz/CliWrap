@@ -99,7 +99,7 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Try to kill process
+                    // Kill process if it's not dead already
                     // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
@@ -213,7 +213,7 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Try to kill process
+                    // Kill process if it's not dead already
                     // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
