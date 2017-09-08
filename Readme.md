@@ -18,50 +18,44 @@ Provides a wrapper around command line interface executables.
 
 ## Usage
 
-Execute a command and get standard output as a string:
-````c#
+Execute a command and process output:
+```c#
+// Setup
 var cli = new Cli("some_cli.exe");
-string result = cli.Execute("verb --option").StandardOutput;
-````
 
-Execute a command asynchronously:
-````c#
-var cli = new Cli("some_cli.exe");
-string result = (await cli.ExecuteAsync("verb --option")).StandardOutput;
-````
+// Execute
+var output = await cli.ExecuteAsync("command --option");
+// ... or in synchronous manner:
+// var output = cli.Execute("command --option");
 
-Fire and forget:
-````c#
-var cli = new Cli("some_cli.exe");
-cli.ExecuteAndForget("verb --option");
-````
-
-Process exit code and standard error:
-````c#
-var cli = new Cli("some_cli.exe");
-var output = await cli.ExecuteAsync("verb --option");
-
-int exitCode = output.ExitCode;
-string stdErr = output.StandardError;
-string stdOut = output.StandardOutput;
-
-// Throw if the CLI reported an error
+// Throw an exception if CLI reported an error
 output.ThrowIfError();
-````
+
+// Process output
+var code = output.ExitCode;
+var stdOut = output.StandardOutput;
+var stdErr = output.StandardError;
+```
+
+Execute a command without waiting for completion:
+```c#
+var cli = new Cli("some_cli.exe");
+cli.ExecuteAndForget("command --option");
+```
 
 Pass in standard input:
-````c#
+```c#
 var cli = new Cli("some_cli.exe");
-var input = new ExecutionInput("verb --option", "this is stdin");
+var input = new ExecutionInput("command --option", "this is stdin");
 var output = await cli.ExecuteAsync(input);
-````
+```
 
 Cancel execution:
-````c#
+```c#
 var cli = new Cli("some_cli.exe");
 
 var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
 
-var output = await cli.ExecuteAsync("verb --option", cts.Token);
-````
+var output = await cli.ExecuteAsync("command --option", cts.Token);
+```
