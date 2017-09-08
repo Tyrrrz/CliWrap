@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Internal;
 using CliWrap.Models;
 using System.Text;
 
@@ -98,9 +99,9 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Kill process
+                    // Kill process if it's not dead already
                     // ReSharper disable once AccessToDisposedClosure
-                    process.Kill();
+                    process.KillIfRunning();
                 });
 
                 // Begin reading stdout and stderr
@@ -212,9 +213,9 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 cancellationToken.Register(() =>
                 {
-                    // Kill process
+                    // Kill process if it's not dead already
                     // ReSharper disable once AccessToDisposedClosure
-                    process.Kill();
+                    process.KillIfRunning();
                 });
 
                 // Begin reading stdout and stderr
