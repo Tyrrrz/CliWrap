@@ -239,31 +239,31 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input)
-            => await ExecuteAsync(input, CancellationToken.None).ConfigureAwait(false);
+        public Task<ExecutionOutput> ExecuteAsync(ExecutionInput input)
+            => ExecuteAsync(input, CancellationToken.None);
 
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken)
-            => await ExecuteAsync(new ExecutionInput(arguments), cancellationToken).ConfigureAwait(false);
+        public Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken)
+            => ExecuteAsync(new ExecutionInput(arguments), cancellationToken);
 
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(string arguments)
-            => await ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None).ConfigureAwait(false);
+        public Task<ExecutionOutput> ExecuteAsync(string arguments)
+            => ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None);
 
         /// <summary>
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken)
-            => await ExecuteAsync(ExecutionInput.Empty, cancellationToken).ConfigureAwait(false);
+        public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken)
+            => ExecuteAsync(ExecutionInput.Empty, cancellationToken);
 
         /// <summary>
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync()
-            => await ExecuteAsync(ExecutionInput.Empty, CancellationToken.None).ConfigureAwait(false);
+        public Task<ExecutionOutput> ExecuteAsync()
+            => ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
     }
 }

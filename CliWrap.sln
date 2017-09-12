@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.3
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{43514CCF-887D-43B9-81D0-A9930FE73772}"
 	ProjectSection(SolutionItems) = preProject
@@ -9,9 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap", "CliWrap\CliWrap.csproj", "{03ECCB7F-144F-4742-BF68-7F84026DA775}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CliWrap", "CliWrap\CliWrap.csproj", "{03ECCB7F-144F-4742-BF68-7F84026DA775}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{890D9A75-4B00-4D89-AAF8-936726B45410}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CliWrap.Tests", "CliWrap.Tests\CliWrap.Tests.csproj", "{890D9A75-4B00-4D89-AAF8-936726B45410}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E62AAC63-51EC-45A1-A500-7B073424CA8C}
 	EndGlobalSection
 EndGlobal
