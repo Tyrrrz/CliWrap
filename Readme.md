@@ -1,6 +1,6 @@
 # CliWrap
 
-Provides a wrapper around command line interface executables.
+CliWrap is a library that makes it easier to interact with command line interfaces. It lets you pass command line arguments and standard input, read standard output, standard error and exit code - all without having to deal with buffers or the process class. The library can also handle errors reported by the underlying process, allows command cancellation and has both synchronous and asynchronous APIs.
 
 ## Download
 
