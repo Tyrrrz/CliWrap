@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CliWrap.Internal;
 using CliWrap.Models;
 using System.Text;
+using System.Collections.Generic;
 
 namespace CliWrap
 {
@@ -41,9 +42,9 @@ namespace CliWrap
         {
         }
 
-        private Process CreateProcess(string arguments)
+        private Process CreateProcess(string arguments, Dictionary<string, string> env = null)
         {
-            return new Process
+            var retProcess = new Process
             {
                 StartInfo =
                 {
@@ -58,6 +59,16 @@ namespace CliWrap
                 },
                 EnableRaisingEvents = true
             };
+
+            if (env != null)
+            {
+                foreach (var item in env)
+                {
+                    retProcess.StartInfo.EnvironmentVariables.Add(item.Key, item.Value);
+                }
+            }
+
+            return retProcess;
         }
 
         /// <summary>
@@ -69,7 +80,7 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(input.Arguments))
+            using (var process = CreateProcess(input.Arguments, input.EnvironmentVariables))
             {
                 // Create buffers
                 var stdOutBuffer = new StringBuilder();
@@ -161,7 +172,7 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(input.Arguments))
+            using (var process = CreateProcess(input.Arguments, input.EnvironmentVariables))
             {
                 // Start process
                 process.Start();
@@ -196,7 +207,7 @@ namespace CliWrap
             var tcs = new TaskCompletionSource<object>();
 
             // Create process
-            using (var process = CreateProcess(input.Arguments))
+            using (var process = CreateProcess(input.Arguments, input.EnvironmentVariables))
             {
                 // Wire an event that signals task completion
                 process.Exited += (sender, args) => tcs.SetResult(null);
