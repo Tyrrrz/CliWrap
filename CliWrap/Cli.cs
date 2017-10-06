@@ -16,6 +16,11 @@ namespace CliWrap
     public class Cli
     {
         /// <summary>
+        /// Whether to throw exception when the process has been cancelled
+        /// </summary>
+        public static bool ThrowOnCancel { get; set; } = false;
+
+        /// <summary>
         /// Target file path
         /// </summary>
         public string FilePath { get; }
@@ -64,7 +69,9 @@ namespace CliWrap
             {
                 foreach (var item in env)
                 {
+#if NET45
                     retProcess.StartInfo.EnvironmentVariables.Add(item.Key, item.Value);
+#endif
                 }
             }
 
@@ -123,13 +130,14 @@ namespace CliWrap
                 process.WaitForExit();
 
                 // Check cancellation
-                cancellationToken.ThrowIfCancellationRequested();
+                if (ThrowOnCancel)
+                    cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, cancellationToken.IsCancellationRequested);
             }
         }
 
