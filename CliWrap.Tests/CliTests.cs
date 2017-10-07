@@ -34,7 +34,7 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(EchoStdinBat);
 
-            var input = new ExecutionInput(standardInput: "Hello world");
+            var input = new ExecutionInput {StandardInput = "Hello world"};
             var output = cli.Execute(input);
             output.ThrowIfError();
 
@@ -108,7 +108,7 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(EchoStdinBat);
 
-            var input = new ExecutionInput(standardInput: "Hello world");
+            var input = new ExecutionInput {StandardInput = "Hello world"};
             cli.ExecuteAndForget(input);
         }
 
@@ -139,7 +139,7 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(EchoStdinBat);
 
-            var input = new ExecutionInput(standardInput: "Hello world");
+            var input = new ExecutionInput {StandardInput = "Hello world"};
             var output = await cli.ExecuteAsync(input);
             output.ThrowIfError();
 

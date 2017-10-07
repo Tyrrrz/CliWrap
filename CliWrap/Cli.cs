@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using CliWrap.Internal;
 using CliWrap.Models;
 using System.Text;
-using System.Collections.Generic;
 
 namespace CliWrap
 {
@@ -42,15 +41,16 @@ namespace CliWrap
         {
         }
 
-        private Process CreateProcess(ExecutionInput execInput)
+        private Process CreateProcess(ExecutionInput input)
         {
-            var retProcess = new Process
+            // Create process
+            var process = new Process
             {
                 StartInfo =
                 {
                     FileName = FilePath,
                     WorkingDirectory = WorkingDirectory,
-                    Arguments = execInput.Arguments,
+                    Arguments = input.Arguments,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -60,17 +60,18 @@ namespace CliWrap
                 EnableRaisingEvents = true
             };
 
-            if (execInput.EnvironmentVariables != null)
+#if NET45 || NETSTANDARD2_0
+            // Set environment variables
+            if (input.EnvironmentVariables != null)
             {
-                foreach (var item in execInput.EnvironmentVariables)
+                foreach (var variable in input.EnvironmentVariables)
                 {
-#if NET45
-                    retProcess.StartInfo.EnvironmentVariables.Add(item.Key, item.Value);
-#endif
+                    process.StartInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
                 }
             }
+#endif
 
-            return retProcess;
+            return process;
         }
 
         /// <summary>
