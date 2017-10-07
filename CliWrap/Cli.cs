@@ -42,7 +42,7 @@ namespace CliWrap
         {
         }
 
-        private Process CreateProcess(string arguments, Dictionary<string, string> env = null)
+        private Process CreateProcess(ExecutionInput execInput)
         {
             var retProcess = new Process
             {
@@ -50,7 +50,7 @@ namespace CliWrap
                 {
                     FileName = FilePath,
                     WorkingDirectory = WorkingDirectory,
-                    Arguments = arguments,
+                    Arguments = execInput.Arguments,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -60,9 +60,9 @@ namespace CliWrap
                 EnableRaisingEvents = true
             };
 
-            if (env != null)
+            if (execInput.EnvironmentVariables != null)
             {
-                foreach (var item in env)
+                foreach (var item in execInput.EnvironmentVariables)
                 {
 #if NET45
                     retProcess.StartInfo.EnvironmentVariables.Add(item.Key, item.Value);
