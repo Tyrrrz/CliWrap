@@ -64,7 +64,7 @@ namespace CliWrap
             {
                 foreach (var item in execInput.EnvironmentVariables)
                 {
-#if NET45 || NETSTANDARD2_0
+#if NET45
                     retProcess.StartInfo.EnvironmentVariables.Add(item.Key, item.Value);
 #endif
                 }
