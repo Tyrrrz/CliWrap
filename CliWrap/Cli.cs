@@ -82,7 +82,7 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(input.Arguments, input.EnvironmentVariables))
+            using (var process = CreateProcess(input))
             {
                 // Create buffers
                 var stdOutBuffer = new StringBuilder();
@@ -174,7 +174,7 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(input.Arguments, input.EnvironmentVariables))
+            using (var process = CreateProcess(input))
             {
                 // Start process
                 process.Start();
@@ -209,7 +209,7 @@ namespace CliWrap
             var tcs = new TaskCompletionSource<object>();
 
             // Create process
-            using (var process = CreateProcess(input.Arguments, input.EnvironmentVariables))
+            using (var process = CreateProcess(input))
             {
                 // Wire an event that signals task completion
                 process.Exited += (sender, args) => tcs.SetResult(null);
