@@ -1,4 +1,6 @@
-﻿namespace CliWrap.Models
+﻿using System.Collections.Generic;
+
+namespace CliWrap.Models
 {
     /// <summary>
     /// Input used when executing a command line interface
@@ -8,18 +10,24 @@
         /// <summary>
         /// Command line arguments
         /// </summary>
-        public string Arguments { get; }
+        public string Arguments { get; set; }
 
         /// <summary>
         /// Standard input
         /// </summary>
-        public string StandardInput { get; }
+        public string StandardInput { get; set; }
+
+#if NET45 || NETSTANDARD2_0
+        /// <summary>
+        /// Environment variables
+        /// </summary>
+        public IDictionary<string, string> EnvironmentVariables { get; set; }
+#endif
 
         /// <inheritdoc />
-        public ExecutionInput(string arguments = null, string standardInput = null)
+        public ExecutionInput(string arguments = null)
         {
             Arguments = arguments;
-            StandardInput = standardInput;
         }
     }
 

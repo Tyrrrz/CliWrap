@@ -41,15 +41,16 @@ namespace CliWrap
         {
         }
 
-        private Process CreateProcess(string arguments)
+        private Process CreateProcess(ExecutionInput input)
         {
-            return new Process
+            // Create process
+            var process = new Process
             {
                 StartInfo =
                 {
                     FileName = FilePath,
                     WorkingDirectory = WorkingDirectory,
-                    Arguments = arguments,
+                    Arguments = input.Arguments,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -58,6 +59,19 @@ namespace CliWrap
                 },
                 EnableRaisingEvents = true
             };
+
+#if NET45 || NETSTANDARD2_0
+            // Set environment variables
+            if (input.EnvironmentVariables != null)
+            {
+                foreach (var variable in input.EnvironmentVariables)
+                {
+                    process.StartInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
+                }
+            }
+#endif
+
+            return process;
         }
 
         /// <summary>
@@ -69,7 +83,7 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(input.Arguments))
+            using (var process = CreateProcess(input))
             {
                 // Create buffers
                 var stdOutBuffer = new StringBuilder();
@@ -161,7 +175,7 @@ namespace CliWrap
                 throw new ArgumentNullException(nameof(input));
 
             // Create process
-            using (var process = CreateProcess(input.Arguments))
+            using (var process = CreateProcess(input))
             {
                 // Start process
                 process.Start();
@@ -196,7 +210,7 @@ namespace CliWrap
             var tcs = new TaskCompletionSource<object>();
 
             // Create process
-            using (var process = CreateProcess(input.Arguments))
+            using (var process = CreateProcess(input))
             {
                 // Wire an event that signals task completion
                 process.Exited += (sender, args) => tcs.SetResult(null);
