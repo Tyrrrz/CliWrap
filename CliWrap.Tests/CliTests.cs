@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
@@ -12,7 +11,7 @@ namespace CliWrap.Tests
     public class CliTests
     {
         private const string EchoArgsBat = "Bats\\EchoArgs.bat";
-        private const string EchoEnvVarsBat = "Bats\\EchoEnvVars.bat";
+        private const string EchoEnvVarBat = "Bats\\EchoEnvVar.bat";
         private const string EchoStdinBat = "Bats\\EchoStdin.bat";
         private const string NeverEndingBat = "Bats\\NeverEnding.bat";
         private const string ThrowErrorBat = "Bats\\ThrowError.bat";
@@ -36,7 +35,7 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(EchoStdinBat);
 
-            var input = new ExecutionInput {StandardInput = "Hello world"};
+            var input = new ExecutionInput(standardInput: "Hello world");
             var output = cli.Execute(input);
             output.ThrowIfError();
 
@@ -61,14 +60,13 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public void Execute_EchoEnvVars_Test()
+        public void Execute_EchoEnvVar_Test()
         {
-            var cli = new Cli(EchoEnvVarsBat);
+            var cli = new Cli(EchoEnvVarBat);
 
-            var input = new ExecutionInput
-            {
-                EnvironmentVariables = new Dictionary<string, string> {{"TEST_ENV_VAR", "Hello world"}}
-            };
+            var input = new ExecutionInput();
+            input.EnvironmentVariables.Add("TEST_ENV_VAR", "Hello world");
+
             var output = cli.Execute(input);
             output.ThrowIfError();
 
@@ -142,7 +140,7 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(EchoStdinBat);
 
-            var input = new ExecutionInput {StandardInput = "Hello world"};
+            var input = new ExecutionInput(standardInput: "Hello world");
             var output = await cli.ExecuteAsync(input);
             output.ThrowIfError();
 
@@ -167,14 +165,13 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public async Task ExecuteAsync_EchoEnvVars_Test()
+        public async Task ExecuteAsync_EchoEnvVar_Test()
         {
-            var cli = new Cli(EchoEnvVarsBat);
+            var cli = new Cli(EchoEnvVarBat);
 
-            var input = new ExecutionInput
-            {
-                EnvironmentVariables = new Dictionary<string, string> {{"TEST_ENV_VAR", "Hello world"}}
-            };
+            var input = new ExecutionInput();
+            input.EnvironmentVariables.Add("TEST_ENV_VAR", "Hello world");
+
             var output = await cli.ExecuteAsync(input);
             output.ThrowIfError();
 

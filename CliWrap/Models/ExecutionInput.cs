@@ -10,24 +10,25 @@ namespace CliWrap.Models
         /// <summary>
         /// Command line arguments
         /// </summary>
-        public string Arguments { get; set; }
+        public string Arguments { get; }
 
         /// <summary>
         /// Standard input
         /// </summary>
-        public string StandardInput { get; set; }
+        public string StandardInput { get; }
 
 #if NET45 || NETSTANDARD2_0
         /// <summary>
         /// Environment variables
         /// </summary>
-        public IDictionary<string, string> EnvironmentVariables { get; set; }
+        public IDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>();
 #endif
 
         /// <summary />
-        public ExecutionInput(string arguments = null)
+        public ExecutionInput(string arguments = null, string standardInput = null)
         {
             Arguments = arguments;
+            StandardInput = standardInput;
         }
     }
 

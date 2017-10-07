@@ -62,12 +62,9 @@ namespace CliWrap
 
 #if NET45 || NETSTANDARD2_0
             // Set environment variables
-            if (input.EnvironmentVariables != null)
+            foreach (var variable in input.EnvironmentVariables)
             {
-                foreach (var variable in input.EnvironmentVariables)
-                {
-                    process.StartInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
-                }
+                process.StartInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
             }
 #endif
 

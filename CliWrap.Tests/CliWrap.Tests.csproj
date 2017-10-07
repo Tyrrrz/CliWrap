@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Bats\EchoEnvVars.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Bats\EchoArgs.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Bats\EchoEnvVar.bat">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Bats\EchoStdin.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

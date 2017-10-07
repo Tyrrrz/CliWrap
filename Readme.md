@@ -1,6 +1,6 @@
 # CliWrap
 
-CliWrap is a library that makes it easier to interact with command line interfaces. It lets you pass command line arguments and standard input, read standard output, standard error and exit code - all without having to deal with buffers or the process class. The library can also handle errors reported by the underlying process, allows command cancellation and has both synchronous and asynchronous APIs.
+CliWrap is a library that makes it easier to interact with command line interfaces. It provides a convenient wrapper around the target executable, allowing you to pass execution parameters and read the resulting output. The library can also handle errors reported by the underlying process, allows command cancellation and has both synchronous and asynchronous APIs.
 
 ## Download
 
@@ -10,10 +10,10 @@ CliWrap is a library that makes it easier to interact with command line interfac
 
 - Full abstraction over `System.Diagnostics.Process`
 - Execute commands in a synchronous, asynchronous, fire-and-forget manner
-- Pass in command line arguments as well as standard input
+- Pass in command line arguments, standard input and environment variables
 - Get process exit code, standard output and standard error as the result
 - Stop the execution early using `System.Threading.CancellationToken`
-- Targets .NET Framework 4.5+ and .NET Core 1.0+
+- Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
 
 ## Usage
@@ -47,6 +47,14 @@ Pass in standard input:
 ```c#
 var cli = new Cli("some_cli.exe");
 var input = new ExecutionInput("command --option", "this is stdin");
+var output = await cli.ExecuteAsync(input);
+```
+
+Pass in environment variables:
+```c#
+var cli = new Cli("some_cli.exe");
+var input = new ExecutionInput("command --option");
+input.EnvironmentVariables.Add("some_var", "some_value");
 var output = await cli.ExecuteAsync(input);
 ```
 
