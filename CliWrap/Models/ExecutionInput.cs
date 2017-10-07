@@ -24,7 +24,7 @@ namespace CliWrap.Models
         public IDictionary<string, string> EnvironmentVariables { get; set; }
 #endif
 
-        /// <inheritdoc />
+        /// <summary />
         public ExecutionInput(string arguments = null)
         {
             Arguments = arguments;

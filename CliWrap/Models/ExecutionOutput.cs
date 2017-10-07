@@ -27,7 +27,7 @@ namespace CliWrap.Models
         /// </summary>
         public bool HasError => !string.IsNullOrEmpty(StandardError);
 
-        /// <inheritdoc />
+        /// <summary />
         public ExecutionOutput(int exitCode, string standardOutput, string standardError)
         {
             ExitCode = exitCode;

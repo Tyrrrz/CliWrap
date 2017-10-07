@@ -12,7 +12,7 @@ namespace CliWrap.Exceptions
         /// </summary>
         public string StandardError { get; }
 
-        /// <inheritdoc />
+        /// <summary />
         public StandardErrorException(string standardError)
             : base("Command line executable reported an error")
         {

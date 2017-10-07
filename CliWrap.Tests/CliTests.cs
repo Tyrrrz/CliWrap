@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
@@ -11,6 +12,7 @@ namespace CliWrap.Tests
     public class CliTests
     {
         private const string EchoArgsBat = "Bats\\EchoArgs.bat";
+        private const string EchoEnvVarsBat = "Bats\\EchoEnvVars.bat";
         private const string EchoStdinBat = "Bats\\EchoStdin.bat";
         private const string NeverEndingBat = "Bats\\NeverEnding.bat";
         private const string ThrowErrorBat = "Bats\\ThrowError.bat";
@@ -55,6 +57,24 @@ namespace CliWrap.Tests
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
+        }
+
+        [TestMethod, Timeout(5000)]
+        public void Execute_EchoEnvVars_Test()
+        {
+            var cli = new Cli(EchoEnvVarsBat);
+
+            var input = new ExecutionInput
+            {
+                EnvironmentVariables = new Dictionary<string, string> {{"TEST_ENV_VAR", "Hello world"}}
+            };
+            var output = cli.Execute(input);
+            output.ThrowIfError();
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
@@ -104,23 +124,6 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public void ExecuteAndForget_EchoStdin_Test()
-        {
-            var cli = new Cli(EchoStdinBat);
-
-            var input = new ExecutionInput {StandardInput = "Hello world"};
-            cli.ExecuteAndForget(input);
-        }
-
-        [TestMethod, Timeout(5000)]
-        public void ExecuteAndForget_ThrowError_Test()
-        {
-            var cli = new Cli(ThrowErrorBat);
-
-            cli.ExecuteAndForget();
-        }
-
-        [TestMethod, Timeout(5000)]
         public async Task ExecuteAsync_EchoArgs_Test()
         {
             var cli = new Cli(EchoArgsBat);
@@ -160,6 +163,24 @@ namespace CliWrap.Tests
             Assert.IsNotNull(output);
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
+            Assert.AreEqual("", output.StandardError.TrimEnd());
+        }
+
+        [TestMethod, Timeout(5000)]
+        public async Task ExecuteAsync_EchoEnvVars_Test()
+        {
+            var cli = new Cli(EchoEnvVarsBat);
+
+            var input = new ExecutionInput
+            {
+                EnvironmentVariables = new Dictionary<string, string> {{"TEST_ENV_VAR", "Hello world"}}
+            };
+            var output = await cli.ExecuteAsync(input);
+            output.ThrowIfError();
+
+            Assert.IsNotNull(output);
+            Assert.AreEqual(14, output.ExitCode);
+            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
         }
 
