@@ -131,7 +131,7 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, cancellationToken.IsCancellationRequested);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
 
