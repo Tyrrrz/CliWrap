@@ -16,11 +16,6 @@ namespace CliWrap
     public class Cli
     {
         /// <summary>
-        /// Whether to throw exception when the process has been cancelled
-        /// </summary>
-        public static bool ThrowOnCancel { get; set; } = false;
-
-        /// <summary>
         /// Target file path
         /// </summary>
         public string FilePath { get; }
@@ -130,8 +125,7 @@ namespace CliWrap
                 process.WaitForExit();
 
                 // Check cancellation
-                if (ThrowOnCancel)
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
