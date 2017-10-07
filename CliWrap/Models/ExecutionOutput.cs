@@ -27,12 +27,18 @@ namespace CliWrap.Models
         /// </summary>
         public bool HasError => !string.IsNullOrEmpty(StandardError);
 
+        /// <summary>
+        /// Whether the process has been abruptly terminated
+        /// </summary>
+        public bool WasCancelled { get; }
+
         /// <inheritdoc />
-        public ExecutionOutput(int exitCode, string standardOutput, string standardError)
+        public ExecutionOutput(int exitCode, string standardOutput, string standardError, bool cancelled = false)
         {
             ExitCode = exitCode;
             StandardOutput = standardOutput;
             StandardError = standardError;
+            WasCancelled = cancelled;
         }
 
         /// <summary>
