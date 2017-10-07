@@ -20,10 +20,10 @@ namespace CliWrap.Models
         /// <summary>
         /// Environment variables for the process
         /// </summary>
-        public Dictionary<string, string> EnvironmentVariables { get; }
+        public IDictionary<string, string> EnvironmentVariables { get; }
 
         /// <inheritdoc />
-        public ExecutionInput(string arguments = null, string standardInput = null, Dictionary<string, string> envVars = null)
+        public ExecutionInput(string arguments = null, string standardInput = null, IDictionary<string, string> envVars = null)
         {
             Arguments = arguments;
             StandardInput = standardInput;
