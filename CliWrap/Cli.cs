@@ -25,6 +25,23 @@ namespace CliWrap
         public string WorkingDirectory { get; }
 
         /// <summary>
+        /// This delegate is used for events regarding the real time output of the process
+        /// </summary>
+        /// <param name="origin">The cli wrapper where the output is originating from</param>
+        /// <param name="data">The line that got written to the output</param>
+        public delegate void ProcessDataReceived(Cli origin, string data);
+
+        /// <summary>
+        /// This event is invoked when the process has written a line to the standard output
+        /// </summary>
+        public event ProcessDataReceived StdOutDataReceived;
+
+        /// <summary>
+        /// This event is invoked when the process has written a line to the standard error
+        /// </summary>
+        public event ProcessDataReceived StdErrDataReceived;
+
+        /// <summary>
         /// Initializes CLI wrapper on a target
         /// </summary>
         public Cli(string filePath, string workingDirectory)
@@ -89,13 +106,18 @@ namespace CliWrap
                 // Wire events
                 process.OutputDataReceived += (sender, args) =>
                 {
-                    if (args.Data != null)
+                    if (args.Data != null) {
                         stdOutBuffer.AppendLine(args.Data);
+                        StdOutDataReceived?.Invoke(this, args.Data);
+                    }
                 };
+
                 process.ErrorDataReceived += (sender, args) =>
                 {
-                    if (args.Data != null)
+                    if (args.Data != null) {
                         stdErrBuffer.AppendLine(args.Data);
+                        StdErrDataReceived?.Invoke(this, args.Data);
+                    }
                 };
 
                 // Start process
@@ -212,6 +234,25 @@ namespace CliWrap
                 // Wire an event that signals task completion
                 process.Exited += (sender, args) => tcs.SetResult(null);
 
+                // Create buffers
+                var stdOutBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
+
+                // Wire events
+                process.OutputDataReceived += (sender, args) => {
+                    if (args.Data != null) {
+                        stdOutBuffer.AppendLine(args.Data);
+                        StdOutDataReceived?.Invoke(this, args.Data);
+                    }
+                };
+
+                process.ErrorDataReceived += (sender, args) => {
+                    if (args.Data != null) {
+                        stdErrBuffer.AppendLine(args.Data);
+                        StdErrDataReceived?.Invoke(this, args.Data);
+                    }
+                };
+
                 // Start process
                 process.Start();
 
@@ -230,18 +271,18 @@ namespace CliWrap
                 });
 
                 // Begin reading stdout and stderr
-                var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
-                var stdErrReadTask = process.StandardError.ReadToEndAsync();
-
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
-
+                
                 // Get stdout and stderr
-                var stdOut = await stdOutReadTask.ConfigureAwait(false);
-                var stdErr = await stdErrReadTask.ConfigureAwait(false);
+                var stdOut = stdOutBuffer.ToString();
+                var stdErr = stdErrBuffer.ToString();
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
