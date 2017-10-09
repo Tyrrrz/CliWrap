@@ -25,21 +25,14 @@ namespace CliWrap
         public string WorkingDirectory { get; }
 
         /// <summary>
-        /// This delegate is used for events regarding the real time output of the process
-        /// </summary>
-        /// <param name="origin">The cli wrapper where the output is originating from</param>
-        /// <param name="data">The line that got written to the output</param>
-        public delegate void ProcessDataReceived(Cli origin, string data);
-
-        /// <summary>
         /// This event is invoked when the process has written a line to the standard output
         /// </summary>
-        public event ProcessDataReceived StdOutDataReceived;
+        public event EventHandler<StdEventArgs> StdOutDataReceived;
 
         /// <summary>
         /// This event is invoked when the process has written a line to the standard error
         /// </summary>
-        public event ProcessDataReceived StdErrDataReceived;
+        public event EventHandler<StdEventArgs> StdErrDataReceived;
 
         /// <summary>
         /// Initializes CLI wrapper on a target
@@ -108,7 +101,7 @@ namespace CliWrap
                 {
                     if (args.Data != null) {
                         stdOutBuffer.AppendLine(args.Data);
-                        StdOutDataReceived?.Invoke(this, args.Data);
+                        StdOutDataReceived?.Invoke(this, new StdEventArgs(args.Data));
                     }
                 };
 
@@ -116,7 +109,7 @@ namespace CliWrap
                 {
                     if (args.Data != null) {
                         stdErrBuffer.AppendLine(args.Data);
-                        StdErrDataReceived?.Invoke(this, args.Data);
+                        StdErrDataReceived?.Invoke(this, new StdEventArgs(args.Data));
                     }
                 };
 
@@ -242,14 +235,14 @@ namespace CliWrap
                 process.OutputDataReceived += (sender, args) => {
                     if (args.Data != null) {
                         stdOutBuffer.AppendLine(args.Data);
-                        StdOutDataReceived?.Invoke(this, args.Data);
+                        StdOutDataReceived?.Invoke(this, new StdEventArgs(args.Data));
                     }
                 };
 
                 process.ErrorDataReceived += (sender, args) => {
                     if (args.Data != null) {
                         stdErrBuffer.AppendLine(args.Data);
-                        StdErrDataReceived?.Invoke(this, args.Data);
+                        StdErrDataReceived?.Invoke(this, new StdEventArgs(args.Data));
                     }
                 };
 
