@@ -40,21 +40,30 @@ namespace CliWrap
         {
             AppDomain.CurrentDomain.ProcessExit += (sender, e) => KillChildren();
         }
+#endif
 
         /// <summary>
         /// Try to kill all running child processes
         /// </summary>
         public static void KillChildren()
         {
-            if (KillChildProcessesOnParentProcessExit)
+            bool kill = true;
+
+#if NET45
+            kill = KillChildProcessesOnParentProcessExit;
+#endif
+
+            if (kill)
             {
                 foreach (var item in RunningProcesses)
                 {
-                    item.KillIfRunning();
+                    if (item.KillIfRunning())
+                    {
+                        RunningProcesses.Remove(item);
+                    }
                 }
             }
         }
-#endif
 
         /// <summary>
         /// Initializes CLI wrapper on a target
