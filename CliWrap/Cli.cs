@@ -30,23 +30,31 @@ namespace CliWrap
         /// </summary>
         private static IList<Process> RunningProcesses = new List<Process>();
 
+#if NET45
+        /// <summary>
+        /// Whether to kill all the currently running child processes when the parent process exits
+        /// </summary>
+        public static bool KillChildProcessesOnParentProcessExit { get; set; } = true;
+
         static Cli()
         {
-#if NET45
             AppDomain.CurrentDomain.ProcessExit += (sender, e) => KillChildren();
-#endif
         }
 
         /// <summary>
         /// Try to kill all running child processes
         /// </summary>
-        private static void KillChildren()
+        public static void KillChildren()
         {
-            foreach (var item in RunningProcesses)
+            if (KillChildProcessesOnParentProcessExit)
             {
-                item.KillIfRunning();
+                foreach (var item in RunningProcesses)
+                {
+                    item.KillIfRunning();
+                }
             }
         }
+#endif
 
         /// <summary>
         /// Initializes CLI wrapper on a target
