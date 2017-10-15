@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CliWrap.Internal;
 using CliWrap.Models;
 using System.Text;
+using System.Collections.Generic;
 
 namespace CliWrap
 {
@@ -27,6 +28,46 @@ namespace CliWrap
         /// Working directory
         /// </summary>
         public string WorkingDirectory { get; }
+
+        /// <summary>
+        /// List of all currently running processes
+        /// </summary>
+        private static IList<Process> RunningProcesses = new List<Process>();
+
+#if NET45
+        /// <summary>
+        /// Whether to kill all the currently running child processes when the parent process exits
+        /// </summary>
+        public static bool KillChildProcessesOnParentProcessExit { get; set; } = true;
+
+        static Cli()
+        {
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) => KillChildren();
+        }
+#endif
+
+        /// <summary>
+        /// Try to kill all running child processes
+        /// </summary>
+        public static void KillChildren()
+        {
+            bool kill = true;
+
+#if NET45
+            kill = KillChildProcessesOnParentProcessExit;
+#endif
+
+            if (kill)
+            {
+                foreach (var item in RunningProcesses)
+                {
+                    if (item.KillIfRunning())
+                    {
+                        RunningProcesses.Remove(item);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Initializes CLI wrapper on a target
@@ -108,6 +149,9 @@ namespace CliWrap
                 process.Start();
                 _processes.Add(process);
 
+                //Add process to the running processes list
+                RunningProcesses.Add(process);
+
                 // Write stdin
                 using (process.StandardInput)
                     process.StandardInput.Write(input.StandardInput);
@@ -128,6 +172,9 @@ namespace CliWrap
                 // Wait until exit
                 process.WaitForExit();
                 _processes.Remove(process);
+
+                //Remove process from running list
+                RunningProcesses.Remove(process);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
