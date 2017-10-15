@@ -96,10 +96,13 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(NeverEndingBat);
 
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
 
-            Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+                // ReSharper disable once AccessToDisposedClosure
+                Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+            }
         }
 
         [TestMethod, Timeout(5000)]
@@ -107,10 +110,13 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(NeverEndingBat);
 
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(TimeSpan.FromSeconds(1));
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-            Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+                // ReSharper disable once AccessToDisposedClosure
+                Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+            }
         }
 
         [TestMethod, Timeout(5000)]
@@ -201,10 +207,13 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(NeverEndingBat);
 
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
 
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
+                // ReSharper disable once AccessToDisposedClosure
+                await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
+            }
         }
 
         [TestMethod, Timeout(5000)]
@@ -212,10 +221,13 @@ namespace CliWrap.Tests
         {
             var cli = new Cli(NeverEndingBat);
 
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(TimeSpan.FromSeconds(1));
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
+                // ReSharper disable once AccessToDisposedClosure
+                await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
+            }
         }
     }
 }

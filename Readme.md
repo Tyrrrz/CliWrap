@@ -62,8 +62,9 @@ Cancel execution:
 ```c#
 var cli = new Cli("some_cli.exe");
 
-var cts = new CancellationTokenSource();
-cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
-
-var output = await cli.ExecuteAsync("command --option", cts.Token);
+using (var cts = new CancellationTokenSource())
+{
+    cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
+    var output = await cli.ExecuteAsync("command --option", cts.Token);
+}
 ```
