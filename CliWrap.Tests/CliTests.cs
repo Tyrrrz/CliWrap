@@ -249,5 +249,43 @@ namespace CliWrap.Tests
                 await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
             }
         }
+
+        [TestMethod, Timeout(5000)]
+        public void KillAllProcesses_Execute_Test()
+        {
+            var cli = new Cli(NeverEndingBat);
+
+            // Kill after some time
+            Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    cli.KillAllProcesses();
+                })
+                .Forget();
+
+            var output = cli.Execute();
+
+            Assert.IsNotNull(output);
+            Assert.AreNotEqual(14, output.ExitCode);
+        }
+
+        [TestMethod, Timeout(5000)]
+        public async Task KillAllProcesses_ExecuteAsync_Test()
+        {
+            var cli = new Cli(NeverEndingBat);
+
+            // Kill after some time
+            Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    cli.KillAllProcesses();
+                })
+                .Forget();
+
+            var output = await cli.ExecuteAsync();
+
+            Assert.IsNotNull(output);
+            Assert.AreNotEqual(14, output.ExitCode);
+        }
     }
 }
