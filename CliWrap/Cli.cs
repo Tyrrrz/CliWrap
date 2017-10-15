@@ -14,7 +14,7 @@ namespace CliWrap
     /// <summary>
     /// Wrapper for a Command Line Interface
     /// </summary>
-    public class Cli
+    public class Cli : IDisposable
     {
         private readonly HashSet<Process> _processes;
 
@@ -118,7 +118,6 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Kill process if it's not dead already
-                    // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
 
@@ -234,7 +233,6 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Kill process if it's not dead already
-                    // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
 
@@ -297,6 +295,25 @@ namespace CliWrap
                 process.KillIfRunning();
                 _processes.Remove(process);
             }
+        }
+
+        /// <summary />
+        protected virtual void Dispose(bool disposing)
+        {
+            KillAllProcesses();
+        }
+
+        /// <summary />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary />
+        ~Cli()
+        {
+            Dispose(false);
         }
     }
 }
