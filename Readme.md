@@ -36,7 +36,7 @@ var code = output.ExitCode;
 var stdOut = output.StandardOutput;
 var stdErr = output.StandardError;
 var startTime = output.StartTime;
-var exitTime = output.ExitTIme;
+var exitTime = output.ExitTime;
 var runTime = output.RunTime;
 ```
 
