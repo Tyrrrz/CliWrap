@@ -1,5 +1,10 @@
 # CliWrap
 
+[![Build status](https://img.shields.io/appveyor/ci/Tyrrrz/CliWrap.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
+[![Test status](https://img.shields.io/appveyor/tests/Tyrrrz/CliWrap.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap/CliWrap/tests)
+[![NuGet](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
+[![NuGet](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
+
 CliWrap is a library that makes it easier to interact with command line interfaces. It provides a convenient wrapper around the target executable, allowing you to pass execution parameters and read the resulting output. The library can also handle errors reported by the underlying process, allows command cancellation and has both synchronous and asynchronous APIs.
 
 ## Download
