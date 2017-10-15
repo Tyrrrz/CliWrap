@@ -1,4 +1,5 @@
-﻿using CliWrap.Exceptions;
+﻿using System;
+using CliWrap.Exceptions;
 
 namespace CliWrap.Models
 {
@@ -27,12 +28,30 @@ namespace CliWrap.Models
         /// </summary>
         public bool HasError => !string.IsNullOrEmpty(StandardError);
 
+        /// <summary>
+        /// When the execution started
+        /// </summary>
+        public DateTime StartTime { get; }
+
+        /// <summary>
+        /// When the execution finished
+        /// </summary>
+        public DateTime ExitTime { get; }
+
+        /// <summary>
+        /// Execution run time
+        /// </summary>
+        public TimeSpan RunTime => ExitTime - StartTime;
+
         /// <summary />
-        public ExecutionOutput(int exitCode, string standardOutput, string standardError)
+        public ExecutionOutput(int exitCode, string standardOutput, string standardError,
+            DateTime startTime, DateTime exitTime)
         {
             ExitCode = exitCode;
             StandardOutput = standardOutput;
             StandardError = standardError;
+            StartTime = startTime;
+            ExitTime = exitTime;
         }
 
         /// <summary>

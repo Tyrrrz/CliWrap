@@ -28,6 +28,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -43,6 +45,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -57,6 +61,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -74,6 +80,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -89,6 +97,8 @@ namespace CliWrap.Tests
             Assert.AreEqual("", output.StandardOutput.TrimEnd());
             Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
             Assert.AreEqual(output.StandardError, ex.StandardError);
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -139,6 +149,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -154,6 +166,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -168,6 +182,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -185,6 +201,8 @@ namespace CliWrap.Tests
             Assert.AreEqual(14, output.ExitCode);
             Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
             Assert.AreEqual("", output.StandardError.TrimEnd());
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]
@@ -200,6 +218,8 @@ namespace CliWrap.Tests
             Assert.AreEqual("", output.StandardOutput.TrimEnd());
             Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
             Assert.AreEqual(output.StandardError, ex.StandardError);
+            Assert.IsTrue(output.StartTime < output.ExitTime);
+            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
         }
 
         [TestMethod, Timeout(5000)]

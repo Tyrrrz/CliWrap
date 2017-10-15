@@ -35,6 +35,9 @@ output.ThrowIfError();
 var code = output.ExitCode;
 var stdOut = output.StandardOutput;
 var stdErr = output.StandardError;
+var startTime = output.StartTime;
+var exitTime = output.ExitTIme;
+var runTime = output.RunTime;
 ```
 
 Execute a command without waiting for completion:

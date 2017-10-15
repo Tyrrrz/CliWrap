@@ -129,7 +129,7 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
             }
         }
 
@@ -243,7 +243,7 @@ namespace CliWrap
                 var stdOut = await stdOutReadTask.ConfigureAwait(false);
                 var stdErr = await stdErrReadTask.ConfigureAwait(false);
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
             }
         }
 
