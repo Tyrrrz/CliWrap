@@ -1,7 +1,7 @@
 # CliWrap
 
-[![Build status](https://img.shields.io/appveyor/ci/Tyrrrz/CliWrap.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
-[![Test status](https://img.shields.io/appveyor/tests/Tyrrrz/CliWrap.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap/CliWrap/tests)
+[![Build](https://img.shields.io/appveyor/ci/Tyrrrz/CliWrap/master.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
+[![Tests](https://img.shields.io/appveyor/tests/Tyrrrz/CliWrap/master.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
 [![NuGet](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![NuGet](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 
