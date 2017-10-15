@@ -24,6 +24,7 @@ The `Cli` class was designed to have each instance treated as a member of your p
 Executing processes are kept track of (except when launched using `ExecuteAndForget`) and killed when the `Cli` instance is disposed or finalized (which also happens when application exits).
 
 ##### Execute a command and handle output
+
 ```c#
 using (var cli = new Cli("some_cli.exe"))
 {
@@ -46,6 +47,7 @@ using (var cli = new Cli("some_cli.exe"))
 ```
 
 ##### Execute a command without waiting for completion
+
 ```c#
 using (var cli = new Cli("some_cli.exe"))
 {
@@ -54,6 +56,7 @@ using (var cli = new Cli("some_cli.exe"))
 ```
 
 ##### Pass in standard input
+
 ```c#
 using (var cli = new Cli("some_cli.exe"))
 {
@@ -63,6 +66,7 @@ using (var cli = new Cli("some_cli.exe"))
 ```
 
 ##### Pass in environment variables
+
 ```c#
 using (var cli = new Cli("some_cli.exe"))
 {
@@ -73,6 +77,7 @@ using (var cli = new Cli("some_cli.exe"))
 ```
 
 ##### Cancel execution
+
 ```c#
 using (var cli = new Cli("some_cli.exe"))
 using (var cts = new CancellationTokenSource())
