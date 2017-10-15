@@ -10,6 +10,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 ## Download
 
 - Using nuget: `Install-Package CliWrap`
+- [Continuous integration](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
 
 ## Features
 
