@@ -13,58 +13,68 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Pass in command line arguments, standard input and environment variables
 - Get process exit code, standard output and standard error as the result
 - Stop the execution early using `System.Threading.CancellationToken`
+- Kill all currently running processes when disposing, finalizing or on demand
 - Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
 
 ## Usage
 
-Execute a command and process output:
+The `Cli` class was designed to have each instance treated as a member of your project. When you're wrapping around a command line interface, you can think of the interface itself as a singleton class and all its commands as methods of that class. Therefore, it is recommended to create a reusable instance of `Cli` for each target executable.
+
+Executing processes are kept track of (except when launched using `ExecuteAndForget`) and killed when the `Cli` instance is disposed or finalized (which also happens when application exits).
+
+##### Execute a command and handle output
 ```c#
-// Setup
-var cli = new Cli("some_cli.exe");
+using (var cli = new Cli("some_cli.exe"))
+{
+    // Execute
+    var output = await cli.ExecuteAsync("command --option");
+    // ... or in synchronous manner:
+    // var output = cli.Execute("command --option");
 
-// Execute
-var output = await cli.ExecuteAsync("command --option");
-// ... or in synchronous manner:
-// var output = cli.Execute("command --option");
+    // Throw an exception if CLI reported an error
+    output.ThrowIfError();
 
-// Throw an exception if CLI reported an error
-output.ThrowIfError();
-
-// Process output
-var code = output.ExitCode;
-var stdOut = output.StandardOutput;
-var stdErr = output.StandardError;
-var startTime = output.StartTime;
-var exitTime = output.ExitTime;
-var runTime = output.RunTime;
+    // Extract output
+    var code = output.ExitCode;
+    var stdOut = output.StandardOutput;
+    var stdErr = output.StandardError;
+    var startTime = output.StartTime;
+    var exitTime = output.ExitTime;
+    var runTime = output.RunTime;
+}
 ```
 
-Execute a command without waiting for completion:
+##### Execute a command without waiting for completion
 ```c#
-var cli = new Cli("some_cli.exe");
-cli.ExecuteAndForget("command --option");
+using (var cli = new Cli("some_cli.exe"))
+{
+    cli.ExecuteAndForget("command --option");
+}
 ```
 
-Pass in standard input:
+##### Pass in standard input
 ```c#
-var cli = new Cli("some_cli.exe");
-var input = new ExecutionInput("command --option", "this is stdin");
-var output = await cli.ExecuteAsync(input);
+using (var cli = new Cli("some_cli.exe"))
+{
+    var input = new ExecutionInput("command --option", "this is stdin");
+    var output = await cli.ExecuteAsync(input);
+}
 ```
 
-Pass in environment variables:
+##### Pass in environment variables
 ```c#
-var cli = new Cli("some_cli.exe");
-var input = new ExecutionInput("command --option");
-input.EnvironmentVariables.Add("some_var", "some_value");
-var output = await cli.ExecuteAsync(input);
+using (var cli = new Cli("some_cli.exe"))
+{
+    var input = new ExecutionInput("command --option");
+    input.EnvironmentVariables.Add("some_var", "some_value");
+    var output = await cli.ExecuteAsync(input);
+}
 ```
 
-Cancel execution:
+##### Cancel execution
 ```c#
-var cli = new Cli("some_cli.exe");
-
+using (var cli = new Cli("some_cli.exe"))
 using (var cts = new CancellationTokenSource())
 {
     cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Internal;
@@ -12,8 +14,10 @@ namespace CliWrap
     /// <summary>
     /// Wrapper for a Command Line Interface
     /// </summary>
-    public class Cli
+    public class Cli : IDisposable
     {
+        private readonly HashSet<Process> _processes;
+
         /// <summary>
         /// Target file path
         /// </summary>
@@ -29,6 +33,8 @@ namespace CliWrap
         /// </summary>
         public Cli(string filePath, string workingDirectory)
         {
+            _processes = new HashSet<Process>();
+
             FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
         }
@@ -100,6 +106,7 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+                _processes.Add(process);
 
                 // Write stdin
                 using (process.StandardInput)
@@ -111,7 +118,6 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Kill process if it's not dead already
-                    // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
 
@@ -121,6 +127,7 @@ namespace CliWrap
 
                 // Wait until exit
                 process.WaitForExit();
+                _processes.Remove(process);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
@@ -209,11 +216,12 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input))
             {
-                // Wire an event that signals task completion
+                // Wire events
                 process.Exited += (sender, args) => tcs.SetResult(null);
 
                 // Start process
                 process.Start();
+                _processes.Add(process);
 
                 // Write stdin
                 using (process.StandardInput)
@@ -225,7 +233,6 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Kill process if it's not dead already
-                    // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
 
@@ -235,6 +242,7 @@ namespace CliWrap
 
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
+                _processes.Remove(process);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
@@ -276,5 +284,36 @@ namespace CliWrap
         /// </summary>
         public Task<ExecutionOutput> ExecuteAsync()
             => ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
+
+        /// <summary>
+        /// Kills all currently running child processes created by this instance of <see cref="Cli" />
+        /// </summary>
+        public void KillAllProcesses()
+        {
+            foreach (var process in _processes.ToArray())
+            {
+                process.KillIfRunning();
+                _processes.Remove(process);
+            }
+        }
+
+        /// <summary />
+        protected virtual void Dispose(bool disposing)
+        {
+            KillAllProcesses();
+        }
+
+        /// <summary />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary />
+        ~Cli()
+        {
+            Dispose(false);
+        }
     }
 }
