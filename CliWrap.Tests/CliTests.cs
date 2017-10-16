@@ -250,7 +250,7 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public void KillAllProcesses_Execute_Test()
+        public void KillAllProcesses_AfterExecute_NeverEnding_Test()
         {
             using (var cli = new Cli(NeverEndingBat))
             {
@@ -270,7 +270,7 @@ namespace CliWrap.Tests
         }
 
         [TestMethod, Timeout(5000)]
-        public async Task KillAllProcesses_ExecuteAsync_Test()
+        public async Task KillAllProcesses_AfterExecuteAsync_NeverEnding_Test()
         {
             using (var cli = new Cli(NeverEndingBat))
             {
