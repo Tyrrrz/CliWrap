@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Internal;
@@ -14,6 +16,8 @@ namespace CliWrap
     /// </summary>
     public class Cli
     {
+        private readonly HashSet<Process> _processes;
+
         /// <summary>
         /// Target file path
         /// </summary>
@@ -29,8 +33,10 @@ namespace CliWrap
         /// </summary>
         public Cli(string filePath, string workingDirectory)
         {
-            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-            WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
+            _processes = new HashSet<Process>();
+
+            FilePath = filePath.GuardNotNull(nameof(filePath));
+            WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
         }
 
         /// <summary>
@@ -78,8 +84,7 @@ namespace CliWrap
         /// </summary>
         public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
         {
-            if (input == null)
-                throw new ArgumentNullException(nameof(input));
+            input.GuardNotNull(nameof(input));
 
             // Create process
             using (var process = CreateProcess(input))
@@ -107,6 +112,7 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+                _processes.Add(process);
 
                 // Write stdin
                 using (process.StandardInput)
@@ -118,7 +124,6 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Kill process if it's not dead already
-                    // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
 
@@ -128,6 +133,7 @@ namespace CliWrap
 
                 // Wait until exit
                 process.WaitForExit();
+                _processes.Remove(process);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
@@ -136,7 +142,7 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
             }
         }
 
@@ -161,8 +167,7 @@ namespace CliWrap
         /// </summary>
         public void ExecuteAndForget(ExecutionInput input)
         {
-            if (input == null)
-                throw new ArgumentNullException(nameof(input));
+            input.GuardNotNull(nameof(input));
 
             // Create process
             using (var process = CreateProcess(input))
@@ -197,8 +202,7 @@ namespace CliWrap
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
         {
-            if (input == null)
-                throw new ArgumentNullException(nameof(input));
+            input.GuardNotNull(nameof(input));
 
             // Create task completion source
             var tcs = new TaskCompletionSource<object>();
@@ -206,7 +210,7 @@ namespace CliWrap
             // Create process
             using (var process = CreateProcess(input))
             {
-                // Wire an event that signals task completion
+                // Wire events
                 process.Exited += (sender, args) => tcs.SetResult(null);
 
                 // Create buffers
@@ -230,6 +234,7 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+                _processes.Add(process);
 
                 // Write stdin
                 using (process.StandardInput)
@@ -241,7 +246,6 @@ namespace CliWrap
                 cancellationToken.Register(() =>
                 {
                     // Kill process if it's not dead already
-                    // ReSharper disable once AccessToDisposedClosure
                     process.KillIfRunning();
                 });
 
@@ -251,6 +255,7 @@ namespace CliWrap
 
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
+                _processes.Remove(process);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
@@ -259,7 +264,7 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
             }
         }
 
@@ -275,6 +280,38 @@ namespace CliWrap
         public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
             => ExecuteAsync(ExecutionInput.Empty, cancellationToken, standardBufferHandler); 
 
+        /// <summary>
+        /// Executes CLI without input, waits until completion asynchronously and returns output
+        /// </summary>
+        public Task<ExecutionOutput> ExecuteAsync()
+            => ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
+
         #endregion
+        
+        /// <summary>
+        /// Kills all currently running child processes created by this instance of <see cref="Cli" />
+        /// </summary>
+        public void KillAllProcesses()
+        {
+            var exceptions = new List<Exception>();
+
+            // Try to kill as many processes as possible
+            foreach (var process in _processes.ToArray())
+            {
+                try
+                {
+                    process.KillIfRunning();
+                    _processes.Remove(process);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            }
+
+            // Throw an aggregate exception if necessary
+            if (exceptions.Any())
+                throw new AggregateException("At least some processes could not killed", exceptions);
+        }
     }
 }
