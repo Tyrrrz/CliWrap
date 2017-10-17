@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -286,11 +287,25 @@ namespace CliWrap
         /// </summary>
         public void KillAllProcesses()
         {
+            var exceptions = new List<Exception>();
+
+            // Try to kill as many processes as possible
             foreach (var process in _processes.ToArray())
             {
-                process.KillIfRunning();
-                _processes.Remove(process);
+                try
+                {
+                    process.KillIfRunning();
+                    _processes.Remove(process);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
             }
+
+            // Throw an aggregate exception if necessary
+            if (exceptions.Any())
+                throw new AggregateException("At least some processes could not killed", exceptions);
         }
     }
 }
