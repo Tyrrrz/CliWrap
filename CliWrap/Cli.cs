@@ -74,7 +74,7 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken, IStandardBufferHandler standardBufferHandler = null)
+        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -141,32 +141,14 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(ExecutionInput input)
-            => Execute(input, CancellationToken.None);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion and returns output
-        /// </summary>
-        public ExecutionOutput Execute(string arguments, CancellationToken cancellationToken)
-            => Execute(new ExecutionInput(arguments), cancellationToken);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion and returns output
-        /// </summary>
-        public ExecutionOutput Execute(string arguments)
-            => Execute(new ExecutionInput(arguments), CancellationToken.None);
+        public ExecutionOutput Execute(string arguments, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => Execute(new ExecutionInput(arguments), cancellationToken, standardBufferHandler);
 
         /// <summary>
         /// Executes CLI without input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(CancellationToken cancellationToken)
-            => Execute(ExecutionInput.Empty, cancellationToken);
-
-        /// <summary>
-        /// Executes CLI without input, waits until completion and returns output
-        /// </summary>
-        public ExecutionOutput Execute()
-            => Execute(ExecutionInput.Empty, CancellationToken.None);
+        public ExecutionOutput Execute(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => Execute(ExecutionInput.Empty, cancellationToken, standardBufferHandler);
 
         /// <summary>
         /// Executes CLI with given input, without waiting for completion
