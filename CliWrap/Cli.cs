@@ -203,7 +203,7 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken, IStandardBufferHandler standardBufferHandler = null)
+        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -270,35 +270,17 @@ namespace CliWrap
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
-
+        
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(ExecutionInput input)
-            => ExecuteAsync(input, CancellationToken.None);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken)
-            => ExecuteAsync(new ExecutionInput(arguments), cancellationToken);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(string arguments)
-            => ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None);
+        public Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => ExecuteAsync(new ExecutionInput(arguments), cancellationToken, standardBufferHandler);
 
         /// <summary>
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken)
-            => ExecuteAsync(ExecutionInput.Empty, cancellationToken);
-
-        /// <summary>
-        /// Executes CLI without input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync()
-            => ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
+        public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => ExecuteAsync(ExecutionInput.Empty, cancellationToken, standardBufferHandler);
     }
 }
