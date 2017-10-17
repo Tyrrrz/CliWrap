@@ -1,74 +1,86 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Models;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace CliWrap.Tests
 {
-    [TestClass]
+    [TestFixture]
+    [Timeout(5000)]
     public class CliTests
     {
-        private const string EchoArgsBat = "Bats\\EchoArgs.bat";
-        private const string EchoEnvVarBat = "Bats\\EchoEnvVar.bat";
-        private const string EchoStdinBat = "Bats\\EchoStdin.bat";
-        private const string NeverEndingBat = "Bats\\NeverEnding.bat";
-        private const string ThrowErrorBat = "Bats\\ThrowError.bat";
+        private readonly string _echoArgsBat;
+        private readonly string _echoEnvVarBat;
+        private readonly string _echoStdinBat;
+        private readonly string _neverEndingBat;
+        private readonly string _throwErrorBat;
 
-        [TestMethod, Timeout(5000)]
+        public CliTests()
+        {
+            var testDir = TestContext.CurrentContext.TestDirectory;
+            _echoArgsBat = Path.Combine(testDir, "Bats\\EchoArgs.bat");
+            _echoEnvVarBat = Path.Combine(testDir, "Bats\\EchoEnvVar.bat");
+            _echoStdinBat = Path.Combine(testDir, "Bats\\EchoStdin.bat");
+            _neverEndingBat = Path.Combine(testDir, "Bats\\NeverEnding.bat");
+            _throwErrorBat = Path.Combine(testDir, "Bats\\ThrowError.bat");
+        }
+
+        [Test]
         public void Execute_EchoArgs_Test()
         {
-            var cli = new Cli(EchoArgsBat);
+            var cli = new Cli(_echoArgsBat);
 
             var output = cli.Execute("Hello world");
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void Execute_EchoStdin_Test()
         {
-            var cli = new Cli(EchoStdinBat);
+            var cli = new Cli(_echoStdinBat);
 
             var input = new ExecutionInput(standardInput: "Hello world");
             var output = cli.Execute(input);
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void Execute_EchoStdin_Empty_Test()
         {
-            var cli = new Cli(EchoStdinBat);
+            var cli = new Cli(_echoStdinBat);
 
             var output = cli.Execute();
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("ECHO is off."));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void Execute_EchoEnvVar_Test()
         {
-            var cli = new Cli(EchoEnvVarBat);
+            var cli = new Cli(_echoEnvVarBat);
 
             var input = new ExecutionInput();
             input.EnvironmentVariables.Add("TEST_ENV_VAR", "Hello world");
@@ -76,113 +88,118 @@ namespace CliWrap.Tests
             var output = cli.Execute(input);
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void Execute_ThrowError_Test()
         {
-            var cli = new Cli(ThrowErrorBat);
+            var cli = new Cli(_throwErrorBat);
 
             var output = cli.Execute();
-            var ex = Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
+            var ex = Assert.Throws<StandardErrorException>(() => output.ThrowIfError());
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
-            Assert.AreEqual(output.StandardError, ex.StandardError);
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.Empty);
+            Assert.That(output.StandardError.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError, Is.EqualTo(ex.StandardError));
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void Execute_NeverEnding_CancelEarly_Test()
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(NeverEndingBat);
+                var cli = new Cli(_neverEndingBat);
+
                 cts.Cancel();
-                Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+
+                Assert.Throws<OperationCanceledException>(() => cli.Execute(cts.Token));
             }
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void Execute_NeverEnding_CancelLate_Test()
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(NeverEndingBat);
+                var cli = new Cli(_neverEndingBat);
+
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
-                Assert.ThrowsException<OperationCanceledException>(() => cli.Execute(cts.Token));
+
+                Assert.Throws<OperationCanceledException>(() => cli.Execute(cts.Token));
             }
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void ExecuteAndForget_EchoArgs_Test()
         {
-            var cli = new Cli(EchoArgsBat);
+            var cli = new Cli(_echoArgsBat);
+
             cli.ExecuteAndForget("Hello world");
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public async Task ExecuteAsync_EchoArgs_Test()
         {
-            var cli = new Cli(EchoArgsBat);
+            var cli = new Cli(_echoArgsBat);
 
             var output = await cli.ExecuteAsync("Hello world");
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public async Task ExecuteAsync_EchoStdin_Test()
         {
-            var cli = new Cli(EchoStdinBat);
+            var cli = new Cli(_echoStdinBat);
 
             var input = new ExecutionInput(standardInput: "Hello world");
             var output = await cli.ExecuteAsync(input);
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public async Task ExecuteAsync_EchoStdin_Empty_Test()
         {
-            var cli = new Cli(EchoStdinBat);
+            var cli = new Cli(_echoStdinBat);
 
             var output = await cli.ExecuteAsync();
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("ECHO is off.", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("ECHO is off."));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public async Task ExecuteAsync_EchoEnvVar_Test()
         {
-            var cli = new Cli(EchoEnvVarBat);
+            var cli = new Cli(_echoEnvVarBat);
 
             var input = new ExecutionInput();
             input.EnvironmentVariables.Add("TEST_ENV_VAR", "Hello world");
@@ -190,57 +207,61 @@ namespace CliWrap.Tests
             var output = await cli.ExecuteAsync(input);
             output.ThrowIfError();
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("Hello world", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("", output.StandardError.TrimEnd());
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public async Task ExecuteAsync_ThrowError_Test()
         {
-            var cli = new Cli(ThrowErrorBat);
+            var cli = new Cli(_throwErrorBat);
 
             var output = await cli.ExecuteAsync();
-            var ex = Assert.ThrowsException<StandardErrorException>(() => output.ThrowIfError());
+            var ex = Assert.Throws<StandardErrorException>(() => output.ThrowIfError());
 
-            Assert.IsNotNull(output);
-            Assert.AreEqual(14, output.ExitCode);
-            Assert.AreEqual("", output.StandardOutput.TrimEnd());
-            Assert.AreEqual("Hello world", output.StandardError.TrimEnd());
-            Assert.AreEqual(output.StandardError, ex.StandardError);
-            Assert.IsTrue(output.StartTime < output.ExitTime);
-            Assert.IsTrue(TimeSpan.Zero < output.RunTime);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput.TrimEnd(), Is.Empty);
+            Assert.That(output.StandardError.TrimEnd(), Is.EqualTo("Hello world"));
+            Assert.That(output.StandardError, Is.EqualTo(ex.StandardError));
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
         }
 
-        [TestMethod, Timeout(5000)]
-        public async Task ExecuteAsync_NeverEnding_CancelEarly_Test()
+        [Test]
+        public void ExecuteAsync_NeverEnding_CancelEarly_Test()
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(NeverEndingBat);
+                var cli = new Cli(_neverEndingBat);
+
                 cts.Cancel();
-                await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
+
+                Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
             }
         }
 
-        [TestMethod, Timeout(5000)]
-        public async Task ExecuteAsync_NeverEnding_CancelLate_Test()
+        [Test]
+        public void ExecuteAsync_NeverEnding_CancelLate_Test()
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(NeverEndingBat);
+                var cli = new Cli(_neverEndingBat);
+
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
-                await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => cli.ExecuteAsync(cts.Token));
+
+                Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync(cts.Token));
             }
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public void KillAllProcesses_AfterExecute_NeverEnding_Test()
         {
-            var cli = new Cli(NeverEndingBat);
+            var cli = new Cli(_neverEndingBat);
 
             // Kill after some time
             Task.Run(async () =>
@@ -253,14 +274,14 @@ namespace CliWrap.Tests
             // Execute
             var output = cli.Execute();
 
-            Assert.IsNotNull(output);
-            Assert.AreNotEqual(14, output.ExitCode);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.Not.EqualTo(14));
         }
 
-        [TestMethod, Timeout(5000)]
+        [Test]
         public async Task KillAllProcesses_AfterExecuteAsync_NeverEnding_Test()
         {
-            var cli = new Cli(NeverEndingBat);
+            var cli = new Cli(_neverEndingBat);
 
             // Kill after some time
             Task.Run(async () =>
@@ -273,8 +294,8 @@ namespace CliWrap.Tests
             // Execute
             var output = await cli.ExecuteAsync();
 
-            Assert.IsNotNull(output);
-            Assert.AreNotEqual(14, output.ExitCode);
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.Not.EqualTo(14));
         }
     }
 }
