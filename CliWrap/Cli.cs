@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace CliWrap
     /// <summary>
     /// Wrapper for a Command Line Interface
     /// </summary>
-    public class Cli : IDisposable
+    public class Cli
     {
         private readonly HashSet<Process> _processes;
 
@@ -292,25 +291,6 @@ namespace CliWrap
                 process.KillIfRunning();
                 _processes.Remove(process);
             }
-        }
-
-        /// <summary />
-        protected virtual void Dispose(bool disposing)
-        {
-            KillAllProcesses();
-        }
-
-        /// <summary />
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary />
-        ~Cli()
-        {
-            Dispose(false);
         }
     }
 }
