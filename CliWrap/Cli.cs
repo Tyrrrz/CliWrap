@@ -23,7 +23,7 @@ namespace CliWrap
         /// Working directory
         /// </summary>
         public string WorkingDirectory { get; }
-
+        
         /// <summary>
         /// Initializes CLI wrapper on a target
         /// </summary>
@@ -74,7 +74,7 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken)
+        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken, IStandardBufferHandler standardBufferHandler = null)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -91,6 +91,7 @@ namespace CliWrap
                 {
                     if (args.Data != null) {
                         stdOutBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardOutput(args.Data);
                     }
                 };
 
@@ -98,6 +99,7 @@ namespace CliWrap
                 {
                     if (args.Data != null) {
                         stdErrBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardError(args.Data);
                     }
                 };
 
@@ -201,7 +203,7 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken)
+        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken, IStandardBufferHandler standardBufferHandler = null)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -223,12 +225,14 @@ namespace CliWrap
                 process.OutputDataReceived += (sender, args) => {
                     if (args.Data != null) {
                         stdOutBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardOutput(args.Data);
                     }
                 };
 
                 process.ErrorDataReceived += (sender, args) => {
                     if (args.Data != null) {
                         stdErrBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardError(args.Data);
                     }
                 };
 
