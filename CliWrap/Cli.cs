@@ -71,6 +71,8 @@ namespace CliWrap
             return process;
         }
 
+        #region Execute
+
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
@@ -150,6 +152,10 @@ namespace CliWrap
         public ExecutionOutput Execute(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
             => Execute(ExecutionInput.Empty, cancellationToken, standardBufferHandler);
 
+        #endregion
+
+        #region ExecureAndForget
+        
         /// <summary>
         /// Executes CLI with given input, without waiting for completion
         /// </summary>
@@ -181,6 +187,10 @@ namespace CliWrap
         /// </summary>
         public void ExecuteAndForget()
             => ExecuteAndForget(ExecutionInput.Empty);
+
+        #endregion
+
+        #region ExecuteAsync
 
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
@@ -238,13 +248,13 @@ namespace CliWrap
                 // Begin reading stdout and stderr
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-                
+
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
 
                 // Check cancellation
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
@@ -252,7 +262,7 @@ namespace CliWrap
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr);
             }
         }
-        
+
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
@@ -263,6 +273,8 @@ namespace CliWrap
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
         public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
-            => ExecuteAsync(ExecutionInput.Empty, cancellationToken, standardBufferHandler);
+            => ExecuteAsync(ExecutionInput.Empty, cancellationToken, standardBufferHandler); 
+
+        #endregion
     }
 }
