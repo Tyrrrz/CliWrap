@@ -1,4 +1,5 @@
 ﻿using System;
+using CliWrap.Internal;
 
 namespace CliWrap.Exceptions
 {
@@ -16,7 +17,7 @@ namespace CliWrap.Exceptions
         public StandardErrorException(string standardError)
             : base("Command line executable reported an error")
         {
-            StandardError = standardError;
+            StandardError = standardError.GuardNotNull(nameof(standardError));
         }
     }
 }

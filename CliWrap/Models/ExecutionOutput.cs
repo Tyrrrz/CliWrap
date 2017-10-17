@@ -1,5 +1,6 @@
 ﻿using System;
 using CliWrap.Exceptions;
+using CliWrap.Internal;
 
 namespace CliWrap.Models
 {
@@ -48,8 +49,8 @@ namespace CliWrap.Models
             DateTime startTime, DateTime exitTime)
         {
             ExitCode = exitCode;
-            StandardOutput = standardOutput;
-            StandardError = standardError;
+            StandardOutput = standardOutput.GuardNotNull(nameof(standardOutput));
+            StandardError = standardError.GuardNotNull(nameof(standardError));
             StartTime = startTime;
             ExitTime = exitTime;
         }

@@ -35,8 +35,8 @@ namespace CliWrap
         {
             _processes = new HashSet<Process>();
 
-            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-            WorkingDirectory = workingDirectory ?? throw new ArgumentNullException(nameof(workingDirectory));
+            FilePath = filePath.GuardNotNull(nameof(filePath));
+            WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
         }
 
         /// <summary>
@@ -82,8 +82,7 @@ namespace CliWrap
         /// </summary>
         public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken)
         {
-            if (input == null)
-                throw new ArgumentNullException(nameof(input));
+            input.GuardNotNull(nameof(input));
 
             // Create process
             using (var process = CreateProcess(input))
@@ -175,8 +174,7 @@ namespace CliWrap
         /// </summary>
         public void ExecuteAndForget(ExecutionInput input)
         {
-            if (input == null)
-                throw new ArgumentNullException(nameof(input));
+            input.GuardNotNull(nameof(input));
 
             // Create process
             using (var process = CreateProcess(input))
@@ -207,8 +205,7 @@ namespace CliWrap
         /// </summary>
         public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken)
         {
-            if (input == null)
-                throw new ArgumentNullException(nameof(input));
+            input.GuardNotNull(nameof(input));
 
             // Create task completion source
             var tcs = new TaskCompletionSource<object>();
