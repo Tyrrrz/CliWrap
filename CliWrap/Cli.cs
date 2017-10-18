@@ -77,10 +77,12 @@ namespace CliWrap
             return process;
         }
 
+        #region Execute
+
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken)
+        public ExecutionOutput Execute(ExecutionInput input, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
         {
             input.GuardNotNull(nameof(input));
 
@@ -95,12 +97,19 @@ namespace CliWrap
                 process.OutputDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
+                    {
                         stdOutBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardOutput(args.Data);
+                    }
                 };
+
                 process.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
+                    {
                         stdErrBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardError(args.Data);
+                    }
                 };
 
                 // Start process
@@ -142,33 +151,19 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(ExecutionInput input)
-            => Execute(input, CancellationToken.None);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion and returns output
-        /// </summary>
-        public ExecutionOutput Execute(string arguments, CancellationToken cancellationToken)
-            => Execute(new ExecutionInput(arguments), cancellationToken);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion and returns output
-        /// </summary>
-        public ExecutionOutput Execute(string arguments)
-            => Execute(new ExecutionInput(arguments), CancellationToken.None);
+        public ExecutionOutput Execute(string arguments, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => Execute(new ExecutionInput(arguments), cancellationToken, standardBufferHandler);
 
         /// <summary>
         /// Executes CLI without input, waits until completion and returns output
         /// </summary>
-        public ExecutionOutput Execute(CancellationToken cancellationToken)
-            => Execute(ExecutionInput.Empty, cancellationToken);
+        public ExecutionOutput Execute(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => Execute(ExecutionInput.Empty, cancellationToken, standardBufferHandler);
 
-        /// <summary>
-        /// Executes CLI without input, waits until completion and returns output
-        /// </summary>
-        public ExecutionOutput Execute()
-            => Execute(ExecutionInput.Empty, CancellationToken.None);
+        #endregion
 
+        #region ExecureAndForget
+        
         /// <summary>
         /// Executes CLI with given input, without waiting for completion
         /// </summary>
@@ -200,10 +195,14 @@ namespace CliWrap
         public void ExecuteAndForget()
             => ExecuteAndForget(ExecutionInput.Empty);
 
+        #endregion
+
+        #region ExecuteAsync
+
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken)
+        public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
         {
             input.GuardNotNull(nameof(input));
 
@@ -215,6 +214,29 @@ namespace CliWrap
             {
                 // Wire events
                 process.Exited += (sender, args) => tcs.SetResult(null);
+
+                // Create buffers
+                var stdOutBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
+
+                // Wire events
+                process.OutputDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
+                        stdOutBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardOutput(args.Data);
+                    }
+                };
+
+                process.ErrorDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
+                        stdErrBuffer.AppendLine(args.Data);
+                        standardBufferHandler?.HandleStandardError(args.Data);
+                    }
+                };
 
                 // Start process
                 process.Start();
@@ -234,8 +256,8 @@ namespace CliWrap
                 });
 
                 // Begin reading stdout and stderr
-                var stdOutReadTask = process.StandardOutput.ReadToEndAsync();
-                var stdErrReadTask = process.StandardError.ReadToEndAsync();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
 
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
@@ -245,8 +267,8 @@ namespace CliWrap
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
-                var stdOut = await stdOutReadTask.ConfigureAwait(false);
-                var stdErr = await stdErrReadTask.ConfigureAwait(false);
+                var stdOut = stdOutBuffer.ToString();
+                var stdErr = stdErrBuffer.ToString();
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
             }
@@ -255,33 +277,17 @@ namespace CliWrap
         /// <summary>
         /// Executes CLI with given input, waits until completion asynchronously and returns output
         /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(ExecutionInput input)
-            => ExecuteAsync(input, CancellationToken.None);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken)
-            => ExecuteAsync(new ExecutionInput(arguments), cancellationToken);
-
-        /// <summary>
-        /// Executes CLI with given input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(string arguments)
-            => ExecuteAsync(new ExecutionInput(arguments), CancellationToken.None);
+        public Task<ExecutionOutput> ExecuteAsync(string arguments, CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => ExecuteAsync(new ExecutionInput(arguments), cancellationToken, standardBufferHandler);
 
         /// <summary>
         /// Executes CLI without input, waits until completion asynchronously and returns output
         /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken)
-            => ExecuteAsync(ExecutionInput.Empty, cancellationToken);
+        public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
+            => ExecuteAsync(ExecutionInput.Empty, cancellationToken, standardBufferHandler); 
 
-        /// <summary>
-        /// Executes CLI without input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync()
-            => ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
-
+        #endregion
+        
         /// <summary>
         /// Kills all currently running child processes created by this instance of <see cref="Cli" />
         /// </summary>
