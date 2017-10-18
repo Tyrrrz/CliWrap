@@ -3,7 +3,7 @@
 namespace CliWrap
 {
     /// <summary>
-    /// The standard implementation of <see cref="IStandardBufferHandler"/>
+    /// The default implementation of <see cref="IStandardBufferHandler"/>
     /// </summary>
     public class StandardBufferHandler : IStandardBufferHandler
     {
@@ -13,25 +13,21 @@ namespace CliWrap
         /// <summary>
         /// Sets up a standard buffer handler using two callbacks. Both callbacks are optional.
         /// </summary>
-        /// <param name="standardOutputHandler">The callback to use when it gets written to the standard output</param>
-        /// <param name="standardErrorHandler">The callback to use when it gets written to the standard error</param>
+        /// <param name="standardOutputHandler">The callback to use when a line is written to the standard output</param>
+        /// <param name="standardErrorHandler">The callback to use when a line is written to the standard error</param>
         public StandardBufferHandler(Action<string> standardOutputHandler = null, Action<string> standardErrorHandler = null)
         {
             _standardOutputHandler = standardOutputHandler;
             _standardErrorHandler = standardErrorHandler;
         }
 
-        /// <summary>
-        /// Calls the callback
-        /// </summary>
+        /// <inheritdoc />
         public void HandleStandardOutput(string line)
         {
             _standardOutputHandler?.Invoke(line);
         }
 
-        /// <summary>
-        /// Calls the callback
-        /// </summary>
+        /// <inheritdoc />
         public void HandleStandardError(string line)
         {
             _standardErrorHandler?.Invoke(line);

@@ -6,13 +6,13 @@
     public interface IStandardBufferHandler
     {
         /// <summary>
-        /// Gets called when a line got written to the standard output
+        /// Gets called when a line is written to the standard output
         /// </summary>
         /// <param name="line">The line written to the standard output</param>
         void HandleStandardOutput(string line);
 
         /// <summary>
-        /// Gets called when a line got written to the standard error
+        /// Gets called when a line is written to the standard error
         /// </summary>
         /// <param name="line">The line written to the standard error</param>
         void HandleStandardError(string line);
