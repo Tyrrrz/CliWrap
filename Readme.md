@@ -19,6 +19,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Pass in command line arguments, standard input and environment variables
 - Get process exit code, standard output and standard error as the result
 - Stop the execution early using `System.Threading.CancellationToken`
+- Set up callbacks that trigger when a process writes to StdOut or StdErr
 - Kill all currently running processes when disposing, finalizing or on demand
 - Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
@@ -64,6 +65,7 @@ cli.ExecuteAndForget("command --option");
 var cli = new Cli("some_cli.exe");
 
 var input = new ExecutionInput("command --option", "this is stdin");
+
 var output = await cli.ExecuteAsync(input);
 ```
 
@@ -74,6 +76,7 @@ var cli = new Cli("some_cli.exe");
 
 var input = new ExecutionInput("command --option");
 input.EnvironmentVariables.Add("some_var", "some_value");
+
 var output = await cli.ExecuteAsync(input);
 ```
 
@@ -86,4 +89,16 @@ using (var cts = new CancellationTokenSource())
     cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
     var output = await cli.ExecuteAsync("command --option", cts.Token);
 }
+```
+
+##### Handle standard output and/or standard error as it comes
+
+```c#
+var cli = new Cli("some_cli.exe");
+
+var handler = new BufferHandler(
+        stdOutLine => Console.WriteLine("StdOut> " + stdOutLine),
+        stdErrLine => Console.WriteLine("StdErr> " + stdErrLine));
+
+var output = await cli.ExecuteAsync("command --option", bufferHandler: handler);
 ```
