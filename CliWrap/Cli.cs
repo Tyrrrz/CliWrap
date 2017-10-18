@@ -286,12 +286,6 @@ namespace CliWrap
         public Task<ExecutionOutput> ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken), IStandardBufferHandler standardBufferHandler = null)
             => ExecuteAsync(ExecutionInput.Empty, cancellationToken, standardBufferHandler); 
 
-        /// <summary>
-        /// Executes CLI without input, waits until completion asynchronously and returns output
-        /// </summary>
-        public Task<ExecutionOutput> ExecuteAsync()
-            => ExecuteAsync(ExecutionInput.Empty, CancellationToken.None);
-
         #endregion
         
         /// <summary>
