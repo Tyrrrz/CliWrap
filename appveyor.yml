@@ -18,13 +18,6 @@ before_build:
 build:
   verbosity: minimal
 
-after_build:
-- ps: >-
-    if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -like "Update version" -And $env:APPVEYOR_REPO_COMMIT_AUTHOR -eq "Tyrrrz")
-    {
-        $env:SHOULD_DEPLOY = "true"
-    }
-
 artifacts:
 - path: CliWrap\bin\$(configuration)\CliWrap*.nupkg
   name: CliWrap.nupkg
@@ -36,4 +29,5 @@ deploy:
   artifact: CliWrap.nupkg
   on:
     branch: master
-    SHOULD_DEPLOY: true
+    APPVEYOR_REPO_COMMIT_MESSAGE: "Update version"
+    APPVEYOR_REPO_COMMIT_AUTHOR: "Tyrrrz"
