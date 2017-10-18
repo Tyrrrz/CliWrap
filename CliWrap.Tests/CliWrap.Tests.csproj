@@ -14,19 +14,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Bats\EchoArgs.bat">
+    <None Update="Bats\EchoArgsToStdout.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Bats\EchoEnvVar.bat">
+    <None Update="Bats\EchoEnvVarToStdout.bat">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Bats\EchoStdin.bat">
+    <None Update="Bats\EchoStdinToStdout.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Bats\NeverEnding.bat">
+    <None Update="Bats\EchoArgsToStdoutLoop.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Bats\ThrowError.bat">
+    <None Update="Bats\EchoArgsToStderr.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
