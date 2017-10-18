@@ -1,9 +1,9 @@
-﻿namespace CliWrap
+﻿namespace CliWrap.Services
 {
     /// <summary>
-    /// Used to handle the standard output and standard error of the cli processes
+    /// Used to handle the standard output and standard error of CLI processes
     /// </summary>
-    public interface IStandardBufferHandler
+    public interface IBufferHandler
     {
         /// <summary>
         /// Gets called when a line is written to the standard output
