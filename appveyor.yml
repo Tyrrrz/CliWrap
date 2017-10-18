@@ -1,0 +1,39 @@
+# This config ensures the following:
+# - Builds only master
+# - Environment compatible with .NET Core project type
+# - When Tyrrrz commits "Update version", deploys to NuGet
+
+version: '{build}'
+
+branches:
+  only:
+  - master
+
+image: Visual Studio 2017
+configuration: Release
+
+before_build:
+- ps: nuget restore
+
+build:
+  verbosity: minimal
+
+after_build:
+- ps: >-
+    if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -like "Update version" -And $env:APPVEYOR_REPO_COMMIT_AUTHOR -eq "Tyrrrz")
+    {
+        $env:SHOULD_DEPLOY = "true"
+    }
+
+artifacts:
+- path: CliWrap\bin\$(configuration)\CliWrap*.nupkg
+  name: CliWrap.nupkg
+
+deploy:
+- provider: NuGet
+  api_key:
+    secure: QuL5btMfw2HUtOrAO0C8hw0ILWLAY9Tq4Gp1uuDiPCjkOt7H8glITwlPCxoB/WWA
+  artifact: CliWrap.nupkg
+  on:
+    branch: master
+    SHOULD_DEPLOY: true
