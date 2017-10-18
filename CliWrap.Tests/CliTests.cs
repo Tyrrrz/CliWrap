@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Models;
+using CliWrap.Services;
 using NUnit.Framework;
 
 namespace CliWrap.Tests
@@ -20,6 +22,7 @@ namespace CliWrap.Tests
         private readonly string _echoEnvVarToStdoutBat;
         private readonly string _echoArgsToStderrBat;
         private readonly string _echoArgsToStdoutLoopBat;
+        private readonly string _echoArgsToBoth10TimesBat;
 
         public CliTests()
         {
@@ -29,6 +32,7 @@ namespace CliWrap.Tests
             _echoEnvVarToStdoutBat = Path.Combine(testDir, "Bats\\EchoEnvVarToStdout.bat");
             _echoArgsToStderrBat = Path.Combine(testDir, "Bats\\EchoArgsToStderr.bat");
             _echoArgsToStdoutLoopBat = Path.Combine(testDir, "Bats\\EchoArgsToStdoutLoop.bat");
+            _echoArgsToBoth10TimesBat = Path.Combine(testDir, "Bats\\EchoArgsToBoth10Times.bat");
         }
 
         [Test]
@@ -140,6 +144,28 @@ namespace CliWrap.Tests
 
                 Assert.Throws<OperationCanceledException>(() => cli.Execute(TestString, cts.Token));
             }
+        }
+
+        [Test]
+        public void Execute_EchoArgsToBoth10Times_BufferHandler_Test()
+        {
+            var cli = new Cli(_echoArgsToBoth10TimesBat);
+
+            // Collect stdout/stderr from handler separately
+            var stdOutBuffer = new StringBuilder();
+            var stdErrBuffer = new StringBuilder();
+            var handler = new BufferHandler(
+                stdOutLine => stdOutBuffer.AppendLine(stdOutLine),
+                stdErrLine => stdErrBuffer.AppendLine(stdErrLine));
+
+            var output = cli.Execute(TestString, bufferHandler: handler);
+
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput, Is.EqualTo(stdOutBuffer.ToString()));
+            Assert.That(output.StandardError, Is.EqualTo(stdErrBuffer.ToString()));
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -259,6 +285,28 @@ namespace CliWrap.Tests
 
                 Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync(TestString, cts.Token));
             }
+        }
+
+        [Test]
+        public async Task ExecuteAsync_EchoArgsToBoth10Times_BufferHandler_Test()
+        {
+            var cli = new Cli(_echoArgsToBoth10TimesBat);
+
+            // Collect stdout/stderr from handler separately
+            var stdOutBuffer = new StringBuilder();
+            var stdErrBuffer = new StringBuilder();
+            var handler = new BufferHandler(
+                stdOutLine => stdOutBuffer.AppendLine(stdOutLine),
+                stdErrLine => stdErrBuffer.AppendLine(stdErrLine));
+
+            var output = await cli.ExecuteAsync(TestString, bufferHandler: handler);
+
+            Assert.That(output, Is.Not.Null);
+            Assert.That(output.ExitCode, Is.EqualTo(14));
+            Assert.That(output.StandardOutput, Is.EqualTo(stdOutBuffer.ToString()));
+            Assert.That(output.StandardError, Is.EqualTo(stdErrBuffer.ToString()));
+            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
