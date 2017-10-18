@@ -51,8 +51,8 @@ namespace CliWrap.Models
             ExitCode = exitCode;
             StandardOutput = standardOutput.GuardNotNull(nameof(standardOutput));
             StandardError = standardError.GuardNotNull(nameof(standardError));
-            StartTime = startTime;
-            ExitTime = exitTime;
+            StartTime = startTime.GuardLessThan(exitTime, nameof(startTime));
+            ExitTime = exitTime.GuardGreaterThan(startTime, nameof(exitTime));
         }
 
         /// <summary>

@@ -1,6 +1,4 @@
-﻿using CliWrap.Internal;
-
-#if NET45 || NETSTANDARD2_0
+﻿#if NET45 || NETSTANDARD2_0
 using System.Collections.Generic;
 #endif
 
@@ -29,10 +27,10 @@ namespace CliWrap.Models
 #endif
 
         /// <summary />
-        public ExecutionInput(string arguments = "", string standardInput = "")
+        public ExecutionInput(string arguments = null, string standardInput = null)
         {
-            Arguments = arguments.GuardNotNull(nameof(arguments));
-            StandardInput = standardInput.GuardNotNull(nameof(arguments));
+            Arguments = arguments;
+            StandardInput = standardInput;
         }
     }
 

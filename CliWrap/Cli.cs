@@ -33,10 +33,10 @@ namespace CliWrap
         /// </summary>
         public Cli(string filePath, string workingDirectory)
         {
-            _processes = new HashSet<Process>();
-
             FilePath = filePath.GuardNotNull(nameof(filePath));
             WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
+
+            _processes = new HashSet<Process>();
         }
 
         /// <summary>

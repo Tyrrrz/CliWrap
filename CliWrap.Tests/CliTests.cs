@@ -41,7 +41,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("ECHO is off."));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -93,7 +93,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardError.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError, Is.EqualTo(ex.StandardError));
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -160,7 +160,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -177,7 +177,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -193,7 +193,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("ECHO is off."));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -212,7 +212,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
@@ -229,7 +229,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardError.TrimEnd(), Is.EqualTo("Hello world"));
             Assert.That(output.StandardError, Is.EqualTo(ex.StandardError));
             Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
-            Assert.That(output.RunTime, Is.GreaterThan(TimeSpan.Zero));
+            Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
         [Test]
