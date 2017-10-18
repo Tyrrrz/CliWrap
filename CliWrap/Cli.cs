@@ -23,7 +23,7 @@ namespace CliWrap
         /// Working directory
         /// </summary>
         public string WorkingDirectory { get; }
-        
+
         /// <summary>
         /// Initializes CLI wrapper on a target
         /// </summary>
@@ -91,7 +91,8 @@ namespace CliWrap
                 // Wire events
                 process.OutputDataReceived += (sender, args) =>
                 {
-                    if (args.Data != null) {
+                    if (args.Data != null)
+                    {
                         stdOutBuffer.AppendLine(args.Data);
                         standardBufferHandler?.HandleStandardOutput(args.Data);
                     }
@@ -99,7 +100,8 @@ namespace CliWrap
 
                 process.ErrorDataReceived += (sender, args) =>
                 {
-                    if (args.Data != null) {
+                    if (args.Data != null)
+                    {
                         stdErrBuffer.AppendLine(args.Data);
                         standardBufferHandler?.HandleStandardError(args.Data);
                     }
@@ -214,15 +216,19 @@ namespace CliWrap
                 var stdErrBuffer = new StringBuilder();
 
                 // Wire events
-                process.OutputDataReceived += (sender, args) => {
-                    if (args.Data != null) {
+                process.OutputDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
                         stdOutBuffer.AppendLine(args.Data);
                         standardBufferHandler?.HandleStandardOutput(args.Data);
                     }
                 };
 
-                process.ErrorDataReceived += (sender, args) => {
-                    if (args.Data != null) {
+                process.ErrorDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
                         stdErrBuffer.AppendLine(args.Data);
                         standardBufferHandler?.HandleStandardError(args.Data);
                     }
