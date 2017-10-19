@@ -47,7 +47,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -64,7 +64,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -80,7 +80,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("ECHO is off."));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -99,7 +99,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -116,7 +116,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.Empty);
             Assert.That(output.StandardError.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError, Is.EqualTo(ex.StandardError));
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -164,7 +164,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput, Is.EqualTo(stdOutBuffer.ToString()));
             Assert.That(output.StandardError, Is.EqualTo(stdErrBuffer.ToString()));
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -188,7 +188,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -205,7 +205,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -221,7 +221,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo("ECHO is off."));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -240,7 +240,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError.TrimEnd(), Is.Empty);
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -257,7 +257,7 @@ namespace CliWrap.Tests
             Assert.That(output.StandardOutput.TrimEnd(), Is.Empty);
             Assert.That(output.StandardError.TrimEnd(), Is.EqualTo(TestString));
             Assert.That(output.StandardError, Is.EqualTo(ex.StandardError));
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
@@ -305,7 +305,7 @@ namespace CliWrap.Tests
             Assert.That(output.ExitCode, Is.EqualTo(14));
             Assert.That(output.StandardOutput, Is.EqualTo(stdOutBuffer.ToString()));
             Assert.That(output.StandardError, Is.EqualTo(stdErrBuffer.ToString()));
-            Assert.That(output.StartTime, Is.LessThan(output.ExitTime));
+            Assert.That(output.StartTime, Is.LessThanOrEqualTo(output.ExitTime));
             Assert.That(output.RunTime, Is.EqualTo(output.ExitTime - output.StartTime));
         }
 
