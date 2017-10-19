@@ -1,9 +1,7 @@
 @echo off
 
-SHIFT
-
 :loop
-  echo %*
+	timeout /T 10 /NOBREAK > NUL
 goto loop
 
 exit /b 14
