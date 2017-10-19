@@ -1,7 +1,7 @@
 # This config ensures the following:
 # - Builds only master
 # - Environment compatible with .NET Core project type
-# - When Tyrrrz commits "Update version", deploys to NuGet
+# - When Alexey Golub commits "Update version", deploys to NuGet from master
 
 version: '{build}'
 
@@ -30,4 +30,4 @@ deploy:
   on:
     branch: master
     APPVEYOR_REPO_COMMIT_MESSAGE: "Update version"
-    APPVEYOR_REPO_COMMIT_AUTHOR: "Tyrrrz"
+    APPVEYOR_REPO_COMMIT_AUTHOR: "Alexey Golub"
