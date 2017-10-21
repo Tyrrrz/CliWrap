@@ -6,10 +6,7 @@ namespace CliWrap.Internal
     {
         public static T GuardNotNull<T>(this T o, string argName = null) where T : class
         {
-            if (o == null)
-                throw new ArgumentNullException(argName);
-
-            return o;
+            return o ?? throw new ArgumentNullException(argName);
         }
     }
 }
