@@ -1,13 +1,8 @@
 # This config ensures the following:
-# - Builds only master
 # - Environment compatible with .NET Core project type
 # - When Alexey Golub commits "Update version", deploys to NuGet from master
 
 version: '{build}'
-
-branches:
-  only:
-  - master
 
 image: Visual Studio 2017
 configuration: Release
