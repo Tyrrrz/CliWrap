@@ -324,7 +324,7 @@ namespace CliWrap
 
             // Throw an aggregate exception if necessary
             if (exceptions.Any())
-                throw new AggregateException("At least some processes could not killed", exceptions);
+                throw new AggregateException("At least some processes were not killed successfully", exceptions);
         }
     }
 }
