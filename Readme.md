@@ -20,7 +20,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Get process exit code, standard output and standard error as the result
 - Stop the execution early using `System.Threading.CancellationToken`
 - Set up callbacks that trigger when a process writes to StdOut or StdErr
-- Kill all currently running processes when disposing, finalizing or on demand
+- Kill all currently running processes on demand
 - Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
 
