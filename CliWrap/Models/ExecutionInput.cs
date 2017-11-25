@@ -1,6 +1,4 @@
-﻿#if NET45 || NETSTANDARD2_0
-using System.Collections.Generic;
-#endif
+﻿using System.Collections.Generic;
 
 namespace CliWrap.Models
 {
@@ -19,18 +17,17 @@ namespace CliWrap.Models
         /// </summary>
         public string StandardInput { get; }
 
-#if NET45 || NETSTANDARD2_0
         /// <summary>
         /// Environment variables
         /// </summary>
-        public IDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>();
-#endif
+        public IDictionary<string, string> EnvironmentVariables { get; }
 
         /// <summary />
         public ExecutionInput(string arguments = null, string standardInput = null)
         {
             Arguments = arguments;
             StandardInput = standardInput;
+            EnvironmentVariables = new Dictionary<string, string>();
         }
     }
 
