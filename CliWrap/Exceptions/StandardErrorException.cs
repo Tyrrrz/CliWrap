@@ -4,20 +4,24 @@ using CliWrap.Internal;
 namespace CliWrap.Exceptions
 {
     /// <summary>
-    /// Thrown when a command line executable reports an error
+    /// Thrown if underlying process reported an error.
     /// </summary>
     public class StandardErrorException : Exception
     {
         /// <summary>
-        /// Standard error
+        /// Standard error data produced by underlying process.
         /// </summary>
         public string StandardError { get; }
 
+        /// <inheritdoc />
+        public override string Message { get; }
+
         /// <summary />
         public StandardErrorException(string standardError)
-            : base("Command line executable reported an error")
         {
             StandardError = standardError.GuardNotNull(nameof(standardError));
+            Message = "Underlying process reported an error. " +
+                      $"Inspect [{nameof(StandardError)}] property for more information.";
         }
     }
 }

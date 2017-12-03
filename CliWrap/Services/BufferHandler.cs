@@ -3,7 +3,7 @@
 namespace CliWrap.Services
 {
     /// <summary>
-    /// The default implementation of <see cref="IBufferHandler"/> which uses delegates
+    /// Default implementation of <see cref="IBufferHandler"/> which uses delegates to handle data.
     /// </summary>
     public class BufferHandler : IBufferHandler
     {

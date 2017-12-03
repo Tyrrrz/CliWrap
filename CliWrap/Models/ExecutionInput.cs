@@ -3,22 +3,22 @@
 namespace CliWrap.Models
 {
     /// <summary>
-    /// Input used when executing a command line interface
+    /// Input used for executing a process.
     /// </summary>
     public partial class ExecutionInput
     {
         /// <summary>
-        /// Command line arguments
+        /// Command line arguments.
         /// </summary>
         public string Arguments { get; }
 
         /// <summary>
-        /// Standard input
+        /// Standard input data.
         /// </summary>
         public string StandardInput { get; }
 
         /// <summary>
-        /// Environment variables
+        /// Environment variables.
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; }
 
@@ -34,7 +34,7 @@ namespace CliWrap.Models
     public partial class ExecutionInput
     {
         /// <summary>
-        /// Empty input
+        /// Empty input.
         /// </summary>
         public static ExecutionInput Empty { get; } = new ExecutionInput();
     }

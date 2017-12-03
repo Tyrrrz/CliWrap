@@ -1,20 +1,18 @@
 ﻿namespace CliWrap.Services
 {
     /// <summary>
-    /// Used to handle the standard output and standard error of CLI processes
+    /// Defines a provider for handling realtime standard output and standard error data.
     /// </summary>
     public interface IBufferHandler
     {
         /// <summary>
-        /// Gets called when a line is written to the standard output
+        /// Gets called when underlying process writes a line to standard output.
         /// </summary>
-        /// <param name="line">The line written to the standard output</param>
         void HandleStandardOutput(string line);
 
         /// <summary>
-        /// Gets called when a line is written to the standard error
+        /// Gets called when underlying process writes a line to standard error.
         /// </summary>
-        /// <param name="line">The line written to the standard error</param>
         void HandleStandardError(string line);
     }
 }
