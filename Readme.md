@@ -18,9 +18,9 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Execute commands in a synchronous, asynchronous, fire-and-forget manner
 - Pass in command line arguments, standard input and environment variables
 - Get process exit code, standard output and standard error as the result
-- Stop the execution early using `System.Threading.CancellationToken`
+- Abort the execution early using `System.Threading.CancellationToken`
+- Abort all executions at once, on demand
 - Set up callbacks that trigger when a process writes to StdOut or StdErr
-- Kill all currently running processes on demand
 - Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
 
@@ -28,9 +28,9 @@ CliWrap is a library that makes it easier to interact with command line interfac
 
 The `Cli` class was designed to have each instance treated as a member of your project. When you're wrapping around a command line interface, you can think of the interface itself as a singleton class and all its commands as methods of that class. Therefore, it is recommended to create a reusable instance of `Cli` for each target executable.
 
-Executing processes are kept track of (except when launched using `ExecuteAndForget`) and can be killed by calling `KillAllProcesses`. If you're executing processes that can potentially outlive the parent, it is recommended to call that method somewhere before application terminates.
+If you're executing processes that can potentially outlive the parent, especially if they use a lot of resources, it is recommended to call `CancelAll()` at some point before your application terminates.
 
-##### Execute a command and handle output
+### Execute a command and handle output
 
 ```c#
 var cli = new Cli("some_cli.exe");
@@ -91,7 +91,7 @@ using (var cts = new CancellationTokenSource())
 }
 ```
 
-##### Handle standard output and/or standard error as it comes
+##### Handle real-time standard output/error data
 
 ```c#
 var cli = new Cli("some_cli.exe");

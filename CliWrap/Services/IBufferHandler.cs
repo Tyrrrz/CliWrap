@@ -1,7 +1,7 @@
 ﻿namespace CliWrap.Services
 {
     /// <summary>
-    /// Defines a provider for handling realtime standard output and standard error data.
+    /// Defines a provider for handling real-time standard output and standard error data.
     /// </summary>
     public interface IBufferHandler
     {

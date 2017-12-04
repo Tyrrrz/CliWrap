@@ -326,46 +326,38 @@ namespace CliWrap.Tests
 
         #endregion
 
-        #region KillAllProcesses
+        #region CancelAll
 
         [Test]
-        public void KillAllProcesses_AfterExecute_Sleep_Test()
+        public void CancelAll_AfterExecute_Sleep_Test()
         {
             var cli = new Cli(_sleepBat);
 
             // Kill after some time
             Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    cli.KillAllProcesses();
-                })
-                .Forget();
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                cli.CancelAll();
+            }).Forget();
 
             // Execute
-            var output = cli.Execute();
-
-            Assert.That(output, Is.Not.Null);
-            Assert.That(output.ExitCode, Is.Not.EqualTo(TestExitCode));
+            Assert.Throws<OperationCanceledException>(() => cli.Execute());
         }
 
         [Test]
-        public async Task KillAllProcesses_AfterExecuteAsync_Sleep_Test()
+        public void CancelAll_AfterExecuteAsync_Sleep_Test()
         {
             var cli = new Cli(_sleepBat);
 
             // Kill after some time
             Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    cli.KillAllProcesses();
-                })
-                .Forget();
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                cli.CancelAll();
+            }).Forget();
 
             // Execute
-            var output = await cli.ExecuteAsync();
-
-            Assert.That(output, Is.Not.Null);
-            Assert.That(output.ExitCode, Is.Not.EqualTo(TestExitCode));
+            Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync());
         }
 
         #endregion

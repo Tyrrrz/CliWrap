@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +15,8 @@ namespace CliWrap
     /// </summary>
     public class Cli
     {
-        private readonly HashSet<Process> _processes;
+        private readonly object _lock = new object();
+        private CancellationTokenSource _killSwitchCts;
 
         /// <summary>
         /// Target executable file path.
@@ -38,8 +37,8 @@ namespace CliWrap
         {
             FilePath = filePath.GuardNotNull(nameof(filePath));
             WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
-
-            _processes = new HashSet<Process>();
+            
+            _killSwitchCts = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -89,7 +88,7 @@ namespace CliWrap
         /// </summary>
         /// <param name="input">Execution input.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for realtime standard output and standard error data.</param>
+        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
         /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public ExecutionOutput Execute(ExecutionInput input,
@@ -98,9 +97,13 @@ namespace CliWrap
         {
             input.GuardNotNull(nameof(input));
 
-            // Create process
+            // Create linked token source and process
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
             using (var process = CreateProcess(input))
             {
+                // Get linked cancellation token
+                var linkedToken = linkedCts.Token;
+
                 // Create buffers
                 var stdOutBuffer = new StringBuilder();
                 var stdErrBuffer = new StringBuilder();
@@ -126,7 +129,6 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
-                _processes.Add(process);
 
                 // Write stdin
                 using (process.StandardInput)
@@ -135,7 +137,7 @@ namespace CliWrap
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
                 // and also after standard input so that it can write correctly
-                cancellationToken.Register(() =>
+                linkedToken.Register(() =>
                 {
                     // Kill process if it's not dead already
                     process.KillIfRunning();
@@ -147,10 +149,9 @@ namespace CliWrap
 
                 // Wait until exit
                 process.WaitForExit();
-                _processes.Remove(process);
 
                 // Check cancellation
-                cancellationToken.ThrowIfCancellationRequested();
+                linkedToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
@@ -165,7 +166,7 @@ namespace CliWrap
         /// </summary>
         /// <param name="arguments">Command line arguments passed when executing the target process.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for realtime standard output and standard error data.</param>
+        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
         /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public ExecutionOutput Execute(string arguments,
@@ -177,7 +178,7 @@ namespace CliWrap
         /// Executes target process without input, waits until completion synchronously and returns produced output.
         /// </summary>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for realtime standard output and standard error data.</param>
+        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
         /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public ExecutionOutput Execute(
@@ -231,7 +232,7 @@ namespace CliWrap
         /// </summary>
         /// <param name="input">Execution input.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for realtime standard output and standard error data.</param>
+        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
         /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input,
@@ -243,9 +244,13 @@ namespace CliWrap
             // Create task completion source
             var tcs = new TaskCompletionSource<object>();
 
-            // Create process
+            // Create linked token source and process
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
             using (var process = CreateProcess(input))
             {
+                // Get linked cancellation token
+                var linkedToken = linkedCts.Token;
+
                 // Wire events
                 process.Exited += (sender, args) => tcs.SetResult(null);
 
@@ -274,7 +279,6 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
-                _processes.Add(process);
 
                 // Write stdin
                 using (process.StandardInput)
@@ -283,7 +287,7 @@ namespace CliWrap
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
                 // and also after standard input so that it can write correctly
-                cancellationToken.Register(() =>
+                linkedToken.Register(() =>
                 {
                     // Kill process if it's not dead already
                     process.KillIfRunning();
@@ -295,10 +299,9 @@ namespace CliWrap
 
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
-                _processes.Remove(process);
 
                 // Check cancellation
-                cancellationToken.ThrowIfCancellationRequested();
+                linkedToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
@@ -313,7 +316,7 @@ namespace CliWrap
         /// </summary>
         /// <param name="arguments">Command line arguments passed when executing the target process.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for realtime standard output and standard error data.</param>
+        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
         /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public Task<ExecutionOutput> ExecuteAsync(string arguments,
@@ -325,7 +328,7 @@ namespace CliWrap
         /// Executes target process without input, waits until completion asynchronously and returns produced output.
         /// </summary>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for realtime standard output and standard error data.</param>
+        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
         /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public Task<ExecutionOutput> ExecuteAsync(
@@ -336,31 +339,17 @@ namespace CliWrap
         #endregion
 
         /// <summary>
-        /// Kills all currently running underlying processes created by this instance of <see cref="Cli" />.
+        /// Cancels all currently running execution tasks.
         /// </summary>
-        /// <exception cref="AggregateException">Thrown if one or more processes were not killed successfully.</exception>
-        /// <remarks>Processes executed by <see cref="ExecuteAndForget()"/> are not killed.</remarks>
-        public void KillAllProcesses()
+        /// <remarks>Doesn't affect processes instantiated by <see cref="ExecuteAndForget()"/>.</remarks>
+        public void CancelAll()
         {
-            var exceptions = new List<Exception>();
-
-            // Try to kill as many processes as possible
-            foreach (var process in _processes.ToArray())
+            lock (_lock)
             {
-                try
-                {
-                    process.KillIfRunning();
-                    _processes.Remove(process);
-                }
-                catch (Exception ex)
-                {
-                    exceptions.Add(ex);
-                }
+                _killSwitchCts.Cancel();
+                _killSwitchCts.Dispose();
+                _killSwitchCts = new CancellationTokenSource();
             }
-
-            // Throw an aggregate exception if necessary
-            if (exceptions.Any())
-                throw new AggregateException("At least some processes were not killed successfully.", exceptions);
         }
     }
 }
