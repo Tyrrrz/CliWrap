@@ -33,59 +33,62 @@ If you're executing processes that can potentially outlive the parent, especiall
 ### Execute a command and handle output
 
 ```c#
-var cli = new Cli("some_cli.exe");
+using (var cli = new Cli("some_cli.exe"))
+{
+    // Execute
+    var output = await cli.ExecuteAsync("command --option");
+    // ... or in synchronous manner:
+    // var output = cli.Execute("command --option");
 
-// Execute
-var output = await cli.ExecuteAsync("command --option");
-// ... or in synchronous manner:
-// var output = cli.Execute("command --option");
+    // Throw an exception if CLI reported an error
+    output.ThrowIfError();
 
-// Throw an exception if CLI reported an error
-output.ThrowIfError();
-
-// Extract output
-var code = output.ExitCode;
-var stdOut = output.StandardOutput;
-var stdErr = output.StandardError;
-var startTime = output.StartTime;
-var exitTime = output.ExitTime;
-var runTime = output.RunTime;
+    // Extract output
+    var code = output.ExitCode;
+    var stdOut = output.StandardOutput;
+    var stdErr = output.StandardError;
+    var startTime = output.StartTime;
+    var exitTime = output.ExitTime;
+    var runTime = output.RunTime;
+}
 ```
 
 ##### Execute a command without waiting for completion
 
 ```c#
-var cli = new Cli("some_cli.exe");
-cli.ExecuteAndForget("command --option");
+using (var cli = new Cli("some_cli.exe"))
+{
+    cli.ExecuteAndForget("command --option");
+}
 ```
 
 ##### Pass in standard input
 
 ```c#
-var cli = new Cli("some_cli.exe");
-
-var input = new ExecutionInput("command --option", "this is stdin");
-
-var output = await cli.ExecuteAsync(input);
+using (var cli = new Cli("some_cli.exe"))
+{
+    var input = new ExecutionInput("command --option", "this is stdin");
+    var output = await cli.ExecuteAsync(input);
+}
 ```
 
 ##### Pass in environment variables
 
 ```c#
-var cli = new Cli("some_cli.exe");
-
-var input = new ExecutionInput("command --option");
-input.EnvironmentVariables.Add("some_var", "some_value");
-
-var output = await cli.ExecuteAsync(input);
+using (var cli = new Cli("some_cli.exe"))
+{
+    var input = new ExecutionInput("command --option");
+    input.EnvironmentVariables.Add("some_var", "some_value");
+    var output = await cli.ExecuteAsync(input);
+}
 ```
 
 ##### Cancel execution
 
 ```c#
+using (var cli = new Cli("some_cli.exe"))
 using (var cts = new CancellationTokenSource())
 {
-    var cli = new Cli("some_cli.exe");
     cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
     var output = await cli.ExecuteAsync("command --option", cts.Token);
 }
@@ -94,11 +97,12 @@ using (var cts = new CancellationTokenSource())
 ##### Handle real-time standard output/error data
 
 ```c#
-var cli = new Cli("some_cli.exe");
+using (var cli = new Cli("some_cli.exe"))
+{
+    var handler = new BufferHandler(
+            stdOutLine => Console.WriteLine("StdOut> " + stdOutLine),
+            stdErrLine => Console.WriteLine("StdErr> " + stdErrLine));
 
-var handler = new BufferHandler(
-        stdOutLine => Console.WriteLine("StdOut> " + stdOutLine),
-        stdErrLine => Console.WriteLine("StdErr> " + stdErrLine));
-
-var output = await cli.ExecuteAsync("command --option", bufferHandler: handler);
+    var output = await cli.ExecuteAsync("command --option", bufferHandler: handler);
+}
 ```

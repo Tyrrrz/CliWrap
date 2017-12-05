@@ -13,9 +13,10 @@ namespace CliWrap
     /// <summary>
     /// Wrapper for a command line interface.
     /// </summary>
-    public class Cli
+    public class Cli : IDisposable
     {
         private readonly object _lock = new object();
+
         private CancellationTokenSource _killSwitchCts;
 
         /// <summary>
@@ -350,6 +351,24 @@ namespace CliWrap
                 _killSwitchCts.Dispose();
                 _killSwitchCts = new CancellationTokenSource();
             }
+        }
+
+        /// <summary>
+        /// Release resources.
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _killSwitchCts.Dispose();
+            }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
