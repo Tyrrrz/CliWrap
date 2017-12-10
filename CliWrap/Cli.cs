@@ -90,7 +90,6 @@ namespace CliWrap
         /// <param name="input">Execution input.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
         /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public ExecutionOutput Execute(ExecutionInput input,
             CancellationToken cancellationToken = default(CancellationToken),
@@ -168,7 +167,6 @@ namespace CliWrap
         /// <param name="arguments">Command line arguments passed when executing the target process.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
         /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public ExecutionOutput Execute(string arguments,
             CancellationToken cancellationToken = default(CancellationToken),
@@ -180,7 +178,6 @@ namespace CliWrap
         /// </summary>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
         /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public ExecutionOutput Execute(
             CancellationToken cancellationToken = default(CancellationToken),
@@ -234,7 +231,6 @@ namespace CliWrap
         /// <param name="input">Execution input.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
         /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input,
             CancellationToken cancellationToken = default(CancellationToken),
@@ -318,7 +314,6 @@ namespace CliWrap
         /// <param name="arguments">Command line arguments passed when executing the target process.</param>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
         /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public Task<ExecutionOutput> ExecuteAsync(string arguments,
             CancellationToken cancellationToken = default(CancellationToken),
@@ -330,7 +325,6 @@ namespace CliWrap
         /// </summary>
         /// <param name="cancellationToken">Token that can be used to abort execution.</param>
         /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the execution was canceled.</exception>
         /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
         public Task<ExecutionOutput> ExecuteAsync(
             CancellationToken cancellationToken = default(CancellationToken),
@@ -354,7 +348,7 @@ namespace CliWrap
         }
 
         /// <summary>
-        /// Release resources.
+        /// Disposes resources.
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {

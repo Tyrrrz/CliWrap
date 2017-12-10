@@ -30,17 +30,17 @@ namespace CliWrap.Models
         public bool HasError => !string.IsNullOrEmpty(StandardError);
 
         /// <summary>
-        /// When the execution started.
+        /// Time at which this execution started.
         /// </summary>
         public DateTime StartTime { get; }
 
         /// <summary>
-        /// When the execution finished.
+        /// Time at which this execution finished.
         /// </summary>
         public DateTime ExitTime { get; }
 
         /// <summary>
-        /// How long the execution took.
+        /// Duration of this execution.
         /// </summary>
         public TimeSpan RunTime => ExitTime - StartTime;
 
@@ -56,9 +56,8 @@ namespace CliWrap.Models
         }
 
         /// <summary>
-        /// Throws an exception if the underlying process reported an error during this execution.
+        /// Throws <see cref="StandardErrorException"/> if the underlying process reported an error during this execution.
         /// </summary>
-        /// <exception cref="StandardErrorException">Thrown if there was an error.</exception>
         public void ThrowIfError()
         {
             if (HasError)
