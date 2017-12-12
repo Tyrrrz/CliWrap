@@ -1,11 +1,8 @@
-# This config ensures the following:
-# - Environment compatible with .NET Core project type
-# - When Alexey Golub commits "Update version", deploys to NuGet from master
-
 version: '{build}'
 
 image: Visual Studio 2017
 configuration: Release
+skip_tags: true
 
 before_build:
 - ps: nuget restore
