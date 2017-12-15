@@ -30,7 +30,7 @@ The `Cli` class was designed to have each instance treated as a member of your p
 
 If you're executing processes that can potentially outlive the parent, especially if they use a lot of resources, it is recommended to call `CancelAll()` at some point before your application terminates.
 
-### Execute a command and handle output
+##### Execute a command and handle output
 
 ```c#
 using (var cli = new Cli("some_cli.exe"))
