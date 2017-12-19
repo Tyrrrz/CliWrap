@@ -160,12 +160,12 @@ namespace CliWrap
                 // Wait until exit
                 process.WaitForExit();
 
+                // Check cancellation
+                linkedToken.ThrowIfCancellationRequested();
+
                 // Wait until stdout and stderr finished reading
                 stdOutMre.Wait(linkedToken);
                 stdErrMre.Wait(linkedToken);
-
-                // Check cancellation
-                linkedToken.ThrowIfCancellationRequested();
 
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
