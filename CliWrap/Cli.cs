@@ -130,7 +130,13 @@ namespace CliWrap
                 // Start process
                 process.Start();
 
+                // Begin reading stdout and stderr
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
                 // Write stdin
+                // This has to be after starting stdout/stderr readers
+                // because otherwise some events are lost for some reason
                 using (process.StandardInput)
                     process.StandardInput.Write(input.StandardInput);
 
@@ -142,10 +148,6 @@ namespace CliWrap
                     // Kill process if it's not dead already
                     process.KillIfRunning();
                 });
-
-                // Begin reading stdout and stderr
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
 
                 // Wait until exit
                 process.WaitForExit();
@@ -277,7 +279,13 @@ namespace CliWrap
                 // Start process
                 process.Start();
 
+                // Begin reading stdout and stderr
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
                 // Write stdin
+                // This has to be after starting stdout/stderr readers
+                // because otherwise some events are lost for some reason
                 using (process.StandardInput)
                     await process.StandardInput.WriteAsync(input.StandardInput).ConfigureAwait(false);
 
@@ -289,10 +297,6 @@ namespace CliWrap
                     // Kill process if it's not dead already
                     process.KillIfRunning();
                 });
-
-                // Begin reading stdout and stderr
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
 
                 // Wait until exit
                 await tcs.Task.ConfigureAwait(false);
