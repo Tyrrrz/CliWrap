@@ -2,7 +2,6 @@ version: '{build}'
 
 image: Visual Studio 2017
 configuration: Release
-skip_tags: true
 
 before_build:
 - ps: nuget restore
@@ -21,5 +20,4 @@ deploy:
   artifact: CliWrap.nupkg
   on:
     branch: master
-    APPVEYOR_REPO_COMMIT_MESSAGE: "Update version"
-    APPVEYOR_REPO_COMMIT_AUTHOR: "Alexey Golub"
+    appveyor_repo_tag: true
