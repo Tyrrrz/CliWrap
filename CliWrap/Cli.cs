@@ -98,8 +98,10 @@ namespace CliWrap
             input.GuardNotNull(nameof(input));
 
             // Create linked token source and process
-            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
+            using (var stdOutMre = new ManualResetEventSlim())
+            using (var stdErrMre = new ManualResetEventSlim())
             using (var process = CreateProcess(input))
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
             {
                 // Get linked cancellation token
                 var linkedToken = linkedCts.Token;
@@ -116,6 +118,10 @@ namespace CliWrap
                         stdOutBuffer.AppendLine(args.Data);
                         bufferHandler?.HandleStandardOutput(args.Data);
                     }
+                    else
+                    {
+                        stdOutMre.Set();
+                    }
                 };
 
                 process.ErrorDataReceived += (sender, args) =>
@@ -124,6 +130,10 @@ namespace CliWrap
                     {
                         stdErrBuffer.AppendLine(args.Data);
                         bufferHandler?.HandleStandardError(args.Data);
+                    }
+                    else
+                    {
+                        stdErrMre.Set();
                     }
                 };
 
@@ -135,8 +145,6 @@ namespace CliWrap
                 process.BeginErrorReadLine();
 
                 // Write stdin
-                // This has to be after starting stdout/stderr readers
-                // because otherwise some events are lost for some reason
                 using (process.StandardInput)
                     process.StandardInput.Write(input.StandardInput);
 
@@ -151,6 +159,10 @@ namespace CliWrap
 
                 // Wait until exit
                 process.WaitForExit();
+
+                // Wait until stdout and stderr finished reading
+                stdOutMre.Wait(linkedToken);
+                stdErrMre.Wait(linkedToken);
 
                 // Check cancellation
                 linkedToken.ThrowIfCancellationRequested();
@@ -240,8 +252,10 @@ namespace CliWrap
         {
             input.GuardNotNull(nameof(input));
 
-            // Create task completion source
-            var tcs = new TaskCompletionSource<object>();
+            // Create task completion sources
+            var processTcs = new TaskCompletionSource<object>();
+            var stdOutTcs = new TaskCompletionSource<object>();
+            var stdErrTcs = new TaskCompletionSource<object>();
 
             // Create linked token source and process
             using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
@@ -251,7 +265,7 @@ namespace CliWrap
                 var linkedToken = linkedCts.Token;
 
                 // Wire events
-                process.Exited += (sender, args) => tcs.SetResult(null);
+                process.Exited += (sender, args) => processTcs.SetResult(null);
 
                 // Create buffers
                 var stdOutBuffer = new StringBuilder();
@@ -265,6 +279,10 @@ namespace CliWrap
                         stdOutBuffer.AppendLine(args.Data);
                         bufferHandler?.HandleStandardOutput(args.Data);
                     }
+                    else
+                    {
+                        stdOutTcs.SetResult(null);
+                    }
                 };
 
                 process.ErrorDataReceived += (sender, args) =>
@@ -273,6 +291,10 @@ namespace CliWrap
                     {
                         stdErrBuffer.AppendLine(args.Data);
                         bufferHandler?.HandleStandardError(args.Data);
+                    }
+                    else
+                    {
+                        stdErrTcs.SetResult(null);
                     }
                 };
 
@@ -284,8 +306,6 @@ namespace CliWrap
                 process.BeginErrorReadLine();
 
                 // Write stdin
-                // This has to be after starting stdout/stderr readers
-                // because otherwise some events are lost for some reason
                 using (process.StandardInput)
                     await process.StandardInput.WriteAsync(input.StandardInput).ConfigureAwait(false);
 
@@ -296,13 +316,19 @@ namespace CliWrap
                 {
                     // Kill process if it's not dead already
                     process.KillIfRunning();
+
+                    // Cancel tasks
+                    processTcs.SetCanceled();
+                    stdOutTcs.SetCanceled();
+                    stdErrTcs.SetCanceled();
                 });
 
                 // Wait until exit
-                await tcs.Task.ConfigureAwait(false);
+                await processTcs.Task.ConfigureAwait(false);
 
-                // Check cancellation
-                linkedToken.ThrowIfCancellationRequested();
+                // Wait until stdout and stderr finished reading
+                await stdOutTcs.Task.ConfigureAwait(false);
+                await stdErrTcs.Task.ConfigureAwait(false);
 
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
