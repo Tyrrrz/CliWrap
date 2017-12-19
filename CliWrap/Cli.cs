@@ -97,7 +97,7 @@ namespace CliWrap
         {
             input.GuardNotNull(nameof(input));
 
-            // Create linked token source and process
+            // Create process and linked token source
             using (var stdOutMre = new ManualResetEventSlim())
             using (var stdErrMre = new ManualResetEventSlim())
             using (var process = CreateProcess(input))
@@ -257,9 +257,9 @@ namespace CliWrap
             var stdOutTcs = new TaskCompletionSource<object>();
             var stdErrTcs = new TaskCompletionSource<object>();
 
-            // Create linked token source and process
-            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
+            // Create process and linked token source
             using (var process = CreateProcess(input))
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
             {
                 // Get linked cancellation token
                 var linkedToken = linkedCts.Token;
