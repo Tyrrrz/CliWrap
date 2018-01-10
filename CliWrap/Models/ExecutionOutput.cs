@@ -32,12 +32,12 @@ namespace CliWrap.Models
         /// <summary>
         /// Time at which this execution started.
         /// </summary>
-        public DateTime StartTime { get; }
+        public DateTimeOffset StartTime { get; }
 
         /// <summary>
         /// Time at which this execution finished.
         /// </summary>
-        public DateTime ExitTime { get; }
+        public DateTimeOffset ExitTime { get; }
 
         /// <summary>
         /// Duration of this execution.
@@ -46,7 +46,7 @@ namespace CliWrap.Models
 
         /// <summary />
         public ExecutionOutput(int exitCode, string standardOutput, string standardError,
-            DateTime startTime, DateTime exitTime)
+            DateTimeOffset startTime, DateTimeOffset exitTime)
         {
             ExitCode = exitCode;
             StandardOutput = standardOutput.GuardNotNull(nameof(standardOutput));

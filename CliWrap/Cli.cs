@@ -97,7 +97,7 @@ namespace CliWrap
         {
             input.GuardNotNull(nameof(input));
 
-            // Create process and linked token source
+            // Set up execution context
             using (var stdOutMre = new ManualResetEventSlim())
             using (var stdErrMre = new ManualResetEventSlim())
             using (var process = CreateProcess(input))
@@ -123,7 +123,6 @@ namespace CliWrap
                         stdOutMre.Set();
                     }
                 };
-
                 process.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
@@ -139,6 +138,7 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+                var startTime = DateTimeOffset.Now;
 
                 // Begin reading stdout and stderr
                 process.BeginOutputReadLine();
@@ -159,6 +159,7 @@ namespace CliWrap
 
                 // Wait until exit
                 process.WaitForExit();
+                var exitTime = DateTimeOffset.Now;
 
                 // Check cancellation
                 linkedToken.ThrowIfCancellationRequested();
@@ -171,7 +172,7 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, startTime, exitTime);
             }
         }
 
@@ -257,21 +258,19 @@ namespace CliWrap
             var stdOutTcs = new TaskCompletionSource<object>();
             var stdErrTcs = new TaskCompletionSource<object>();
 
-            // Create process and linked token source
+            // Set up execution context
             using (var process = CreateProcess(input))
             using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
             {
                 // Get linked cancellation token
                 var linkedToken = linkedCts.Token;
 
-                // Wire events
-                process.Exited += (sender, args) => processTcs.SetResult(null);
-
                 // Create buffers
                 var stdOutBuffer = new StringBuilder();
                 var stdErrBuffer = new StringBuilder();
 
                 // Wire events
+                process.Exited += (sender, args) => processTcs.SetResult(null);
                 process.OutputDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
@@ -284,7 +283,6 @@ namespace CliWrap
                         stdOutTcs.SetResult(null);
                     }
                 };
-
                 process.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
@@ -300,6 +298,7 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+                var startTime = DateTimeOffset.Now;
 
                 // Begin reading stdout and stderr
                 process.BeginOutputReadLine();
@@ -325,6 +324,7 @@ namespace CliWrap
 
                 // Wait until exit
                 await processTcs.Task.ConfigureAwait(false);
+                var exitTime = DateTimeOffset.Now;
 
                 // Wait until stdout and stderr finished reading
                 await stdOutTcs.Task.ConfigureAwait(false);
@@ -334,7 +334,7 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, process.StartTime, process.ExitTime);
+                return new ExecutionOutput(process.ExitCode, stdOut, stdErr, startTime, exitTime);
             }
         }
 
