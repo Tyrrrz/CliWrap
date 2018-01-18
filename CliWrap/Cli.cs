@@ -30,16 +30,44 @@ namespace CliWrap
         public string WorkingDirectory { get; }
 
         /// <summary>
+        /// Encoding of stdin, stdout and stderr
+        /// </summary>
+        public Encoding Encoding { get; }
+
+        /// <summary>
+        /// Initializes wrapper on a target executable using given working directory and encoding.
+        /// </summary>
+        /// <param name="filePath">File path of the target executable.</param>
+        /// <param name="workingDirectory">Target executable's working directory.</param>
+        /// <param name="encoding">Encoding of stdin, stdout and stderr</param>
+        public Cli(string filePath, string workingDirectory, Encoding encoding)
+        {
+            FilePath = filePath.GuardNotNull(nameof(filePath));
+            WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
+            Encoding = encoding.GuardNotNull(nameof(encoding));
+
+            _killSwitchCts = new CancellationTokenSource();
+        }
+
+        /// <summary>
         /// Initializes wrapper on a target executable using given working directory.
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
         /// <param name="workingDirectory">Target executable's working directory.</param>
         public Cli(string filePath, string workingDirectory)
+            : this(filePath, workingDirectory, Encoding.ASCII)
         {
-            FilePath = filePath.GuardNotNull(nameof(filePath));
-            WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
-            
-            _killSwitchCts = new CancellationTokenSource();
+        }
+
+        /// <summary>
+        /// Initializes wrapper on a target executable using given encoding and
+        /// using current directory as working directory.
+        /// </summary>
+        /// <param name="filePath">File path of the target executable.</param>
+        /// <param name="encoding">Encoding of stdin, stdout and stderr</param>
+        public Cli(string filePath, Encoding encoding)
+            : this(filePath, Directory.GetCurrentDirectory(), encoding)
+        {
         }
 
         /// <summary>
@@ -65,6 +93,8 @@ namespace CliWrap
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
+                    StandardOutputEncoding = Encoding,
+                    StandardErrorEncoding = Encoding,
                     UseShellExecute = false
                 },
                 EnableRaisingEvents = true
@@ -145,8 +175,11 @@ namespace CliWrap
                 process.BeginErrorReadLine();
 
                 // Write stdin
-                using (process.StandardInput)
-                    process.StandardInput.Write(input.StandardInput);
+                using (process.StandardInput) {
+                    var bytes = Encoding.GetBytes(input.StandardInput);
+                    var stdin = process.StandardInput.BaseStream;
+                    stdin.Write(bytes, 0, bytes.Length);
+                }
 
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
@@ -218,8 +251,11 @@ namespace CliWrap
                 process.Start();
 
                 // Write stdin
-                using (process.StandardInput)
-                    process.StandardInput.Write(input.StandardInput);
+                using (process.StandardInput) {
+                    var bytes = Encoding.GetBytes(input.StandardInput);
+                    var stdin = process.StandardInput.BaseStream;
+                    stdin.Write(bytes, 0, bytes.Length);
+                }
             }
         }
 
@@ -305,8 +341,11 @@ namespace CliWrap
                 process.BeginErrorReadLine();
 
                 // Write stdin
-                using (process.StandardInput)
-                    await process.StandardInput.WriteAsync(input.StandardInput).ConfigureAwait(false);
+                using (process.StandardInput) {
+                    var bytes = Encoding.GetBytes(input.StandardInput);
+                    var stdin = process.StandardInput.BaseStream;
+                    await stdin.WriteAsync(bytes, 0, bytes.Length, linkedToken).ConfigureAwait(false); 
+                }
 
                 // Setup cancellation token
                 // This has to be after process start so that it can actually be killed
