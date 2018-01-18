@@ -176,9 +176,11 @@ namespace CliWrap
 
                 // Write stdin
                 using (process.StandardInput) {
-                    var bytes = Encoding.GetBytes(input.StandardInput);
-                    var stdin = process.StandardInput.BaseStream;
-                    stdin.Write(bytes, 0, bytes.Length);
+                    if (input.StandardInput != null) {
+                        var bytes = Encoding.GetBytes(input.StandardInput);
+                        var stdin = process.StandardInput.BaseStream;
+                        stdin.Write(bytes, 0, bytes.Length);
+                    }
                 }
 
                 // Setup cancellation token
@@ -252,9 +254,11 @@ namespace CliWrap
 
                 // Write stdin
                 using (process.StandardInput) {
-                    var bytes = Encoding.GetBytes(input.StandardInput);
-                    var stdin = process.StandardInput.BaseStream;
-                    stdin.Write(bytes, 0, bytes.Length);
+                    if (input.StandardInput != null) {
+                        var bytes = Encoding.GetBytes(input.StandardInput);
+                        var stdin = process.StandardInput.BaseStream;
+                        stdin.Write(bytes, 0, bytes.Length);
+                    }
                 }
             }
         }
@@ -342,9 +346,11 @@ namespace CliWrap
 
                 // Write stdin
                 using (process.StandardInput) {
-                    var bytes = Encoding.GetBytes(input.StandardInput);
-                    var stdin = process.StandardInput.BaseStream;
-                    await stdin.WriteAsync(bytes, 0, bytes.Length, linkedToken).ConfigureAwait(false); 
+                    if (input.StandardInput != null) {
+                        var bytes = Encoding.GetBytes(input.StandardInput);
+                        var stdin = process.StandardInput.BaseStream;
+                        await stdin.WriteAsync(bytes, 0, bytes.Length, linkedToken).ConfigureAwait(false); 
+                    }
                 }
 
                 // Setup cancellation token
