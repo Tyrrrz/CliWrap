@@ -21,6 +21,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Abort the execution early using `System.Threading.CancellationToken`
 - Abort all executions at once, on demand
 - Set up callbacks that trigger when a process writes to StdOut or StdErr
+- Custom encoding settings for standard input, output and error
 - Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
 
