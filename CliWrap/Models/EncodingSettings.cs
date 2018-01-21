@@ -7,28 +7,26 @@ namespace CliWrap.Models
     /// <summary>
     /// Specifies the encodings to use for each input/output stream.
     /// </summary>
-    public class EncodingSettings
+    public partial class EncodingSettings
     {
         /// <summary>
-        /// Encoding to use for stdin.
+        /// Encoding to use for standard input.
         /// </summary>
         public Encoding StandardInput { get; }
 
         /// <summary>
-        /// Encoding to use for stdout.
+        /// Encoding to use for standard output.
         /// </summary>
         public Encoding StandardOutput { get; }
 
         /// <summary>
-        /// Encoding to use for stderr.
+        /// Encoding to use for standard error.
         /// </summary>
         public Encoding StandardError { get; }
 
         /// <summary>
-        /// Used default encodings:
-        /// <see cref="Console.InputEncoding"/> for <see cref="StandardInput"/> and
-        /// <see cref="Console.OutputEncoding"/> for both <see cref="StandardOutput"/>
-        /// and <see cref="StandardError"/>.
+        /// Initializes <see cref="EncodingSettings" /> with default encodings
+        /// (<see cref="Console.InputEncoding" /> and <see cref="Console.OutputEncoding" />)
         /// </summary>
         public EncodingSettings()
         {
@@ -38,39 +36,41 @@ namespace CliWrap.Models
         }
 
         /// <summary>
-        /// Use one encoding for all input/output streams.
+        /// Initializes <see cref="EncodingSettings" /> with the same encoding for all streams.
         /// </summary>
-        /// <param name="encoding">Encoding to use.</param>
-        public EncodingSettings(Encoding encoding)
+        public EncodingSettings(Encoding all)
         {
-            StandardInput = encoding.GuardNotNull(nameof(encoding));
-            StandardOutput = encoding;
-            StandardError = encoding;
+            StandardInput = all.GuardNotNull(nameof(all));
+            StandardOutput = all;
+            StandardError = all;
         }
 
         /// <summary>
-        /// Use separate encodings for input and output streams.
+        /// Initializes <see cref="EncodingSettings" /> with separate encoding for input/output streams.
         /// </summary>
-        /// <param name="inputs">Encoding to use for <see cref="StandardInput"/>.</param>
-        /// <param name="outputs">Encoding to use for both <see cref="StandardOutput"/> and <see cref="StandardError"/>.</param>
-        public EncodingSettings(Encoding inputs, Encoding outputs)
+        public EncodingSettings(Encoding input, Encoding output)
         {
-            StandardInput = inputs.GuardNotNull(nameof(inputs));
-            StandardOutput = outputs.GuardNotNull(nameof(outputs));
-            StandardError = outputs;
+            StandardInput = input.GuardNotNull(nameof(input));
+            StandardOutput = output.GuardNotNull(nameof(output));
+            StandardError = output;
         }
 
         /// <summary>
-        /// Use separate encodings for each input/output stream.
+        /// Initializes <see cref="EncodingSettings" /> with separate encodings for all streams.
         /// </summary>
-        /// <param name="standardInput">Encoding to use for <see cref="StandardInput"/>.</param>
-        /// <param name="standardOutput">Encoding to use for <see cref="StandardOutput"/>.</param>
-        /// <param name="standardError">Encoding to use for <see cref="StandardError"/>.</param>
         public EncodingSettings(Encoding standardInput, Encoding standardOutput, Encoding standardError)
         {
             StandardInput = standardInput.GuardNotNull(nameof(standardInput));
             StandardOutput = standardOutput.GuardNotNull(nameof(standardOutput));
             StandardError = standardError.GuardNotNull(nameof(standardError));
         }
+    }
+
+    public partial class EncodingSettings
+    {
+        /// <summary>
+        /// Default encoding settings.
+        /// </summary>
+        public static EncodingSettings Default { get; } = new EncodingSettings();
     }
 }

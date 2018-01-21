@@ -30,7 +30,7 @@ namespace CliWrap
         public string WorkingDirectory { get; }
 
         /// <summary>
-        /// Encoding of stdin, stdout and stderr
+        /// Encodings to use for standard input, output and error.
         /// </summary>
         public EncodingSettings EncodingSettings { get; }
 
@@ -39,7 +39,7 @@ namespace CliWrap
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
         /// <param name="workingDirectory">Target executable's working directory.</param>
-        /// <param name="encodingSettings">Encodings to use for input/output streams</param>
+        /// <param name="encodingSettings">Encodings to use for input/output streams.</param>
         public Cli(string filePath, string workingDirectory, EncodingSettings encodingSettings)
         {
             FilePath = filePath.GuardNotNull(nameof(filePath));
@@ -51,13 +51,11 @@ namespace CliWrap
 
         /// <summary>
         /// Initializes wrapper on a target executable using given working directory.
-        /// The encodings default to <see cref="Console.InputEncoding"/> for stdin and
-        /// <see cref="Console.OutputEncoding"/> for stdout and stderr.
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
         /// <param name="workingDirectory">Target executable's working directory.</param>
         public Cli(string filePath, string workingDirectory)
-            : this(filePath, workingDirectory, new EncodingSettings())
+            : this(filePath, workingDirectory, EncodingSettings.Default)
         {
         }
 
@@ -66,7 +64,7 @@ namespace CliWrap
         /// using current directory as working directory.
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
-        /// <param name="encodingSettings">Encodings to use for input/output streams</param>
+        /// <param name="encodingSettings">Encodings to use for input/output streams.</param>
         public Cli(string filePath, EncodingSettings encodingSettings)
             : this(filePath, Directory.GetCurrentDirectory(), encodingSettings)
         {
@@ -104,7 +102,7 @@ namespace CliWrap
 
             // Set environment variables
 #if NET45
-            foreach (var variable in input.EnvironmentVariables)                
+            foreach (var variable in input.EnvironmentVariables)
                 process.StartInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
 #else
             foreach (var variable in input.EnvironmentVariables)
@@ -177,11 +175,13 @@ namespace CliWrap
                 process.BeginErrorReadLine();
 
                 // Write stdin
-                using (process.StandardInput) {
-                    if (input.StandardInput != null) {
-                        var bytes = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
-                        var stdin = process.StandardInput.BaseStream;
-                        stdin.Write(bytes, 0, bytes.Length);
+                using (process.StandardInput)
+                {
+                    if (input.StandardInput != null)
+                    {
+                        var stdinData = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
+                        var stdinStream = process.StandardInput.BaseStream;
+                        stdinStream.Write(stdinData, 0, stdinData.Length);
                     }
                 }
 
@@ -255,11 +255,13 @@ namespace CliWrap
                 process.Start();
 
                 // Write stdin
-                using (process.StandardInput) {
-                    if (input.StandardInput != null) {
-                        var bytes = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
-                        var stdin = process.StandardInput.BaseStream;
-                        stdin.Write(bytes, 0, bytes.Length);
+                using (process.StandardInput)
+                {
+                    if (input.StandardInput != null)
+                    {
+                        var stdinData = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
+                        var stdinStream = process.StandardInput.BaseStream;
+                        stdinStream.Write(stdinData, 0, stdinData.Length);
                     }
                 }
             }
@@ -347,11 +349,13 @@ namespace CliWrap
                 process.BeginErrorReadLine();
 
                 // Write stdin
-                using (process.StandardInput) {
-                    if (input.StandardInput != null) {
-                        var bytes = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
-                        var stdin = process.StandardInput.BaseStream;
-                        await stdin.WriteAsync(bytes, 0, bytes.Length, linkedToken).ConfigureAwait(false); 
+                using (process.StandardInput)
+                {
+                    if (input.StandardInput != null)
+                    {
+                        var stdinData = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
+                        var stdinStream = process.StandardInput.BaseStream;
+                        await stdinStream.WriteAsync(stdinData, 0, stdinData.Length, linkedToken).ConfigureAwait(false);
                     }
                 }
 
