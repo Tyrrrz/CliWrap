@@ -1,6 +1,7 @@
 ﻿using System;
 using CliWrap.Exceptions;
 using CliWrap.Internal;
+using JetBrains.Annotations;
 
 namespace CliWrap.Models
 {
@@ -17,11 +18,13 @@ namespace CliWrap.Models
         /// <summary>
         /// Standard output data.
         /// </summary>
+        [NotNull]
         public string StandardOutput { get; }
 
         /// <summary>
         /// Standard error data.
         /// </summary>
+        [NotNull]
         public string StandardError { get; }
 
         /// <summary>
