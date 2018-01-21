@@ -38,11 +38,11 @@ namespace CliWrap.Models
         /// <summary>
         /// Initializes <see cref="EncodingSettings" /> with the same encoding for all streams.
         /// </summary>
-        public EncodingSettings(Encoding all)
+        public EncodingSettings(Encoding inputOutput)
         {
-            StandardInput = all.GuardNotNull(nameof(all));
-            StandardOutput = all;
-            StandardError = all;
+            StandardInput = inputOutput.GuardNotNull(nameof(inputOutput));
+            StandardOutput = inputOutput;
+            StandardError = inputOutput;
         }
 
         /// <summary>
