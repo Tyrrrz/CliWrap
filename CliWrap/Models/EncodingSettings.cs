@@ -69,7 +69,7 @@ namespace CliWrap.Models
     public partial class EncodingSettings
     {
         /// <summary>
-        /// Default encoding settings.
+        /// Default settings.
         /// </summary>
         public static EncodingSettings Default { get; } = new EncodingSettings();
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,62 +19,38 @@ namespace CliWrap
         private CancellationTokenSource _killSwitchCts;
 
         /// <summary>
-        /// Target executable file path.
+        /// File path of the target executable.
         /// </summary>
         public string FilePath { get; }
 
         /// <summary>
-        /// Working directory.
+        /// Settings to use when executing the target executable.
         /// </summary>
-        public string WorkingDirectory { get; }
+        public CliSettings Settings { get; }
 
         /// <summary>
-        /// Encodings to use for standard input, output and error.
-        /// </summary>
-        public EncodingSettings EncodingSettings { get; }
-
-        /// <summary>
-        /// Initializes wrapper on a target executable using given working directory and encoding.
+        /// Initializes wrapper on a target executable with given settings.
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
-        /// <param name="workingDirectory">Target executable's working directory.</param>
-        /// <param name="encodingSettings">Encodings to use for input/output streams.</param>
-        public Cli(string filePath, string workingDirectory, EncodingSettings encodingSettings)
+        /// <param name="settings">Settings to use when executing the target executable.</param>
+        public Cli(string filePath, CliSettings settings)
         {
             FilePath = filePath.GuardNotNull(nameof(filePath));
-            WorkingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
-            EncodingSettings = encodingSettings.GuardNotNull(nameof(encodingSettings));
+            Settings = settings.GuardNotNull(nameof(settings));
 
+            // Freeze settings to prevent changes
+            Settings.Freeze();
+
+            // Create kill switch
             _killSwitchCts = new CancellationTokenSource();
         }
 
         /// <summary>
-        /// Initializes wrapper on a target executable using given working directory.
-        /// </summary>
-        /// <param name="filePath">File path of the target executable.</param>
-        /// <param name="workingDirectory">Target executable's working directory.</param>
-        public Cli(string filePath, string workingDirectory)
-            : this(filePath, workingDirectory, EncodingSettings.Default)
-        {
-        }
-
-        /// <summary>
-        /// Initializes wrapper on a target executable using given encoding and
-        /// using current directory as working directory.
-        /// </summary>
-        /// <param name="filePath">File path of the target executable.</param>
-        /// <param name="encodingSettings">Encodings to use for input/output streams.</param>
-        public Cli(string filePath, EncodingSettings encodingSettings)
-            : this(filePath, Directory.GetCurrentDirectory(), encodingSettings)
-        {
-        }
-
-        /// <summary>
-        /// Initializes wrapper on a target executable using current directory as working directory.
+        /// Initializes wrapper on a target executable with default settings.
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
         public Cli(string filePath)
-            : this(filePath, Directory.GetCurrentDirectory())
+            : this(filePath, CliSettings.Default)
         {
         }
 
@@ -87,27 +62,21 @@ namespace CliWrap
                 StartInfo =
                 {
                     FileName = FilePath,
-                    WorkingDirectory = WorkingDirectory,
+                    WorkingDirectory = Settings.WorkingDirectory,
                     Arguments = input.Arguments,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
-                    StandardOutputEncoding = EncodingSettings.StandardOutput,
-                    StandardErrorEncoding = EncodingSettings.StandardError,
+                    StandardOutputEncoding = Settings.Encoding.StandardOutput,
+                    StandardErrorEncoding = Settings.Encoding.StandardError,
                     UseShellExecute = false
                 },
                 EnableRaisingEvents = true
             };
 
             // Set environment variables
-#if NET45
-            foreach (var variable in input.EnvironmentVariables)
-                process.StartInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
-#else
-            foreach (var variable in input.EnvironmentVariables)
-                process.StartInfo.Environment.Add(variable.Key, variable.Value);
-#endif
+            process.StartInfo.SetEnvironmentVariables(input.EnvironmentVariables);
 
             return process;
         }
@@ -181,7 +150,7 @@ namespace CliWrap
                 {
                     if (input.StandardInput != null)
                     {
-                        var stdinData = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
+                        var stdinData = Settings.Encoding.StandardInput.GetBytes(input.StandardInput);
                         var stdinStream = process.StandardInput.BaseStream;
                         stdinStream.Write(stdinData, 0, stdinData.Length);
                     }
@@ -254,7 +223,7 @@ namespace CliWrap
                 {
                     if (input.StandardInput != null)
                     {
-                        var stdinData = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
+                        var stdinData = Settings.Encoding.StandardInput.GetBytes(input.StandardInput);
                         var stdinStream = process.StandardInput.BaseStream;
                         stdinStream.Write(stdinData, 0, stdinData.Length);
                     }
@@ -348,7 +317,7 @@ namespace CliWrap
                 {
                     if (input.StandardInput != null)
                     {
-                        var stdinData = EncodingSettings.StandardInput.GetBytes(input.StandardInput);
+                        var stdinData = Settings.Encoding.StandardInput.GetBytes(input.StandardInput);
                         var stdinStream = process.StandardInput.BaseStream;
                         await stdinStream.WriteAsync(stdinData, 0, stdinData.Length, linkedToken).ConfigureAwait(false);
                     }
