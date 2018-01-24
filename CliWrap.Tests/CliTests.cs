@@ -339,11 +339,7 @@ namespace CliWrap.Tests
             using (var cli = new Cli(_sleepBat))
             {
                 // Kill after some time
-                Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    cli.CancelAll();
-                }).Forget();
+                Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ => cli.CancelAll());
 
                 // Execute
                 Assert.Throws<OperationCanceledException>(() => cli.Execute());
@@ -356,11 +352,7 @@ namespace CliWrap.Tests
             using (var cli = new Cli(_sleepBat))
             {
                 // Kill after some time
-                Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    cli.CancelAll();
-                }).Forget();
+                Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ => cli.CancelAll());
 
                 // Execute
                 Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync());
