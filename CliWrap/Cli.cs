@@ -128,10 +128,11 @@ namespace CliWrap
             input.GuardNotNull(nameof(input));
 
             // Set up execution context
+            using (var processMre = new ManualResetEventSlim())
             using (var stdOutMre = new ManualResetEventSlim())
             using (var stdErrMre = new ManualResetEventSlim())
-            using (var process = CreateProcess(input))
             using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
+            using (var process = CreateProcess(input))
             {
                 // Get linked cancellation token
                 var linkedToken = linkedCts.Token;
@@ -141,6 +142,7 @@ namespace CliWrap
                 var stdErrBuffer = new StringBuilder();
 
                 // Wire events
+                process.Exited += (sender, args) => processMre.Set();
                 process.OutputDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
@@ -185,21 +187,14 @@ namespace CliWrap
                     }
                 }
 
-                // Setup cancellation token
+                // Setup cancellation token to kill process
                 // This has to be after process start so that it can actually be killed
                 // and also after standard input so that it can write correctly
-                linkedToken.Register(() =>
-                {
-                    // Kill process if it's not dead already
-                    process.KillIfRunning();
-                });
+                linkedToken.Register(() => process.TryKill());
 
                 // Wait until exit
-                process.WaitForExit();
+                processMre.Wait(linkedToken);
                 var exitTime = DateTimeOffset.Now;
-
-                // Check cancellation
-                linkedToken.ThrowIfCancellationRequested();
 
                 // Wait until stdout and stderr finished reading
                 stdOutMre.Wait(linkedToken);
@@ -303,8 +298,8 @@ namespace CliWrap
             var stdErrTcs = new TaskCompletionSource<object>();
 
             // Set up execution context
-            using (var process = CreateProcess(input))
             using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
+            using (var process = CreateProcess(input))
             {
                 // Get linked cancellation token
                 var linkedToken = linkedCts.Token;
@@ -359,15 +354,12 @@ namespace CliWrap
                     }
                 }
 
-                // Setup cancellation token
+                // Setup cancellation token to kill process and cancel tasks
                 // This has to be after process start so that it can actually be killed
                 // and also after standard input so that it can write correctly
                 linkedToken.Register(() =>
                 {
-                    // Kill process if it's not dead already
-                    process.KillIfRunning();
-
-                    // Cancel tasks
+                    process.TryKill();
                     processTcs.TrySetCanceled();
                     stdOutTcs.TrySetCanceled();
                     stdErrTcs.TrySetCanceled();

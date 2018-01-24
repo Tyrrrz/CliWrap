@@ -1,18 +1,17 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace CliWrap.Internal
 {
     internal static class Extensions
     {
-        public static bool KillIfRunning(this Process process)
+        public static bool TryKill(this Process process)
         {
             try
             {
                 process.Kill();
                 return true;
             }
-            catch (InvalidOperationException)
+            catch
             {
                 return false;
             }
