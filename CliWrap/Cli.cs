@@ -314,7 +314,7 @@ namespace CliWrap
                 var stdErrBuffer = new StringBuilder();
 
                 // Wire events
-                process.Exited += (sender, args) => processTcs.SetResult(null);
+                process.Exited += (sender, args) => processTcs.TrySetResult(null);
                 process.OutputDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
@@ -324,7 +324,7 @@ namespace CliWrap
                     }
                     else
                     {
-                        stdOutTcs.SetResult(null);
+                        stdOutTcs.TrySetResult(null);
                     }
                 };
                 process.ErrorDataReceived += (sender, args) =>
@@ -336,7 +336,7 @@ namespace CliWrap
                     }
                     else
                     {
-                        stdErrTcs.SetResult(null);
+                        stdErrTcs.TrySetResult(null);
                     }
                 };
 
@@ -368,9 +368,9 @@ namespace CliWrap
                     process.KillIfRunning();
 
                     // Cancel tasks
-                    processTcs.SetCanceled();
-                    stdOutTcs.SetCanceled();
-                    stdErrTcs.SetCanceled();
+                    processTcs.TrySetCanceled();
+                    stdOutTcs.TrySetCanceled();
+                    stdErrTcs.TrySetCanceled();
                 });
 
                 // Wait until exit
