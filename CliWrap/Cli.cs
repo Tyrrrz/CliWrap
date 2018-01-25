@@ -47,33 +47,41 @@ namespace CliWrap
         /// </summary>
         /// <param name="filePath">File path of the target executable.</param>
         public Cli(string filePath)
-            : this(filePath, CliSettings.Default)
+            : this(filePath, new CliSettings())
         {
+        }
+
+        private CancellationTokenSource LinkCancellationToken(CancellationToken cancellationToken)
+        {
+            return CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token);
         }
 
         private Process CreateProcess(ExecutionInput input)
         {
-            // Create process
-            var process = new Process
+            // Create process start info
+            var startInfo = new ProcessStartInfo
             {
-                StartInfo =
-                {
-                    FileName = FilePath,
-                    WorkingDirectory = Settings.WorkingDirectory,
-                    Arguments = input.Arguments,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    StandardOutputEncoding = Settings.Encoding.StandardOutput,
-                    StandardErrorEncoding = Settings.Encoding.StandardError,
-                    UseShellExecute = false
-                },
-                EnableRaisingEvents = true
+                FileName = FilePath,
+                WorkingDirectory = Settings.WorkingDirectory,
+                Arguments = input.Arguments,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                StandardOutputEncoding = Settings.Encoding.StandardOutput,
+                StandardErrorEncoding = Settings.Encoding.StandardError,
+                UseShellExecute = false
             };
 
             // Set environment variables
-            process.StartInfo.SetEnvironmentVariables(input.EnvironmentVariables);
+            startInfo.SetEnvironmentVariables(input.EnvironmentVariables);
+
+            // Create process
+            var process = new Process
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true
+            };
 
             return process;
         }
@@ -97,7 +105,7 @@ namespace CliWrap
             using (var processMre = new ManualResetEventSlim())
             using (var stdOutMre = new ManualResetEventSlim())
             using (var stdErrMre = new ManualResetEventSlim())
-            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
+            using (var linkedCts = LinkCancellationToken(cancellationToken))
             using (var process = CreateProcess(input))
             {
                 // Get linked cancellation token
@@ -208,7 +216,7 @@ namespace CliWrap
         public ExecutionOutput Execute(
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
-            => Execute(ExecutionInput.Empty, cancellationToken, bufferHandler);
+            => Execute(new ExecutionInput(), cancellationToken, bufferHandler);
 
         #endregion
 
@@ -252,7 +260,7 @@ namespace CliWrap
         /// Executes target process without input, without waiting for completion.
         /// </summary>
         public void ExecuteAndForget()
-            => ExecuteAndForget(ExecutionInput.Empty);
+            => ExecuteAndForget(new ExecutionInput());
 
         #endregion
 
@@ -277,7 +285,7 @@ namespace CliWrap
             var stdErrTcs = new TaskCompletionSource<object>();
 
             // Set up execution context
-            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _killSwitchCts.Token))
+            using (var linkedCts = LinkCancellationToken(cancellationToken))
             using (var process = CreateProcess(input))
             {
                 // Get linked cancellation token
@@ -381,7 +389,7 @@ namespace CliWrap
         public Task<ExecutionOutput> ExecuteAsync(
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
-            => ExecuteAsync(ExecutionInput.Empty, cancellationToken, bufferHandler);
+            => ExecuteAsync(new ExecutionInput(), cancellationToken, bufferHandler);
 
         #endregion
 

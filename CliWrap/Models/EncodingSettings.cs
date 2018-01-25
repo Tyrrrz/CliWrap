@@ -1,58 +1,47 @@
 ﻿using CliWrap.Internal;
 using System;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace CliWrap.Models
 {
     /// <summary>
     /// Specifies the encodings to use for each input/output stream.
     /// </summary>
-    public partial class EncodingSettings
+    public class EncodingSettings
     {
+        private Encoding _standardInput;
+        private Encoding _standardOutput;
+        private Encoding _standardError;
+
         /// <summary>
         /// Encoding to use for standard input.
         /// </summary>
-        public Encoding StandardInput { get; }
+        [NotNull]
+        public Encoding StandardInput
+        {
+            get => _standardInput;
+            set => _standardInput = value.GuardNotNull(nameof(value));
+        }
 
         /// <summary>
         /// Encoding to use for standard output.
         /// </summary>
-        public Encoding StandardOutput { get; }
+        [NotNull]
+        public Encoding StandardOutput
+        {
+            get => _standardOutput;
+            set => _standardOutput = value.GuardNotNull(nameof(value));
+        }
 
         /// <summary>
         /// Encoding to use for standard error.
         /// </summary>
-        public Encoding StandardError { get; }
-
-        /// <summary>
-        /// Initializes <see cref="EncodingSettings" /> with default encodings
-        /// (<see cref="Console.InputEncoding"/> and <see cref="Console.OutputEncoding"/>)
-        /// </summary>
-        public EncodingSettings()
+        [NotNull]
+        public Encoding StandardError
         {
-            StandardInput = Console.InputEncoding;
-            StandardOutput = Console.OutputEncoding;
-            StandardError = Console.OutputEncoding;
-        }
-
-        /// <summary>
-        /// Initializes <see cref="EncodingSettings" /> with the same encoding for all streams.
-        /// </summary>
-        public EncodingSettings(Encoding inputOutput)
-        {
-            StandardInput = inputOutput.GuardNotNull(nameof(inputOutput));
-            StandardOutput = inputOutput;
-            StandardError = inputOutput;
-        }
-
-        /// <summary>
-        /// Initializes <see cref="EncodingSettings" /> with separate encoding for input/output streams.
-        /// </summary>
-        public EncodingSettings(Encoding input, Encoding output)
-        {
-            StandardInput = input.GuardNotNull(nameof(input));
-            StandardOutput = output.GuardNotNull(nameof(output));
-            StandardError = output;
+            get => _standardError;
+            set => _standardError = value.GuardNotNull(nameof(value));
         }
 
         /// <summary>
@@ -64,13 +53,30 @@ namespace CliWrap.Models
             StandardOutput = standardOutput.GuardNotNull(nameof(standardOutput));
             StandardError = standardError.GuardNotNull(nameof(standardError));
         }
-    }
 
-    public partial class EncodingSettings
-    {
         /// <summary>
-        /// Default settings.
+        /// Initializes <see cref="EncodingSettings" /> with separate encoding for input/output streams.
         /// </summary>
-        public static EncodingSettings Default { get; } = new EncodingSettings();
+        public EncodingSettings(Encoding input, Encoding output)
+            : this(input, output, output)
+        {
+        }
+
+        /// <summary>
+        /// Initializes <see cref="EncodingSettings" /> with the same encoding for all streams.
+        /// </summary>
+        public EncodingSettings(Encoding inputOutput)
+            : this(inputOutput, inputOutput, inputOutput)
+        {
+        }
+
+        /// <summary>
+        /// Initializes <see cref="EncodingSettings" /> with default encodings
+        /// (<see cref="Console.InputEncoding"/> and <see cref="Console.OutputEncoding"/>)
+        /// </summary>
+        public EncodingSettings()
+            : this(Console.InputEncoding, Console.OutputEncoding)
+        {
+        }
     }
 }

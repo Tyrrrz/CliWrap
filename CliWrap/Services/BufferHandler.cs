@@ -10,7 +10,9 @@ namespace CliWrap.Services
         private readonly Action<string> _standardOutputHandler;
         private readonly Action<string> _standardErrorHandler;
 
-        /// <summary />
+        /// <summary>
+        /// Initializes <see cref="BufferHandler"/> with given delegates.
+        /// </summary>
         public BufferHandler(Action<string> standardOutputHandler = null, Action<string> standardErrorHandler = null)
         {
             _standardOutputHandler = standardOutputHandler;

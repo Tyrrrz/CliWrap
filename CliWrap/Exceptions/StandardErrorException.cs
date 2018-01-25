@@ -16,7 +16,9 @@ namespace CliWrap.Exceptions
         /// <inheritdoc />
         public override string Message { get; }
 
-        /// <summary />
+        /// <summary>
+        /// Initializes <see cref="StandardErrorException"/> with given standard error data.
+        /// </summary>
         public StandardErrorException(string standardError)
         {
             StandardError = standardError.GuardNotNull(nameof(standardError));

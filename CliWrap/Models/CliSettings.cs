@@ -7,7 +7,7 @@ namespace CliWrap.Models
     /// <summary>
     /// Specifies settings for <see cref="Cli"/>.
     /// </summary>
-    public partial class CliSettings
+    public class CliSettings
     {
         private string _workingDirectory;
         private EncodingSettings _encoding;
@@ -32,19 +32,13 @@ namespace CliWrap.Models
             set => _encoding = value.GuardNotNull(nameof(value));
         }
 
-        /// <summary />
+        /// <summary>
+        /// Initializes <see cref="CliSettings"/> with default settings.
+        /// </summary>
         public CliSettings()
         {
             WorkingDirectory = Directory.GetCurrentDirectory();
-            Encoding = EncodingSettings.Default;
+            Encoding = new EncodingSettings();
         }
-    }
-
-    public partial class CliSettings
-    {
-        /// <summary>
-        /// Default settings.
-        /// </summary>
-        public static CliSettings Default { get; } = new CliSettings();
     }
 }
