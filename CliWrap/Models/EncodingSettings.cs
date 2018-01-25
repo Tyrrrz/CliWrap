@@ -26,7 +26,7 @@ namespace CliWrap.Models
 
         /// <summary>
         /// Initializes <see cref="EncodingSettings" /> with default encodings
-        /// (<see cref="Console.InputEncoding" /> and <see cref="Console.OutputEncoding" />)
+        /// (<see cref="Console.InputEncoding"/> and <see cref="Console.OutputEncoding"/>)
         /// </summary>
         public EncodingSettings()
         {

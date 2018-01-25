@@ -38,9 +38,6 @@ namespace CliWrap
             FilePath = filePath.GuardNotNull(nameof(filePath));
             Settings = settings.GuardNotNull(nameof(settings));
 
-            // Freeze settings to prevent changes
-            Settings.Freeze();
-
             // Create kill switch
             _killSwitchCts = new CancellationTokenSource();
         }
