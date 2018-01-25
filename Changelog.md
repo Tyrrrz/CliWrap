@@ -1,3 +1,7 @@
+### v1.8.1 (25-Jan-2018)
+
+- Fixed another process leak when canceling synchronous `Execute`.
+
 ### v1.8 (25-Jan-2018)
 
 - Refactored additional `Cli` constructor parameters into a separate class called `CliSettings`. This is breaking if you used to supply more than 1 parameter to the constructor.
