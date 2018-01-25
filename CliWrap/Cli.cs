@@ -159,7 +159,17 @@ namespace CliWrap
                 // Setup cancellation token to kill process
                 // This has to be after process start so that it can actually be killed
                 // and also after standard input so that it can write correctly
-                linkedToken.Register(() => process.TryKill());
+                bool cancellationCompleted = false;
+                linkedToken.Register(() =>
+                {
+                    process.TryKill();
+                    cancellationCompleted = true;
+                });
+
+                // Wait until cancellation is completed
+                // so that process can be killed before it's disposed
+                if (linkedToken.IsCancellationRequested)
+                    SpinWait.SpinUntil(() => cancellationCompleted);
 
                 // Wait until exit
                 processMre.Wait(linkedToken);
