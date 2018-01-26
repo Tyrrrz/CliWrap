@@ -15,7 +15,7 @@ namespace CliWrap
     public class Cli : IDisposable
     {
         private readonly object _lock = new object();
-
+        private bool _isDisposed;
         private CancellationTokenSource _killSwitchCts;
 
         /// <summary>
@@ -100,6 +100,9 @@ namespace CliWrap
             IBufferHandler bufferHandler = null)
         {
             input.GuardNotNull(nameof(input));
+
+            // Check if disposed
+            ThrowIfDisposed();
 
             // Set up execution context
             using (var processMre = new ManualResetEventSlim())
@@ -230,6 +233,9 @@ namespace CliWrap
         {
             input.GuardNotNull(nameof(input));
 
+            // Check if disposed
+            ThrowIfDisposed();
+
             // Create process
             using (var process = CreateProcess(input))
             {
@@ -278,6 +284,9 @@ namespace CliWrap
             IBufferHandler bufferHandler = null)
         {
             input.GuardNotNull(nameof(input));
+
+            // Check if disposed
+            ThrowIfDisposed();
 
             // Create task completion sources
             var processTcs = new TaskCompletionSource<object>();
@@ -399,6 +408,9 @@ namespace CliWrap
         /// <remarks>Doesn't affect processes instantiated by <see cref="ExecuteAndForget()"/>.</remarks>
         public void CancelAll()
         {
+            // Check if disposed
+            ThrowIfDisposed();
+
             lock (_lock)
             {
                 _killSwitchCts.Cancel();
@@ -412,8 +424,9 @@ namespace CliWrap
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !_isDisposed)
             {
+                _isDisposed = true;
                 _killSwitchCts.Dispose();
             }
         }
@@ -423,6 +436,12 @@ namespace CliWrap
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().ToString());
         }
     }
 }
