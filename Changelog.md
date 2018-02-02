@@ -1,6 +1,6 @@
 ### v1.8.2 (02-Feb-2018)
 
-- Make input model classes more accessible by removing immutability.
+- Made input model classes more accessible by removing immutability.
 - `Cli` now throws exception if used after getting disposed.
 
 ### v1.8.1 (25-Jan-2018)
