@@ -107,3 +107,7 @@ using (var cli = new Cli("some_cli.exe"))
     var output = await cli.ExecuteAsync("command --option", bufferHandler: handler);
 }
 ```
+
+## Libraries used
+
+- [NUnit](https://github.com/nunit/nunit)
