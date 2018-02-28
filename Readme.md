@@ -4,6 +4,7 @@
 [![Tests](https://img.shields.io/appveyor/tests/Tyrrrz/CliWrap/master.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
 [![NuGet](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![NuGet](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FTyrrrz%2FCliWrap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FTyrrrz%2FCliWrap?ref=badge_shield)
 
 CliWrap is a library that makes it easier to interact with command line interfaces. It provides a convenient wrapper around the target executable, allowing you to pass execution parameters and read the resulting output. The library can also handle errors reported by the underlying process, allows command cancellation and has both synchronous and asynchronous APIs.
 
@@ -111,3 +112,6 @@ using (var cli = new Cli("some_cli.exe"))
 ## Libraries used
 
 - [NUnit](https://github.com/nunit/nunit)
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FTyrrrz%2FCliWrap.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FTyrrrz%2FCliWrap?ref=badge_large)
