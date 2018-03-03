@@ -1,3 +1,7 @@
+### v1.8.3 (03-Mar-2018)
+
+- Added `ICli` to aid in testing.
+
 ### v1.8.2 (02-Feb-2018)
 
 - Made input model classes more accessible by removing immutability.
