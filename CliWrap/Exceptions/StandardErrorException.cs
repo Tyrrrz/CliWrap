@@ -22,8 +22,7 @@ namespace CliWrap.Exceptions
         public StandardErrorException(string standardError)
         {
             StandardError = standardError.GuardNotNull(nameof(standardError));
-            Message = "Underlying process reported an error. " +
-                      $"Inspect [{nameof(StandardError)}] property for more information.";
+            Message = $"Underlying process reported an error:{Environment.NewLine}{standardError}";
         }
     }
 }
