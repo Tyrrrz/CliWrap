@@ -12,20 +12,16 @@ namespace CliWrap
     /// <summary>
     /// Wrapper for a command line interface.
     /// </summary>
-    public class Cli : IDisposable
+    public class Cli : ICli
     {
         private readonly object _lock = new object();
         private bool _isDisposed;
         private CancellationTokenSource _killSwitchCts;
 
-        /// <summary>
-        /// File path of the target executable.
-        /// </summary>
+        /// <inheritdoc />
         public string FilePath { get; }
 
-        /// <summary>
-        /// Settings to use when executing the target executable.
-        /// </summary>
+        /// <inheritdoc />
         public CliSettings Settings { get; }
 
         /// <summary>
@@ -88,13 +84,7 @@ namespace CliWrap
 
         #region Execute
 
-        /// <summary>
-        /// Executes target process with given input, waits until completion synchronously and returns produced output.
-        /// </summary>
-        /// <param name="input">Execution input.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
+        /// <inheritdoc />
         public ExecutionOutput Execute(ExecutionInput input,
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
@@ -198,24 +188,13 @@ namespace CliWrap
             }
         }
 
-        /// <summary>
-        /// Executes target process with given command line arguments, waits until completion synchronously and returns produced output.
-        /// </summary>
-        /// <param name="arguments">Command line arguments passed when executing the target process.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
+        /// <inheritdoc />
         public ExecutionOutput Execute(string arguments,
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
             => Execute(new ExecutionInput(arguments), cancellationToken, bufferHandler);
 
-        /// <summary>
-        /// Executes target process without input, waits until completion synchronously and returns produced output.
-        /// </summary>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
+        /// <inheritdoc />
         public ExecutionOutput Execute(
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
@@ -225,10 +204,7 @@ namespace CliWrap
 
         #region ExecuteAndForget
 
-        /// <summary>
-        /// Executes target process with given input, without waiting for completion.
-        /// </summary>
-        /// <param name="input">Execution input.</param>
+        /// <inheritdoc />
         public void ExecuteAndForget(ExecutionInput input)
         {
             input.GuardNotNull(nameof(input));
@@ -255,16 +231,11 @@ namespace CliWrap
             }
         }
 
-        /// <summary>
-        /// Executes target process with given command line arguments, without waiting for completion.
-        /// </summary>
-        /// <param name="arguments">Command line arguments passed when executing the target process.</param>
+        /// <inheritdoc />
         public void ExecuteAndForget(string arguments)
             => ExecuteAndForget(new ExecutionInput(arguments));
 
-        /// <summary>
-        /// Executes target process without input, without waiting for completion.
-        /// </summary>
+        /// <inheritdoc />
         public void ExecuteAndForget()
             => ExecuteAndForget(new ExecutionInput());
 
@@ -272,13 +243,7 @@ namespace CliWrap
 
         #region ExecuteAsync
 
-        /// <summary>
-        /// Executes target process with given input, waits until completion asynchronously and returns produced output.
-        /// </summary>
-        /// <param name="input">Execution input.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
+        /// <inheritdoc />
         public async Task<ExecutionOutput> ExecuteAsync(ExecutionInput input,
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
@@ -377,24 +342,13 @@ namespace CliWrap
             }
         }
 
-        /// <summary>
-        /// Executes target process with given command line arguments, waits until completion asynchronously and returns produced output.
-        /// </summary>
-        /// <param name="arguments">Command line arguments passed when executing the target process.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
+        /// <inheritdoc />
         public Task<ExecutionOutput> ExecuteAsync(string arguments,
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
             => ExecuteAsync(new ExecutionInput(arguments), cancellationToken, bufferHandler);
 
-        /// <summary>
-        /// Executes target process without input, waits until completion asynchronously and returns produced output.
-        /// </summary>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
+        /// <inheritdoc />
         public Task<ExecutionOutput> ExecuteAsync(
             CancellationToken cancellationToken = default(CancellationToken),
             IBufferHandler bufferHandler = null)
@@ -402,10 +356,7 @@ namespace CliWrap
 
         #endregion
 
-        /// <summary>
-        /// Cancels all currently running execution tasks.
-        /// </summary>
-        /// <remarks>Doesn't affect processes instantiated by <see cref="ExecuteAndForget()"/>.</remarks>
+        /// <inheritdoc />
         public void CancelAll()
         {
             // Check if disposed
