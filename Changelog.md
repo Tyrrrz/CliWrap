@@ -1,3 +1,7 @@
+### v1.8.4 (09-Mar-2018)
+
+- `StandardErrorException` now shows the value of `StandardError` in `Message`.
+
 ### v1.8.3 (03-Mar-2018)
 
 - Added `ICli` to aid in testing.
