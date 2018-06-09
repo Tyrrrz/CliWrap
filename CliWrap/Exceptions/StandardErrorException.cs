@@ -13,16 +13,13 @@ namespace CliWrap.Exceptions
         /// </summary>
         public string StandardError { get; }
 
-        /// <inheritdoc />
-        public override string Message { get; }
-
         /// <summary>
         /// Initializes <see cref="StandardErrorException"/> with given standard error data.
         /// </summary>
         public StandardErrorException(string standardError)
+            : base($"Underlying process reported an error:{Environment.NewLine}{standardError}")
         {
             StandardError = standardError.GuardNotNull(nameof(standardError));
-            Message = $"Underlying process reported an error:{Environment.NewLine}{standardError}";
         }
     }
 }
