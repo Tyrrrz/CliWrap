@@ -1,3 +1,7 @@
+### v1.8.5 (09-Jun-2018)
+
+- Fixed exception messages not appearing in Visual Studio's exception popup.
+
 ### v1.8.4 (09-Mar-2018)
 
 - `StandardErrorException` now shows the value of `StandardError` in `Message`.
