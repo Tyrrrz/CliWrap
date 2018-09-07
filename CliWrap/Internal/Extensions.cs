@@ -9,25 +9,12 @@ namespace CliWrap.Internal
             IDictionary<string, string> environmentVariables)
         {
 #if NET45
-            foreach (var variable in environmentVariables)
+            foreach(var variable in environmentVariables)
                 startInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
 #else
             foreach (var variable in environmentVariables)
                 startInfo.Environment.Add(variable.Key, variable.Value);
 #endif
-        }
-
-        public static bool TryKill(this Process process)
-        {
-            try
-            {
-                process.Kill();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

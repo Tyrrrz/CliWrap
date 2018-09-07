@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,20 @@ namespace CliWrap
     /// </summary>
     public class Cli : ICli
     {
+        #region InteropServices
+        internal const int CTRL_C_EVENT = 0;
+        [DllImport("kernel32.dll")]
+        internal static extern bool GenerateConsoleCtrlEvent(uint dwCtrlEvent, uint dwProcessGroupId);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool AttachConsole(uint dwProcessId);
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        internal static extern bool FreeConsole();
+        [DllImport("kernel32.dll")]
+        static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+        // Delegate type to be used as the Handler Routine for SCCH
+        delegate Boolean ConsoleCtrlDelegate(uint CtrlType);
+        #endregion
+
         private readonly object _lock = new object();
         private bool _isDisposed;
         private CancellationTokenSource _killSwitchCts;
@@ -159,7 +174,7 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 linkedToken.Register(() =>
                 {
-                    process.TryKill();
+                    TryKillProcess(process);
                     processMre.Set();
                     stdOutMre.Set();
                     stdErrMre.Set();
@@ -185,6 +200,37 @@ namespace CliWrap
                 var stdErr = stdErrBuffer.ToString();
 
                 return new ExecutionOutput(process.ExitCode, stdOut, stdErr, startTime, exitTime);
+            }
+        }
+
+        private void TryKillProcess(Process process)
+        {
+            try
+            {
+                if(Settings.IsSoftKillEnabled)
+                {
+                    if(AttachConsole((uint)process.Id))
+                    {
+                        SetConsoleCtrlHandler(null, true);
+                        if(!GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0))
+                        {
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    process.Kill();
+                }
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine(exc);
+            }
+            finally
+            {
+                FreeConsole();
+                SetConsoleCtrlHandler(null, false);
             }
         }
 
@@ -320,7 +366,7 @@ namespace CliWrap
                 // and also after standard input so that it can write correctly
                 linkedToken.Register(() =>
                 {
-                    process.TryKill();
+                    TryKillProcess(process);
                     processTcs.TrySetCanceled();
                     stdOutTcs.TrySetCanceled();
                     stdErrTcs.TrySetCanceled();

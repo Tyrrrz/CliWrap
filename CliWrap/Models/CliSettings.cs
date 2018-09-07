@@ -33,12 +33,18 @@ namespace CliWrap.Models
         }
 
         /// <summary>
+        /// If true, the process is closed by sending CTRL+C.
+        /// </summary>
+        public bool IsSoftKillEnabled { get; set; }
+
+        /// <summary>
         /// Initializes <see cref="CliSettings"/> with default settings.
         /// </summary>
         public CliSettings()
         {
             WorkingDirectory = Directory.GetCurrentDirectory();
             Encoding = new EncodingSettings();
+            IsSoftKillEnabled = false;
         }
     }
 }
