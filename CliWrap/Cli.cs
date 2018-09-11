@@ -10,7 +10,10 @@ using CliWrap.Models;
 
 namespace CliWrap
 {
-    public class Cli
+    /// <summary>
+    /// Command line interface wrapper.
+    /// </summary>
+    public class Cli : ICli
     {
         private readonly string _filePath;
         private string _workingDirectory;
@@ -23,77 +26,114 @@ namespace CliWrap
         private Action<string> _standardErrorObserver;
         private CancellationToken _cancellationToken;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Cli"/> on the target executable.
+        /// </summary>
         public Cli(string filePath)
         {
-            _filePath = filePath;
+            _filePath = filePath.GuardNotNull(nameof(filePath));
         }
 
         #region Parameters
 
+        /// <inheritdoc />
         public Cli WithWorkingDirectory(string workingDirectory)
         {
-            _workingDirectory = workingDirectory;
+            _workingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
             return this;
         }
 
+        /// <inheritdoc />
         public Cli WithArguments(string arguments)
         {
-            _arguments = arguments;
+            _arguments = arguments.GuardNotNull(nameof(arguments));
             return this;
         }
 
+        /// <inheritdoc />
         public Cli WithStandardInput(Stream standardInput)
         {
-            _standardInput = standardInput;
+            _standardInput = standardInput.GuardNotNull(nameof(standardInput));
             return this;
         }
 
-        public Cli WithStandardInput(string standardInput, Encoding encoding) =>
-            WithStandardInput(standardInput.AsStream(encoding));
+        /// <inheritdoc />
+        public Cli WithStandardInput(string standardInput, Encoding encoding)
+        {
+            standardInput.GuardNotNull(nameof(standardInput));
+            encoding.GuardNotNull(nameof(encoding));
 
-        public Cli WithStandardInput(string standardInput) =>
-            WithStandardInput(standardInput, Console.InputEncoding);
+            // Represent string as stream
+            var stream = standardInput.AsStream(encoding);
 
+            return WithStandardInput(stream);
+        }
+
+        /// <inheritdoc />
+        public Cli WithStandardInput(string standardInput)
+        {
+            standardInput.GuardNotNull(nameof(standardInput));
+            return WithStandardInput(standardInput, Console.InputEncoding);
+        }
+
+        /// <inheritdoc />
         public Cli WithEnvironmentVariable(string key, string value)
         {
+            key.GuardNotNull(nameof(key));
+
+            // Create dictionary if it's null
             if (_environmentVariables == null)
                 _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+            // Set variable
             _environmentVariables[key] = value;
 
             return this;
         }
 
+        /// <inheritdoc />
         public Cli WithStandardOutputEncoding(Encoding standardOutputEncoding)
         {
-            _standardOutputEncoding = standardOutputEncoding;
+            _standardOutputEncoding = standardOutputEncoding.GuardNotNull(nameof(standardOutputEncoding));
             return this;
         }
 
+        /// <inheritdoc />
         public Cli WithStandardErrorEncoding(Encoding standardErrorEncoding)
         {
-            _standardErrorEncoding = standardErrorEncoding;
+            _standardErrorEncoding = standardErrorEncoding.GuardNotNull(nameof(standardErrorEncoding));
             return this;
         }
 
+        /// <inheritdoc />
         public Cli WithStandardOutputObserver(Action<string> observer)
         {
-            _standardOutputObserver = observer;
+            _standardOutputObserver = observer.GuardNotNull(nameof(observer));
             return this;
         }
 
-        public Cli WithStandardOutputObserver(IObserver<string> observer) =>
-            WithStandardOutputObserver(observer.OnNext);
+        /// <inheritdoc />
+        public Cli WithStandardOutputObserver(IObserver<string> observer)
+        {
+            observer.GuardNotNull(nameof(observer));
+            return WithStandardOutputObserver(observer.OnNext);
+        }
 
+        /// <inheritdoc />
         public Cli WithStandardErrorObserver(Action<string> observer)
         {
-            _standardErrorObserver = observer;
+            _standardErrorObserver = observer.GuardNotNull(nameof(observer));
             return this;
         }
 
-        public Cli WithStandardErrorObserver(IObserver<string> observer) =>
-            WithStandardOutputObserver(observer.OnNext);
+        /// <inheritdoc />
+        public Cli WithStandardErrorObserver(IObserver<string> observer)
+        {
+            observer.GuardNotNull(nameof(observer));
+            return WithStandardOutputObserver(observer.OnNext);
+        }
 
+        /// <inheritdoc />
         public Cli WithCancellationToken(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
@@ -135,6 +175,7 @@ namespace CliWrap
             return process;
         }
 
+        /// <inheritdoc />
         public ExecutionResult Execute()
         {
             // Set up execution context
@@ -222,22 +263,7 @@ namespace CliWrap
             }
         }
 
-        public void ExecuteAndForget()
-        {
-            // Create process
-            using (var process = CreateProcess())
-            {
-                // Start process
-                process.Start();
-
-                // Write stdin
-                using (process.StandardInput)
-                {
-                    _standardInput?.CopyTo(process.StandardInput.BaseStream);
-                }
-            }
-        }
-
+        /// <inheritdoc />
         public async Task<ExecutionResult> ExecuteAsync()
         {
             // Create task completion sources
@@ -318,6 +344,23 @@ namespace CliWrap
                 var stdErr = stdErrBuffer.ToString();
 
                 return new ExecutionResult(process.ExitCode, stdOut, stdErr, startTime, exitTime);
+            }
+        }
+
+        /// <inheritdoc />
+        public void ExecuteAndForget()
+        {
+            // Create process
+            using (var process = CreateProcess())
+            {
+                // Start process
+                process.Start();
+
+                // Write stdin
+                using (process.StandardInput)
+                {
+                    _standardInput?.CopyTo(process.StandardInput.BaseStream);
+                }
             }
         }
 
