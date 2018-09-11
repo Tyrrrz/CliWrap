@@ -6,7 +6,7 @@ namespace CliWrap.Exceptions
     /// <summary>
     /// Thrown if underlying process reported an error.
     /// </summary>
-    public class StandardErrorException : Exception
+    public class StandardErrorValidationException : Exception
     {
         /// <summary>
         /// Standard error data produced by underlying process.
@@ -14,9 +14,9 @@ namespace CliWrap.Exceptions
         public string StandardError { get; }
 
         /// <summary>
-        /// Initializes <see cref="StandardErrorException"/> with given standard error data.
+        /// Initializes <see cref="StandardErrorValidationException"/> with given standard error data.
         /// </summary>
-        public StandardErrorException(string standardError)
+        public StandardErrorValidationException(string standardError)
             : base($"Underlying process reported an error:{Environment.NewLine}{standardError}")
         {
             StandardError = standardError.GuardNotNull(nameof(standardError));

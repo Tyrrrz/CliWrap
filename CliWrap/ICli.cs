@@ -1,123 +1,107 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using CliWrap.Models;
-using CliWrap.Services;
 
 namespace CliWrap
 {
     /// <summary>
-    /// Interface for <see cref="Cli" />.
+    /// An interface for <see cref="Cli"/>.
     /// </summary>
-    public interface ICli : IDisposable
+    public interface ICli
     {
         /// <summary>
-        /// File path of the target executable.
+        /// Sets the working directory.
         /// </summary>
-        string FilePath { get; }
+        Cli WithWorkingDirectory(string workingDirectory);
 
         /// <summary>
-        /// Settings to use when executing the target executable.
+        /// Sets the command line arguments.
         /// </summary>
-        CliSettings Settings { get; }
-
-        #region Execute
+        Cli WithArguments(string arguments);
 
         /// <summary>
-        /// Executes target process with given input, waits until completion synchronously and returns produced output.
+        /// Sets the standard input.
         /// </summary>
-        /// <param name="input">Execution input.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
-        ExecutionOutput Execute(ExecutionInput input,
-            CancellationToken cancellationToken = default(CancellationToken),
-            IBufferHandler bufferHandler = null);
+        Cli WithStandardInput(Stream standardInput);
 
         /// <summary>
-        /// Executes target process with given command line arguments, waits until completion synchronously and returns produced output.
+        /// Sets the standard input to given string.
         /// </summary>
-        /// <param name="arguments">Command line arguments passed when executing the target process.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
-        ExecutionOutput Execute(string arguments,
-            CancellationToken cancellationToken = default(CancellationToken),
-            IBufferHandler bufferHandler = null);
+        Cli WithStandardInput(string standardInput);
 
         /// <summary>
-        /// Executes target process without input, waits until completion synchronously and returns produced output.
+        /// Sets the standard input to given string using given encoding.
         /// </summary>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
-        ExecutionOutput Execute(
-            CancellationToken cancellationToken = default(CancellationToken),
-            IBufferHandler bufferHandler = null);
-
-        #endregion
-
-        #region ExecuteAndForget
+        Cli WithStandardInput(string standardInput, Encoding encoding);
 
         /// <summary>
-        /// Executes target process with given input, without waiting for completion.
+        /// Sets an environment variable to the given value.
+        /// Can be called more than once to set multiple environment variables.
         /// </summary>
-        /// <param name="input">Execution input.</param>
-        void ExecuteAndForget(ExecutionInput input);
+        Cli WithEnvironmentVariable(string key, string value);
 
         /// <summary>
-        /// Executes target process with given command line arguments, without waiting for completion.
+        /// Sets the text encoding used for standard output stream.
         /// </summary>
-        /// <param name="arguments">Command line arguments passed when executing the target process.</param>
-        void ExecuteAndForget(string arguments);
+        Cli WithStandardOutputEncoding(Encoding standardOutputEncoding);
 
         /// <summary>
-        /// Executes target process without input, without waiting for completion.
+        /// Sets the text encoding used for standard error stream.
+        /// </summary>
+        Cli WithStandardErrorEncoding(Encoding standardErrorEncoding);
+
+        /// <summary>
+        /// Sets the delegate that will be called whenever a new line is appended to standard output stream.
+        /// </summary>
+        Cli WithStandardOutputObserver(Action<string> observer);
+
+        /// <summary>
+        /// Sets the observer that will be notified whenever a new line is appended to standard output stream.
+        /// </summary>
+        Cli WithStandardOutputObserver(IObserver<string> observer);
+
+        /// <summary>
+        /// Sets the delegate that will be called whenever a new line is appended to standard error stream.
+        /// </summary>
+        Cli WithStandardErrorObserver(Action<string> observer);
+
+        /// <summary>
+        /// Sets the observer that will be notified whenever a new line is appended to standard error stream.
+        /// </summary>
+        Cli WithStandardErrorObserver(IObserver<string> observer);
+
+        /// <summary>
+        /// Sets the cancellation token.
+        /// </summary>
+        Cli WithCancellationToken(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Enables or disables validation that will throw <see cref="ExitCodeValidationException"/> if the resulting exit code is not zero.
+        /// </summary>
+        Cli WithExitCodeValidation(bool isEnabled = true);
+
+        /// <summary>
+        /// Enables or disables validation that will throw <see cref="StandardErrorValidationException"/> if the resulting standard error is not empty.
+        /// </summary>
+        Cli WithStandardErrorValidation(bool isEnabled = true);
+
+        /// <summary>
+        /// Executes the process and waits until it exists synchronously.
+        /// </summary>
+        ExecutionResult Execute();
+
+        /// <summary>
+        /// Executes the process and waits for it to exit asynchronously.
+        /// </summary>
+        Task<ExecutionResult> ExecuteAsync();
+
+        /// <summary>
+        /// Executes the process and doesn't wait for it to exit.
         /// </summary>
         void ExecuteAndForget();
-
-        #endregion
-
-        #region ExecuteAsync
-
-        /// <summary>
-        /// Executes target process with given input, waits until completion asynchronously and returns produced output.
-        /// </summary>
-        /// <param name="input">Execution input.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
-        Task<ExecutionOutput> ExecuteAsync(ExecutionInput input,
-            CancellationToken cancellationToken = default(CancellationToken),
-            IBufferHandler bufferHandler = null);
-
-        /// <summary>
-        /// Executes target process with given command line arguments, waits until completion asynchronously and returns produced output.
-        /// </summary>
-        /// <param name="arguments">Command line arguments passed when executing the target process.</param>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
-        Task<ExecutionOutput> ExecuteAsync(string arguments,
-            CancellationToken cancellationToken = default(CancellationToken),
-            IBufferHandler bufferHandler = null);
-
-        /// <summary>
-        /// Executes target process without input, waits until completion asynchronously and returns produced output.
-        /// </summary>
-        /// <param name="cancellationToken">Token that can be used to abort execution.</param>
-        /// <param name="bufferHandler">Handler for real-time standard output and standard error data.</param>
-        /// <remarks>The underlying process is killed if the execution is canceled.</remarks>
-        Task<ExecutionOutput> ExecuteAsync(
-            CancellationToken cancellationToken = default(CancellationToken),
-            IBufferHandler bufferHandler = null);
-
-        #endregion
-
-        /// <summary>
-        /// Cancels all currently running execution tasks.
-        /// </summary>
-        /// <remarks>Doesn't affect processes instantiated by <see cref="ExecuteAndForget()"/>.</remarks>
-        void CancelAll();
     }
 }

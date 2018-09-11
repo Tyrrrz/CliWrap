@@ -19,93 +19,66 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Pass in command line arguments, standard input and environment variables
 - Get process exit code, standard output and standard error as the result
 - Abort the execution early using `System.Threading.CancellationToken`
-- Abort all executions at once, on demand
 - Set up callbacks that trigger when a process writes to standard output or error
 - Custom encoding settings for standard input, output and error
+- Fluent interface
 - Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
 - No external dependencies
 
 ## Usage
 
-The `Cli` class was designed to have each instance treated as a member of your project. When you're wrapping around a command line interface, you can think of the interface itself as a singleton class and all its commands as methods of that class. Therefore, it is recommended to create a reusable instance of `Cli` for each target executable.
-
-If you're executing processes that can potentially outlive the parent, especially if they use a lot of resources, it is recommended to call `CancelAll()` at some point before your application terminates.
-
-##### Execute a command and handle output
+##### Execute a command
 
 ```c#
-using (var cli = new Cli("some_cli.exe"))
-{
-    // Execute
-    var output = await cli.ExecuteAsync("command --option");
-    // ... or in synchronous manner:
-    // var output = cli.Execute("command --option");
+var result = await new Cli("cli.exe")
+                .WithArguments("Hello world!")
+                .ExecuteAsync();
 
-    // Throw an exception if CLI reported an error
-    output.ThrowIfError();
-
-    // Extract output
-    var code = output.ExitCode;
-    var stdOut = output.StandardOutput;
-    var stdErr = output.StandardError;
-    var startTime = output.StartTime;
-    var exitTime = output.ExitTime;
-    var runTime = output.RunTime;
-}
+var exitCode = result.ExitCode;
+var stdOut = result.StandardOutput;
+var stdErr = result.StandardError;
+var startTime = result.StartTime;
+var exitTime = result.ExitTime;
+var runTime = result.RunTime;
 ```
 
-##### Execute a command without waiting for completion
+##### Standard input
 
 ```c#
-using (var cli = new Cli("some_cli.exe"))
-{
-    cli.ExecuteAndForget("command --option");
-}
+var result = await new Cli("cli.exe")
+                .WithStandardInput("Hello world from stdin!")
+                .ExecuteAsync();
 ```
 
-##### Pass in standard input
+##### Environment variables
 
 ```c#
-using (var cli = new Cli("some_cli.exe"))
-{
-    var input = new ExecutionInput("command --option", "this is stdin");
-    var output = await cli.ExecuteAsync(input);
-}
-```
-
-##### Pass in environment variables
-
-```c#
-using (var cli = new Cli("some_cli.exe"))
-{
-    var input = new ExecutionInput("command --option");
-    input.EnvironmentVariables.Add("some_var", "some_value");
-    var output = await cli.ExecuteAsync(input);
-}
+var result = await new Cli("cli.exe")
+                .WithEnvironmentVariable("var1", "value1")
+                .WithEnvironmentVariable("var2", "value2")
+                .ExecuteAsync();
 ```
 
 ##### Cancel execution
 
 ```c#
-using (var cli = new Cli("some_cli.exe"))
 using (var cts = new CancellationTokenSource())
 {
-    cts.CancelAfter(TimeSpan.FromSeconds(1)); // e.g. timeout of 1 second
-    var output = await cli.ExecuteAsync("command --option", cts.Token);
+    cts.CancelAfter(TimeSpan.FromSeconds(5)); // e.g. timeout of 5 seconds
+    
+    var result = await new Cli("cli.exe")
+                    .WithCancellationToken(cts.Token)
+                    .ExecuteAsync();                       
 }
 ```
 
-##### Handle real-time standard output/error data
+##### Observe stdout and stderr
 
 ```c#
-using (var cli = new Cli("some_cli.exe"))
-{
-    var handler = new BufferHandler(
-            stdOutLine => Console.WriteLine("StdOut> " + stdOutLine),
-            stdErrLine => Console.WriteLine("StdErr> " + stdErrLine));
-
-    var output = await cli.ExecuteAsync("command --option", bufferHandler: handler);
-}
+var result = await new Cli("cli.exe")
+                .WithStandardOutputObserver(l => Console.WriteLine($"StdOut> {l}"))
+                .WithStandardErrorObserver(l => Console.WriteLine($"StdErr> {l}"))
+                .ExecuteAsync();
 ```
 
 ## Libraries used
