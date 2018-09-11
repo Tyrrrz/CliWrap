@@ -8,7 +8,7 @@ namespace CliWrap.Models
     /// <summary>
     /// Output produced by executing a process.
     /// </summary>
-    public class ExecutionOutput
+    public class ExecutionResult
     {
         /// <summary>
         /// Process exit code.
@@ -48,9 +48,9 @@ namespace CliWrap.Models
         public TimeSpan RunTime => ExitTime - StartTime;
 
         /// <summary>
-        /// Initializes <see cref="ExecutionOutput"/> with given output data.
+        /// Initializes <see cref="ExecutionResult"/> with given output data.
         /// </summary>
-        public ExecutionOutput(int exitCode, string standardOutput, string standardError,
+        public ExecutionResult(int exitCode, string standardOutput, string standardError,
             DateTimeOffset startTime, DateTimeOffset exitTime)
         {
             ExitCode = exitCode;

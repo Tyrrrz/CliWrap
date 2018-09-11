@@ -1,10 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 
 namespace CliWrap.Internal
 {
     internal static class Extensions
     {
+        public static Stream AsStream(this string str, Encoding encoding)
+        {
+            var ms = new MemoryStream();
+            var data = encoding.GetBytes(str);
+            ms.Write(data, 0, data.Length);
+            return ms;
+        }
+
         public static void SetEnvironmentVariables(this ProcessStartInfo startInfo,
             IDictionary<string, string> environmentVariables)
         {
