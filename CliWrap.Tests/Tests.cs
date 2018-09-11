@@ -13,7 +13,7 @@ namespace CliWrap.Tests
     public class Tests
     {
         private const string TestString = "Hello world";
-        private const int TestExitCode = 14;
+        private const int TestExitCode = 0;
         private const string TestEnvVar = "TEST_ENV_VAR";
 
         private readonly string _echoArgsToStdoutBat;
@@ -43,8 +43,6 @@ namespace CliWrap.Tests
                 .WithArguments(TestString)
                 .Execute();
 
-            result.ThrowIfError();
-
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
@@ -60,8 +58,6 @@ namespace CliWrap.Tests
                 .WithStandardInput(TestString)
                 .Execute();
 
-            result.ThrowIfError();
-
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
@@ -74,8 +70,6 @@ namespace CliWrap.Tests
         public void Execute_EchoStdinToStdout_Empty_Test()
         {
             var result = new Cli(_echoStdinToStdoutBat).Execute();
-
-            result.ThrowIfError();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
@@ -92,8 +86,6 @@ namespace CliWrap.Tests
                 .WithEnvironmentVariable(TestEnvVar, TestString)
                 .Execute();
 
-            result.ThrowIfError();
-
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
@@ -105,19 +97,11 @@ namespace CliWrap.Tests
         [Test]
         public void Execute_EchoArgsToStderr_Test()
         {
-            var result = new Cli(_echoArgsToStderrBat)
+            var ex = Assert.Throws<StandardErrorValidationException>(() => new Cli(_echoArgsToStderrBat)
                 .WithArguments(TestString)
-                .Execute();
+                .Execute());
 
-            var ex = Assert.Throws<StandardErrorException>(() => result.ThrowIfError());
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
-            Assert.That(result.StandardOutput.TrimEnd(), Is.Empty);
-            Assert.That(result.StandardError.TrimEnd(), Is.EqualTo(TestString));
-            Assert.That(result.StandardError, Is.EqualTo(ex.StandardError));
-            Assert.That(result.StartTime, Is.LessThanOrEqualTo(result.ExitTime));
-            Assert.That(result.RunTime, Is.EqualTo(result.ExitTime - result.StartTime));
+            Assert.That(ex.StandardError.TrimEnd(), Is.EqualTo(TestString));
         }
 
         [Test]
@@ -156,15 +140,13 @@ namespace CliWrap.Tests
             var result = new Cli(_echoSpamBat)
                 .WithStandardOutputObserver(l => stdOutBuffer.AppendLine(l))
                 .WithStandardErrorObserver(l => stdErrBuffer.AppendLine(l))
+                .WithStandardErrorValidation(false)
                 .Execute();
-
-            var ex = Assert.Throws<StandardErrorException>(() => result.ThrowIfError());
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput, Is.EqualTo(stdOutBuffer.ToString()));
             Assert.That(result.StandardError, Is.EqualTo(stdErrBuffer.ToString()));
-            Assert.That(result.StandardError, Is.EqualTo(ex.StandardError));
             Assert.That(result.StartTime, Is.LessThanOrEqualTo(result.ExitTime));
             Assert.That(result.RunTime, Is.EqualTo(result.ExitTime - result.StartTime));
         }
@@ -190,8 +172,6 @@ namespace CliWrap.Tests
                 .WithArguments(TestString)
                 .ExecuteAsync();
 
-            result.ThrowIfError();
-
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
@@ -207,8 +187,6 @@ namespace CliWrap.Tests
                 .WithStandardInput(TestString)
                 .ExecuteAsync();
 
-            result.ThrowIfError();
-
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
@@ -221,8 +199,6 @@ namespace CliWrap.Tests
         public async Task ExecuteAsync_EchoStdinToStdout_Empty_Test()
         {
             var result = await new Cli(_echoStdinToStdoutBat).ExecuteAsync();
-
-            result.ThrowIfError();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
@@ -239,8 +215,6 @@ namespace CliWrap.Tests
                 .WithEnvironmentVariable(TestEnvVar, TestString)
                 .ExecuteAsync();
 
-            result.ThrowIfError();
-
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
@@ -250,21 +224,13 @@ namespace CliWrap.Tests
         }
 
         [Test]
-        public async Task ExecuteAsync_EchoArgsToStderr_Test()
+        public void ExecuteAsync_EchoArgsToStderr_Test()
         {
-            var result = await new Cli(_echoArgsToStderrBat)
+            var ex = Assert.ThrowsAsync<StandardErrorValidationException>(() => new Cli(_echoArgsToStderrBat)
                 .WithArguments(TestString)
-                .ExecuteAsync();
+                .ExecuteAsync());
 
-            var ex = Assert.Throws<StandardErrorException>(() => result.ThrowIfError());
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
-            Assert.That(result.StandardOutput.TrimEnd(), Is.Empty);
-            Assert.That(result.StandardError.TrimEnd(), Is.EqualTo(TestString));
-            Assert.That(result.StandardError, Is.EqualTo(ex.StandardError));
-            Assert.That(result.StartTime, Is.LessThanOrEqualTo(result.ExitTime));
-            Assert.That(result.RunTime, Is.EqualTo(result.ExitTime - result.StartTime));
+            Assert.That(ex.StandardError.TrimEnd(), Is.EqualTo(TestString));
         }
 
         [Test]
@@ -303,15 +269,13 @@ namespace CliWrap.Tests
             var result = await new Cli(_echoSpamBat)
                 .WithStandardOutputObserver(l => stdOutBuffer.AppendLine(l))
                 .WithStandardErrorObserver(l => stdErrBuffer.AppendLine(l))
+                .WithStandardErrorValidation(false)
                 .ExecuteAsync();
-
-            var ex = Assert.Throws<StandardErrorException>(() => result.ThrowIfError());
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.EqualTo(TestExitCode));
             Assert.That(result.StandardOutput, Is.EqualTo(stdOutBuffer.ToString()));
             Assert.That(result.StandardError, Is.EqualTo(stdErrBuffer.ToString()));
-            Assert.That(result.StandardError, Is.EqualTo(ex.StandardError));
             Assert.That(result.StartTime, Is.LessThanOrEqualTo(result.ExitTime));
             Assert.That(result.RunTime, Is.EqualTo(result.ExitTime - result.StartTime));
         }

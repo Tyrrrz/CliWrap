@@ -1,5 +1,4 @@
 ﻿using System;
-using CliWrap.Exceptions;
 using CliWrap.Internal;
 using JetBrains.Annotations;
 
@@ -28,11 +27,6 @@ namespace CliWrap.Models
         public string StandardError { get; }
 
         /// <summary>
-        /// Whether the process reported any errors.
-        /// </summary>
-        public bool HasError => !string.IsNullOrEmpty(StandardError);
-
-        /// <summary>
         /// Time at which this execution started.
         /// </summary>
         public DateTimeOffset StartTime { get; }
@@ -58,15 +52,6 @@ namespace CliWrap.Models
             StandardError = standardError.GuardNotNull(nameof(standardError));
             StartTime = startTime;
             ExitTime = exitTime;
-        }
-
-        /// <summary>
-        /// Throws <see cref="StandardErrorException"/> if the underlying process reported an error during this execution.
-        /// </summary>
-        public void ThrowIfError()
-        {
-            if (HasError)
-                throw new StandardErrorException(StandardError);
         }
     }
 }

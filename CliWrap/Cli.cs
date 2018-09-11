@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using CliWrap.Internal;
 using CliWrap.Models;
 
@@ -16,6 +17,7 @@ namespace CliWrap
     public class Cli : ICli
     {
         private readonly string _filePath;
+
         private string _workingDirectory;
         private string _arguments;
         private Stream _standardInput;
@@ -25,6 +27,8 @@ namespace CliWrap
         private Action<string> _standardOutputObserver;
         private Action<string> _standardErrorObserver;
         private CancellationToken _cancellationToken;
+        private bool _exitCodeValidation = true;
+        private bool _standardErrorValidation = true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="Cli"/> on the target executable.
@@ -137,6 +141,20 @@ namespace CliWrap
         public Cli WithCancellationToken(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
+            return this;
+        }
+
+        /// <inheritdoc />
+        public Cli WithExitCodeValidation(bool isEnabled = true)
+        {
+            _exitCodeValidation = isEnabled;
+            return this;
+        }
+
+        /// <inheritdoc />
+        public Cli WithStandardErrorValidation(bool isEnabled = true)
+        {
+            _standardErrorValidation = isEnabled;
             return this;
         }
 
@@ -255,11 +273,22 @@ namespace CliWrap
                 // Check cancellation
                 _cancellationToken.ThrowIfCancellationRequested();
 
+                // Get exit code
+                var exitCode = process.ExitCode;
+
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionResult(process.ExitCode, stdOut, stdErr, startTime, exitTime);
+                // Validate exit code if needed
+                if (_exitCodeValidation && exitCode != 0)
+                    throw new ExitCodeValidationException(exitCode);
+
+                // Validate standard error if needed
+                if (_standardErrorValidation && stdErr.IsNotBlank())
+                    throw new StandardErrorValidationException(stdErr);
+
+                return new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
             }
         }
 
@@ -339,11 +368,22 @@ namespace CliWrap
                 await stdOutTcs.Task.ConfigureAwait(false);
                 await stdErrTcs.Task.ConfigureAwait(false);
 
+                // Get exit code
+                var exitCode = process.ExitCode;
+
                 // Get stdout and stderr
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
-                return new ExecutionResult(process.ExitCode, stdOut, stdErr, startTime, exitTime);
+                // Validate exit code if needed
+                if (_exitCodeValidation && exitCode != 0)
+                    throw new ExitCodeValidationException(exitCode);
+
+                // Validate standard error if needed
+                if (_standardErrorValidation && stdErr.IsNotBlank())
+                    throw new StandardErrorValidationException(stdErr);
+
+                return new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
             }
         }
 

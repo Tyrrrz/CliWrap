@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using CliWrap.Models;
 
 namespace CliWrap
@@ -77,6 +78,16 @@ namespace CliWrap
         /// Sets the cancellation token.
         /// </summary>
         Cli WithCancellationToken(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Enables or disables validation that will throw <see cref="ExitCodeValidationException"/> if the resulting exit code is not zero.
+        /// </summary>
+        Cli WithExitCodeValidation(bool isEnabled = true);
+
+        /// <summary>
+        /// Enables or disables validation that will throw <see cref="StandardErrorValidationException"/> if the resulting standard error is not empty.
+        /// </summary>
+        Cli WithStandardErrorValidation(bool isEnabled = true);
 
         /// <summary>
         /// Executes the process and waits until it exists synchronously.

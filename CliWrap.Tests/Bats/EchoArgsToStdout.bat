@@ -2,5 +2,3 @@
 
 SHIFT
 echo %*
-
-exit /b 14
