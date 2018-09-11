@@ -122,7 +122,8 @@ namespace CliWrap
             };
 
             // Set environment variables
-            startInfo.SetEnvironmentVariables(_environmentVariables);
+            if (_environmentVariables != null)
+                startInfo.SetEnvironmentVariables(_environmentVariables);
 
             // Create process
             var process = new Process

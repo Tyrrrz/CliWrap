@@ -12,6 +12,7 @@ namespace CliWrap.Internal
             var ms = new MemoryStream();
             var data = encoding.GetBytes(str);
             ms.Write(data, 0, data.Length);
+            ms.Seek(0, SeekOrigin.Begin);
             return ms;
         }
 
