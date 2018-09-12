@@ -1,3 +1,13 @@
+### v2.0 (12-Sep-2018)
+
+- Re-designed the API so that it follows the builder pattern. Execution parameters are now supplied using chainable methods on the `Cli` instead of via `ExecutionInput`. Things like `BufferHandler` and `CancellationToken` are now also configured in the same manner. *Refer to the readme to see updated usage examples.*
+- It is now also possible to pipe a raw stream to standard input, instead of just a text string.
+- Removed `ExecutionInput`, `CliSettings`, `BufferHandler`, `EncodingSettings`.
+- Renamed `ExecutionOutput` to `ExecutionResult`.
+- Removed `ExecutionResult.HasError` and `ExecutionResult.ThrowIfError()`.
+- Added an option to automatically throw an exception when the underlying process reports a non-zero exit code. Is enabled by default.
+- Added an option to automatically throw an exception when the underlying process writes anything to standard error. Is enabled by default.
+
 ### v1.8.5 (09-Jun-2018)
 
 - Fixed exception messages not appearing in Visual Studio's exception popup.
