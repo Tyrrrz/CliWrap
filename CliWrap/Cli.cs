@@ -38,31 +38,31 @@ namespace CliWrap
             _filePath = filePath.GuardNotNull(nameof(filePath));
         }
 
-        #region Parameters
+        #region Options
 
         /// <inheritdoc />
-        public Cli WithWorkingDirectory(string workingDirectory)
+        public Cli SetWorkingDirectory(string workingDirectory)
         {
             _workingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithArguments(string arguments)
+        public Cli SetArguments(string arguments)
         {
             _arguments = arguments.GuardNotNull(nameof(arguments));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardInput(Stream standardInput)
+        public Cli SetStandardInput(Stream standardInput)
         {
             _standardInput = standardInput.GuardNotNull(nameof(standardInput));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardInput(string standardInput, Encoding encoding)
+        public Cli SetStandardInput(string standardInput, Encoding encoding)
         {
             standardInput.GuardNotNull(nameof(standardInput));
             encoding.GuardNotNull(nameof(encoding));
@@ -70,18 +70,18 @@ namespace CliWrap
             // Represent string as stream
             var stream = standardInput.AsStream(encoding);
 
-            return WithStandardInput(stream);
+            return SetStandardInput(stream);
         }
 
         /// <inheritdoc />
-        public Cli WithStandardInput(string standardInput)
+        public Cli SetStandardInput(string standardInput)
         {
             standardInput.GuardNotNull(nameof(standardInput));
-            return WithStandardInput(standardInput, Console.InputEncoding);
+            return SetStandardInput(standardInput, Console.InputEncoding);
         }
 
         /// <inheritdoc />
-        public Cli WithEnvironmentVariable(string key, string value)
+        public Cli SetEnvironmentVariable(string key, string value)
         {
             key.GuardNotNull(nameof(key));
 
@@ -96,63 +96,49 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public Cli WithStandardOutputEncoding(Encoding standardOutputEncoding)
+        public Cli SetStandardOutputEncoding(Encoding standardOutputEncoding)
         {
             _standardOutputEncoding = standardOutputEncoding.GuardNotNull(nameof(standardOutputEncoding));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardErrorEncoding(Encoding standardErrorEncoding)
+        public Cli SetStandardErrorEncoding(Encoding standardErrorEncoding)
         {
             _standardErrorEncoding = standardErrorEncoding.GuardNotNull(nameof(standardErrorEncoding));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardOutputObserver(Action<string> observer)
+        public Cli SetStandardOutputCallback(Action<string> callback)
         {
-            _standardOutputObserver = observer.GuardNotNull(nameof(observer));
+            _standardOutputObserver = callback.GuardNotNull(nameof(callback));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardOutputObserver(IObserver<string> observer)
+        public Cli SetStandardErrorCallback(Action<string> callback)
         {
-            observer.GuardNotNull(nameof(observer));
-            return WithStandardOutputObserver(observer.OnNext);
-        }
-
-        /// <inheritdoc />
-        public Cli WithStandardErrorObserver(Action<string> observer)
-        {
-            _standardErrorObserver = observer.GuardNotNull(nameof(observer));
+            _standardErrorObserver = callback.GuardNotNull(nameof(callback));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardErrorObserver(IObserver<string> observer)
-        {
-            observer.GuardNotNull(nameof(observer));
-            return WithStandardOutputObserver(observer.OnNext);
-        }
-
-        /// <inheritdoc />
-        public Cli WithCancellationToken(CancellationToken cancellationToken)
+        public Cli SetCancellationToken(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithExitCodeValidation(bool isEnabled = true)
+        public Cli EnableExitCodeValidation(bool isEnabled = true)
         {
             _exitCodeValidation = isEnabled;
             return this;
         }
 
         /// <inheritdoc />
-        public Cli WithStandardErrorValidation(bool isEnabled = true)
+        public Cli EnableStandardErrorValidation(bool isEnabled = true)
         {
             _standardErrorValidation = isEnabled;
             return this;
