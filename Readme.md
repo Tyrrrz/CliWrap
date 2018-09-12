@@ -31,8 +31,8 @@ CliWrap is a library that makes it easier to interact with command line interfac
 
 ```c#
 var result = await new Cli("cli.exe")
-                .WithArguments("Hello world!")
-                .ExecuteAsync();
+    .SetArguments("Hello world!")
+    .ExecuteAsync();
 
 var exitCode = result.ExitCode;
 var stdOut = result.StandardOutput;
@@ -46,17 +46,17 @@ var runTime = result.RunTime;
 
 ```c#
 var result = await new Cli("cli.exe")
-                .WithStandardInput("Hello world from stdin!")
-                .ExecuteAsync();
+    .SetStandardInput("Hello world from stdin!") // can also pipe a stream instead
+    .ExecuteAsync();
 ```
 
 ##### Environment variables
 
 ```c#
 var result = await new Cli("cli.exe")
-                .WithEnvironmentVariable("var1", "value1")
-                .WithEnvironmentVariable("var2", "value2")
-                .ExecuteAsync();
+    .SetEnvironmentVariable("var1", "value1")
+    .SetEnvironmentVariable("var2", "value2")
+    .ExecuteAsync();
 ```
 
 ##### Cancel execution
@@ -67,18 +67,27 @@ using (var cts = new CancellationTokenSource())
     cts.CancelAfter(TimeSpan.FromSeconds(5)); // e.g. timeout of 5 seconds
     
     var result = await new Cli("cli.exe")
-                    .WithCancellationToken(cts.Token)
-                    .ExecuteAsync();                       
+        .SetCancellationToken(cts.Token)
+        .ExecuteAsync();                       
 }
 ```
 
-##### Observe stdout and stderr
+##### Callbacks for stdout and stderr
 
 ```c#
 var result = await new Cli("cli.exe")
-                .WithStandardOutputObserver(l => Console.WriteLine($"StdOut> {l}"))
-                .WithStandardErrorObserver(l => Console.WriteLine($"StdErr> {l}"))
-                .ExecuteAsync();
+    .SetStandardOutputCallback(l => Console.WriteLine($"StdOut> {l}")) // triggered on every line in stdout
+    .SetStandardErrorCallback(l => Console.WriteLine($"StdErr> {l}")) // triggered on every line in stderr
+    .ExecuteAsync();
+```
+
+##### Ignore errors
+
+```c#
+var result = await new Cli("cli.exe")
+    .EnableExitCodeValidation(false) // disables exceptions on non-zero exit code
+    .EnableStandardErrorValidation(false) // disables exceptions on non-empty stderr
+    .ExecuteAsync();
 ```
 
 ## Libraries used
