@@ -96,16 +96,16 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public Cli SetStandardOutputEncoding(Encoding standardOutputEncoding)
+        public Cli SetStandardOutputEncoding(Encoding encoding)
         {
-            _standardOutputEncoding = standardOutputEncoding.GuardNotNull(nameof(standardOutputEncoding));
+            _standardOutputEncoding = encoding.GuardNotNull(nameof(encoding));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetStandardErrorEncoding(Encoding standardErrorEncoding)
+        public Cli SetStandardErrorEncoding(Encoding encoding)
         {
-            _standardErrorEncoding = standardErrorEncoding.GuardNotNull(nameof(standardErrorEncoding));
+            _standardErrorEncoding = encoding.GuardNotNull(nameof(encoding));
             return this;
         }
 
@@ -124,9 +124,9 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public Cli SetCancellationToken(CancellationToken cancellationToken)
+        public Cli SetCancellationToken(CancellationToken token)
         {
-            _cancellationToken = cancellationToken;
+            _cancellationToken = token;
             return this;
         }
 

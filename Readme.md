@@ -68,7 +68,7 @@ using (var cts = new CancellationTokenSource())
     
     var result = await new Cli("cli.exe")
         .SetCancellationToken(cts.Token)
-        .ExecuteAsync();                       
+        .ExecuteAsync();
 }
 ```
 

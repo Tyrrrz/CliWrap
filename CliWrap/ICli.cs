@@ -47,12 +47,12 @@ namespace CliWrap
         /// <summary>
         /// Sets the text encoding used for standard output stream.
         /// </summary>
-        Cli SetStandardOutputEncoding(Encoding standardOutputEncoding);
+        Cli SetStandardOutputEncoding(Encoding encoding);
 
         /// <summary>
         /// Sets the text encoding used for standard error stream.
         /// </summary>
-        Cli SetStandardErrorEncoding(Encoding standardErrorEncoding);
+        Cli SetStandardErrorEncoding(Encoding encoding);
 
         /// <summary>
         /// Sets the delegate that will be called whenever a new line is appended to standard output stream.
@@ -67,7 +67,7 @@ namespace CliWrap
         /// <summary>
         /// Sets the cancellation token.
         /// </summary>
-        Cli SetCancellationToken(CancellationToken cancellationToken);
+        Cli SetCancellationToken(CancellationToken token);
 
         /// <summary>
         /// Enables or disables validation that will throw <see cref="ExitCodeValidationException"/> if the resulting exit code is not zero.
