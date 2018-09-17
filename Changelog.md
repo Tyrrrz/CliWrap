@@ -1,3 +1,7 @@
+### v2.0.1 (17-Sep-2018)
+
+- Builder methods now return an instance of `ICli` instead of `Cli`.
+
 ### v2.0 (12-Sep-2018)
 
 - Re-designed the API so that it follows the builder pattern. Execution parameters are now supplied using chainable methods on the `Cli` instead of via `ExecutionInput`. Things like `BufferHandler` and `CancellationToken` are now also configured in the same manner. *Refer to the readme to see updated usage examples.*
