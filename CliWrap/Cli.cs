@@ -41,28 +41,28 @@ namespace CliWrap
         #region Options
 
         /// <inheritdoc />
-        public Cli SetWorkingDirectory(string workingDirectory)
+        public ICli SetWorkingDirectory(string workingDirectory)
         {
             _workingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetArguments(string arguments)
+        public ICli SetArguments(string arguments)
         {
             _arguments = arguments.GuardNotNull(nameof(arguments));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetStandardInput(Stream standardInput)
+        public ICli SetStandardInput(Stream standardInput)
         {
             _standardInput = standardInput.GuardNotNull(nameof(standardInput));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetStandardInput(string standardInput, Encoding encoding)
+        public ICli SetStandardInput(string standardInput, Encoding encoding)
         {
             standardInput.GuardNotNull(nameof(standardInput));
             encoding.GuardNotNull(nameof(encoding));
@@ -74,14 +74,14 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public Cli SetStandardInput(string standardInput)
+        public ICli SetStandardInput(string standardInput)
         {
             standardInput.GuardNotNull(nameof(standardInput));
             return SetStandardInput(standardInput, Console.InputEncoding);
         }
 
         /// <inheritdoc />
-        public Cli SetEnvironmentVariable(string key, string value)
+        public ICli SetEnvironmentVariable(string key, string value)
         {
             key.GuardNotNull(nameof(key));
 
@@ -96,49 +96,49 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public Cli SetStandardOutputEncoding(Encoding encoding)
+        public ICli SetStandardOutputEncoding(Encoding encoding)
         {
             _standardOutputEncoding = encoding.GuardNotNull(nameof(encoding));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetStandardErrorEncoding(Encoding encoding)
+        public ICli SetStandardErrorEncoding(Encoding encoding)
         {
             _standardErrorEncoding = encoding.GuardNotNull(nameof(encoding));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetStandardOutputCallback(Action<string> callback)
+        public ICli SetStandardOutputCallback(Action<string> callback)
         {
             _standardOutputObserver = callback.GuardNotNull(nameof(callback));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetStandardErrorCallback(Action<string> callback)
+        public ICli SetStandardErrorCallback(Action<string> callback)
         {
             _standardErrorObserver = callback.GuardNotNull(nameof(callback));
             return this;
         }
 
         /// <inheritdoc />
-        public Cli SetCancellationToken(CancellationToken token)
+        public ICli SetCancellationToken(CancellationToken token)
         {
             _cancellationToken = token;
             return this;
         }
 
         /// <inheritdoc />
-        public Cli EnableExitCodeValidation(bool isEnabled = true)
+        public ICli EnableExitCodeValidation(bool isEnabled = true)
         {
             _exitCodeValidation = isEnabled;
             return this;
         }
 
         /// <inheritdoc />
-        public Cli EnableStandardErrorValidation(bool isEnabled = true)
+        public ICli EnableStandardErrorValidation(bool isEnabled = true)
         {
             _standardErrorValidation = isEnabled;
             return this;
