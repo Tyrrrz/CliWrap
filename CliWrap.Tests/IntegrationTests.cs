@@ -157,7 +157,13 @@ namespace CliWrap.Tests
                     .EnableStandardErrorValidation()
                     .Execute());
 
-            Assert.That(ex.StandardError.TrimEnd(), Is.EqualTo(TestString));
+            Assert.That(ex.ExecutionResult, Is.Not.Null);
+            Assert.That(ex.ExecutionResult.ExitCode, Is.Zero);
+            Assert.That(ex.ExecutionResult.StandardOutput.TrimEnd(), Is.Empty);
+            Assert.That(ex.ExecutionResult.StandardError.TrimEnd(), Is.EqualTo(TestString));
+            Assert.That(ex.ExecutionResult.StartTime, Is.LessThanOrEqualTo(ex.ExecutionResult.ExitTime));
+            Assert.That(ex.ExecutionResult.RunTime, Is.EqualTo(ex.ExecutionResult.ExitTime - ex.ExecutionResult.StartTime));
+            Assert.That(ex.StandardError, Is.EqualTo(ex.ExecutionResult.StandardError));
         }
 
         [Test]
@@ -168,7 +174,13 @@ namespace CliWrap.Tests
                     .EnableExitCodeValidation()
                     .Execute());
 
-            Assert.That(ex.ExitCode, Is.Not.Zero);
+            Assert.That(ex.ExecutionResult, Is.Not.Null);
+            Assert.That(ex.ExecutionResult.ExitCode, Is.Not.Zero);
+            Assert.That(ex.ExecutionResult.StandardOutput.TrimEnd(), Is.Empty);
+            Assert.That(ex.ExecutionResult.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(ex.ExecutionResult.StartTime, Is.LessThanOrEqualTo(ex.ExecutionResult.ExitTime));
+            Assert.That(ex.ExecutionResult.RunTime, Is.EqualTo(ex.ExecutionResult.ExitTime - ex.ExecutionResult.StartTime));
+            Assert.That(ex.ExitCode, Is.EqualTo(ex.ExecutionResult.ExitCode));
         }
 
         #endregion
@@ -315,7 +327,13 @@ namespace CliWrap.Tests
                     .EnableStandardErrorValidation()
                     .ExecuteAsync());
 
-            Assert.That(ex.StandardError.TrimEnd(), Is.EqualTo(TestString));
+            Assert.That(ex.ExecutionResult, Is.Not.Null);
+            Assert.That(ex.ExecutionResult.ExitCode, Is.Zero);
+            Assert.That(ex.ExecutionResult.StandardOutput.TrimEnd(), Is.Empty);
+            Assert.That(ex.ExecutionResult.StandardError.TrimEnd(), Is.EqualTo(TestString));
+            Assert.That(ex.ExecutionResult.StartTime, Is.LessThanOrEqualTo(ex.ExecutionResult.ExitTime));
+            Assert.That(ex.ExecutionResult.RunTime, Is.EqualTo(ex.ExecutionResult.ExitTime - ex.ExecutionResult.StartTime));
+            Assert.That(ex.StandardError, Is.EqualTo(ex.ExecutionResult.StandardError));
         }
 
         [Test]
@@ -326,7 +344,13 @@ namespace CliWrap.Tests
                     .EnableExitCodeValidation()
                     .ExecuteAsync());
 
-            Assert.That(ex.ExitCode, Is.Not.Zero);
+            Assert.That(ex.ExecutionResult, Is.Not.Null);
+            Assert.That(ex.ExecutionResult.ExitCode, Is.Not.Zero);
+            Assert.That(ex.ExecutionResult.StandardOutput.TrimEnd(), Is.Empty);
+            Assert.That(ex.ExecutionResult.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(ex.ExecutionResult.StartTime, Is.LessThanOrEqualTo(ex.ExecutionResult.ExitTime));
+            Assert.That(ex.ExecutionResult.RunTime, Is.EqualTo(ex.ExecutionResult.ExitTime - ex.ExecutionResult.StartTime));
+            Assert.That(ex.ExitCode, Is.EqualTo(ex.ExecutionResult.ExitCode));
         }
 
         #endregion

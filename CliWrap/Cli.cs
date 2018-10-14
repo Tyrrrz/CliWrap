@@ -261,15 +261,19 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
+                // Create execution result
+                var result = new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
+
                 // Validate exit code if needed
-                if (_exitCodeValidation && exitCode != 0)
-                    throw new ExitCodeValidationException(exitCode);
+                if (_exitCodeValidation && result.ExitCode != 0)
+                    throw new ExitCodeValidationException(result);
 
                 // Validate standard error if needed
-                if (_standardErrorValidation && stdErr.IsNotBlank())
-                    throw new StandardErrorValidationException(stdErr);
+                if (_standardErrorValidation && result.StandardError.IsNotBlank())
+                    throw new StandardErrorValidationException(result);
 
-                return new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
+                // Return
+                return result;
             }
         }
 
@@ -361,15 +365,19 @@ namespace CliWrap
                 var stdOut = stdOutBuffer.ToString();
                 var stdErr = stdErrBuffer.ToString();
 
+                // Create execution result
+                var result = new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
+
                 // Validate exit code if needed
-                if (_exitCodeValidation && exitCode != 0)
-                    throw new ExitCodeValidationException(exitCode);
+                if (_exitCodeValidation && result.ExitCode != 0)
+                    throw new ExitCodeValidationException(result);
 
                 // Validate standard error if needed
-                if (_standardErrorValidation && stdErr.IsNotBlank())
-                    throw new StandardErrorValidationException(stdErr);
+                if (_standardErrorValidation && result.StandardError.IsNotBlank())
+                    throw new StandardErrorValidationException(result);
 
-                return new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
+                // Return
+                return result;
             }
         }
 

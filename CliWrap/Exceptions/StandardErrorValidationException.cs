@@ -1,25 +1,25 @@
 ﻿using System;
-using CliWrap.Internal;
+using CliWrap.Models;
 
 namespace CliWrap.Exceptions
 {
     /// <summary>
     /// Thrown if underlying process reported an error.
     /// </summary>
-    public class StandardErrorValidationException : Exception
+    public class StandardErrorValidationException : ExecutionResultValidationException
     {
         /// <summary>
         /// Standard error data produced by underlying process.
         /// </summary>
-        public string StandardError { get; }
+        public string StandardError => ExecutionResult.StandardError;
 
         /// <summary>
         /// Initializes <see cref="StandardErrorValidationException"/> with given standard error data.
         /// </summary>
-        public StandardErrorValidationException(string standardError)
-            : base($"Underlying process reported an error:{Environment.NewLine}{standardError}")
+        public StandardErrorValidationException(ExecutionResult executionResult)
+            : base(executionResult,
+                $"Underlying process reported an error:{Environment.NewLine}{executionResult.StandardError}")
         {
-            StandardError = standardError.GuardNotNull(nameof(standardError));
         }
     }
 }
