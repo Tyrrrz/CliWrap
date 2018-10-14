@@ -221,43 +221,38 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+
+                // Record start time
                 var startTime = DateTimeOffset.Now;
 
-                // Begin reading stdout and stderr
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                // Write stdin
-                using (process.StandardInput)
+                try
                 {
-                    _standardInput?.CopyTo(process.StandardInput.BaseStream);
+                    // Begin reading stdout and stderr
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    // Write stdin
+                    using (process.StandardInput)
+                        _standardInput?.CopyTo(process.StandardInput.BaseStream);
+
+                    // Wait until exit
+                    processMre.Wait(_cancellationToken);
+
+                    // Wait until stdout and stderr finished reading
+                    stdOutMre.Wait(_cancellationToken);
+                    stdErrMre.Wait(_cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Try to kill process
+                    process.TryKill();
+
+                    // Re-throw
+                    throw;
                 }
 
-                // Setup cancellation token to kill process and set events
-                // This has to be after process start so that it can actually be killed
-                // and also after standard input so that it can write correctly
-                _cancellationToken.Register(() =>
-                {
-                    process.TryKill();
-                    processMre.Set();
-                    stdOutMre.Set();
-                    stdErrMre.Set();
-                });
-
-                // Cancellation token is not passed to waits because
-                // the callback has to finish executing before the process is disposed
-                // which otherwise would happen too soon
-
-                // Wait until exit
-                processMre.Wait();
+                // Record exit time
                 var exitTime = DateTimeOffset.Now;
-
-                // Wait until stdout and stderr finished reading
-                stdOutMre.Wait();
-                stdErrMre.Wait();
-
-                // Check cancellation
-                _cancellationToken.ThrowIfCancellationRequested();
 
                 // Get exit code
                 var exitCode = process.ExitCode;
@@ -322,6 +317,8 @@ namespace CliWrap
 
                 // Start process
                 process.Start();
+
+                // Record start time
                 var startTime = DateTimeOffset.Now;
 
                 // Begin reading stdout and stderr
@@ -348,11 +345,13 @@ namespace CliWrap
 
                 // Wait until exit
                 await processTcs.Task.ConfigureAwait(false);
-                var exitTime = DateTimeOffset.Now;
 
                 // Wait until stdout and stderr finished reading
                 await stdOutTcs.Task.ConfigureAwait(false);
                 await stdErrTcs.Task.ConfigureAwait(false);
+
+                // Record exit time
+                var exitTime = DateTimeOffset.Now;
 
                 // Get exit code
                 var exitCode = process.ExitCode;
@@ -384,9 +383,7 @@ namespace CliWrap
 
                 // Write stdin
                 using (process.StandardInput)
-                {
                     _standardInput?.CopyTo(process.StandardInput.BaseStream);
-                }
             }
         }
 
