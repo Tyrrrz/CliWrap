@@ -1,3 +1,10 @@
+### v2.1 (15-Oct-2018)
+
+- Added `ExecutionResult` to `ExitCodeValidationException` and `StandardErrorValidationException`. This way additional information can be inspected during debugging.
+- `ExitCodeValidationException` and `StandardErrorValidationException` are now derived from `ExecutionResultValidationException`.
+- Improved cancellation handling in synchronous workflow.
+- Cancellation token is now used when writing stdin in asynchronous workflow.
+
 ### v2.0.1 (17-Sep-2018)
 
 - Builder methods now return an instance of `ICli` instead of `Cli`.
