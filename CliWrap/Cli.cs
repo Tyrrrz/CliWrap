@@ -329,7 +329,8 @@ namespace CliWrap
                 using (process.StandardInput)
                 {
                     if (_standardInput != null)
-                        await _standardInput.CopyToAsync(process.StandardInput.BaseStream).ConfigureAwait(false);
+                        await _standardInput.CopyToAsync(process.StandardInput.BaseStream, 81920, _cancellationToken)
+                            .ConfigureAwait(false);
                 }
 
                 // Setup cancellation token to kill process and cancel tasks
