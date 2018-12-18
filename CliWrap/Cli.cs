@@ -28,7 +28,7 @@ namespace CliWrap
         private Action<string> _standardErrorObserver;
         private CancellationToken _cancellationToken;
         private bool _exitCodeValidation = true;
-        private bool _standardErrorValidation = true;
+        private bool _standardErrorValidation;
 
         /// <summary>
         /// Initializes an instance of <see cref="Cli"/> on the target executable.

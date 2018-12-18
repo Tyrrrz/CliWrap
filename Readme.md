@@ -81,12 +81,12 @@ var result = await Cli.Wrap("cli.exe")
     .ExecuteAsync();
 ```
 
-##### Ignore errors
+##### Error handling
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
-    .EnableExitCodeValidation(false) // disables exceptions on non-zero exit code
-    .EnableStandardErrorValidation(false) // disables exceptions on non-empty stderr
+    .EnableExitCodeValidation(true) // throw exception on non-zero exit code (on by default)
+    .EnableStandardErrorValidation(true) // throw exception on non-empty stderr (off by default)
     .ExecuteAsync();
 ```
 
