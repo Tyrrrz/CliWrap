@@ -14,7 +14,7 @@ namespace CliWrap
     /// <summary>
     /// Command line interface wrapper.
     /// </summary>
-    public class Cli : ICli
+    public partial class Cli : ICli
     {
         private readonly string _filePath;
 
@@ -31,7 +31,7 @@ namespace CliWrap
         private bool _standardErrorValidation = true;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Cli"/> on the target executable.
+        /// Initializes an instance of <see cref="Cli"/> on the target executable.
         /// </summary>
         public Cli(string filePath)
         {
@@ -397,5 +397,13 @@ namespace CliWrap
         }
 
         #endregion
+    }
+
+    public partial class Cli
+    {
+        /// <summary>
+        /// Initializes an instance of <see cref="ICli"/> on the target executable.
+        /// </summary>
+        public static ICli Wrap(string filePath) => new Cli(filePath);
     }
 }

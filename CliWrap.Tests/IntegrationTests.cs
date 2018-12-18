@@ -30,7 +30,7 @@ namespace CliWrap.Tests
         [Test]
         public void Execute_EchoArgsToStdout_Test()
         {
-            var result = new Cli(EchoArgsToStdoutBat)
+            var result = Cli.Wrap(EchoArgsToStdoutBat)
                 .SetArguments(TestString)
                 .Execute();
 
@@ -45,7 +45,7 @@ namespace CliWrap.Tests
         [Test]
         public void Execute_EchoStdinToStdout_Test()
         {
-            var result = new Cli(EchoStdinToStdoutBat)
+            var result = Cli.Wrap(EchoStdinToStdoutBat)
                 .SetStandardInput(TestString)
                 .Execute();
 
@@ -60,7 +60,7 @@ namespace CliWrap.Tests
         [Test]
         public void Execute_EchoStdinToStdout_Empty_Test()
         {
-            var result = new Cli(EchoStdinToStdoutBat).Execute();
+            var result = Cli.Wrap(EchoStdinToStdoutBat).Execute();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.Zero);
@@ -73,7 +73,7 @@ namespace CliWrap.Tests
         [Test]
         public void Execute_EchoEnvVarToStdout_Test()
         {
-            var result = new Cli(EchoEnvVarToStdoutBat)
+            var result = Cli.Wrap(EchoEnvVarToStdoutBat)
                 .SetEnvironmentVariable(TestEnvVar, TestString)
                 .Execute();
 
@@ -88,7 +88,7 @@ namespace CliWrap.Tests
         [Test]
         public void Execute_EchoArgsToStderr_Test()
         {
-            var result = new Cli(EchoArgsToStderrBat)
+            var result = Cli.Wrap(EchoArgsToStderrBat)
                 .SetArguments(TestString)
                 .EnableStandardErrorValidation(false)
                 .Execute();
@@ -108,7 +108,7 @@ namespace CliWrap.Tests
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
 
-            var result = new Cli(EchoSpamBat)
+            var result = Cli.Wrap(EchoSpamBat)
                 .SetStandardOutputCallback(l => stdOutBuffer.AppendLine(l))
                 .SetStandardErrorCallback(l => stdErrBuffer.AppendLine(l))
                 .EnableStandardErrorValidation(false)
@@ -127,7 +127,7 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(SleepBat).SetCancellationToken(cts.Token);
+                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
 
                 cts.Cancel();
 
@@ -140,7 +140,7 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(SleepBat).SetCancellationToken(cts.Token);
+                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
 
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
 
@@ -152,7 +152,7 @@ namespace CliWrap.Tests
         public void Execute_EchoArgsToStderr_Validation_Test()
         {
             var ex = Assert.Throws<StandardErrorValidationException>(() =>
-                new Cli(EchoArgsToStderrBat)
+                Cli.Wrap(EchoArgsToStderrBat)
                     .SetArguments(TestString)
                     .EnableStandardErrorValidation()
                     .Execute());
@@ -170,7 +170,7 @@ namespace CliWrap.Tests
         public void Execute_NonZeroExitCode_Validation_Test()
         {
             var ex = Assert.Throws<ExitCodeValidationException>(() =>
-                new Cli(NonZeroExitCodeBat)
+                Cli.Wrap(NonZeroExitCodeBat)
                     .EnableExitCodeValidation()
                     .Execute());
 
@@ -190,7 +190,7 @@ namespace CliWrap.Tests
         [Test]
         public void ExecuteAndForget_EchoArgsToStdout_Test()
         {
-            new Cli(EchoArgsToStdoutBat).ExecuteAndForget();
+            Cli.Wrap(EchoArgsToStdoutBat).ExecuteAndForget();
         }
 
         #endregion
@@ -200,7 +200,7 @@ namespace CliWrap.Tests
         [Test]
         public async Task ExecuteAsync_EchoArgsToStdout_Test()
         {
-            var result = await new Cli(EchoArgsToStdoutBat)
+            var result = await Cli.Wrap(EchoArgsToStdoutBat)
                 .SetArguments(TestString)
                 .ExecuteAsync();
 
@@ -215,7 +215,7 @@ namespace CliWrap.Tests
         [Test]
         public async Task ExecuteAsync_EchoStdinToStdout_Test()
         {
-            var result = await new Cli(EchoStdinToStdoutBat)
+            var result = await Cli.Wrap(EchoStdinToStdoutBat)
                 .SetStandardInput(TestString)
                 .ExecuteAsync();
 
@@ -230,7 +230,7 @@ namespace CliWrap.Tests
         [Test]
         public async Task ExecuteAsync_EchoStdinToStdout_Empty_Test()
         {
-            var result = await new Cli(EchoStdinToStdoutBat).ExecuteAsync();
+            var result = await Cli.Wrap(EchoStdinToStdoutBat).ExecuteAsync();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ExitCode, Is.Zero);
@@ -243,7 +243,7 @@ namespace CliWrap.Tests
         [Test]
         public async Task ExecuteAsync_EchoEnvVarToStdout_Test()
         {
-            var result = await new Cli(EchoEnvVarToStdoutBat)
+            var result = await Cli.Wrap(EchoEnvVarToStdoutBat)
                 .SetEnvironmentVariable(TestEnvVar, TestString)
                 .ExecuteAsync();
 
@@ -258,7 +258,7 @@ namespace CliWrap.Tests
         [Test]
         public async Task ExecuteAsync_EchoArgsToStderr_Test()
         {
-            var result = await new Cli(EchoArgsToStderrBat)
+            var result = await Cli.Wrap(EchoArgsToStderrBat)
                 .SetArguments(TestString)
                 .EnableStandardErrorValidation(false)
                 .ExecuteAsync();
@@ -278,7 +278,7 @@ namespace CliWrap.Tests
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
 
-            var result = await new Cli(EchoSpamBat)
+            var result = await Cli.Wrap(EchoSpamBat)
                 .SetStandardOutputCallback(l => stdOutBuffer.AppendLine(l))
                 .SetStandardErrorCallback(l => stdErrBuffer.AppendLine(l))
                 .EnableStandardErrorValidation(false)
@@ -297,7 +297,7 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(SleepBat).SetCancellationToken(cts.Token);
+                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
 
                 cts.Cancel();
 
@@ -310,7 +310,7 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = new Cli(SleepBat).SetCancellationToken(cts.Token);
+                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
 
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
 
@@ -322,7 +322,7 @@ namespace CliWrap.Tests
         public void ExecuteAsync_EchoArgsToStderr_Validation_Test()
         {
             var ex = Assert.ThrowsAsync<StandardErrorValidationException>(() =>
-                new Cli(EchoArgsToStderrBat)
+                Cli.Wrap(EchoArgsToStderrBat)
                     .SetArguments(TestString)
                     .EnableStandardErrorValidation()
                     .ExecuteAsync());
@@ -340,7 +340,7 @@ namespace CliWrap.Tests
         public void ExecuteAsync_NonZeroExitCode_Validation_Test()
         {
             var ex = Assert.ThrowsAsync<ExitCodeValidationException>(() =>
-                new Cli(NonZeroExitCodeBat)
+                Cli.Wrap(NonZeroExitCodeBat)
                     .EnableExitCodeValidation()
                     .ExecuteAsync());
 

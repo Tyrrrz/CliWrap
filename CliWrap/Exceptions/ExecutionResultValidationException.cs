@@ -14,7 +14,9 @@ namespace CliWrap.Exceptions
         /// </summary>
         public ExecutionResult ExecutionResult { get; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Initializes an instance of <see cref="ExecutionResultValidationException"/>.
+        /// </summary>
         protected ExecutionResultValidationException(ExecutionResult executionResult, string message)
             : base(message)
         {

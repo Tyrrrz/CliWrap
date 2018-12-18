@@ -13,7 +13,7 @@ namespace CliWrap.Exceptions
         public int ExitCode => ExecutionResult.ExitCode;
 
         /// <summary>
-        /// Initializes <see cref="ExitCodeValidationException"/> with given exit code.
+        /// Initializes an instance of <see cref="ExitCodeValidationException"/>.
         /// </summary>
         public ExitCodeValidationException(ExecutionResult executionResult)
             : base(executionResult, $"Underlying process reported a non-zero exit code: {executionResult.ExitCode}")

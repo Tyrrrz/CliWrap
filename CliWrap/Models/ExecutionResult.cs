@@ -42,7 +42,7 @@ namespace CliWrap.Models
         public TimeSpan RunTime => ExitTime - StartTime;
 
         /// <summary>
-        /// Initializes <see cref="ExecutionResult"/> with given output data.
+        /// Initializes an instance of <see cref="ExecutionResult"/> with given output data.
         /// </summary>
         public ExecutionResult(int exitCode, string standardOutput, string standardError,
             DateTimeOffset startTime, DateTimeOffset exitTime)

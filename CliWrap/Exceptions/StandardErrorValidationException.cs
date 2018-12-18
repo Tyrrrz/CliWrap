@@ -14,7 +14,7 @@ namespace CliWrap.Exceptions
         public string StandardError => ExecutionResult.StandardError;
 
         /// <summary>
-        /// Initializes <see cref="StandardErrorValidationException"/> with given standard error data.
+        /// Initializes an instance of <see cref="StandardErrorValidationException"/>.
         /// </summary>
         public StandardErrorValidationException(ExecutionResult executionResult)
             : base(executionResult,

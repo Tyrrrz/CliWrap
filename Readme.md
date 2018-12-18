@@ -30,7 +30,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 ##### Execute a command
 
 ```c#
-var result = await new Cli("cli.exe")
+var result = await Cli.Wrap("cli.exe")
     .SetArguments("Hello world!")
     .ExecuteAsync();
 
@@ -45,7 +45,7 @@ var runTime = result.RunTime;
 ##### Standard input
 
 ```c#
-var result = await new Cli("cli.exe")
+var result = await Cli.Wrap("cli.exe")
     .SetStandardInput("Hello world from stdin!") // can also pipe a stream instead
     .ExecuteAsync();
 ```
@@ -53,7 +53,7 @@ var result = await new Cli("cli.exe")
 ##### Environment variables
 
 ```c#
-var result = await new Cli("cli.exe")
+var result = await Cli.Wrap("cli.exe")
     .SetEnvironmentVariable("var1", "value1")
     .SetEnvironmentVariable("var2", "value2")
     .ExecuteAsync();
@@ -66,7 +66,7 @@ using (var cts = new CancellationTokenSource())
 {
     cts.CancelAfter(TimeSpan.FromSeconds(5)); // e.g. timeout of 5 seconds
     
-    var result = await new Cli("cli.exe")
+    var result = await Cli.Wrap("cli.exe")
         .SetCancellationToken(cts.Token)
         .ExecuteAsync();
 }
@@ -75,7 +75,7 @@ using (var cts = new CancellationTokenSource())
 ##### Callbacks for stdout and stderr
 
 ```c#
-var result = await new Cli("cli.exe")
+var result = await Cli.Wrap("cli.exe")
     .SetStandardOutputCallback(l => Console.WriteLine($"StdOut> {l}")) // triggered on every line in stdout
     .SetStandardErrorCallback(l => Console.WriteLine($"StdErr> {l}")) // triggered on every line in stderr
     .ExecuteAsync();
@@ -84,7 +84,7 @@ var result = await new Cli("cli.exe")
 ##### Ignore errors
 
 ```c#
-var result = await new Cli("cli.exe")
+var result = await Cli.Wrap("cli.exe")
     .EnableExitCodeValidation(false) // disables exceptions on non-zero exit code
     .EnableStandardErrorValidation(false) // disables exceptions on non-empty stderr
     .ExecuteAsync();
