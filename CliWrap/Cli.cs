@@ -20,7 +20,7 @@ namespace CliWrap
 
         private string _workingDirectory;
         private string _arguments;
-        private Stream _standardInput;
+        private Stream _standardInput = Stream.Null;
         private IDictionary<string, string> _environmentVariables;
         private Encoding _standardOutputEncoding = Console.OutputEncoding;
         private Encoding _standardErrorEncoding = Console.OutputEncoding;
@@ -148,7 +148,7 @@ namespace CliWrap
 
         #region Execute
 
-        private Process CreateProcess()
+        private ProcessEx CreateProcess()
         {
             // Create process start info
             var startInfo = new ProcessStartInfo
@@ -156,13 +156,8 @@ namespace CliWrap
                 FileName = _filePath,
                 WorkingDirectory = _workingDirectory,
                 Arguments = _arguments,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
                 StandardOutputEncoding = _standardOutputEncoding,
-                StandardErrorEncoding = _standardErrorEncoding,
-                UseShellExecute = false
+                StandardErrorEncoding = _standardErrorEncoding
             };
 
             // Set environment variables
@@ -176,103 +171,53 @@ namespace CliWrap
                 EnableRaisingEvents = true
             };
 
-            return process;
+            return new ProcessEx(process, _standardOutputObserver, _standardErrorObserver);
+        }
+
+        private void ValidateExecutionResult(ExecutionResult result)
+        {
+            // Validate exit code if needed
+            if (_exitCodeValidation && result.ExitCode != 0)
+                throw new ExitCodeValidationException(result);
+
+            // Validate standard error if needed
+            if (_standardErrorValidation && result.StandardError.IsNotBlank())
+                throw new StandardErrorValidationException(result);
         }
 
         /// <inheritdoc />
         public ExecutionResult Execute()
         {
             // Set up execution context
-            using (var processMre = new ManualResetEventSlim())
-            using (var stdOutMre = new ManualResetEventSlim())
-            using (var stdErrMre = new ManualResetEventSlim())
             using (var process = CreateProcess())
             {
-                // Create buffers
-                var stdOutBuffer = new StringBuilder();
-                var stdErrBuffer = new StringBuilder();
-
-                // Wire events
-                process.Exited += (sender, args) => processMre.Set();
-                process.OutputDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                    {
-                        stdOutBuffer.AppendLine(args.Data);
-                        _standardOutputObserver?.Invoke(args.Data);
-                    }
-                    else
-                    {
-                        stdOutMre.Set();
-                    }
-                };
-                process.ErrorDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                    {
-                        stdErrBuffer.AppendLine(args.Data);
-                        _standardErrorObserver?.Invoke(args.Data);
-                    }
-                    else
-                    {
-                        stdErrMre.Set();
-                    }
-                };
-
                 // Start process
                 process.Start();
 
-                // Record start time
-                var startTime = DateTimeOffset.Now;
+                // Pipe stdin
+                process.PipeStandardInput(_standardInput);
 
-                try
-                {
-                    // Begin reading stdout and stderr
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
+                // Configure cancellation token to kill the process.
+                // This has to be after process start so that it can actually be killed
+                // and also after standard input so that it can write correctly.
+                _cancellationToken.Register(() => process.TryKill());
 
-                    // Write stdin
-                    using (process.StandardInput)
-                        _standardInput?.CopyTo(process.StandardInput.BaseStream);
+                // Wait for exit
+                process.WaitForExit();
 
-                    // Wait until exit
-                    processMre.Wait(_cancellationToken);
-
-                    // Wait until stdout and stderr finished reading
-                    stdOutMre.Wait(_cancellationToken);
-                    stdErrMre.Wait(_cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    // Try to kill process
-                    process.TryKill();
-
-                    // Re-throw
-                    throw;
-                }
-
-                // Record exit time
-                var exitTime = DateTimeOffset.Now;
-
-                // Get exit code
-                var exitCode = process.ExitCode;
-
-                // Get stdout and stderr
-                var stdOut = stdOutBuffer.ToString();
-                var stdErr = stdErrBuffer.ToString();
+                // Throw if cancelled
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 // Create execution result
-                var result = new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
+                var result = new ExecutionResult(process.ExitCode,
+                    process.StandardOutput,
+                    process.StandardError,
+                    process.StartTime,
+                    process.ExitTime);
 
-                // Validate exit code if needed
-                if (_exitCodeValidation && result.ExitCode != 0)
-                    throw new ExitCodeValidationException(result);
+                // Validate execution result
+                ValidateExecutionResult(result);
 
-                // Validate standard error if needed
-                if (_standardErrorValidation && result.StandardError.IsNotBlank())
-                    throw new StandardErrorValidationException(result);
-
-                // Return
                 return result;
             }
         }
@@ -280,103 +225,33 @@ namespace CliWrap
         /// <inheritdoc />
         public async Task<ExecutionResult> ExecuteAsync()
         {
-            // Create task completion sources
-            var processTcs = new TaskCompletionSource<object>();
-            var stdOutTcs = new TaskCompletionSource<object>();
-            var stdErrTcs = new TaskCompletionSource<object>();
-
             // Set up execution context
             using (var process = CreateProcess())
             {
-                // Create buffers
-                var stdOutBuffer = new StringBuilder();
-                var stdErrBuffer = new StringBuilder();
-
-                // Wire events
-                process.Exited += (sender, args) => processTcs.TrySetResult(null);
-                process.OutputDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                    {
-                        stdOutBuffer.AppendLine(args.Data);
-                        _standardOutputObserver?.Invoke(args.Data);
-                    }
-                    else
-                    {
-                        stdOutTcs.TrySetResult(null);
-                    }
-                };
-                process.ErrorDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                    {
-                        stdErrBuffer.AppendLine(args.Data);
-                        _standardErrorObserver?.Invoke(args.Data);
-                    }
-                    else
-                    {
-                        stdErrTcs.TrySetResult(null);
-                    }
-                };
-
                 // Start process
                 process.Start();
 
-                // Record start time
-                var startTime = DateTimeOffset.Now;
+                // Pipe stdin
+                await process.PipeStandardInputAsync(_standardInput).ConfigureAwait(false);
 
-                // Begin reading stdout and stderr
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                // Write stdin
-                using (process.StandardInput)
-                {
-                    if (_standardInput != null)
-                        await _standardInput.CopyToAsync(process.StandardInput.BaseStream, 81920, _cancellationToken)
-                            .ConfigureAwait(false);
-                }
-
-                // Setup cancellation token to kill process and cancel tasks
+                // Configure cancellation token to kill the process.
                 // This has to be after process start so that it can actually be killed
-                // and also after standard input so that it can write correctly
-                _cancellationToken.Register(() =>
-                {
-                    process.TryKill();
-                    processTcs.TrySetCanceled();
-                    stdOutTcs.TrySetCanceled();
-                    stdErrTcs.TrySetCanceled();
-                });
+                // and also after standard input so that it can write correctly.
+                _cancellationToken.Register(() => process.TryKill());
 
-                // Wait until exit
-                await processTcs.Task.ConfigureAwait(false);
+                // Wait for exit
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
-                // Wait until stdout and stderr finished reading
-                await stdOutTcs.Task.ConfigureAwait(false);
-                await stdErrTcs.Task.ConfigureAwait(false);
-
-                // Record exit time
-                var exitTime = DateTimeOffset.Now;
-
-                // Get exit code
-                var exitCode = process.ExitCode;
-
-                // Get stdout and stderr
-                var stdOut = stdOutBuffer.ToString();
-                var stdErr = stdErrBuffer.ToString();
+                // Throw if cancellated
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 // Create execution result
-                var result = new ExecutionResult(exitCode, stdOut, stdErr, startTime, exitTime);
+                var result = new ExecutionResult(process.ExitCode, process.StandardOutput, process.StandardError,
+                    process.StartTime, process.ExitTime);
 
-                // Validate exit code if needed
-                if (_exitCodeValidation && result.ExitCode != 0)
-                    throw new ExitCodeValidationException(result);
+                // Validate execution result
+                ValidateExecutionResult(result);
 
-                // Validate standard error if needed
-                if (_standardErrorValidation && result.StandardError.IsNotBlank())
-                    throw new StandardErrorValidationException(result);
-
-                // Return
                 return result;
             }
         }
@@ -391,8 +266,7 @@ namespace CliWrap
                 process.Start();
 
                 // Write stdin
-                using (process.StandardInput)
-                    _standardInput?.CopyTo(process.StandardInput.BaseStream);
+                process.PipeStandardInput(_standardInput);
             }
         }
 

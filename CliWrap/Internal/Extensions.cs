@@ -14,9 +14,11 @@ namespace CliWrap.Internal
         public static Stream AsStream(this string str, Encoding encoding)
         {
             var ms = new MemoryStream();
+
             var data = encoding.GetBytes(str);
             ms.Write(data, 0, data.Length);
             ms.Seek(0, SeekOrigin.Begin);
+
             return ms;
         }
 
@@ -30,19 +32,6 @@ namespace CliWrap.Internal
             foreach (var variable in environmentVariables)
                 startInfo.Environment.Add(variable.Key, variable.Value);
 #endif
-        }
-
-        public static bool TryKill(this Process process)
-        {
-            try
-            {
-                process.Kill();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }
