@@ -148,7 +148,7 @@ namespace CliWrap
 
         #region Execute
 
-        private ProcessEx CreateProcess()
+        private ProcessWrapper StartProcess()
         {
             // Create process start info
             var startInfo = new ProcessStartInfo
@@ -164,14 +164,11 @@ namespace CliWrap
             if (_environmentVariables != null)
                 startInfo.SetEnvironmentVariables(_environmentVariables);
 
-            // Create process
-            var process = new Process
-            {
-                StartInfo = startInfo,
-                EnableRaisingEvents = true
-            };
+            // Create and start process
+            var process = new ProcessWrapper(startInfo, _standardOutputObserver, _standardErrorObserver);
+            process.Start();
 
-            return new ProcessEx(process, _standardOutputObserver, _standardErrorObserver);
+            return process;
         }
 
         private void ValidateExecutionResult(ExecutionResult result)
@@ -189,18 +186,11 @@ namespace CliWrap
         public ExecutionResult Execute()
         {
             // Set up execution context
-            using (var process = CreateProcess())
+            using (var process = StartProcess())
+            using (_cancellationToken.Register(() => process.TryKill()))
             {
-                // Start process
-                process.Start();
-
                 // Pipe stdin
                 process.PipeStandardInput(_standardInput);
-
-                // Configure cancellation token to kill the process.
-                // This has to be after process start so that it can actually be killed
-                // and also after standard input so that it can write correctly.
-                _cancellationToken.Register(() => process.TryKill());
 
                 // Wait for exit
                 process.WaitForExit();
@@ -226,28 +216,24 @@ namespace CliWrap
         public async Task<ExecutionResult> ExecuteAsync()
         {
             // Set up execution context
-            using (var process = CreateProcess())
+            using (var process = StartProcess())
+            using (_cancellationToken.Register(() => process.TryKill()))
             {
-                // Start process
-                process.Start();
-
                 // Pipe stdin
                 await process.PipeStandardInputAsync(_standardInput).ConfigureAwait(false);
-
-                // Configure cancellation token to kill the process.
-                // This has to be after process start so that it can actually be killed
-                // and also after standard input so that it can write correctly.
-                _cancellationToken.Register(() => process.TryKill());
 
                 // Wait for exit
                 await process.WaitForExitAsync().ConfigureAwait(false);
 
-                // Throw if cancellated
+                // Throw if cancelled
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 // Create execution result
-                var result = new ExecutionResult(process.ExitCode, process.StandardOutput, process.StandardError,
-                    process.StartTime, process.ExitTime);
+                var result = new ExecutionResult(process.ExitCode,
+                    process.StandardOutput,
+                    process.StandardError,
+                    process.StartTime,
+                    process.ExitTime);
 
                 // Validate execution result
                 ValidateExecutionResult(result);
@@ -259,12 +245,9 @@ namespace CliWrap
         /// <inheritdoc />
         public void ExecuteAndForget()
         {
-            // Create process
-            using (var process = CreateProcess())
+            // Set up execution context
+            using (var process = StartProcess())
             {
-                // Start process
-                process.Start();
-
                 // Write stdin
                 process.PipeStandardInput(_standardInput);
             }

@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace CliWrap.Internal
 {
-    internal class SemaphoreLock : IDisposable
+    internal class Signal : IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0, 1);
 
-        public void Unlock()
+        public void Release()
         {
             if (_semaphore.CurrentCount <= 0)
                 _semaphore.Release();

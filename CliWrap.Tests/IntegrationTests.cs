@@ -127,11 +127,12 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
-
                 cts.Cancel();
 
-                Assert.Throws<OperationCanceledException>(() => cli.Execute());
+                Assert.Throws<OperationCanceledException>(() =>
+                    Cli.Wrap(SleepBat)
+                        .SetCancellationToken(cts.Token)
+                        .Execute());
             }
         }
 
@@ -140,11 +141,12 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
-
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-                Assert.Throws<OperationCanceledException>(() => cli.Execute());
+                Assert.Throws<OperationCanceledException>(() =>
+                    Cli.Wrap(SleepBat)
+                        .SetCancellationToken(cts.Token)
+                        .Execute());
             }
         }
 
@@ -297,11 +299,12 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
-
                 cts.Cancel();
 
-                Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync());
+                Assert.ThrowsAsync<TaskCanceledException>(() =>
+                    Cli.Wrap(SleepBat)
+                        .SetCancellationToken(cts.Token)
+                        .ExecuteAsync());
             }
         }
 
@@ -310,11 +313,12 @@ namespace CliWrap.Tests
         {
             using (var cts = new CancellationTokenSource())
             {
-                var cli = Cli.Wrap(SleepBat).SetCancellationToken(cts.Token);
-
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-                Assert.ThrowsAsync<TaskCanceledException>(() => cli.ExecuteAsync());
+                Assert.ThrowsAsync<TaskCanceledException>(() =>
+                    Cli.Wrap(SleepBat)
+                        .SetCancellationToken(cts.Token)
+                        .ExecuteAsync());
             }
         }
 
