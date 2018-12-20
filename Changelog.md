@@ -1,3 +1,11 @@
+### v2.2 (20-Dec-2018)
+
+- Added `Cli.Wrap` static method to replace `new Cli()` for a more fluent interface. This also makes it so you're dealing with `ICli` instead of `Cli` throughout the entire method chain.
+- Standard error validation is now disabled by default. This change was made because quite a few CLIs (e.g. git, ffmpeg) write progress to stderr.
+- Changed `Execute` and `ExecuteAsync` to complete only after the process exits, regardless of cancellation. This fixes a problem where the underlying process could live for some brief moments after those methods returned, in case of cancellation.
+- If `Execute` or `ExecuteAsync` is canceled, the underlying process will now be killed without waiting for standard input to write completely.
+- Reworked underlying process handling to improve performance and maintainability. The `Execute` and `ExecuteAsync` methods are now virtually the same in terms of code, unlike before, where they were considerably different.
+
 ### v2.1 (15-Oct-2018)
 
 - Added `ExecutionResult` to `ExitCodeValidationException` and `StandardErrorValidationException`. This way additional information can be inspected during debugging.
