@@ -46,10 +46,6 @@ namespace CliWrap.Internal
                 // Record exit time
                 ExitTime = DateTimeOffset.Now;
 
-                // Flush buffers
-                StandardOutput = _standardOutputBuffer.ToString();
-                StandardError = _standardErrorBuffer.ToString();
-
                 // Release signal
                 _exitSignal.Release();
             };
@@ -67,6 +63,9 @@ namespace CliWrap.Internal
                 // Null means end of stream
                 else
                 {
+                    // Flush buffer
+                    StandardOutput = _standardOutputBuffer.ToString();
+
                     // Release signal
                     _standardOutputEndSignal.Release();
                 }
@@ -85,6 +84,9 @@ namespace CliWrap.Internal
                 // Null means end of stream
                 else
                 {
+                    // Flush buffer
+                    StandardError = _standardErrorBuffer.ToString();
+
                     // Release signal
                     _standardErrorEndSignal.Release();
                 }
