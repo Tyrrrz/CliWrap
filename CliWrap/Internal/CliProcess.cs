@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace CliWrap.Internal
 {
-    internal class ProcessWrapper : IDisposable
+    internal class CliProcess : IDisposable
     {
         private readonly Process _nativeProcess;
-
         private readonly Signal _exitSignal = new Signal();
-
         private readonly StringBuilder _standardOutputBuffer = new StringBuilder();
         private readonly Signal _standardOutputEndSignal = new Signal();
         private readonly StringBuilder _standardErrorBuffer = new StringBuilder();
@@ -27,21 +25,22 @@ namespace CliWrap.Internal
 
         public string StandardError { get; private set; }
 
-        public ProcessWrapper(Process nativeProcess,
+        public CliProcess(ProcessStartInfo startInfo,
             Action<string> standardOutputObserver = null, Action<string> standardErrorObserver = null)
         {
-            _nativeProcess = nativeProcess;
+            // Create underlying process
+            _nativeProcess = new Process {StartInfo = startInfo};
 
             // Configure start info
-            nativeProcess.StartInfo.CreateNoWindow = true;
-            nativeProcess.StartInfo.RedirectStandardOutput = true;
-            nativeProcess.StartInfo.RedirectStandardError = true;
-            nativeProcess.StartInfo.RedirectStandardInput = true;
-            nativeProcess.StartInfo.UseShellExecute = false;
+            _nativeProcess.StartInfo.CreateNoWindow = true;
+            _nativeProcess.StartInfo.RedirectStandardOutput = true;
+            _nativeProcess.StartInfo.RedirectStandardError = true;
+            _nativeProcess.StartInfo.RedirectStandardInput = true;
+            _nativeProcess.StartInfo.UseShellExecute = false;
 
             // Wire exit event
-            nativeProcess.EnableRaisingEvents = true;
-            nativeProcess.Exited += (sender, args) =>
+            _nativeProcess.EnableRaisingEvents = true;
+            _nativeProcess.Exited += (sender, args) =>
             {
                 // Record exit time
                 ExitTime = DateTimeOffset.Now;
@@ -51,7 +50,7 @@ namespace CliWrap.Internal
             };
 
             // Wire stdout
-            nativeProcess.OutputDataReceived += (sender, args) =>
+            _nativeProcess.OutputDataReceived += (sender, args) =>
             {
                 // Actual data
                 if (args.Data != null)
@@ -72,7 +71,7 @@ namespace CliWrap.Internal
             };
 
             // Wire stderr
-            nativeProcess.ErrorDataReceived += (sender, args) =>
+            _nativeProcess.ErrorDataReceived += (sender, args) =>
             {
                 // Actual data
                 if (args.Data != null)
@@ -91,12 +90,6 @@ namespace CliWrap.Internal
                     _standardErrorEndSignal.Release();
                 }
             };
-        }
-
-        public ProcessWrapper(ProcessStartInfo startInfo,
-            Action<string> standardOutputObserver = null, Action<string> standardErrorObserver = null)
-            : this(new Process {StartInfo = startInfo}, standardOutputObserver, standardErrorObserver)
-        {
         }
 
         public void Start()

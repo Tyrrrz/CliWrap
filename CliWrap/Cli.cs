@@ -21,7 +21,7 @@ namespace CliWrap
         private string _workingDirectory;
         private string _arguments;
         private Stream _standardInput = Stream.Null;
-        private IDictionary<string, string> _environmentVariables;
+        private readonly IDictionary<string, string> _environmentVariables = new Dictionary<string, string>();
         private Encoding _standardOutputEncoding = Console.OutputEncoding;
         private Encoding _standardErrorEncoding = Console.OutputEncoding;
         private Action<string> _standardOutputObserver;
@@ -68,7 +68,10 @@ namespace CliWrap
             encoding.GuardNotNull(nameof(encoding));
 
             // Represent string as stream
-            var stream = standardInput.AsStream(encoding);
+            var stream = new MemoryStream();
+            var data = encoding.GetBytes(standardInput);
+            stream.Write(data, 0, data.Length);
+            stream.Seek(0, SeekOrigin.Begin);
 
             return SetStandardInput(stream);
         }
@@ -85,11 +88,6 @@ namespace CliWrap
         {
             key.GuardNotNull(nameof(key));
 
-            // Create dictionary if it's null
-            if (_environmentVariables == null)
-                _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            // Set variable
             _environmentVariables[key] = value;
 
             return this;
@@ -148,7 +146,7 @@ namespace CliWrap
 
         #region Execute
 
-        private ProcessWrapper StartProcess()
+        private CliProcess StartProcess()
         {
             // Create process start info
             var startInfo = new ProcessStartInfo
@@ -161,11 +159,16 @@ namespace CliWrap
             };
 
             // Set environment variables
-            if (_environmentVariables != null)
-                startInfo.SetEnvironmentVariables(_environmentVariables);
+#if NET45
+            foreach (var variable in _environmentVariables)
+                startInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
+#else
+            foreach (var variable in _environmentVariables)
+                startInfo.Environment.Add(variable.Key, variable.Value);
+#endif
 
             // Create and start process
-            var process = new ProcessWrapper(startInfo, _standardOutputObserver, _standardErrorObserver);
+            var process = new CliProcess(startInfo, _standardOutputObserver, _standardErrorObserver);
             process.Start();
 
             return process;
