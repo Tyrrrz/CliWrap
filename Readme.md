@@ -27,7 +27,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 
 ## Usage
 
-##### Execute a command
+### Execute a command
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
@@ -42,7 +42,7 @@ var exitTime = result.ExitTime;
 var runTime = result.RunTime;
 ```
 
-##### Standard input
+### Standard input
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
@@ -50,7 +50,7 @@ var result = await Cli.Wrap("cli.exe")
     .ExecuteAsync();
 ```
 
-##### Environment variables
+### Environment variables
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
@@ -59,7 +59,7 @@ var result = await Cli.Wrap("cli.exe")
     .ExecuteAsync();
 ```
 
-##### Cancel execution
+### Cancel execution
 
 ```c#
 using (var cts = new CancellationTokenSource())
@@ -72,7 +72,7 @@ using (var cts = new CancellationTokenSource())
 }
 ```
 
-##### Callbacks for stdout and stderr
+### Callbacks for stdout and stderr
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
@@ -81,7 +81,7 @@ var result = await Cli.Wrap("cli.exe")
     .ExecuteAsync();
 ```
 
-##### Error handling
+### Error handling
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
