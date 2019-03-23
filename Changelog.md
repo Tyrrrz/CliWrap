@@ -15,7 +15,7 @@
 
 ### v2.0.1 (17-Sep-2018)
 
-- Builder methods now return an instance of `ICli` instead of `Cli`.
+- Methods that used to return an instance of `Cli` now return `ICli` where applicable.
 
 ### v2.0 (12-Sep-2018)
 
