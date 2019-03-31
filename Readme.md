@@ -22,7 +22,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 - Set up callbacks that trigger when a process writes to standard output or error
 - Custom encoding settings for standard input, output and error
 - Fluent interface
-- Targets .NET Framework 4.5+, .NET Core 1.0+ and .NET Standard 2.0+
+- Targets .NET Framework 4.5+ and .NET Standard 2.0+
 - No external dependencies
 
 ## Usage
@@ -65,7 +65,7 @@ var result = await Cli.Wrap("cli.exe")
 using (var cts = new CancellationTokenSource())
 {
     cts.CancelAfter(TimeSpan.FromSeconds(5)); // e.g. timeout of 5 seconds
-    
+
     var result = await Cli.Wrap("cli.exe")
         .SetCancellationToken(cts.Token)
         .ExecuteAsync();
