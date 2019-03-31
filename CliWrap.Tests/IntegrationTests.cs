@@ -301,7 +301,7 @@ namespace CliWrap.Tests
             {
                 cts.Cancel();
 
-                Assert.ThrowsAsync<TaskCanceledException>(() =>
+                Assert.ThrowsAsync<OperationCanceledException>(() =>
                     Cli.Wrap(SleepBat)
                         .SetCancellationToken(cts.Token)
                         .ExecuteAsync());
@@ -315,7 +315,7 @@ namespace CliWrap.Tests
             {
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
 
-                Assert.ThrowsAsync<TaskCanceledException>(() =>
+                Assert.ThrowsAsync<OperationCanceledException>(() =>
                     Cli.Wrap(SleepBat)
                         .SetCancellationToken(cts.Token)
                         .ExecuteAsync());
