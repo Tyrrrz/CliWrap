@@ -4,7 +4,7 @@ image: Visual Studio 2017
 configuration: Release
 
 before_build:
-- ps: nuget restore
+- dotnet restore
 
 build:
   verbosity: minimal
