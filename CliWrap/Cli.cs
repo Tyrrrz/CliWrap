@@ -223,10 +223,10 @@ namespace CliWrap
             using (_cancellationToken.Register(() => process.TryKill()))
             {
                 // Pipe stdin
-                await process.PipeStandardInputAsync(_standardInput).ConfigureAwait(false);
+                await process.PipeStandardInputAsync(_standardInput);
 
                 // Wait for exit
-                await process.WaitForExitAsync().ConfigureAwait(false);
+                await process.WaitForExitAsync();
 
                 // Throw if cancelled
                 _cancellationToken.ThrowIfCancellationRequested();

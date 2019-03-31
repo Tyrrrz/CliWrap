@@ -9,7 +9,7 @@ CliWrap is a library that makes it easier to interact with command line interfac
 
 ## Download
 
-- [NuGet](https://nuget.org/packages/CliWrap): `Install-Package CliWrap`
+- [NuGet](https://nuget.org/packages/CliWrap): `dotnet add package CliWrap`
 - [Continuous integration](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
 
 ## Features
@@ -92,4 +92,5 @@ var result = await Cli.Wrap("cli.exe")
 
 ## Libraries used
 
+- [ConfigureAwait.Fody](https://github.com/Fody/ConfigureAwait)
 - [NUnit](https://github.com/nunit/nunit)

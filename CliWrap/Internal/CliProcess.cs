@@ -116,7 +116,7 @@ namespace CliWrap.Internal
         {
             // Copy stream and close stdin
             using (_nativeProcess.StandardInput)
-                await stream.CopyToAsync(_nativeProcess.StandardInput.BaseStream).ConfigureAwait(false);
+                await stream.CopyToAsync(_nativeProcess.StandardInput.BaseStream);
         }
 
         public void WaitForExit()
@@ -132,11 +132,11 @@ namespace CliWrap.Internal
         public async Task WaitForExitAsync()
         {
             // Wait until process exits
-            await _exitSignal.WaitAsync().ConfigureAwait(false);
+            await _exitSignal.WaitAsync();
 
             // Wait until streams finished reading
-            await _standardOutputEndSignal.WaitAsync().ConfigureAwait(false);
-            await _standardErrorEndSignal.WaitAsync().ConfigureAwait(false);
+            await _standardOutputEndSignal.WaitAsync();
+            await _standardErrorEndSignal.WaitAsync();
         }
 
         public bool TryKill()
