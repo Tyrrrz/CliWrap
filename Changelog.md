@@ -1,3 +1,8 @@
+### v2.2.1 (01-Apr-2019)
+
+- `ExitCodeValidationException` and `StandardErrorValidationException` now display both exit code and standard error inside the message. Useful when a process reported a non-zero exit code but the actual error message is in stderr.
+- Removed `netcoreapp1.0` target.
+
 ### v2.2 (20-Dec-2018)
 
 - Added `Cli.Wrap` static method to replace `new Cli()` for a more fluent interface. This also makes it so you're dealing with `ICli` instead of `Cli` throughout the entire method chain.
