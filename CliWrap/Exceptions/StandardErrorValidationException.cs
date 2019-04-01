@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using CliWrap.Models;
 
 namespace CliWrap.Exceptions
@@ -6,7 +7,7 @@ namespace CliWrap.Exceptions
     /// <summary>
     /// Thrown if underlying process reported an error.
     /// </summary>
-    public class StandardErrorValidationException : ExecutionResultValidationException
+    public partial class StandardErrorValidationException : ExecutionResultValidationException
     {
         /// <summary>
         /// Standard error data produced by underlying process.
@@ -17,9 +18,22 @@ namespace CliWrap.Exceptions
         /// Initializes an instance of <see cref="StandardErrorValidationException"/>.
         /// </summary>
         public StandardErrorValidationException(ExecutionResult executionResult)
-            : base(executionResult,
-                $"Underlying process reported an error:{Environment.NewLine}{executionResult.StandardError}")
+            : base(executionResult, CreateExceptionMessage(executionResult))
         {
+        }
+    }
+
+    public partial class StandardErrorValidationException
+    {
+        private static string CreateExceptionMessage(ExecutionResult executionResult)
+        {
+            var buffer = new StringBuilder();
+            buffer.AppendLine("Underlying process reported an error.")
+                  .AppendLine($"Exit code: {executionResult.ExitCode}.")
+                  .AppendLine("Standard error:")
+                  .AppendLine(executionResult.StandardError);
+
+            return buffer.ToString();
         }
     }
 }

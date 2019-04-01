@@ -1,11 +1,12 @@
-﻿using CliWrap.Models;
+﻿using System.Text;
+using CliWrap.Models;
 
 namespace CliWrap.Exceptions
 {
     /// <summary>
     /// Thrown if underlying process reported a non-zero exit code.
     /// </summary>
-    public class ExitCodeValidationException : ExecutionResultValidationException
+    public partial class ExitCodeValidationException : ExecutionResultValidationException
     {
         /// <summary>
         /// Exit code reported by the underlying process.
@@ -16,8 +17,22 @@ namespace CliWrap.Exceptions
         /// Initializes an instance of <see cref="ExitCodeValidationException"/>.
         /// </summary>
         public ExitCodeValidationException(ExecutionResult executionResult)
-            : base(executionResult, $"Underlying process reported a non-zero exit code: {executionResult.ExitCode}")
+            : base(executionResult, CreateExceptionMessage(executionResult))
         {
+        }
+    }
+
+    public partial class ExitCodeValidationException
+    {
+        private static string CreateExceptionMessage(ExecutionResult executionResult)
+        {
+            var buffer = new StringBuilder();
+            buffer.AppendLine("Underlying process reported a non-zero exit code.")
+                  .AppendLine($"Exit code: {executionResult.ExitCode}.")
+                  .AppendLine("Standard error:")
+                  .AppendLine(executionResult.StandardError);
+
+            return buffer.ToString();
         }
     }
 }
