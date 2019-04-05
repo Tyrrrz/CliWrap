@@ -181,7 +181,7 @@ namespace CliWrap
                 throw new ExitCodeValidationException(result);
 
             // Validate standard error if needed
-            if (_standardErrorValidation && result.StandardError.IsNotBlank())
+            if (_standardErrorValidation && !result.StandardError.IsEmpty())
                 throw new StandardErrorValidationException(result);
         }
 
