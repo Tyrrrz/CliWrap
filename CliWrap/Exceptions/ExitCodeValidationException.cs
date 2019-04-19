@@ -28,9 +28,11 @@ namespace CliWrap.Exceptions
         {
             var buffer = new StringBuilder();
             buffer.AppendLine("Underlying process reported a non-zero exit code.")
-                  .AppendLine($"Exit code: {executionResult.ExitCode}.")
-                  .AppendLine("Standard error:")
-                  .AppendLine(executionResult.StandardError);
+                .AppendLine()
+                .Append("Exit code: ").Append(executionResult.ExitCode).AppendLine()
+                .AppendLine()
+                .AppendLine("Standard error:")
+                .AppendLine(executionResult.StandardError);
 
             return buffer.ToString();
         }

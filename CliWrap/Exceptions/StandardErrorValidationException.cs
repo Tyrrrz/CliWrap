@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using CliWrap.Models;
 
 namespace CliWrap.Exceptions
@@ -29,9 +28,11 @@ namespace CliWrap.Exceptions
         {
             var buffer = new StringBuilder();
             buffer.AppendLine("Underlying process reported an error.")
-                  .AppendLine($"Exit code: {executionResult.ExitCode}.")
-                  .AppendLine("Standard error:")
-                  .AppendLine(executionResult.StandardError);
+                .AppendLine()
+                .Append("Exit code: ").Append(executionResult.ExitCode).AppendLine()
+                .AppendLine()
+                .AppendLine("Standard error:")
+                .AppendLine(executionResult.StandardError);
 
             return buffer.ToString();
         }
