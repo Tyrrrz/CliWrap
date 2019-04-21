@@ -16,7 +16,7 @@ artifacts:
 deploy:
 - provider: NuGet
   api_key:
-    secure: QuL5btMfw2HUtOrAO0C8hw0ILWLAY9Tq4Gp1uuDiPCjkOt7H8glITwlPCxoB/WWA
+    secure: 5VyEaGo5gRLr9HdkRFqS1enRq+K8Qarg1dzU33CE1dOmVXp43JaS2PQTNgsRHXkc
   artifact: CliWrap.nupkg
   on:
     branch: master
