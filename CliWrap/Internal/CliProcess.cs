@@ -15,6 +15,8 @@ namespace CliWrap.Internal
         private readonly StringBuilder _standardErrorBuffer = new StringBuilder();
         private readonly Signal _standardErrorEndSignal = new Signal();
 
+        private bool _isReading;
+
         public DateTimeOffset StartTime { get; private set; }
 
         public DateTimeOffset ExitTime { get; private set; }
@@ -103,6 +105,9 @@ namespace CliWrap.Internal
             // Begin reading streams
             _nativeProcess.BeginOutputReadLine();
             _nativeProcess.BeginErrorReadLine();
+
+            // Set flag
+            _isReading = true;
         }
 
         public void PipeStandardInput(Stream stream)
@@ -154,6 +159,16 @@ namespace CliWrap.Internal
 
         public void Dispose()
         {
+            // Unsubscribe from process events
+            // (process may still trigger events even after getting disposed)
+            _nativeProcess.EnableRaisingEvents = false;
+            if (_isReading)
+            {
+                _nativeProcess.CancelOutputRead();
+                _nativeProcess.CancelErrorRead();
+            }
+
+            // Dispose dependencies
             _nativeProcess.Dispose();
             _exitSignal.Dispose();
             _standardOutputEndSignal.Dispose();

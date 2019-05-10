@@ -17,25 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Bats\EchoSpam.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Bats\EchoArgsToStdout.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Bats\EchoEnvVarToStdout.bat">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Bats\EchoStdinToStdout.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Bats\NonZeroExitCode.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Bats\Sleep.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Bats\EchoArgsToStderr.bat">
+    <None Update="Bats\*.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
