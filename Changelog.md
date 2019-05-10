@@ -1,3 +1,7 @@
+### v2.2.2 (10-May-2019)
+
+- Fixed an issue where `ExecuteAndForget` was throwing an exception if the underlying process outlived the execution of the method.
+
 ### v2.2.1 (01-Apr-2019)
 
 - `ExitCodeValidationException` and `StandardErrorValidationException` now display both exit code and standard error inside the message. Useful when a process reported a non-zero exit code but the actual error message is in stderr.
