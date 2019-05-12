@@ -166,6 +166,8 @@ namespace CliWrap.Internal
             {
                 _nativeProcess.CancelOutputRead();
                 _nativeProcess.CancelErrorRead();
+
+                _isReading = false;
             }
 
             // Dispose dependencies
