@@ -18,6 +18,7 @@ namespace CliWrap.Tests
         private string TestDirPath => TestContext.CurrentContext.TestDirectory;
 
         private string EchoArgsToStdoutBat => Path.Combine(TestDirPath, "Bats\\EchoArgsToStdout.bat");
+        private string EchoFirstArgEscapedToStdoutBat => Path.Combine(TestDirPath, "Bats\\EchoFirstArgEscapedToStdout.bat");
         private string EchoStdinToStdoutBat => Path.Combine(TestDirPath, "Bats\\EchoStdinToStdout.bat");
         private string EchoEnvVarToStdoutBat => Path.Combine(TestDirPath, "Bats\\EchoEnvVarToStdout.bat");
         private string EchoArgsToStderrBat => Path.Combine(TestDirPath, "Bats\\EchoArgsToStderr.bat");
@@ -32,6 +33,21 @@ namespace CliWrap.Tests
         {
             var result = Cli.Wrap(EchoArgsToStdoutBat)
                 .SetArguments(TestString)
+                .Execute();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.ExitCode, Is.Zero);
+            Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
+            Assert.That(result.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(result.StartTime, Is.LessThanOrEqualTo(result.ExitTime));
+            Assert.That(result.RunTime, Is.EqualTo(result.ExitTime - result.StartTime));
+        }
+
+        [Test]
+        public void Execute_EchoFirstArgEscapedToStdout_Test()
+        {
+            var result = Cli.Wrap(EchoFirstArgEscapedToStdoutBat)
+                .SetArguments(new[] {TestString})
                 .Execute();
 
             Assert.That(result, Is.Not.Null);
@@ -204,6 +220,21 @@ namespace CliWrap.Tests
         {
             var result = await Cli.Wrap(EchoArgsToStdoutBat)
                 .SetArguments(TestString)
+                .ExecuteAsync();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.ExitCode, Is.Zero);
+            Assert.That(result.StandardOutput.TrimEnd(), Is.EqualTo(TestString));
+            Assert.That(result.StandardError.TrimEnd(), Is.Empty);
+            Assert.That(result.StartTime, Is.LessThanOrEqualTo(result.ExitTime));
+            Assert.That(result.RunTime, Is.EqualTo(result.ExitTime - result.StartTime));
+        }
+
+        [Test]
+        public async Task ExecuteAsync_EchoFirstArgEscapedToStdout_Test()
+        {
+            var result = await Cli.Wrap(EchoFirstArgEscapedToStdoutBat)
+                .SetArguments(new[] {TestString})
                 .ExecuteAsync();
 
             Assert.That(result, Is.Not.Null);

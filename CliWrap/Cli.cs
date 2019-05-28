@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,6 +56,77 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
+        public ICli SetArguments(IReadOnlyList<string> arguments)
+        {
+            arguments.GuardNotNull(nameof(arguments));
+
+            var buffer = new StringBuilder();
+
+            foreach (var argument in arguments)
+            {
+                // If buffer has something in it - append a space
+                if (buffer.Length != 0)
+                    buffer.Append(' ');
+
+                // If argument is clean and doesn't need escaping - append it directly
+                if (argument.Length != 0 && argument.All(c => !char.IsWhiteSpace(c) && c != '"'))
+                {
+                    buffer.Append(argument);
+                }
+                // Otherwise - escape problematic characters
+                else
+                {
+                    // Escaping logic taken from CoreFx source code
+
+                    buffer.Append('"');
+
+                    for (var i = 0; i < argument.Length;)
+                    {
+                        var c = argument[i++];
+
+                        if (c == '\\')
+                        {
+                            var numBackSlash = 1;
+                            while (i < argument.Length && argument[i] == '\\')
+                            {
+                                numBackSlash++;
+                                i++;
+                            }
+
+                            if (i == argument.Length)
+                            {
+                                buffer.Append('\\', numBackSlash * 2);
+                            }
+                            else if (argument[i] == '"')
+                            {
+                                buffer.Append('\\', numBackSlash * 2 + 1);
+                                buffer.Append('"');
+                                i++;
+                            }
+                            else
+                            {
+                                buffer.Append('\\', numBackSlash);
+                            }
+                        }
+                        else if (c == '"')
+                        {
+                            buffer.Append('\\');
+                            buffer.Append('"');
+                        }
+                        else
+                        {
+                            buffer.Append(c);
+                        }
+                    }
+
+                    buffer.Append('"');
+                }
+            }
+
+            return SetArguments(buffer.ToString());
+        }
+
+        /// <inheritdoc />
         public ICli SetStandardInput(Stream standardInput)
         {
             _standardInput = standardInput.GuardNotNull(nameof(standardInput));
@@ -68,10 +140,8 @@ namespace CliWrap
             encoding.GuardNotNull(nameof(encoding));
 
             // Represent string as stream
-            var stream = new MemoryStream();
             var data = encoding.GetBytes(standardInput);
-            stream.Write(data, 0, data.Length);
-            stream.Seek(0, SeekOrigin.Begin);
+            var stream = new MemoryStream(data, false);
 
             return SetStandardInput(stream);
         }

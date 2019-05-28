@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,11 @@ namespace CliWrap
         /// Sets the command line arguments.
         /// </summary>
         ICli SetArguments(string arguments);
+
+        /// <summary>
+        /// Sets the command line arguments.
+        /// </summary>
+        ICli SetArguments(IReadOnlyList<string> arguments);
 
         /// <summary>
         /// Sets the standard input.
