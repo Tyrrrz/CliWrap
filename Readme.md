@@ -31,6 +31,8 @@ CliWrap is a library that makes it easier to interact with command line interfac
 
 ### Execute a command
 
+You can configure and execute CLI processes in a fluent manner. Replace `ExecuteAsync` with `Execute` if you want a blocking operation instead.
+
 ```c#
 var result = await Cli.Wrap("cli.exe")
     .SetArguments("Hello world!")
@@ -44,15 +46,29 @@ var exitTime = result.ExitTime;
 var runTime = result.RunTime;
 ```
 
-### Standard input
+### Argument list encoding
+
+You can automatically encode command line arguments by passing them as a list.
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
-    .SetStandardInput("Hello world from stdin!") // can also pipe a stream instead
+    .SetArguments(new[] {"--option", "some value"})
+    .ExecuteAsync();
+```
+
+### Standard input
+
+You can pass stdin either as a string or a binary stream.
+
+```c#
+var result = await Cli.Wrap("cli.exe")
+    .SetStandardInput("Hello world from stdin!")
     .ExecuteAsync();
 ```
 
 ### Environment variables
+
+You can configure environment variables that will only be visible to the child process.
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
@@ -62,6 +78,8 @@ var result = await Cli.Wrap("cli.exe")
 ```
 
 ### Cancel execution
+
+You can cancel execution at any point using `CancellationToken`, which will also kill the child process.
 
 ```c#
 using (var cts = new CancellationTokenSource())
@@ -76,6 +94,8 @@ using (var cts = new CancellationTokenSource())
 
 ### Callbacks for stdout and stderr
 
+You can wire your own callbacks that will trigger on every line in stdout or stderr.
+
 ```c#
 var result = await Cli.Wrap("cli.exe")
     .SetStandardOutputCallback(l => Console.WriteLine($"StdOut> {l}")) // triggered on every line in stdout
@@ -84,6 +104,8 @@ var result = await Cli.Wrap("cli.exe")
 ```
 
 ### Error handling
+
+You can configure whether non-zero exit code or non-empty stderr should throw an exception.
 
 ```c#
 var result = await Cli.Wrap("cli.exe")
