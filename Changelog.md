@@ -1,3 +1,8 @@
+### v2.3 (29-May-2019)
+
+- Added an overload for `SetArguments` that takes a list. You can pass multiple arguments and they will be automatically encoded to preserve whitespace and other special characters.
+- Fixed some typos in documentation.
+
 ### v2.2.2 (10-May-2019)
 
 - Fixed an issue where `ExecuteAndForget` was throwing an exception if the underlying process outlived the execution of the method.
