@@ -80,12 +80,12 @@ namespace CliWrap
         ICli EnableStandardErrorValidation(bool isEnabled = true);
 
         /// <summary>
-        /// Executes the process and waits until it exists synchronously.
+        /// Executes the process and synchronously waits for it to exit.
         /// </summary>
         ExecutionResult Execute();
 
         /// <summary>
-        /// Executes the process and waits for it to exit asynchronously.
+        /// Executes the process and asynchronously waits for it to exit.
         /// </summary>
         Task<ExecutionResult> ExecuteAsync();
 
