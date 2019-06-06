@@ -27,12 +27,11 @@ namespace CliWrap.Exceptions
         private static string CreateExceptionMessage(ExecutionResult executionResult)
         {
             var buffer = new StringBuilder();
-            buffer.AppendLine("Underlying process reported a non-zero exit code.")
+            buffer.Append("Underlying process reported a non-zero exit code. ")
+                .AppendLine("You can suppress this validation by calling EnableExitCodeValidation(false).")
                 .AppendLine()
                 .Append("Exit code: ").Append(executionResult.ExitCode).AppendLine()
-                .AppendLine()
-                .AppendLine("Standard error:")
-                .AppendLine(executionResult.StandardError);
+                .Append("Standard error: ").AppendLine(executionResult.StandardError);
 
             return buffer.ToString();
         }
