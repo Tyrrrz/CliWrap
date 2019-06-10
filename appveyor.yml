@@ -9,6 +9,12 @@ before_build:
 build:
   verbosity: minimal
 
+after_test:
+- dotnet test -c Release --no-build -f netcoreapp2.2 /p:CollectCoverage=true
+- choco install codecov
+- codecov -h
+- codecov -f "CliWrap.Tests/coverage.opencover.xml"
+
 artifacts:
 - path: CliWrap\bin\$(configuration)\CliWrap*.nupkg
   name: CliWrap.nupkg
