@@ -33,7 +33,7 @@
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwait.Fody" Version="3.*" PrivateAssets="all" />
-    <PackageReference Include="Fody" Version="5.*" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="4.*" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19270-01"  PrivateAssets="all" />
   </ItemGroup>
 
