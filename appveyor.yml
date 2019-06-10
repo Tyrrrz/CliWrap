@@ -13,11 +13,13 @@ artifacts:
 - path: CliWrap\bin\$(configuration)\CliWrap*.nupkg
   name: CliWrap.nupkg
 
+- path: CliWrap\bin\$(configuration)\CliWrap*.snupkg
+  name: CliWrap.snupkg
+
 deploy:
 - provider: NuGet
   api_key:
     secure: 5VyEaGo5gRLr9HdkRFqS1enRq+K8Qarg1dzU33CE1dOmVXp43JaS2PQTNgsRHXkc
-  artifact: CliWrap.nupkg
   on:
     branch: master
     appveyor_repo_tag: true
