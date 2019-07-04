@@ -231,10 +231,10 @@ namespace CliWrap
             // Set environment variables
 #if NET45
             foreach (var variable in _environmentVariables)
-                startInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
+                startInfo.EnvironmentVariables[variable.Key] = variable.Value;
 #else
             foreach (var variable in _environmentVariables)
-                startInfo.Environment.Add(variable.Key, variable.Value);
+                startInfo.Environment[variable.Key] = variable.Value;
 #endif
 
             // Create and start process
