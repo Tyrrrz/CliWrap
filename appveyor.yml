@@ -9,8 +9,11 @@ before_build:
 build:
   verbosity: minimal
 
+after_test:
+- choco install codecov && codecov -f "CliWrap.Tests/bin/%CONFIGURATION%/Coverage.xml" --required
+
 artifacts:
-- path: CliWrap\bin\$(configuration)\CliWrap*.nupkg
+- path: CliWrap/bin/$(configuration)/CliWrap*.nupkg
   name: CliWrap.nupkg
 
 deploy:
