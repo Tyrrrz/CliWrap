@@ -149,6 +149,12 @@ namespace CliWrap.Internal
             try
             {
                 _nativeProcess.Kill();
+
+                // It's possible that stdout/stderr streams are still alive after killing the process.
+                // We forcefully release signals because we're not interested in the output at this point anyway.
+                _standardOutputEndSignal.Release();
+                _standardErrorEndSignal.Release();
+
                 return true;
             }
             catch
