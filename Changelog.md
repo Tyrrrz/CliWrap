@@ -1,3 +1,9 @@
+### v2.3.1 (10-Jul-2019)
+
+- Fixed an issue where `Execute` and `ExecuteAsync` didn't return immediately after the execution was canceled.
+- Fixed an issue where setting the same environment variable twice resulted in an error.
+- Improved exception message in `ExitCodeValidationException` and `StandardErrorValidationException`.
+
 ### v2.3 (29-May-2019)
 
 - Added an overload for `SetArguments` that takes a list. You can pass multiple arguments and they will be automatically encoded to preserve whitespace and other special characters.
