@@ -14,6 +14,8 @@ namespace CliWrap.Internal
         private readonly Signal _standardOutputEndSignal = new Signal();
         private readonly StringBuilder _standardErrorBuffer = new StringBuilder();
         private readonly Signal _standardErrorEndSignal = new Signal();
+        private readonly Action<string> _standardOutputObserver;
+        private readonly Action<string> _standardErrorObserver;
 
         private bool _isReading;
 
@@ -30,8 +32,11 @@ namespace CliWrap.Internal
         public CliProcess(ProcessStartInfo startInfo,
             Action<string> standardOutputObserver = null, Action<string> standardErrorObserver = null)
         {
+            _standardOutputObserver = standardOutputObserver;
+            _standardErrorObserver = standardErrorObserver;
+
             // Create underlying process
-            _nativeProcess = new Process {StartInfo = startInfo};
+            _nativeProcess = new Process { StartInfo = startInfo };
 
             // Configure start info
             _nativeProcess.StartInfo.CreateNoWindow = true;
@@ -52,46 +57,50 @@ namespace CliWrap.Internal
             };
 
             // Wire stdout
-            _nativeProcess.OutputDataReceived += (sender, args) =>
-            {
-                // Actual data
-                if (args.Data != null)
-                {
-                    // Write to buffer and invoke observer
-                    _standardOutputBuffer.AppendLine(args.Data);
-                    standardOutputObserver?.Invoke(args.Data);
-                }
-                // Null means end of stream
-                else
-                {
-                    // Flush buffer
-                    StandardOutput = _standardOutputBuffer.ToString();
-
-                    // Release signal
-                    _standardOutputEndSignal.Release();
-                }
-            };
+            _nativeProcess.OutputDataReceived += OutputDataReceived;
 
             // Wire stderr
-            _nativeProcess.ErrorDataReceived += (sender, args) =>
-            {
-                // Actual data
-                if (args.Data != null)
-                {
-                    // Write to buffer and invoke observer
-                    _standardErrorBuffer.AppendLine(args.Data);
-                    standardErrorObserver?.Invoke(args.Data);
-                }
-                // Null means end of stream
-                else
-                {
-                    // Flush buffer
-                    StandardError = _standardErrorBuffer.ToString();
+            _nativeProcess.ErrorDataReceived += ErrorDataReceived;
+        }
 
-                    // Release signal
-                    _standardErrorEndSignal.Release();
-                }
-            };
+        private void OutputDataReceived(object sender, DataReceivedEventArgs args)
+        {
+            // Actual data
+            if (args.Data != null)
+            {
+                // Write to buffer and invoke observer
+                _standardOutputBuffer.AppendLine(args.Data);
+                _standardOutputObserver?.Invoke(args.Data);
+            }
+            // Null means end of stream
+            else
+            {
+                // Flush buffer
+                StandardOutput = _standardOutputBuffer.ToString();
+
+                // Release signal
+                _standardOutputEndSignal.Release();
+            }
+        }
+
+        private void ErrorDataReceived(object sender, DataReceivedEventArgs args)
+        {
+            // Actual data
+            if (args.Data != null)
+            {
+                // Write to buffer and invoke observer
+                _standardErrorBuffer.AppendLine(args.Data);
+                _standardErrorObserver?.Invoke(args.Data);
+            }
+            // Null means end of stream
+            else
+            {
+                // Flush buffer
+                StandardError = _standardErrorBuffer.ToString();
+
+                // Release signal
+                _standardErrorEndSignal.Release();
+            }
         }
 
         public void Start()
@@ -114,14 +123,18 @@ namespace CliWrap.Internal
         {
             // Copy stream and close stdin
             using (_nativeProcess.StandardInput)
+            {
                 stream.CopyTo(_nativeProcess.StandardInput.BaseStream);
+            }
         }
 
         public async Task PipeStandardInputAsync(Stream stream)
         {
             // Copy stream and close stdin
             using (_nativeProcess.StandardInput)
+            {
                 await stream.CopyToAsync(_nativeProcess.StandardInput.BaseStream);
+            }
         }
 
         public void WaitForExit()
@@ -167,7 +180,10 @@ namespace CliWrap.Internal
         {
             // Unsubscribe from process events
             // (process may still trigger events even after getting disposed)
-            _nativeProcess.EnableRaisingEvents = false;
+            _nativeProcess.EnableRaisingEvents = false; // only disables the Exited event
+            _nativeProcess.OutputDataReceived -= OutputDataReceived;
+            _nativeProcess.ErrorDataReceived -= ErrorDataReceived;
+
             if (_isReading)
             {
                 _nativeProcess.CancelOutputRead();
