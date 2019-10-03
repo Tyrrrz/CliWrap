@@ -215,14 +215,17 @@ namespace CliWrap.Tests
         [Test]
         public async Task ExecuteAsync_ProcessId_Test()
         {
-            // Arrange & act
+            // Arrange
             var cli = Cli.Wrap(EchoArgsToStdoutBat)
                 .SetArguments(TestString);
-            var task = cli             
-                .ExecuteAsync();
+
+            // Act
+            var task = cli.ExecuteAsync();
 
             // Assert
             Assert.That(cli.ProcessId, Is.Not.Null);
+
+            // Process ID is available before task completes
             await task;
         }
 

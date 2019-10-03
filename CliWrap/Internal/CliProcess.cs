@@ -21,9 +21,9 @@ namespace CliWrap.Internal
 
         public DateTimeOffset ExitTime { get; private set; }
 
-        public int ExitCode => _nativeProcess.ExitCode;
+        public int Id => _nativeProcess.Id;
 
-        public int ProcessId => _nativeProcess.Id;
+        public int ExitCode => _nativeProcess.ExitCode;
 
         public string StandardOutput { get; private set; }
 

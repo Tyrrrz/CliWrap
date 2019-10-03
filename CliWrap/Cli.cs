@@ -31,9 +31,7 @@ namespace CliWrap
         private bool _exitCodeValidation = true;
         private bool _standardErrorValidation;
 
-        /// <summary>
-        /// Process ID associated with the last execution or null if the process hasn't been started yet.
-        /// </summary>
+        /// <inheritdoc />
         public int? ProcessId { get; private set; }
 
         /// <summary>
@@ -267,6 +265,8 @@ namespace CliWrap
             using (var process = StartProcess())
             using (_cancellationToken.Register(() => process.TryKill()))
             {
+                ProcessId = process.Id;
+
                 // Pipe stdin
                 process.PipeStandardInput(_standardInput);
 
@@ -297,7 +297,8 @@ namespace CliWrap
             using (var process = StartProcess())
             using (_cancellationToken.Register(() => process.TryKill()))
             {
-                this.ProcessId = process.ProcessId;
+                ProcessId = process.Id;
+
                 // Pipe stdin
                 await process.PipeStandardInputAsync(_standardInput);
 
@@ -327,6 +328,8 @@ namespace CliWrap
             // Set up execution context
             using (var process = StartProcess())
             {
+                ProcessId = process.Id;
+
                 // Write stdin
                 process.PipeStandardInput(_standardInput);
             }
