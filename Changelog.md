@@ -1,3 +1,7 @@
+### v2.4 (03-Oct-2019)
+
+- Added `ProcessId` property to `Cli`. You can use it to get the ID of the underlying process as soon as it's started.
+
 ### v2.3.1 (10-Jul-2019)
 
 - Fixed an issue where `Execute` and `ExecuteAsync` didn't return immediately after the execution was canceled.

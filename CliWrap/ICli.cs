@@ -15,6 +15,11 @@ namespace CliWrap
     public interface ICli
     {
         /// <summary>
+        /// Process ID associated with the last execution or null if the process hasn't been started yet.
+        /// </summary>
+        int? ProcessId { get; }
+
+        /// <summary>
         /// Sets the working directory.
         /// </summary>
         ICli SetWorkingDirectory(string workingDirectory);
@@ -99,10 +104,5 @@ namespace CliWrap
         /// Executes the process and doesn't wait for it to exit.
         /// </summary>
         void ExecuteAndForget();
-
-        /// <summary>
-        /// Process ID associated with the last execution or null if the process hasn't been started yet.
-        /// </summary>
-        int? ProcessId { get; }
     }
 }
