@@ -23,6 +23,8 @@ namespace CliWrap.Internal
 
         public int ExitCode => _nativeProcess.ExitCode;
 
+        public int ProcessId => _nativeProcess.Id;
+
         public string StandardOutput { get; private set; }
 
         public string StandardError { get; private set; }
@@ -149,7 +151,6 @@ namespace CliWrap.Internal
             try
             {
                 _nativeProcess.Kill();
-
                 // It's possible that stdout/stderr streams are still alive after killing the process.
                 // We forcefully release signals because we're not interested in the output at this point anyway.
                 _standardOutputEndSignal.Release();

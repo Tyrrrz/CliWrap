@@ -32,6 +32,11 @@ namespace CliWrap
         private bool _standardErrorValidation;
 
         /// <summary>
+        /// Process ID associated with the last execution or null if the process hasn't been started yet.
+        /// </summary>
+        public int? ProcessId { get; private set; }
+
+        /// <summary>
         /// Initializes an instance of <see cref="Cli"/> on the target executable.
         /// </summary>
         public Cli(string filePath)
@@ -292,6 +297,7 @@ namespace CliWrap
             using (var process = StartProcess())
             using (_cancellationToken.Register(() => process.TryKill()))
             {
+                this.ProcessId = process.ProcessId;
                 // Pipe stdin
                 await process.PipeStandardInputAsync(_standardInput);
 
