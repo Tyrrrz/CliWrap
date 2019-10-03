@@ -99,5 +99,10 @@ namespace CliWrap
         /// Executes the process and doesn't wait for it to exit.
         /// </summary>
         void ExecuteAndForget();
+
+        /// <summary>
+        /// Wheny using ExecuteAsync, use this to immediatelly get the process id
+        /// </summary>
+        int ProcessId { get; }
     }
 }

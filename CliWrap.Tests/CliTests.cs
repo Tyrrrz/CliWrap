@@ -213,6 +213,18 @@ namespace CliWrap.Tests
         #region ExecuteAsync
 
         [Test]
+        public async Task ExecuteAsync_ProcessId_Test()
+        {
+            // Arrange & act
+            var cli = Cli.Wrap(EchoArgsToStdoutBat)
+                .SetArguments(TestString);
+            var task = cli             
+                .ExecuteAsync();
+            Assert.NotZero(cli.ProcessId);
+            await task;
+        }
+
+        [Test]
         public async Task ExecuteAsync_EchoArgsToStdout_Test()
         {
             // Arrange & act

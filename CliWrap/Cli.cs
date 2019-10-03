@@ -31,6 +31,8 @@ namespace CliWrap
         private bool _exitCodeValidation = true;
         private bool _standardErrorValidation;
 
+        public int ProcessId { get; private set; }
+
         /// <summary>
         /// Initializes an instance of <see cref="Cli"/> on the target executable.
         /// </summary>
@@ -292,6 +294,7 @@ namespace CliWrap
             using (var process = StartProcess())
             using (_cancellationToken.Register(() => process.TryKill()))
             {
+                this.ProcessId = process.ProcessId;
                 // Pipe stdin
                 await process.PipeStandardInputAsync(_standardInput);
 
