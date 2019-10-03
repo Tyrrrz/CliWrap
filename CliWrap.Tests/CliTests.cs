@@ -220,7 +220,9 @@ namespace CliWrap.Tests
                 .SetArguments(TestString);
             var task = cli             
                 .ExecuteAsync();
-            Assert.NotZero(cli.ProcessId);
+
+            // Assert
+            Assert.That(cli.ProcessId, Is.Not.Null);
             await task;
         }
 

@@ -31,7 +31,10 @@ namespace CliWrap
         private bool _exitCodeValidation = true;
         private bool _standardErrorValidation;
 
-        public int ProcessId { get; private set; }
+        /// <summary>
+        /// Process ID associated with the last execution or null if the process hasn't been started yet.
+        /// </summary>
+        public int? ProcessId { get; private set; }
 
         /// <summary>
         /// Initializes an instance of <see cref="Cli"/> on the target executable.

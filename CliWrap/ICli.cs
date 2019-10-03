@@ -101,8 +101,8 @@ namespace CliWrap
         void ExecuteAndForget();
 
         /// <summary>
-        /// Wheny using ExecuteAsync, use this to immediatelly get the process id
+        /// Process ID associated with the last execution or null if the process hasn't been started yet.
         /// </summary>
-        int ProcessId { get; }
+        int? ProcessId { get; }
     }
 }
