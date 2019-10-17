@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net45;netcoreapp3.0;netstandard2.0</TargetFrameworks>
     <Version>2.4</Version>
     <Company>Tyrrrz</Company>
     <Authors>$(Company)</Authors>
@@ -15,10 +15,13 @@
     <RepositoryUrl>https://github.com/Tyrrrz/CliWrap</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <DocumentationFile>bin/$(Configuration)/$(TargetFramework)/$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">
+    <DefineConstants>$(DefineConstants);NETCOREAPP30</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ConfigureAwait.Fody" Version="3.1.0" PrivateAssets="all" />
     <PackageReference Include="Fody" Version="4.2.1" PrivateAssets="all" />
@@ -26,6 +29,10 @@
 
   <ItemGroup>
     <None Include="../favicon.png" Pack="True" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Management" />
   </ItemGroup>
 
 </Project>

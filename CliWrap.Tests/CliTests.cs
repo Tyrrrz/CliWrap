@@ -25,6 +25,8 @@ namespace CliWrap.Tests
         private string EchoArgsToStderrBat => Path.Combine(TestDirPath, "Bats", "EchoArgsToStderr.bat");
         private string EchoSpamBat => Path.Combine(TestDirPath, "Bats", "EchoSpam.bat");
         private string SleepBat => Path.Combine(TestDirPath, "Bats", "Sleep.bat");
+
+        private string SleepInSubprocessBat => Path.Combine(TestDirPath, "Bats", "SleepInSubprocess.bat");
         private string NonZeroExitCodeBat => Path.Combine(TestDirPath, "Bats", "NonZeroExitCode.bat");
 
         private void AssertExecutionResult(ExecutionResult result,
@@ -59,7 +61,7 @@ namespace CliWrap.Tests
         {
             // Arrange & act
             var result = Cli.Wrap(EchoFirstArgEscapedToStdoutBat)
-                .SetArguments(new[] {TestString})
+                .SetArguments(new[] { TestString })
                 .Execute();
 
             // Assert
@@ -129,6 +131,40 @@ namespace CliWrap.Tests
             var expectedStandardOutput = standardOutputBuffer.ToString().TrimEnd();
             var expectedStandardError = standardErrorBuffer.ToString().TrimEnd();
             AssertExecutionResult(result, 0, expectedStandardOutput, expectedStandardError);
+        }
+
+        [Test]
+        public void Execute_Sleep_InSubprocess_CancelEarly_Test()
+        {
+            // Arrange & act & assert
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+
+                Assert.Throws<OperationCanceledException>(() =>
+                {
+                    Cli.Wrap(SleepInSubprocessBat)
+                        .SetCancellationToken(cts.Token, true)
+                        .Execute();
+                });
+            }
+        }
+
+        [Test]
+        public void Execute_Sleep_InSubprocess_CancelLate_Test()
+        {
+            // Arrange & act & assert
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
+
+                Assert.Throws<OperationCanceledException>(() =>
+                {
+                    Cli.Wrap(SleepInSubprocessBat)
+                        .SetCancellationToken(cts.Token, true)
+                        .Execute();
+                });
+            }
         }
 
         [Test]
@@ -246,7 +282,7 @@ namespace CliWrap.Tests
         {
             // Arrange & act
             var result = await Cli.Wrap(EchoFirstArgEscapedToStdoutBat)
-                .SetArguments(new[] {TestString})
+                .SetArguments(new[] { TestString })
                 .ExecuteAsync();
 
             // Assert
@@ -316,6 +352,41 @@ namespace CliWrap.Tests
             var expectedStandardOutput = standardOutputBuffer.ToString().TrimEnd();
             var expectedStandardError = standardErrorBuffer.ToString().TrimEnd();
             AssertExecutionResult(result, 0, expectedStandardOutput, expectedStandardError);
+        }
+
+
+        [Test]
+        public void ExecuteAsync_Sleep_InSubprocess_CancelEarly_Test()
+        {
+            // Arrange & act & assert
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+
+                Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                {
+                    await Cli.Wrap(SleepInSubprocessBat)
+                        .SetCancellationToken(cts.Token, true)
+                        .ExecuteAsync();
+                });
+            }
+        }
+
+        [Test]
+        public void ExecuteAsync_Sleep_InSubprocess_CancelLate_Test()
+        {
+            // Arrange & act & assert
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
+
+                Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                {
+                    await Cli.Wrap(SleepBat)
+                        .SetCancellationToken(cts.Token, true)
+                        .ExecuteAsync();
+                });
+            }
         }
 
         [Test]
