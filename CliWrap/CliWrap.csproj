@@ -31,8 +31,8 @@
     <None Include="../favicon.png" Pack="True" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Management" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <PackageReference Include="System.Management" Version="4.5" />
   </ItemGroup>
 
 </Project>
