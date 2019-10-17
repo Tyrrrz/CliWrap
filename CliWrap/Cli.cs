@@ -31,9 +31,6 @@ namespace CliWrap
         private bool _exitCodeValidation = true;
         private bool _standardErrorValidation;
 
-
-        private bool _killEntireTreeOnCancel  = false;
-
         /// <inheritdoc />
         public int? ProcessId { get; private set; }
 
@@ -204,15 +201,6 @@ namespace CliWrap
             return this;
         }
 
-#if NET45 || NETCOREAPP30
-        /// <inheritdoc />
-        public ICli SetCancellationToken(CancellationToken token, bool killProcessTree)
-        {
-            _cancellationToken = token;
-            _killEntireTreeOnCancel = killProcessTree;
-            return this;
-        }
-#endif
 
         /// <inheritdoc />
         public ICli EnableExitCodeValidation(bool isEnabled = true)
@@ -255,7 +243,6 @@ namespace CliWrap
 
             // Create and start process
             var process = new CliProcess(startInfo, _standardOutputObserver, _standardErrorObserver);
-            process.KillEntireTreeOnCancel = _killEntireTreeOnCancel;
             process.Start();
 
             return process;

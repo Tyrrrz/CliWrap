@@ -144,7 +144,7 @@ namespace CliWrap.Tests
                 Assert.Throws<OperationCanceledException>(() =>
                 {
                     Cli.Wrap(SleepInSubprocessBat)
-                        .SetCancellationToken(cts.Token, true)
+                        .SetCancellationToken(cts.Token)
                         .Execute();
                 });
             }
@@ -161,7 +161,7 @@ namespace CliWrap.Tests
                 Assert.Throws<OperationCanceledException>(() =>
                 {
                     Cli.Wrap(SleepInSubprocessBat)
-                        .SetCancellationToken(cts.Token, true)
+                        .SetCancellationToken(cts.Token)
                         .Execute();
                 });
             }
@@ -366,7 +366,7 @@ namespace CliWrap.Tests
                 Assert.ThrowsAsync<OperationCanceledException>(async () =>
                 {
                     await Cli.Wrap(SleepInSubprocessBat)
-                        .SetCancellationToken(cts.Token, true)
+                        .SetCancellationToken(cts.Token)
                         .ExecuteAsync();
                 });
             }
@@ -383,7 +383,7 @@ namespace CliWrap.Tests
                 Assert.ThrowsAsync<OperationCanceledException>(async () =>
                 {
                     await Cli.Wrap(SleepBat)
-                        .SetCancellationToken(cts.Token, true)
+                        .SetCancellationToken(cts.Token)
                         .ExecuteAsync();
                 });
             }

@@ -23,10 +23,6 @@ namespace CliWrap.Internal
 
         public int Id => _nativeProcess.Id;
 
-        /// <summary>
-        /// If this is true, the whole process tree will be killed
-        /// </summary>
-        public bool KillEntireTreeOnCancel { get; set; } = false;
 
         public int ExitCode => _nativeProcess.ExitCode;
 
@@ -155,21 +151,18 @@ namespace CliWrap.Internal
         {
             try
             {
-                if(this.KillEntireTreeOnCancel)
-                {
+
 #if NETCOREAPP30
                     _nativeProcess.Kill(true);
 #elif NET45
-                    KillProcessAndChildrens(_nativeProcess.Id);
+                KillProcessAndChildrens(_nativeProcess.Id);
+#else
+                _nativeProcess.Kill();
 #endif
-                }
-                else
-                {
-                    _nativeProcess.Kill();
-                }
+
                 // It's possible that stdout/stderr streams are still alive after killing the process.
                 // We forcefully release signals because we're not interested in the output at this point anyway.
-                
+
                 _standardOutputEndSignal.Release();
                 _standardErrorEndSignal.Release();
                 return true;

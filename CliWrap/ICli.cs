@@ -80,13 +80,6 @@ namespace CliWrap
         /// </summary>
         ICli SetCancellationToken(CancellationToken token);
 
-#if NET45 || NETCOREAPP30
-        /// <summary>
-        /// Sets the cancellation token and optionally kills the whole process tree
-        /// </summary>
-        ICli SetCancellationToken(CancellationToken token, bool killProcessTree);
-#endif
-
         /// <summary>
         /// Enables or disables validation that will throw <see cref="ExitCodeValidationException"/> if the resulting exit code is not zero.
         /// </summary>
