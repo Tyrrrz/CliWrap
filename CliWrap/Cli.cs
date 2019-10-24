@@ -26,7 +26,9 @@ namespace CliWrap
         private Encoding _standardOutputEncoding = Console.OutputEncoding;
         private Encoding _standardErrorEncoding = Console.OutputEncoding;
         private Action<string> _standardOutputObserver;
+        private Action _standardOutputClosedObserver;
         private Action<string> _standardErrorObserver;
+        private Action _standardErrorClosedObserver;
         private CancellationToken _cancellationToken;
         private bool _exitCodeValidation = true;
         private bool _standardErrorValidation;
@@ -188,9 +190,23 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
+        public ICli SetStandardOutputClosedCallback(Action callback)
+        {
+            _standardOutputClosedObserver = callback.GuardNotNull(nameof(callback));
+            return this;
+        }
+
+        /// <inheritdoc />
         public ICli SetStandardErrorCallback(Action<string> callback)
         {
             _standardErrorObserver = callback.GuardNotNull(nameof(callback));
+            return this;
+        }
+
+        /// <inheritdoc />
+        public ICli SetStandardErrorClosedCallback(Action callback)
+        {
+            _standardErrorClosedObserver = callback.GuardNotNull(nameof(callback));
             return this;
         }
 
@@ -241,7 +257,13 @@ namespace CliWrap
 #endif
 
             // Create and start process
-            var process = new CliProcess(startInfo, _standardOutputObserver, _standardErrorObserver);
+            var process = new CliProcess(
+                startInfo, 
+                _standardOutputObserver, 
+                _standardErrorObserver, 
+                _standardOutputClosedObserver,
+                _standardErrorClosedObserver
+            );
             process.Start();
 
             return process;
