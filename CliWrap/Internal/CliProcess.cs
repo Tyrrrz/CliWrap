@@ -30,7 +30,8 @@ namespace CliWrap.Internal
         public string StandardError { get; private set; }
 
         public CliProcess(ProcessStartInfo startInfo,
-            Action<string> standardOutputObserver = null, Action<string> standardErrorObserver = null)
+            Action<string> standardOutputObserver = null, Action<string> standardErrorObserver = null,
+            Action standardOutputClosedObserver = null, Action standardErrorClosedObserver = null)
         {
             // Create underlying process
             _nativeProcess = new Process {StartInfo = startInfo};
@@ -70,6 +71,7 @@ namespace CliWrap.Internal
                     StandardOutput = _standardOutputBuffer.ToString();
 
                     // Release signal
+                    standardOutputClosedObserver?.Invoke();
                     _standardOutputEndSignal.Release();
                 }
             };
@@ -91,6 +93,7 @@ namespace CliWrap.Internal
                     StandardError = _standardErrorBuffer.ToString();
 
                     // Release signal
+                    standardErrorClosedObserver?.Invoke();
                     _standardErrorEndSignal.Release();
                 }
             };

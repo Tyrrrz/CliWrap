@@ -71,9 +71,19 @@ namespace CliWrap
         ICli SetStandardOutputCallback(Action<string> callback);
 
         /// <summary>
+        /// Sets the delegate that will be called whenever the standard output stream is closed.
+        /// </summary>
+        ICli SetStandardOutputClosedCallback(Action callback);
+
+        /// <summary>
         /// Sets the delegate that will be called whenever a new line is appended to standard error stream.
         /// </summary>
         ICli SetStandardErrorCallback(Action<string> callback);
+
+        /// <summary>
+        /// Sets the delegate that will be called whenever the standard error stream is closed.
+        /// </summary>
+        ICli SetStandardErrorClosedCallback(Action callback);
 
         /// <summary>
         /// Sets the cancellation token.
