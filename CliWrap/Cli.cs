@@ -201,7 +201,6 @@ namespace CliWrap
             return this;
         }
 
-
         /// <inheritdoc />
         public ICli EnableExitCodeValidation(bool isEnabled = true)
         {
@@ -230,6 +229,7 @@ namespace CliWrap
                 Arguments = _arguments,
                 StandardOutputEncoding = _standardOutputEncoding,
                 StandardErrorEncoding = _standardErrorEncoding
+
             };
 
             // Set environment variables
@@ -294,33 +294,34 @@ namespace CliWrap
         /// <inheritdoc />
         public async Task<ExecutionResult> ExecuteAsync()
         {
-            // Set up execution context
-            using (var process = StartProcess())
-            using (_cancellationToken.Register(() => process.TryKill()))
-            {
-                ProcessId = process.Id;
+                // Set up execution context
+                using (var process = StartProcess())
+                using (_cancellationToken.Register(() => process.TryKill()))
+                {
+                    ProcessId = process.Id;
 
-                // Pipe stdin
-                await process.PipeStandardInputAsync(_standardInput);
+                    // Pipe stdin
+                    await process.PipeStandardInputAsync(_standardInput);
 
-                // Wait for exit
-                await process.WaitForExitAsync();
+                    // Wait for exit
+                    await process.WaitForExitAsync();
 
-                // Throw if cancelled
-                _cancellationToken.ThrowIfCancellationRequested();
+                    // Throw if cancelled
+                    _cancellationToken.ThrowIfCancellationRequested();
 
-                // Create execution result
-                var result = new ExecutionResult(process.ExitCode,
-                    process.StandardOutput,
-                    process.StandardError,
-                    process.StartTime,
-                    process.ExitTime);
+                    // Create execution result
+                    var result = new ExecutionResult(process.ExitCode,
+                        process.StandardOutput,
+                        process.StandardError,
+                        process.StartTime,
+                        process.ExitTime);
 
-                // Validate execution result
-                ValidateExecutionResult(result);
+                    // Validate execution result
+                    ValidateExecutionResult(result);
 
-                return result;
-            }
+                    return result;
+                }
+            
         }
 
         /// <inheritdoc />

@@ -151,11 +151,8 @@ namespace CliWrap.Internal
         {
             try
             {
-
-#if NETCOREAPP30
-                    _nativeProcess.Kill(true);
-#elif NET45
-                KillProcessAndChildrens(_nativeProcess.Id);
+#if NET45
+                KillProcessTree(_nativeProcess.Id);
 #else
                 _nativeProcess.Kill();
 #endif
@@ -193,15 +190,16 @@ namespace CliWrap.Internal
             _standardErrorEndSignal.Dispose();
         }
 #if NET45
-        private static void KillProcessAndChildrens(int pid)
+        private static void KillProcessTree(int pId)
         {
+
             System.Management.ManagementObjectSearcher processSearcher = new System.Management.ManagementObjectSearcher
-              ("Select * From Win32_Process Where ParentProcessID=" + pid);
+              ("Select * From Win32_Process Where ParentProcessID=" + pId);
             System.Management.ManagementObjectCollection processCollection = processSearcher.Get();
 
             try
             {
-                Process proc = Process.GetProcessById(pid);
+                Process proc = Process.GetProcessById(pId);
                 if (!proc.HasExited) proc.Kill();
             }
             catch (ArgumentException)
@@ -213,7 +211,7 @@ namespace CliWrap.Internal
             {
                 foreach (System.Management.ManagementObject mo in processCollection)
                 {
-                    KillProcessAndChildrens(Convert.ToInt32(mo["ProcessID"])); //kill child processes(also kills childrens of childrens etc.)
+                    KillProcessTree(Convert.ToInt32(mo["ProcessID"])); //kill child processes(also kills childrens of childrens etc.)
                 }
             }
         }

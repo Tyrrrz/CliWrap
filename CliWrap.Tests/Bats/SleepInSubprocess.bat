@@ -1,1 +1,4 @@
-start /wait timeout 9999
+start
+start
+start 
+start 
