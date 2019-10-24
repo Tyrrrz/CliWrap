@@ -60,6 +60,24 @@ namespace CliWrap.Tests
         }
 
         [Test]
+        public void Execute_StdoutClosedCallback_Test()
+        {
+            var stdoutClosed = false;
+            var stdErrClosed = false;
+
+            // Arrange & act
+            Cli.Wrap(EchoArgsToStdoutBat)
+                .SetArguments(TestString)
+                .SetStandardOutputClosedCallback(() => stdoutClosed = true)
+                .SetStandardErrorClosedCallback(() => stdErrClosed = true)
+                .Execute();
+
+            // Assert
+            Assert.IsTrue(stdoutClosed);
+            Assert.IsTrue(stdErrClosed);
+        }
+
+        [Test]
         public void Execute_EchoFirstArgEscapedToStdout_Test()
         {
             // Arrange & act
@@ -273,6 +291,24 @@ namespace CliWrap.Tests
 
             // Assert
             AssertExecutionResult(result, 0, TestString, "");
+        }
+
+        [Test]
+        public async Task ExecuteAsync_StdoutClosedCallback_Test()
+        {
+            var stdoutClosed = false;
+            var stdErrClosed = false;
+
+            // Arrange & act
+            await Cli.Wrap(EchoArgsToStdoutBat)
+                .SetArguments(TestString)
+                .SetStandardOutputClosedCallback(() => stdoutClosed = true)
+                .SetStandardErrorClosedCallback(() => stdErrClosed = true)
+                .ExecuteAsync();
+
+            // Assert
+            Assert.IsTrue(stdoutClosed);
+            Assert.IsTrue(stdErrClosed);
         }
 
         [Test]
