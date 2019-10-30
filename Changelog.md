@@ -1,3 +1,9 @@
+### v2.5 (30-Oct-2019)
+
+- Added callbacks that trigger when stdout/stderr streams are closed. (Thanks @Daniel15)
+- Added an overload for `SetCancellationToken` that accepts `killEntireProcessTree`. Passing `true` to this option will make CliWrap attempt to kill the entire process tree when cancellation is requested, as opposed to only the parent process. Note, this option is only available on .NET Framework 4.5+ and .NET Core 3.0+. (Thanks @M-Patrone)
+- Removed ReSharpe annotations.
+
 ### v2.4 (03-Oct-2019)
 
 - Added `ProcessId` property to `Cli`. You can use it to get the ID of the underlying process as soon as it's started.
