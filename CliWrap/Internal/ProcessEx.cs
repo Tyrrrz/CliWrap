@@ -25,9 +25,9 @@ namespace CliWrap.Internal
                             proc.Kill();
                     }
                 }
-                catch (ArgumentException)
+                catch
                 {
-                    // Process already exited
+                    // Do our best and ignore race conditions
                 }
 
                 // Kill descendants

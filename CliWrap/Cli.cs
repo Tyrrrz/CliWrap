@@ -30,6 +30,7 @@ namespace CliWrap
         private Action<string> _standardErrorObserver;
         private Action _standardErrorClosedObserver;
         private CancellationToken _cancellationToken;
+        private bool _killEntireProcessTree;
         private bool _exitCodeValidation = true;
         private bool _standardErrorValidation;
 
@@ -211,11 +212,15 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public ICli SetCancellationToken(CancellationToken token)
+        public ICli SetCancellationToken(CancellationToken token, bool killEntireProcessTree)
         {
             _cancellationToken = token;
+            _killEntireProcessTree = killEntireProcessTree;
             return this;
         }
+
+        /// <inheritdoc />
+        public ICli SetCancellationToken(CancellationToken token) => SetCancellationToken(token, false);
 
         /// <inheritdoc />
         public ICli EnableExitCodeValidation(bool isEnabled = true)
@@ -285,7 +290,7 @@ namespace CliWrap
         {
             // Set up execution context
             using (var process = StartProcess())
-            using (_cancellationToken.Register(() => process.TryKill()))
+            using (_cancellationToken.Register(() => process.TryKill(_killEntireProcessTree)))
             {
                 ProcessId = process.Id;
 
@@ -317,7 +322,7 @@ namespace CliWrap
         {
             // Set up execution context
             using (var process = StartProcess())
-            using (_cancellationToken.Register(() => process.TryKill()))
+            using (_cancellationToken.Register(() => process.TryKill(_killEntireProcessTree)))
             {
                 ProcessId = process.Id;
 

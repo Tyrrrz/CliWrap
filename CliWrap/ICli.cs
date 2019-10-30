@@ -86,7 +86,14 @@ namespace CliWrap
         ICli SetStandardErrorClosedCallback(Action callback);
 
         /// <summary>
-        /// Sets the cancellation token.
+        /// Sets the cancellation token which will cause the underlying process to be killed when it's triggered.
+        /// You can configure whether to also kill any descendant processes in addition to the main process.
+        /// NOTE: due to technical limitations of the platform, <paramref name="killEntireProcessTree"/> does nothing on .NET Core below version 3.
+        /// </summary>
+        ICli SetCancellationToken(CancellationToken token, bool killEntireProcessTree);
+
+        /// <summary>
+        /// Sets the cancellation token which will cause the underlying process to be killed when it's triggered.
         /// </summary>
         ICli SetCancellationToken(CancellationToken token);
 

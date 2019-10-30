@@ -157,7 +157,7 @@ namespace CliWrap.Tests
             // Arrange
             using (var cts = new CancellationTokenSource())
             {
-                var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token);
+                var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token, true);
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
 
                 // Act & assert
@@ -380,7 +380,7 @@ namespace CliWrap.Tests
             // Arrange
             using (var cts = new CancellationTokenSource())
             {
-                var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token);
+                var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token, true);
 
                 // Act
                 var executeTask = cli.ExecuteAsync();

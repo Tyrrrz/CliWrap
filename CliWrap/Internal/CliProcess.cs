@@ -149,28 +149,34 @@ namespace CliWrap.Internal
             await _standardErrorEndSignal.WaitAsync();
         }
 
-        public bool TryKill()
+        public bool TryKill(bool killEntireProcessTree)
         {
             try
             {
 #if NET45
-                ProcessEx.KillProcessTree(_nativeProcess.Id);
+                if (killEntireProcessTree)
+                    ProcessEx.KillProcessTree(_nativeProcess.Id);
+                else
+                    _nativeProcess.Kill();
 #elif NETCOREAPP3_0
-                _nativeProcess.Kill(true);
+                _nativeProcess.Kill(killEntireProcessTree);
 #else
+                // .NET std doesn't let us kill the entire process tree
                 _nativeProcess.Kill();
 #endif
-
-                // It's possible that stdout/stderr streams are still alive after killing the process.
-                // We forcefully release signals because we're not interested in the output at this point anyway.
-                _standardOutputEndSignal.Release();
-                _standardErrorEndSignal.Release();
 
                 return true;
             }
             catch
             {
                 return false;
+            }
+            finally
+            {
+                // It's possible that stdout/stderr streams are still alive after killing the process.
+                // We forcefully release signals because we're not interested in the output at this point anyway.
+                _standardOutputEndSignal.Release();
+                _standardErrorEndSignal.Release();
             }
         }
 
