@@ -23,6 +23,7 @@ namespace CliWrap.Internal
 
         public int Id => _nativeProcess.Id;
 
+
         public int ExitCode => _nativeProcess.ExitCode;
 
         public string StandardOutput { get; private set; }
@@ -34,7 +35,7 @@ namespace CliWrap.Internal
             Action standardOutputClosedObserver = null, Action standardErrorClosedObserver = null)
         {
             // Create underlying process
-            _nativeProcess = new Process {StartInfo = startInfo};
+            _nativeProcess = new Process { StartInfo = startInfo };
 
             // Configure start info
             _nativeProcess.StartInfo.CreateNoWindow = true;
@@ -153,12 +154,17 @@ namespace CliWrap.Internal
         {
             try
             {
+#if NET45
+                KillProcessTree(_nativeProcess.Id);
+#else
                 _nativeProcess.Kill();
+#endif
+
                 // It's possible that stdout/stderr streams are still alive after killing the process.
                 // We forcefully release signals because we're not interested in the output at this point anyway.
+
                 _standardOutputEndSignal.Release();
                 _standardErrorEndSignal.Release();
-
                 return true;
             }
             catch
@@ -186,5 +192,32 @@ namespace CliWrap.Internal
             _standardOutputEndSignal.Dispose();
             _standardErrorEndSignal.Dispose();
         }
+#if NET45
+        private static void KillProcessTree(int pId)
+        {
+
+            System.Management.ManagementObjectSearcher processSearcher = new System.Management.ManagementObjectSearcher
+              ("Select * From Win32_Process Where ParentProcessID=" + pId);
+            System.Management.ManagementObjectCollection processCollection = processSearcher.Get();
+
+            try
+            {
+                Process proc = Process.GetProcessById(pId);
+                if (!proc.HasExited) proc.Kill();
+            }
+            catch (ArgumentException)
+            {
+                // Process already exited.
+            }
+
+            if (processCollection != null)
+            {
+                foreach (System.Management.ManagementObject mo in processCollection)
+                {
+                    KillProcessTree(Convert.ToInt32(mo["ProcessID"])); //kill child processes(also kills childrens of childrens etc.)
+                }
+            }
+        }
+#endif
     }
 }

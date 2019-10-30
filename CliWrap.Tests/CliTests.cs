@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -6,6 +8,7 @@ using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Models;
 using NUnit.Framework;
+using System.Linq;
 
 namespace CliWrap.Tests
 {
@@ -25,6 +28,8 @@ namespace CliWrap.Tests
         private string EchoArgsToStderrBat => Path.Combine(TestDirPath, "Bats", "EchoArgsToStderr.bat");
         private string EchoSpamBat => Path.Combine(TestDirPath, "Bats", "EchoSpam.bat");
         private string SleepBat => Path.Combine(TestDirPath, "Bats", "Sleep.bat");
+
+        private string SleepInSubprocessBat => Path.Combine(TestDirPath, "Bats", "SleepInSubprocess.bat");
         private string NonZeroExitCodeBat => Path.Combine(TestDirPath, "Bats", "NonZeroExitCode.bat");
 
         private void AssertExecutionResult(ExecutionResult result,
@@ -77,7 +82,7 @@ namespace CliWrap.Tests
         {
             // Arrange & act
             var result = Cli.Wrap(EchoFirstArgEscapedToStdoutBat)
-                .SetArguments(new[] {TestString})
+                .SetArguments(new[] { TestString })
                 .Execute();
 
             // Assert
@@ -148,6 +153,35 @@ namespace CliWrap.Tests
             var expectedStandardError = standardErrorBuffer.ToString().TrimEnd();
             AssertExecutionResult(result, 0, expectedStandardOutput, expectedStandardError);
         }
+
+#if NET45
+        [Test]
+        public void Execute_Sleep_InSubprocess_CancelLate_Test()
+        {
+            // Arrange & act & assert
+            ICli cli = null;
+            bool tasksFinished = true;
+            using (var cts = new CancellationTokenSource())
+            {
+                cli = Cli.Wrap(SleepInSubprocessBat).SetCancellationToken(cts.Token);
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
+                try { 
+                cli.Execute();
+                }catch(OperationCanceledException e)
+                {
+                    var res = GetAllChildProcesses(cli.ProcessId.Value);
+                    foreach (int pId in res)
+                    {
+                        if (IsRunning(pId) == true)
+                        {
+                            tasksFinished = false;
+                        }
+                    }
+                }                
+                Assert.IsTrue(tasksFinished);
+            }
+        }
+#endif
 
         [Test]
         public void Execute_Sleep_CancelEarly_Test()
@@ -282,7 +316,7 @@ namespace CliWrap.Tests
         {
             // Arrange & act
             var result = await Cli.Wrap(EchoFirstArgEscapedToStdoutBat)
-                .SetArguments(new[] {TestString})
+                .SetArguments(new[] { TestString })
                 .ExecuteAsync();
 
             // Assert
@@ -353,6 +387,90 @@ namespace CliWrap.Tests
             var expectedStandardError = standardErrorBuffer.ToString().TrimEnd();
             AssertExecutionResult(result, 0, expectedStandardOutput, expectedStandardError);
         }
+
+#if NET45
+        [Test]
+        public void ExecuteAsync_Sleep_InSubprocess_CancelEarly_Test()
+        {
+            // Arrange & act & assert
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+                int processId=0;
+                Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                {
+                    var cliWrap = Cli.Wrap(SleepInSubprocessBat)
+                        .SetCancellationToken(cts.Token);
+                    var res = cliWrap
+                        .ExecuteAsync();
+                    processId = cliWrap.ProcessId.Value;
+                    await res;
+                });
+                Assert.AreNotEqual(0, processId);
+                var processes = GetAllChildProcesses(processId);
+                Assert.IsEmpty(processes.Where(IsRunning));
+            }
+        }
+#endif
+#if NET45
+        [Test]
+        public async Task ExecuteAsync_Sleep_InSubprocess_CancelLate_Test()
+        {
+            // Arrange & act & assert
+            ICli cli = null;
+            bool tasksFinished = true;
+            using (var cts = new CancellationTokenSource())
+            {   
+                cli = Cli.Wrap(SleepInSubprocessBat).SetCancellationToken(cts.Token);
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
+                var cliTask = cli.ExecuteAsync();
+                await Task.Delay(TimeSpan.FromMilliseconds(100)); // The OS needs some time to start a process
+                var childProcessIds = GetAllChildProcesses(cli.ProcessId.Value);
+                Assert.AreEqual(4*2+1, childProcessIds.Count); //It starts 4 cmd windows including 2 processes and the main process
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                Assert.IsTrue(cliTask.IsCanceled);
+
+                Assert.IsEmpty(childProcessIds.Where(childProcessId => IsRunning(childProcessId)));
+
+                Assert.IsTrue(tasksFinished);
+            }
+        }
+
+
+        private IReadOnlyCollection<int> GetAllChildProcesses(int pId)
+        {
+            List<int> processTree = new List<int>();
+            processTree.Add(pId);
+            using (System.Management.ManagementObjectSearcher mos = new System.Management.ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pId))
+
+            {
+                System.Management.ManagementObjectCollection processCollection = mos.Get();
+                if (processCollection.Count != 0)
+                {
+                    foreach (System.Management.ManagementObject mo in processCollection)
+                    {
+                        var res = GetAllChildProcesses(Convert.ToInt32(mo["ProcessID"])); //kill child processes(also kills childrens of childrens etc.)
+                        processTree.AddRange(res);
+                    }
+                }
+            }
+            return processTree;
+        }
+
+        private bool IsRunning(int pId)
+        {
+            try
+            {
+                Process.GetProcessById(pId);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+            return true;
+        }
+
+#endif
 
         [Test]
         public void ExecuteAsync_Sleep_CancelEarly_Test()

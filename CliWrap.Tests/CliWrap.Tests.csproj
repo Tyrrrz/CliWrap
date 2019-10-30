@@ -24,6 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Management" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Bats\*.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
