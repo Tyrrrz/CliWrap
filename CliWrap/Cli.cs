@@ -211,6 +211,7 @@ namespace CliWrap
             return this;
         }
 
+#if NET45 || NETCOREAPP3_0
         /// <inheritdoc />
         public ICli SetCancellationToken(CancellationToken token, bool killEntireProcessTree)
         {
@@ -218,9 +219,14 @@ namespace CliWrap
             _killEntireProcessTree = killEntireProcessTree;
             return this;
         }
+#endif
 
         /// <inheritdoc />
-        public ICli SetCancellationToken(CancellationToken token) => SetCancellationToken(token, false);
+        public ICli SetCancellationToken(CancellationToken token)
+        {
+            _cancellationToken = token;
+            return this;
+        }
 
         /// <inheritdoc />
         public ICli EnableExitCodeValidation(bool isEnabled = true)
