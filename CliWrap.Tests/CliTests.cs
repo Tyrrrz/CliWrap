@@ -18,16 +18,17 @@ namespace CliWrap.Tests
         private const string TestEnvVar = "TEST_ENV_VAR";
 
         private string TestDirPath => TestContext.CurrentContext.TestDirectory;
+        private string BatsDirPath => Path.Combine(TestDirPath, "Bats");
 
-        private string EchoArgsToStdoutBat => Path.Combine(TestDirPath, "Bats", "EchoArgsToStdout.bat");
-        private string EchoFirstArgEscapedToStdoutBat => Path.Combine(TestDirPath, "Bats", "EchoFirstArgEscapedToStdout.bat");
-        private string EchoStdinToStdoutBat => Path.Combine(TestDirPath, "Bats", "EchoStdinToStdout.bat");
-        private string EchoEnvVarToStdoutBat => Path.Combine(TestDirPath, "Bats", "EchoEnvVarToStdout.bat");
-        private string EchoArgsToStderrBat => Path.Combine(TestDirPath, "Bats", "EchoArgsToStderr.bat");
-        private string EchoSpamBat => Path.Combine(TestDirPath, "Bats", "EchoSpam.bat");
-        private string SleepBat => Path.Combine(TestDirPath, "Bats", "Sleep.bat");
-        private string StartChildProcessesBat => Path.Combine(TestDirPath, "Bats", "StartChildProcesses.bat");
-        private string NonZeroExitCodeBat => Path.Combine(TestDirPath, "Bats", "NonZeroExitCode.bat");
+        private string EchoArgsToStdoutBat => Path.Combine(BatsDirPath, "EchoArgsToStdout.bat");
+        private string EchoFirstArgEscapedToStdoutBat => Path.Combine(BatsDirPath, "EchoFirstArgEscapedToStdout.bat");
+        private string EchoStdinToStdoutBat => Path.Combine(BatsDirPath, "EchoStdinToStdout.bat");
+        private string EchoEnvVarToStdoutBat => Path.Combine(BatsDirPath, "EchoEnvVarToStdout.bat");
+        private string EchoArgsToStderrBat => Path.Combine(BatsDirPath, "EchoArgsToStderr.bat");
+        private string EchoSpamBat => Path.Combine(BatsDirPath, "EchoSpam.bat");
+        private string SleepBat => Path.Combine(BatsDirPath, "Sleep.bat");
+        private string StartChildProcessesBat => Path.Combine(BatsDirPath, "StartChildProcesses.bat");
+        private string NonZeroExitCodeBat => Path.Combine(BatsDirPath, "NonZeroExitCode.bat");
 
         private void AssertExecutionResult(ExecutionResult result,
             int expectedExitCode, string expectedStandardOutput, string expectedStandardError)
