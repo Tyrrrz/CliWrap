@@ -1,10 +1,9 @@
 # CliWrap
 
-[![Build](https://img.shields.io/appveyor/ci/Tyrrrz/CliWrap/master.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap/branch/master)
-[![Tests](https://img.shields.io/appveyor/tests/Tyrrrz/CliWrap/master.svg)](https://ci.appveyor.com/project/Tyrrrz/CliWrap/branch/master/tests)
-[![Coverage](https://img.shields.io/codecov/c/gh/Tyrrrz/CliWrap/master.svg)](https://codecov.io/gh/Tyrrrz/CliWrap)
-[![NuGet](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
-[![NuGet](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
+[![Build](https://github.com/Tyrrrz/CliWrap/workflows/CI/badge.svg?branch=master)](https://github.com/Tyrrrz/CliWrap/actions)
+[![Coverage](https://codecov.io/gh/Tyrrrz/CliWrap/branch/master/graph/badge.svg)](https://codecov.io/gh/Tyrrrz/CliWrap)
+[![Version](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
+[![Downloads](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Donate](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://patreon.com/tyrrrz)
 [![Donate](https://img.shields.io/badge/buymeacoffee-donate-yellow.svg)](https://buymeacoffee.com/tyrrrz)
 
@@ -13,7 +12,6 @@ CliWrap is a library that makes it easier to interact with command line interfac
 ## Download
 
 - [NuGet](https://nuget.org/packages/CliWrap): `dotnet add package CliWrap`
-- [Continuous integration](https://ci.appveyor.com/project/Tyrrrz/CliWrap)
 
 ## Features
 

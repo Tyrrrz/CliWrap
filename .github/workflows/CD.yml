@@ -1,0 +1,25 @@
+name: CD
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
+
+    - name: Pack
+      run: dotnet pack --configuration Release
+
+    - name: Deploy
+      run: dotnet nuget push CliWrap/bin/Release/*.nupkg -s nuget.org -k ${{secrets.NUGET_TOKEN}}

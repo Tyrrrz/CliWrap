@@ -1,0 +1,22 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
+
+    - name: Build & test
+      run: dotnet test --configuration Release
+
+    - name: Coverage
+      run: curl -s https://codecov.io/bash | bash -s -- -f CliWrap.Tests/bin/Release/Coverage.xml -t ${{secrets.CODECOV_TOKEN}} -Z
