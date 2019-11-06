@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout
@@ -19,4 +19,6 @@ jobs:
       run: dotnet test --configuration Release
 
     - name: Coverage
-      run: curl -s https://codecov.io/bash | bash -s -- -f CliWrap.Tests/bin/Release/Coverage.xml -t ${{secrets.CODECOV_TOKEN}} -Z
+      run: |
+        choco install codecov --no-progress
+        codecov -f CliWrap.Tests/bin/Release/Coverage.xml -t ${{secrets.CODECOV_TOKEN}} --required
