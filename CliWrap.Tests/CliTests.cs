@@ -156,52 +156,47 @@ namespace CliWrap.Tests
         public void Execute_StartChildProcesses_Cancel_Test()
         {
             // Arrange
-            using (var cts = new CancellationTokenSource())
-            {
-                var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token, true);
-                cts.CancelAfter(TimeSpan.FromSeconds(1));
+            using var cts = new CancellationTokenSource();
 
-                // Act & assert
-                Assert.Throws<OperationCanceledException>(() => cli.Execute());
-                Assert.That(cli.ProcessId, Is.Not.Null, "Process ID");
-                Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Empty, "Child processes");
-            }
+            var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token, true);
+
+            // Act & assert
+            cts.CancelAfter(TimeSpan.FromSeconds(1));
+            Assert.Throws<OperationCanceledException>(() => cli.Execute());
+            Assert.That(cli.ProcessId, Is.Not.Null, "Process ID");
+            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Empty, "Child processes");
         }
 
         [Test]
         public void Execute_Sleep_CancelEarly_Test()
         {
             // Arrange
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.Cancel();
+            using var cts = new CancellationTokenSource();
 
-                // Act & assert
-                Assert.Throws<OperationCanceledException>(() =>
-                {
-                    Cli.Wrap(SleepBat)
-                        .SetCancellationToken(cts.Token)
-                        .Execute();
-                });
-            }
+            // Act & assert
+            cts.Cancel();
+            Assert.Throws<OperationCanceledException>(() =>
+            {
+                Cli.Wrap(SleepBat)
+                    .SetCancellationToken(cts.Token)
+                    .Execute();
+            });
         }
 
         [Test]
         public void Execute_Sleep_CancelLate_Test()
         {
             // Arrange
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.CancelAfter(TimeSpan.FromSeconds(1));
+            using var cts = new CancellationTokenSource();
 
-                // Act & assert
-                Assert.Throws<OperationCanceledException>(() =>
-                {
-                    Cli.Wrap(SleepBat)
-                        .SetCancellationToken(cts.Token)
-                        .Execute();
-                });
-            }
+            // Act & assert
+            cts.CancelAfter(TimeSpan.FromSeconds(1));
+            Assert.Throws<OperationCanceledException>(() =>
+            {
+                Cli.Wrap(SleepBat)
+                    .SetCancellationToken(cts.Token)
+                    .Execute();
+            });
         }
 
         [Test]
@@ -379,60 +374,54 @@ namespace CliWrap.Tests
         public async Task ExecuteAsync_StartChildProcesses_Cancel_Test()
         {
             // Arrange
-            using (var cts = new CancellationTokenSource())
-            {
-                var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token, true);
+            using var cts = new CancellationTokenSource();
+            var cli = Cli.Wrap(StartChildProcessesBat).SetCancellationToken(cts.Token, true);
 
-                // Act
-                var executeTask = cli.ExecuteAsync();
+            // Act
+            var executeTask = cli.ExecuteAsync();
 
-                await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
-                Assert.That(cli.ProcessId, Is.Not.Null, "Process ID");
-                Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Not.Empty, "Child processes (before cancel)");
+            Assert.That(cli.ProcessId, Is.Not.Null, "Process ID");
+            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Not.Empty, "Child processes (before cancel)");
 
-                cts.Cancel();
+            cts.Cancel();
 
-                // Assert
-                Assert.ThrowsAsync<OperationCanceledException>(() => executeTask);
-                Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Empty, "Child processes (after cancel)");
-            }
+            // Assert
+            Assert.ThrowsAsync<OperationCanceledException>(() => executeTask);
+            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Empty, "Child processes (after cancel)");
         }
 
         [Test]
         public void ExecuteAsync_Sleep_CancelEarly_Test()
         {
             // Arrange
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.Cancel();
+            using var cts = new CancellationTokenSource();
 
-                // Act & assert
-                Assert.ThrowsAsync<OperationCanceledException>(async () =>
-                {
-                    await Cli.Wrap(SleepBat)
-                        .SetCancellationToken(cts.Token)
-                        .ExecuteAsync();
-                });
-            }
+            // Act & assert
+            cts.Cancel();
+            Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            {
+                await Cli.Wrap(SleepBat)
+                    .SetCancellationToken(cts.Token)
+                    .ExecuteAsync();
+            });
         }
 
         [Test]
         public void ExecuteAsync_Sleep_CancelLate_Test()
         {
             // Arrange
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.CancelAfter(TimeSpan.FromSeconds(1));
+            using var cts = new CancellationTokenSource();
 
-                // Act & assert
-                Assert.ThrowsAsync<OperationCanceledException>(async () =>
-                {
-                    await Cli.Wrap(SleepBat)
-                        .SetCancellationToken(cts.Token)
-                        .ExecuteAsync();
-                });
-            }
+            // Act & assert
+            cts.CancelAfter(TimeSpan.FromSeconds(1));
+            Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            {
+                await Cli.Wrap(SleepBat)
+                    .SetCancellationToken(cts.Token)
+                    .ExecuteAsync();
+            });
         }
 
         [Test]

@@ -10,14 +10,13 @@ namespace CliWrap.Tests.Internal
     {
         public static IReadOnlyList<Process> GetChildProcesses(int processId)
         {
-            using (var searcher = new ManagementObjectSearcher($"Select * From Win32_Process Where ParentProcessID={processId}"))
-            using (var results = searcher.Get())
-            {
-                return results.Cast<ManagementObject>()
-                    .Select(managementObject => Convert.ToInt32(managementObject["ProcessId"]))
-                    .Select(Process.GetProcessById)
-                    .ToArray();
-            }
+            using var searcher = new ManagementObjectSearcher($"Select * From Win32_Process Where ParentProcessID={processId}");
+            using var results = searcher.Get();
+
+            return results.Cast<ManagementObject>()
+                .Select(managementObject => Convert.ToInt32(managementObject["ProcessId"]))
+                .Select(Process.GetProcessById)
+                .ToArray();
         }
 
         public static IReadOnlyList<Process> GetDescendantProcesses(int processId) =>
