@@ -1,5 +1,4 @@
 ﻿using System;
-using CliWrap.Internal;
 using CliWrap.Models;
 
 namespace CliWrap.Exceptions
@@ -17,10 +16,10 @@ namespace CliWrap.Exceptions
         /// <summary>
         /// Initializes an instance of <see cref="ExecutionResultValidationException"/>.
         /// </summary>
-        protected ExecutionResultValidationException(ExecutionResult executionResult, string message)
+        protected ExecutionResultValidationException(ExecutionResult executionResult, string? message)
             : base(message)
         {
-            ExecutionResult = executionResult.GuardNotNull(nameof(executionResult));
+            ExecutionResult = executionResult;
         }
     }
 }

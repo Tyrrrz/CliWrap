@@ -1,5 +1,4 @@
 ﻿using System;
-using CliWrap.Internal;
 
 namespace CliWrap.Models
 {
@@ -45,8 +44,8 @@ namespace CliWrap.Models
             DateTimeOffset startTime, DateTimeOffset exitTime)
         {
             ExitCode = exitCode;
-            StandardOutput = standardOutput.GuardNotNull(nameof(standardOutput));
-            StandardError = standardError.GuardNotNull(nameof(standardError));
+            StandardOutput = standardOutput;
+            StandardError = standardError;
             StartTime = startTime;
             ExitTime = exitTime;
         }

@@ -25,13 +25,13 @@ namespace CliWrap.Internal
 
         public int ExitCode => _nativeProcess.ExitCode;
 
-        public string StandardOutput { get; private set; }
+        public string StandardOutput => _standardOutputBuffer.ToString();
 
-        public string StandardError { get; private set; }
+        public string StandardError => _standardErrorBuffer.ToString();
 
         public CliProcess(ProcessStartInfo startInfo,
-            Action<string> standardOutputObserver = null, Action<string> standardErrorObserver = null,
-            Action standardOutputClosedObserver = null, Action standardErrorClosedObserver = null)
+            Action<string>? standardOutputObserver = null, Action<string>? standardErrorObserver = null,
+            Action? standardOutputClosedObserver = null, Action? standardErrorClosedObserver = null)
         {
             // Create underlying process
             _nativeProcess = new Process {StartInfo = startInfo};
@@ -67,9 +67,6 @@ namespace CliWrap.Internal
                 // Null means end of stream
                 else
                 {
-                    // Flush buffer
-                    StandardOutput = _standardOutputBuffer.ToString();
-
                     // Release signal
                     standardOutputClosedObserver?.Invoke();
                     _standardOutputEndSignal.Release();
@@ -89,9 +86,6 @@ namespace CliWrap.Internal
                 // Null means end of stream
                 else
                 {
-                    // Flush buffer
-                    StandardError = _standardErrorBuffer.ToString();
-
                     // Release signal
                     standardErrorClosedObserver?.Invoke();
                     _standardErrorEndSignal.Release();

@@ -164,7 +164,7 @@ namespace CliWrap.Tests
             cts.CancelAfter(TimeSpan.FromSeconds(1));
             Assert.Throws<OperationCanceledException>(() => cli.Execute());
             Assert.That(cli.ProcessId, Is.Not.Null, "Process ID");
-            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Empty, "Child processes");
+            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId!.Value), Is.Empty, "Child processes");
         }
 
         [Test]
@@ -383,13 +383,13 @@ namespace CliWrap.Tests
             await Task.Delay(TimeSpan.FromSeconds(1));
 
             Assert.That(cli.ProcessId, Is.Not.Null, "Process ID");
-            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Not.Empty, "Child processes (before cancel)");
+            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId!.Value), Is.Not.Empty, "Child processes (before cancel)");
 
             cts.Cancel();
 
             // Assert
             Assert.ThrowsAsync<OperationCanceledException>(() => executeTask);
-            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId.Value), Is.Empty, "Child processes (after cancel)");
+            Assert.That(ProcessEx.GetDescendantProcesses(cli.ProcessId!.Value), Is.Empty, "Child processes (after cancel)");
         }
 
         [Test]

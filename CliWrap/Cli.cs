@@ -19,16 +19,16 @@ namespace CliWrap
     {
         private readonly string _filePath;
 
-        private string _workingDirectory;
-        private string _arguments;
+        private string? _workingDirectory;
+        private string? _arguments;
         private Stream _standardInput = Stream.Null;
         private readonly IDictionary<string, string> _environmentVariables = new Dictionary<string, string>();
         private Encoding _standardOutputEncoding = Console.OutputEncoding;
         private Encoding _standardErrorEncoding = Console.OutputEncoding;
-        private Action<string> _standardOutputObserver;
-        private Action _standardOutputClosedObserver;
-        private Action<string> _standardErrorObserver;
-        private Action _standardErrorClosedObserver;
+        private Action<string>? _standardOutputObserver;
+        private Action? _standardOutputClosedObserver;
+        private Action<string>? _standardErrorObserver;
+        private Action? _standardErrorClosedObserver;
         private CancellationToken _cancellationToken;
         private bool _killEntireProcessTree;
         private bool _exitCodeValidation = true;
@@ -42,7 +42,7 @@ namespace CliWrap
         /// </summary>
         public Cli(string filePath)
         {
-            _filePath = filePath.GuardNotNull(nameof(filePath));
+            _filePath = filePath;
         }
 
         #region Options
@@ -50,22 +50,20 @@ namespace CliWrap
         /// <inheritdoc />
         public ICli SetWorkingDirectory(string workingDirectory)
         {
-            _workingDirectory = workingDirectory.GuardNotNull(nameof(workingDirectory));
+            _workingDirectory = workingDirectory;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetArguments(string arguments)
         {
-            _arguments = arguments.GuardNotNull(nameof(arguments));
+            _arguments = arguments;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetArguments(IReadOnlyList<string> arguments)
         {
-            arguments.GuardNotNull(nameof(arguments));
-
             var buffer = new StringBuilder();
 
             foreach (var argument in arguments)
@@ -135,16 +133,13 @@ namespace CliWrap
         /// <inheritdoc />
         public ICli SetStandardInput(Stream standardInput)
         {
-            _standardInput = standardInput.GuardNotNull(nameof(standardInput));
+            _standardInput = standardInput;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardInput(string standardInput, Encoding encoding)
         {
-            standardInput.GuardNotNull(nameof(standardInput));
-            encoding.GuardNotNull(nameof(encoding));
-
             // Represent string as stream
             var data = encoding.GetBytes(standardInput);
             var stream = new MemoryStream(data, false);
@@ -153,61 +148,54 @@ namespace CliWrap
         }
 
         /// <inheritdoc />
-        public ICli SetStandardInput(string standardInput)
-        {
-            standardInput.GuardNotNull(nameof(standardInput));
-            return SetStandardInput(standardInput, Console.InputEncoding);
-        }
+        public ICli SetStandardInput(string standardInput) => SetStandardInput(standardInput, Console.InputEncoding);
 
         /// <inheritdoc />
         public ICli SetEnvironmentVariable(string key, string value)
         {
-            key.GuardNotNull(nameof(key));
-
             _environmentVariables[key] = value;
-
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardOutputEncoding(Encoding encoding)
         {
-            _standardOutputEncoding = encoding.GuardNotNull(nameof(encoding));
+            _standardOutputEncoding = encoding;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardErrorEncoding(Encoding encoding)
         {
-            _standardErrorEncoding = encoding.GuardNotNull(nameof(encoding));
+            _standardErrorEncoding = encoding;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardOutputCallback(Action<string> callback)
         {
-            _standardOutputObserver = callback.GuardNotNull(nameof(callback));
+            _standardOutputObserver = callback;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardOutputClosedCallback(Action callback)
         {
-            _standardOutputClosedObserver = callback.GuardNotNull(nameof(callback));
+            _standardOutputClosedObserver = callback;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardErrorCallback(Action<string> callback)
         {
-            _standardErrorObserver = callback.GuardNotNull(nameof(callback));
+            _standardErrorObserver = callback;
             return this;
         }
 
         /// <inheritdoc />
         public ICli SetStandardErrorClosedCallback(Action callback)
         {
-            _standardErrorClosedObserver = callback.GuardNotNull(nameof(callback));
+            _standardErrorClosedObserver = callback;
             return this;
         }
 
@@ -287,7 +275,7 @@ namespace CliWrap
                 throw new ExitCodeValidationException(result);
 
             // Validate standard error if needed
-            if (_standardErrorValidation && !result.StandardError.IsNullOrWhiteSpace())
+            if (_standardErrorValidation && !string.IsNullOrWhiteSpace(result.StandardError))
                 throw new StandardErrorValidationException(result);
         }
 
@@ -295,7 +283,7 @@ namespace CliWrap
         public ExecutionResult Execute()
         {
             // Set up execution context
-            using (var process = StartProcess())
+            using var process = StartProcess();
             using (_cancellationToken.Register(() => process.TryKill(_killEntireProcessTree)))
             {
                 ProcessId = process.Id;
@@ -327,7 +315,7 @@ namespace CliWrap
         public async Task<ExecutionResult> ExecuteAsync()
         {
             // Set up execution context
-            using (var process = StartProcess())
+            using var process = StartProcess();
             using (_cancellationToken.Register(() => process.TryKill(_killEntireProcessTree)))
             {
                 ProcessId = process.Id;
@@ -353,20 +341,17 @@ namespace CliWrap
 
                 return result;
             }
-
         }
 
         /// <inheritdoc />
         public void ExecuteAndForget()
         {
             // Set up execution context
-            using (var process = StartProcess())
-            {
-                ProcessId = process.Id;
+            using var process = StartProcess();
+            ProcessId = process.Id;
 
-                // Write stdin
-                process.PipeStandardInput(_standardInput);
-            }
+            // Write stdin
+            process.PipeStandardInput(_standardInput);
         }
 
         #endregion
