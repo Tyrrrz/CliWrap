@@ -22,6 +22,4 @@ jobs:
       run: dotnet pack CliWrap --configuration Release
 
     - name: Deploy
-      run: |
-        dotnet nuget push CliWrap/bin/Release/*.nupkg -s nuget.org -k ${{secrets.NUGET_TOKEN}}
-        dotnet nuget push CliWrap/bin/Release/*.snupkg -s nuget.org -k ${{secrets.NUGET_TOKEN}}
+      run: dotnet nuget push CliWrap/bin/Release/*.nupkg -s nuget.org -k ${{secrets.NUGET_TOKEN}}
