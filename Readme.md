@@ -111,9 +111,3 @@ var result = await Cli.Wrap("cli.exe")
     .EnableStandardErrorValidation(true) // throw exception on non-empty stderr (off by default)
     .ExecuteAsync();
 ```
-
-## Libraries used
-
-- [ConfigureAwait.Fody](https://github.com/Fody/ConfigureAwait)
-- [NUnit](https://github.com/nunit/nunit)
-- [Coverlet](https://github.com/tonerdo/coverlet)
