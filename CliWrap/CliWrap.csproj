@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../CliWrap.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net45;netcoreapp3.0;netstandard2.0</TargetFrameworks>
-    <Version>2.5</Version>
-    <Company>Tyrrrz</Company>
     <Authors>$(Company)</Authors>
-    <Copyright>Copyright (C) Alexey Golub</Copyright>
     <Description>Wrapper for command line interface executables</Description>
     <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
@@ -18,8 +16,6 @@
     <EmbedUntrackedSources>True</EmbedUntrackedSources>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
