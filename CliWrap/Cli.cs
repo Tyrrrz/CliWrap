@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Argument;
 using CliWrap.Exceptions;
 using CliWrap.Internal;
 using CliWrap.Models;
@@ -58,6 +59,13 @@ namespace CliWrap
         public ICli SetArguments(string arguments)
         {
             _arguments = arguments;
+            return this;
+        }
+
+        /// <inheritdoc />
+        public ICli SetArguments(ArgumentBuilder argbuilder)
+        {
+            _arguments = argbuilder.Render();
             return this;
         }
 

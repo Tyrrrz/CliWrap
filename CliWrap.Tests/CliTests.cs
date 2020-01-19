@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Argument;
+using CliWrap.Argument.ArgumentTypes;
 using CliWrap.Exceptions;
 using CliWrap.Models;
 using CliWrap.Tests.Internal;
@@ -55,6 +57,26 @@ namespace CliWrap.Tests
 
             // Assert
             AssertExecutionResult(result, 0, TestString, "");
+        }
+
+        [Test]
+        public void Execute_EchoArgumentBuilderToStdout_Test() {
+            // Setup the arguments
+            var argbuilder = new ArgumentBuilder();
+            argbuilder.Append("TextArgument1");
+            argbuilder.AppendQuoted("QuotedArgument2");
+            argbuilder.AppendSwitch("testswitch3", "=", "value");
+            argbuilder.AppendSecret("testsecretpassword4");
+
+            var expectedreturn = argbuilder.Render();
+
+            // Arrange & act
+            var result = Cli.Wrap(EchoArgsToStdoutBat)
+                .SetArguments(argbuilder)
+                .Execute();
+
+            // Assert
+            AssertExecutionResult(result, 0, expectedreturn, "");
         }
 
         [Test]

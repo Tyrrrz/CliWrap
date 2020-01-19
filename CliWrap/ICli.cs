@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Argument;
 using CliWrap.Exceptions;
 using CliWrap.Models;
 
@@ -28,6 +29,10 @@ namespace CliWrap
         /// Sets the command line arguments.
         /// </summary>
         ICli SetArguments(string arguments);
+
+        /// <summary> Sets the command line arguments. </summary>
+        /// <param name="argbuilder"> The ArgumentBuilder to use. </param>
+        ICli SetArguments(ArgumentBuilder argbuilder);
 
         /// <summary>
         /// Sets the command line arguments.
