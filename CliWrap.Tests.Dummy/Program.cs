@@ -13,6 +13,8 @@ namespace CliWrap.Tests.Dummy
 
         public const string Echo = "echo";
 
+        public const string EchoStdIn = "echo-stdin";
+
         public const string EchoStdOut = "echo-stdout";
 
         public const string EchoStdErr = "echo-stderr";
@@ -27,6 +29,8 @@ namespace CliWrap.Tests.Dummy
 
         public const string Binary = "binary";
 
+        public const string GetSize = "get-size";
+
         private static readonly IReadOnlyDictionary<string, Func<string[], int>> Commands =
             new Dictionary<string, Func<string[], int>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -36,25 +40,21 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [Echo] = args =>
+                [EchoStdIn] = args =>
                 {
-                    var stdOutArg = args.ElementAtOrDefault(0);
-                    var stdErrArg = args.ElementAtOrDefault(1);
+                    using var input = Console.OpenStandardInput();
+                    using var output = Console.OpenStandardOutput();
 
-                    if (!string.IsNullOrWhiteSpace(stdOutArg))
-                        Console.WriteLine(stdOutArg);
-
-                    if (!string.IsNullOrWhiteSpace(stdErrArg))
-                        Console.Error.WriteLine(stdErrArg);
+                    input.CopyTo(output);
 
                     return 0;
                 },
 
                 [EchoStdOut] = args =>
-                    {
-                        Console.WriteLine(string.Join(" ", args));
-                        return 0;
-                    },
+                {
+                    Console.WriteLine(string.Join(" ", args));
+                    return 0;
+                },
 
                 [EchoStdErr] = args =>
                 {
@@ -105,6 +105,19 @@ namespace CliWrap.Tests.Dummy
                     Random.NextBytes(buffer);
 
                     Console.OpenStandardOutput().Write(buffer, 0, buffer.Length);
+
+                    return 0;
+                },
+
+                [GetSize] = args =>
+                {
+                    using var input = Console.OpenStandardInput();
+
+                    var i = 0L;
+                    while (input.ReadByte() >= 0)
+                        i++;
+
+                    Console.WriteLine(i.ToString(CultureInfo.InvariantCulture));
 
                     return 0;
                 }

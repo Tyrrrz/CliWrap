@@ -20,10 +20,10 @@ namespace CliWrap
             return this;
         }
 
-        public CliConfigurationBuilder SetArguments(Action<CliArgumentFormatter> handler)
+        public CliConfigurationBuilder SetArguments(Action<CliArgumentFormatter> build)
         {
             var formatter = new CliArgumentFormatter();
-            handler(formatter);
+            build(formatter);
 
             return SetArguments(formatter.ToString());
         }

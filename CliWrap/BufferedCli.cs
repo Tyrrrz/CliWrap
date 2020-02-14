@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +12,13 @@ namespace CliWrap
     {
         private readonly string _filePath;
         private readonly CliConfiguration _configuration;
+        private readonly Stream _input;
 
-        public BufferedCli(string filePath, CliConfiguration configuration)
+        public BufferedCli(string filePath, CliConfiguration configuration, Stream input)
         {
             _filePath = filePath;
             _configuration = configuration;
+            _input = input;
         }
 
         private async Task<BufferedCliResult> ExecuteAsync(Process process)
@@ -47,6 +50,11 @@ namespace CliWrap
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+
+            using (process.StandardInput)
+            {
+                await _input.CopyToAsync(process.StandardInput.BaseStream);
+            }
 
             await stdOutEndSignal.WaitAsync();
             await stdErrEndSignal.WaitAsync();
