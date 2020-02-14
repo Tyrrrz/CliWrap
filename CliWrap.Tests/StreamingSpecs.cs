@@ -17,7 +17,7 @@ namespace CliWrap.Tests
             var stream = Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdOut)
                     .AddArgument(count));
             }).Streaming().ExecuteAsync();
@@ -42,7 +42,7 @@ namespace CliWrap.Tests
             var stream = Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdErr)
                     .AddArgument(count));
             }).Streaming().ExecuteAsync();
@@ -67,7 +67,7 @@ namespace CliWrap.Tests
             var stream = Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopBoth)
                     .AddArgument(count));
             }).Streaming().ExecuteAsync();

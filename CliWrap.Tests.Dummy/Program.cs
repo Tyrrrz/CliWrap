@@ -5,31 +5,36 @@ using System.Linq;
 
 namespace CliWrap.Tests.Dummy
 {
-    public static class Program
+    // Shared metadata
+    public static partial class Program
+    {
+        public static string Location { get; } = typeof(Program).Assembly.Location;
+
+        public const string Echo = nameof(Echo);
+
+        public const string EchoStdIn = nameof(EchoStdIn);
+
+        public const string EchoStdOut = nameof(EchoStdOut);
+
+        public const string EchoStdErr = nameof(EchoStdErr);
+
+        public const string SetExitCode = nameof(SetExitCode);
+
+        public const string LoopStdOut = nameof(LoopStdOut);
+
+        public const string LoopStdErr = nameof(LoopStdErr);
+
+        public const string LoopBoth = nameof(LoopBoth);
+
+        public const string Binary = nameof(Binary);
+
+        public const string GetStdInSize = nameof(GetStdInSize);
+    }
+
+    // Implementation
+    public static partial class Program
     {
         private static readonly Random Random = new Random(1234567);
-
-        public static string FilePath { get; } = typeof(Program).Assembly.Location;
-
-        public const string Echo = "echo";
-
-        public const string EchoStdIn = "echo-stdin";
-
-        public const string EchoStdOut = "echo-stdout";
-
-        public const string EchoStdErr = "echo-stderr";
-
-        public const string SetExitCode = "set-exit-code";
-
-        public const string LoopStdOut = "loop-stdout";
-
-        public const string LoopStdErr = "loop-stderr";
-
-        public const string LoopBoth = "loop-both";
-
-        public const string Binary = "binary";
-
-        public const string GetSize = "get-size";
 
         private static readonly IReadOnlyDictionary<string, Func<string[], int>> Commands =
             new Dictionary<string, Func<string[], int>>(StringComparer.OrdinalIgnoreCase)
@@ -109,7 +114,7 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [GetSize] = args =>
+                [GetStdInSize] = args =>
                 {
                     using var input = Console.OpenStandardInput();
 
@@ -123,6 +128,17 @@ namespace CliWrap.Tests.Dummy
                 }
             };
 
-        public static int Main(string[] args) => Commands[args.First()](args.Skip(1).ToArray());
+        public static int Main(string[] args)
+        {
+            if (args.Length <= 0)
+            {
+                return -1;
+            }
+
+            var command = args.ElementAtOrDefault(0);
+            var commandArgs = args.Skip(1).ToArray();
+
+            return Commands[command](commandArgs);
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace CliWrap.Tests
             var result = await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.SetExitCode)
                     .AddArgument(expectedExitCode));
             }).Buffered().ExecuteAsync();
@@ -37,7 +37,7 @@ namespace CliWrap.Tests
             var result = await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.EchoStdOut)
                     .AddArgument(expectedStdOut));
             }).Buffered().ExecuteAsync();
@@ -59,7 +59,7 @@ namespace CliWrap.Tests
             var result = await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.EchoStdErr)
                     .AddArgument(expectedStdErr));
             }).Buffered().ExecuteAsync();
@@ -75,7 +75,7 @@ namespace CliWrap.Tests
         public void I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Act
-            var task = Cli.Wrap("dotnet", Dummy.Program.FilePath)
+            var task = Cli.Wrap("dotnet", Dummy.Program.Location)
                 .Buffered()
                 .ExecuteAsync();
 
@@ -90,7 +90,7 @@ namespace CliWrap.Tests
             await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdOut)
                     .AddArgument(100_000));
             }).Buffered().ExecuteAsync();
@@ -103,7 +103,7 @@ namespace CliWrap.Tests
             await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdErr)
                     .AddArgument(100_000));
             }).Buffered().ExecuteAsync();
@@ -116,7 +116,7 @@ namespace CliWrap.Tests
             await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopBoth)
                     .AddArgument(100_000));
             }).Buffered().ExecuteAsync();

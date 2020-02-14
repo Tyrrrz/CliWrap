@@ -20,13 +20,15 @@ namespace CliWrap.Tests
             await stream.WriteAsync(data, 0, data.Length);
             stream.Seek(0, SeekOrigin.Begin);
 
-            // Act
-            var result = await Cli.Wrap("dotnet", c =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
                 c.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.EchoStdIn));
-            }).PipeFrom(stream).Buffered().ExecuteAsync();
+            });
+
+            // Act
+            var result = await (stream | cli).Buffered().ExecuteAsync();
 
             // Assert
             result.StandardOutput.TrimEnd().Should().Be(expectedOutput);
@@ -38,72 +40,63 @@ namespace CliWrap.Tests
             // Arrange
             const string expectedOutput = "Hello world";
 
-            // Act
-            var result = await Cli.Wrap("dotnet", c =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
                 c.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.EchoStdIn));
-            }).PipeFrom(expectedOutput).Buffered().ExecuteAsync();
+            });
+
+            // Act
+            var result = await (expectedOutput | cli).Buffered().ExecuteAsync();
 
             // Assert
             result.StandardOutput.TrimEnd().Should().Be(expectedOutput);
         }
 
         [Fact]
-        public async Task I_can_execute_a_CLI_and_pipe_its_stdout_into_another_CLI()
+        public async Task I_can_execute_a_CLI_and_pipe_another_CLI_as_input()
         {
             // Arrange
-            const long bytes = 1_000_000;
+            const int expectedSize = 1_000_000;
 
-            // Act
-            var result = await Cli.Wrap("dotnet", c =>
-            {
-                c.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
-                    .AddArgument(Dummy.Program.GetSize));
-            }).PipeFrom(Cli.Wrap("dotnet", c =>
-            {
-                c.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
-                    .AddArgument(Dummy.Program.Binary)
-                    .AddArgument(bytes));
-            })).Buffered().ExecuteAsync();
-
-            var size = long.Parse(result.StandardOutput, CultureInfo.InvariantCulture);
-
-            // Assert
-            size.Should().Be(bytes);
-        }
-
-        [Fact]
-        public async Task I_can_execute_a_CLI_and_pipe_its_stdout_into_another_CLI_using_operators()
-        {
-            // Arrange
-            const long bytes = 1_000_000;
-
-            // Act
             var cli1 = Cli.Wrap("dotnet", c =>
             {
                 c.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.Binary)
-                    .AddArgument(bytes));
+                    .AddArgument(expectedSize));
             });
 
             var cli2 = Cli.Wrap("dotnet", c =>
             {
                 c.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
-                    .AddArgument(Dummy.Program.GetSize));
+                    .AddArgument(Dummy.Program.Location)
+                    .AddArgument(Dummy.Program.GetStdInSize));
             });
 
-            var result = await (cli1 > cli2).Buffered().ExecuteAsync();
+            // Act
+            var result = await (cli1 | cli2).Buffered().ExecuteAsync();
 
-            var size = long.Parse(result.StandardOutput, CultureInfo.InvariantCulture);
+            var size = int.Parse(result.StandardOutput, CultureInfo.InvariantCulture);
 
             // Assert
-            size.Should().Be(bytes);
+            size.Should().Be(expectedSize);
+        }
+
+        [Fact]
+        public async Task I_can_execute_a_CLI_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
+        {
+            // Arrange
+            var cli = Cli.Wrap("dotnet", c =>
+            {
+                c.SetArguments(a => a
+                    .AddArgument(Dummy.Program.Location)
+                    .AddArgument(Dummy.Program.GetStdInSize));
+            });
+
+            // Act
+            await cli.ExecuteAsync();
         }
     }
 }

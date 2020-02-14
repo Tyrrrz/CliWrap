@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace CliWrap.Infra
+namespace CliWrap.Internal
 {
     internal static class Extensions
     {

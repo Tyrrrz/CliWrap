@@ -17,7 +17,7 @@ namespace CliWrap.Tests
             var result = await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.SetExitCode)
                     .AddArgument(expectedExitCode));
             }).ExecuteAsync();
@@ -31,7 +31,7 @@ namespace CliWrap.Tests
         public void I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Act
-            var task = Cli.Wrap("dotnet", Dummy.Program.FilePath).ExecuteAsync();
+            var task = Cli.Wrap("dotnet", Dummy.Program.Location).ExecuteAsync();
 
             // Assert
             task.ProcessId.Should().NotBe(0);
@@ -44,7 +44,7 @@ namespace CliWrap.Tests
             await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdOut)
                     .AddArgument(100_000));
             }).ExecuteAsync();
@@ -57,7 +57,7 @@ namespace CliWrap.Tests
             await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdErr)
                     .AddArgument(100_000));
             }).ExecuteAsync();
@@ -70,7 +70,7 @@ namespace CliWrap.Tests
             await Cli.Wrap("dotnet", o =>
             {
                 o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.FilePath)
+                    .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopBoth)
                     .AddArgument(100_000));
             }).ExecuteAsync();

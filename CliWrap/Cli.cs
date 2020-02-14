@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using CliWrap.Infra;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -76,13 +76,19 @@ namespace CliWrap
 
             return new CliTask(ExecuteAsync(process), process.Id);
         }
+
+        public override string ToString() => $"{_filePath} {_configuration.Arguments}";
     }
 
     public partial class Cli
     {
-        public static Cli operator >(Cli source, Cli target) => target.PipeFrom(source);
+        public static Cli operator |(Cli source, Cli target) => target.PipeFrom(source);
 
-        public static Cli operator <(Cli target, Cli source) => target.PipeFrom(source);
+        public static Cli operator |(Stream source, Cli target) => target.PipeFrom(source);
+
+        public static Cli operator |(byte[] source, Cli target) => target.PipeFrom(source);
+
+        public static Cli operator |(string source, Cli target) => target.PipeFrom(source);
     }
 
     public partial class Cli
@@ -100,9 +106,6 @@ namespace CliWrap
 
         public static Cli Wrap(string filePath, string arguments) =>
             Wrap(filePath, c => c.SetArguments(arguments));
-
-        public static Cli Wrap(string filePath, string arguments, string workingDirPath) =>
-            Wrap(filePath, c => c.SetArguments(arguments).SetWorkingDirectory(workingDirPath));
 
         public static Cli Wrap(string filePath) =>
             Wrap(filePath, CliConfiguration.Default);

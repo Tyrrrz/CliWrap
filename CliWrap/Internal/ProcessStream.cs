@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 
-namespace CliWrap
+namespace CliWrap.Internal
 {
     public class ProcessStream : Stream
     {
