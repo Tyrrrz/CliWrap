@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CliWrap", "CliWrap\CliWrap.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CliWrap.Tests", "CliWrap.Tests\CliWrap.Tests.csproj", "{890D9A75-4B00-4D89-AAF8-936726B45410}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Tests.Dummy", "CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj", "{666CF814-2BA5-44E5-8C44-12A08E3C6D61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{890D9A75-4B00-4D89-AAF8-936726B45410}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{890D9A75-4B00-4D89-AAF8-936726B45410}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{890D9A75-4B00-4D89-AAF8-936726B45410}.Release|Any CPU.Build.0 = Release|Any CPU
+		{666CF814-2BA5-44E5-8C44-12A08E3C6D61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{666CF814-2BA5-44E5-8C44-12A08E3C6D61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{666CF814-2BA5-44E5-8C44-12A08E3C6D61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{666CF814-2BA5-44E5-8C44-12A08E3C6D61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
