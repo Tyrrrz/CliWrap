@@ -5,24 +5,15 @@ namespace CliWrap.Internal
 {
     public class ProcessStream : Stream
     {
-        private readonly Process _process;
-        private bool _hasStarted = false;
+        private readonly Cli _cli;
+        private Process? _process;
 
-        public ProcessStream(Process process)
+        public ProcessStream(Cli cli)
         {
-            _process = process;
+            _cli = cli;
         }
 
-        private Stream GetInnerStream()
-        {
-            if (!_hasStarted)
-            {
-                _process.Start();
-                _hasStarted = true;
-            }
-
-            return _process.StandardOutput.BaseStream;
-        }
+        private Stream GetInnerStream() => (_process ??= _cli.Start()).StandardOutput.BaseStream;
 
         public override void Flush() => GetInnerStream().Flush();
 

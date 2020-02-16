@@ -13,14 +13,16 @@ namespace CliWrap.Tests
             // Arrange
             const int count = 100_000;
 
-            // Act
-            var stream = Cli.Wrap("dotnet", o =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdOut)
                     .AddArgument(count));
-            }).Streaming().ExecuteAsync();
+            }).Streaming();
+
+            // Act
+            var stream = cli.ExecuteAsync();
 
             var i = 0;
             await foreach (var item in stream)
@@ -38,14 +40,16 @@ namespace CliWrap.Tests
             // Arrange
             const int count = 100_000;
 
-            // Act
-            var stream = Cli.Wrap("dotnet", o =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopStdErr)
                     .AddArgument(count));
-            }).Streaming().ExecuteAsync();
+            }).Streaming();
+
+            // Act
+            var stream = cli.ExecuteAsync();
 
             var i = 0;
             await foreach (var item in stream)
@@ -63,14 +67,16 @@ namespace CliWrap.Tests
             // Arrange
             const int count = 100_000;
 
-            // Act
-            var stream = Cli.Wrap("dotnet", o =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopBoth)
                     .AddArgument(count));
-            }).Streaming().ExecuteAsync();
+            }).Streaming();
+
+            // Act
+            var stream = cli.ExecuteAsync();
 
             var stdOutIndex = 0;
             var stdErrIndex = 0;

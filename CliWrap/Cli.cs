@@ -33,19 +33,28 @@ namespace CliWrap
 
         public Cli PipeFrom(string input) => PipeFrom(input, Console.InputEncoding);
 
-        public Cli PipeFrom(Cli cli)
-        {
-            var process = new Process
-            {
-                StartInfo = cli._configuration.GetStartInfo(cli._filePath)
-            };
-
-            return PipeFrom(new ProcessStream(process));
-        }
+        public Cli PipeFrom(Cli cli) => PipeFrom(new ProcessStream(cli));
 
         public BufferedCli Buffered() => new BufferedCli(_filePath, _configuration, _input);
 
         public StreamingCli Streaming() => new StreamingCli(_filePath, _configuration);
+
+        // HACK for piping, replace later
+        internal Process Start()
+        {
+            var process = new Process
+            {
+                StartInfo = _configuration.GetStartInfo(_filePath)
+            };
+
+            process.ErrorDataReceived += (sender, args) => { };
+
+            process.Start();
+
+            process.BeginErrorReadLine();
+
+            return process;
+        }
 
         private async Task<CliResult> ExecuteAsync(Process process)
         {
@@ -59,7 +68,9 @@ namespace CliWrap
             process.BeginErrorReadLine();
 
             using (process.StandardInput)
+            {
                 await _input.CopyToAsync(process.StandardInput.BaseStream);
+            }
 
             var exitCode = await process.WaitForExitAsync();
             var exitTime = DateTimeOffset.Now;

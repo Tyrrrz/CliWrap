@@ -13,14 +13,16 @@ namespace CliWrap.Tests
             // Arrange
             const int expectedExitCode = 13;
 
-            // Act
-            var result = await Cli.Wrap("dotnet", o =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.SetExitCode)
                     .AddArgument(expectedExitCode));
-            }).Buffered().ExecuteAsync();
+            }).Buffered();
+
+            // Act
+            var result = await cli.ExecuteAsync();
 
             // Assert
             result.ExitCode.Should().Be(expectedExitCode);
@@ -33,14 +35,16 @@ namespace CliWrap.Tests
             // Arrange
             const string expectedStdOut = "Hello stdout";
 
-            // Act
-            var result = await Cli.Wrap("dotnet", o =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.EchoStdOut)
                     .AddArgument(expectedStdOut));
-            }).Buffered().ExecuteAsync();
+            }).Buffered();
+
+            // Act
+            var result = await cli.ExecuteAsync();
 
             // Assert
             result.ExitCode.Should().Be(0);
@@ -55,14 +59,16 @@ namespace CliWrap.Tests
             // Arrange
             const string expectedStdErr = "Hello stderr";
 
-            // Act
-            var result = await Cli.Wrap("dotnet", o =>
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.EchoStdErr)
                     .AddArgument(expectedStdErr));
-            }).Buffered().ExecuteAsync();
+            }).Buffered();
+
+            // Act
+            var result = await cli.ExecuteAsync();
 
             // Assert
             result.ExitCode.Should().Be(0);
@@ -74,52 +80,30 @@ namespace CliWrap.Tests
         [Fact]
         public void I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
         {
+            // Arrange
+            var cli = Cli.Wrap("dotnet", Dummy.Program.Location).Buffered();
+
             // Act
-            var task = Cli.Wrap("dotnet", Dummy.Program.Location)
-                .Buffered()
-                .ExecuteAsync();
+            var task = cli.ExecuteAsync();
 
             // Assert
             task.ProcessId.Should().NotBe(0);
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_it_will_not_deadlock_on_very_large_stdout()
-        {
-            // Act
-            await Cli.Wrap("dotnet", o =>
-            {
-                o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.LoopStdOut)
-                    .AddArgument(100_000));
-            }).Buffered().ExecuteAsync();
-        }
-
-        [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_it_will_not_deadlock_on_very_large_stderr()
-        {
-            // Act
-            await Cli.Wrap("dotnet", o =>
-            {
-                o.SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.LoopStdErr)
-                    .AddArgument(100_000));
-            }).Buffered().ExecuteAsync();
-        }
-
-        [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_CLI_and_it_will_not_deadlock_on_very_large_stdout_and_stderr()
         {
-            // Act
-            await Cli.Wrap("dotnet", o =>
+            // Arrange
+            var cli = Cli.Wrap("dotnet", c =>
             {
-                o.SetArguments(a => a
+                c.SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.LoopBoth)
                     .AddArgument(100_000));
-            }).Buffered().ExecuteAsync();
+            }).Buffered();
+
+            // Act
+            await cli.ExecuteAsync();
         }
     }
 }
