@@ -1,9 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -20,70 +20,35 @@ namespace CliWrap
             _input = input;
         }
 
-        private async Task<BufferedCliResult> ExecuteAsync(Process process)
+        private async Task<BufferedCliResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
-            using (process)
-            {
-                var processExitTcs = new TaskCompletionSource<object?>();
-                var stdOutEndTcs = new TaskCompletionSource<object?>();
-                var stdErrEndTcs = new TaskCompletionSource<object?>();
+            using var _ = process;
 
-                var stdOutBuffer = new StringBuilder();
-                var stdErrBuffer = new StringBuilder();
+            var stdOutBuffer = new StringBuilder();
+            var stdErrBuffer = new StringBuilder();
 
-                process.EnableRaisingEvents = true;
-                process.Exited += (sender, args) => processExitTcs.TrySetResult(null);
+            process.StdOutReceived += (sender, s) => stdOutBuffer.AppendLine(s);
+            process.StdErrReceived += (sender, s) => stdErrBuffer.AppendLine(s);
 
-                process.OutputDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                        stdOutBuffer.AppendLine(args.Data);
-                    else
-                        stdOutEndTcs.TrySetResult(null);
-                };
+            process.Start();
+            await process.PipeStandardInputAsync(_input, cancellationToken);
+            await process.WaitUntilExitAsync(cancellationToken);
 
-                process.ErrorDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                        stdErrBuffer.AppendLine(args.Data);
-                    else
-                        stdErrEndTcs.TrySetResult(null);
-                };
+            var stdOut = stdOutBuffer.ToString();
+            var stdErr = stdErrBuffer.ToString();
 
-                var startTime = DateTimeOffset.Now;
-                process.Start();
+            if (_configuration.IsExitCodeValidationEnabled && process.ExitCode != 0)
+                throw CliExecutionException.ExitCodeValidation(_filePath, _configuration.Arguments, process.ExitCode, stdErr);
 
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                using (process.StandardInput)
-                    await _input.CopyToAsync(process.StandardInput.BaseStream);
-
-                await processExitTcs.Task;
-                await stdOutEndTcs.Task;
-                await stdErrEndTcs.Task;
-
-                var exitCode = process.ExitCode;
-                var exitTime = DateTimeOffset.Now;
-
-                var stdOut = stdOutBuffer.ToString();
-                var stdErr = stdErrBuffer.ToString();
-
-                if (_configuration.IsExitCodeValidationEnabled && exitCode != 0)
-                    throw CliExecutionException.ExitCodeValidation(_filePath, _configuration.Arguments, exitCode, stdErr);
-
-                return new BufferedCliResult(exitCode, startTime, exitTime, stdOut, stdErr);
-            }
+            return new BufferedCliResult(process.ExitCode, process.StartTime, process.ExitTime, stdOut, stdErr);
         }
 
-        public CliTask<BufferedCliResult> ExecuteAsync()
+        public CliTask<BufferedCliResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            var process = new Process
-            {
-                StartInfo = _configuration.GetStartInfo(_filePath)
-            };
+            var process = new ProcessEx(_configuration.GetStartInfo(_filePath));
+            var task = ExecuteAsync(process, cancellationToken);
 
-            return new CliTask<BufferedCliResult>(ExecuteAsync(process), process.Id);
+            return new CliTask<BufferedCliResult>(task, process.Id);
         }
     }
 }

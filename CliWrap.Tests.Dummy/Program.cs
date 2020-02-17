@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 namespace CliWrap.Tests.Dummy
 {
@@ -32,6 +33,8 @@ namespace CliWrap.Tests.Dummy
         public const string GetStdInSize = nameof(GetStdInSize);
 
         public const string PrintEnvVars = nameof(PrintEnvVars);
+
+        public const string Sleep = nameof(Sleep);
     }
 
     // Implementation
@@ -141,6 +144,14 @@ namespace CliWrap.Tests.Dummy
 
                     Console.WriteLine(i.ToString(CultureInfo.InvariantCulture));
 
+                    return 0;
+                },
+
+                [Sleep] = args =>
+                {
+                    var duration = int.Parse(args.Single(), CultureInfo.InvariantCulture);
+
+                    Thread.Sleep(duration);
                     return 0;
                 }
             };

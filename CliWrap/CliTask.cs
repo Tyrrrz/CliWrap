@@ -1,9 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace CliWrap
 {
-    public class CliTask<TResult>
+    public class CliTask<TResult> : IDisposable
     {
         public Task<TResult> Task { get; }
 
@@ -16,5 +17,7 @@ namespace CliWrap
         }
 
         public TaskAwaiter<TResult> GetAwaiter() => Task.GetAwaiter();
+
+        public void Dispose() => Task.Dispose();
     }
 }

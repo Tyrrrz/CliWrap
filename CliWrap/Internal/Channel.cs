@@ -11,6 +11,7 @@ namespace CliWrap.Internal
         private readonly int _capacity;
 
         private int _publishers;
+
         public int Publishers => _publishers;
 
         public Channel(int capacity)
@@ -23,19 +24,23 @@ namespace CliWrap.Internal
         {
         }
 
-        public void RegisterListener() => Interlocked.Increment(ref _publishers);
+        private void Publish(T item)
+        {
+            SpinWait.SpinUntil(() => _queue.Count < _capacity);
+            _queue.Enqueue(item);
+            _semaphore.Release();
+        }
 
-        public void UnregisterListener()
+        private void Detach()
         {
             if (Interlocked.Decrement(ref _publishers) <= 0)
                 _semaphore.Release();
         }
 
-        public void Send(T item)
+        public ChannelPublisher<T> CreatePublisher()
         {
-            SpinWait.SpinUntil(() => _queue.Count < _capacity);
-            _queue.Enqueue(item);
-            _semaphore.Release();
+            Interlocked.Increment(ref _publishers);
+            return new ChannelPublisher<T>(Publish, Detach);
         }
 
         public async Task WaitUntilNextAsync() => await _semaphore.WaitAsync();

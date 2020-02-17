@@ -80,7 +80,7 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
+        public async Task I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Arrange
             var cli = Cli.Wrap("dotnet", Dummy.Program.Location).Buffered();
@@ -90,6 +90,7 @@ namespace CliWrap.Tests
 
             // Assert
             task.ProcessId.Should().NotBe(0);
+            await task;
         }
 
         [Fact(Timeout = 10000)]

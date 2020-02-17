@@ -1,11 +1,12 @@
 ﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Order;
 using RunProcessAsTask;
 using Sheller.Implementations.Shells;
 
 namespace CliWrap.Benchmarks
 {
-    [MemoryDiagnoser]
+    [MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
     public class ExecuteGetExitCodeBenchmarks
     {
         private const string FilePath = "dotnet";

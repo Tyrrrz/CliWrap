@@ -36,11 +36,5 @@ namespace CliWrap.Internal
 
             return startInfo;
         }
-
-        public static async IAsyncEnumerable<string> ReadAllLinesAsync(this StreamReader reader)
-        {
-            while (!reader.EndOfStream)
-                yield return await reader.ReadLineAsync();
-        }
     }
 }

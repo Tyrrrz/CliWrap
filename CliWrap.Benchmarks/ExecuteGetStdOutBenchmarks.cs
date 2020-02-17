@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Order;
 using Cysharp.Diagnostics;
 using RunProcessAsTask;
 using Sheller.Implementations.Shells;
 
 namespace CliWrap.Benchmarks
 {
-    [MemoryDiagnoser]
+    [MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
     public class ExecuteGetStdOutBenchmarks
     {
         private const string FilePath = "dotnet";

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Internal;
@@ -38,7 +39,7 @@ namespace CliWrap
 
         public BufferedCli Buffered() => new BufferedCli(_filePath, _configuration, _input);
 
-        public StreamingCli Streaming() => new StreamingCli(_filePath, _configuration);
+        public StreamingCli Streaming() => new StreamingCli(_filePath, _configuration, _input);
 
         // HACK for piping, replace later
         internal Process Start()
@@ -57,47 +58,26 @@ namespace CliWrap
             return process;
         }
 
-        private async Task<CliResult> ExecuteAsync(Process process)
+        private async Task<CliResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
-            using (process)
-            {
-                var processExitTcs = new TaskCompletionSource<object?>();
+            using var _ = process;
 
-                process.EnableRaisingEvents = true;
-                process.Exited += (sender, args) => processExitTcs.TrySetResult(null);
+            process.Start();
+            await process.PipeStandardInputAsync(_input, cancellationToken);
+            await process.WaitUntilExitAsync(cancellationToken);
 
-                process.OutputDataReceived += (sender, args) => { };
-                process.ErrorDataReceived += (sender, args) => { };
+            if (_configuration.IsExitCodeValidationEnabled && process.ExitCode != 0)
+                throw CliExecutionException.ExitCodeValidation(_filePath, _configuration.Arguments, process.ExitCode);
 
-                var startTime = DateTimeOffset.Now;
-                process.Start();
-
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                using (process.StandardInput)
-                    await _input.CopyToAsync(process.StandardInput.BaseStream);
-
-                await processExitTcs.Task;
-
-                var exitCode = process.ExitCode;
-                var exitTime = DateTimeOffset.Now;
-
-                if (_configuration.IsExitCodeValidationEnabled && exitCode != 0)
-                    throw CliExecutionException.ExitCodeValidation(_filePath, _configuration.Arguments, exitCode);
-
-                return new CliResult(exitCode, startTime, exitTime);
-            }
+            return new CliResult(process.ExitCode, process.StartTime, process.ExitTime);
         }
 
-        public CliTask<CliResult> ExecuteAsync()
+        public CliTask<CliResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            var process = new Process
-            {
-                StartInfo = _configuration.GetStartInfo(_filePath)
-            };
+            var process = new ProcessEx(_configuration.GetStartInfo(_filePath));
+            var task = ExecuteAsync(process, cancellationToken);
 
-            return new CliTask<CliResult>(ExecuteAsync(process), process.Id);
+            return new CliTask<CliResult>(task, process.Id);
         }
 
         public override string ToString() => $"{_filePath} {_configuration.Arguments}";
