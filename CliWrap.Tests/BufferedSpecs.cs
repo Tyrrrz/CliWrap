@@ -19,6 +19,8 @@ namespace CliWrap.Tests
                     .AddArgument(Dummy.Program.Location)
                     .AddArgument(Dummy.Program.SetExitCode)
                     .AddArgument(expectedExitCode));
+
+                c.EnableExitCodeValidation(false);
             }).Buffered();
 
             // Act

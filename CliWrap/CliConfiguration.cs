@@ -1,37 +1,40 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
-    public partial class CliConfiguration
+    public class CliConfiguration
     {
         public string WorkingDirPath { get; }
 
         public string Arguments { get; }
 
-        public CliConfiguration(string workingDirPath, string arguments)
+        public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+
+        public bool IsExitCodeValidationEnabled { get; }
+
+        public CliConfiguration(string workingDirPath,
+            string arguments,
+            IReadOnlyDictionary<string, string> environmentVariables,
+            bool isExitCodeValidationEnabled)
         {
             WorkingDirPath = workingDirPath;
             Arguments = arguments;
+            EnvironmentVariables = environmentVariables;
+            IsExitCodeValidationEnabled = isExitCodeValidationEnabled;
         }
 
         internal ProcessStartInfo GetStartInfo(string filePath) => new ProcessStartInfo
         {
             FileName = filePath,
-            WorkingDirectory = WorkingDirPath,
             Arguments = Arguments,
+            WorkingDirectory = WorkingDirPath,
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true
-        };
-    }
-
-    public partial class CliConfiguration
-    {
-        public static CliConfiguration Default { get; } = new CliConfiguration(
-            Directory.GetCurrentDirectory(),
-            "");
+        }.SetEnvironmentVariables(EnvironmentVariables);
     }
 }

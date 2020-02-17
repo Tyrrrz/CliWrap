@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using CliWrap.Internal;
 
 namespace CliWrap
@@ -58,34 +59,45 @@ namespace CliWrap
 
         private async Task<CliResult> ExecuteAsync(Process process)
         {
-            process.OutputDataReceived += (sender, args) => { };
-            process.ErrorDataReceived += (sender, args) => { };
-
-            var startTime = DateTimeOffset.Now;
-            process.Start();
-
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            using (process.StandardInput)
+            using (process)
             {
-                await _input.CopyToAsync(process.StandardInput.BaseStream);
+                var processExitTcs = new TaskCompletionSource<object?>();
+
+                process.EnableRaisingEvents = true;
+                process.Exited += (sender, args) => processExitTcs.TrySetResult(null);
+
+                process.OutputDataReceived += (sender, args) => { };
+                process.ErrorDataReceived += (sender, args) => { };
+
+                var startTime = DateTimeOffset.Now;
+                process.Start();
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                using (process.StandardInput)
+                    await _input.CopyToAsync(process.StandardInput.BaseStream);
+
+                await processExitTcs.Task;
+
+                var exitCode = process.ExitCode;
+                var exitTime = DateTimeOffset.Now;
+
+                if (_configuration.IsExitCodeValidationEnabled && exitCode != 0)
+                    throw CliExecutionException.ExitCodeValidation(_filePath, _configuration.Arguments, exitCode);
+
+                return new CliResult(exitCode, startTime, exitTime);
             }
-
-            var exitCode = await process.WaitForExitAsync();
-            var exitTime = DateTimeOffset.Now;
-
-            return new CliResult(exitCode, startTime, exitTime);
         }
 
-        public CliTask ExecuteAsync()
+        public CliTask<CliResult> ExecuteAsync()
         {
             var process = new Process
             {
                 StartInfo = _configuration.GetStartInfo(_filePath)
             };
 
-            return new CliTask(ExecuteAsync(process), process.Id);
+            return new CliTask<CliResult>(ExecuteAsync(process), process.Id);
         }
 
         public override string ToString() => $"{_filePath} {_configuration.Arguments}";
@@ -119,6 +131,6 @@ namespace CliWrap
             Wrap(filePath, c => c.SetArguments(arguments));
 
         public static Cli Wrap(string filePath) =>
-            Wrap(filePath, CliConfiguration.Default);
+            Wrap(filePath, new CliConfigurationBuilder().Build());
     }
 }

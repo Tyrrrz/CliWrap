@@ -124,6 +124,11 @@ namespace CliWrap.Tests
             result.StandardOutput.TrimEnd().Should().Be("2");
         }
 
+        [Fact(Skip = "Pending implementation")]
+        public async Task I_can_execute_a_CLI_and_pipe_its_output_into_a_stream()
+        {
+        }
+
         [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_CLI_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
         {

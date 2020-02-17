@@ -27,8 +27,12 @@
     <ProjectReference Include="..\CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj" />
   </ItemGroup>
 
-  <Target Name="Copy dummy's runtime config" AfterTargets="AfterBuild">
-    <Copy SourceFiles="../CliWrap.Tests.Dummy/bin/$(Configuration)/$(TargetFramework)/CliWrap.Tests.Dummy.runtimeconfig.json" DestinationFiles="$(OutputPath)CliWrap.Tests.Dummy.runtimeconfig.json" />
-  </Target>
+  <ItemGroup>
+    <None Include="../CliWrap.Tests.Dummy/bin/$(Configuration)/$(TargetFramework)/CliWrap.Tests.Dummy.runtimeconfig.json">
+      <Link>CliWrap.Tests.Dummy.runtimeconfig.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
 
 </Project>

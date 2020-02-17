@@ -12,7 +12,9 @@ namespace CliWrap
 
         public TimeSpan RunTime => ExitTime - StartTime;
 
-        public CliResult(int exitCode, DateTimeOffset startTime, DateTimeOffset exitTime)
+        public CliResult(
+            int exitCode,
+            DateTimeOffset startTime, DateTimeOffset exitTime)
         {
             ExitCode = exitCode;
             StartTime = startTime;

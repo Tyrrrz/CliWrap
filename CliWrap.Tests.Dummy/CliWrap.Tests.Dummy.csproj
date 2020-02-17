@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../CliWrap.props" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>

@@ -1,6 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using CliWrap.Exceptions;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -17,9 +21,7 @@ namespace CliWrap
 
         public async IAsyncEnumerable<StreamingItem> ExecuteAsync()
         {
-            var queue = new ConcurrentQueue<StreamingItem>();
-            var isStdOutDone = false;
-            var isStdErrDone = false;
+            var channel = new Channel<StreamingItem>(1000);
 
             var process = new Process
             {
@@ -27,20 +29,28 @@ namespace CliWrap
             };
             process.Start();
 
+            channel.RegisterListener();
             process.OutputDataReceived += (sender, args) =>
             {
                 if (args.Data != null)
-                    queue.Enqueue(new StreamingItem(StandardStream.StandardOutput, args.Data));
+                {
+                    channel.Send(new StreamingItem(StandardStream.StandardOutput, args.Data));
+                }
                 else
-                    isStdOutDone = true;
+                {
+                    channel.UnregisterListener();
+                }
             };
 
+            channel.RegisterListener();
             process.ErrorDataReceived += (sender, args) =>
             {
                 if (args.Data != null)
-                    queue.Enqueue(new StreamingItem(StandardStream.StandardError, args.Data));
+                    channel.Send(new StreamingItem(StandardStream.StandardError, args.Data));
                 else
-                    isStdErrDone = true;
+                {
+                    channel.UnregisterListener();
+                }
             };
 
             process.Start();
@@ -48,12 +58,17 @@ namespace CliWrap
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            StreamingItem item = null;
-            while ((!isStdOutDone || !isStdErrDone) || queue.TryDequeue(out item))
+            while (true)
             {
-                if (item != null)
+                if (channel.TryGetNext(out var item))
                     yield return item;
+                else if (channel.Publishers > 0)
+                    await channel.WaitUntilNextAsync();
+                else break;
             }
+
+            if (_configuration.IsExitCodeValidationEnabled && process.ExitCode != 0)
+                throw CliExecutionException.ExitCodeValidation(_filePath, _configuration.Arguments, process.ExitCode);
         }
     }
 }

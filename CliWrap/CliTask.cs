@@ -3,18 +3,18 @@ using System.Threading.Tasks;
 
 namespace CliWrap
 {
-    public class CliTask
+    public class CliTask<TResult>
     {
-        private readonly Task<CliResult> _task;
+        public Task<TResult> Task { get; }
 
         public int ProcessId { get; }
 
-        public CliTask(Task<CliResult> task, int processId)
+        public CliTask(Task<TResult> task, int processId)
         {
-            _task = task;
+            Task = task;
             ProcessId = processId;
         }
 
-        public TaskAwaiter<CliResult> GetAwaiter() => _task.GetAwaiter();
+        public TaskAwaiter<TResult> GetAwaiter() => Task.GetAwaiter();
     }
 }

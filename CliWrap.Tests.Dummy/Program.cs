@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -29,6 +30,8 @@ namespace CliWrap.Tests.Dummy
         public const string Binary = nameof(Binary);
 
         public const string GetStdInSize = nameof(GetStdInSize);
+
+        public const string PrintEnvVars = nameof(PrintEnvVars);
     }
 
     // Implementation
@@ -55,6 +58,14 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
+                [PrintEnvVars] = args =>
+                {
+                    foreach (var (name, value) in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
+                        Console.WriteLine($"[{name}] = {value}");
+
+                    return 0;
+                },
+
                 [EchoStdOut] = args =>
                 {
                     Console.WriteLine(string.Join(" ", args));
@@ -67,7 +78,13 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [SetExitCode] = args => int.Parse(args.Single(), CultureInfo.InvariantCulture),
+                [SetExitCode] = args =>
+                {
+                    var exitCode = int.Parse(args.Single(), CultureInfo.InvariantCulture);
+
+                    Console.Error.WriteLine($"Returning exit code {exitCode}");
+                    return exitCode;
+                },
 
                 [LoopStdOut] = args =>
                 {
@@ -131,9 +148,7 @@ namespace CliWrap.Tests.Dummy
         public static int Main(string[] args)
         {
             if (args.Length <= 0)
-            {
-                return -1;
-            }
+                return 0;
 
             var command = args.ElementAtOrDefault(0);
             var commandArgs = args.Skip(1).ToArray();

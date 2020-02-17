@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../CliWrap.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
+    <PackageReference Include="ProcessX" Version="1.2.0" />
+    <PackageReference Include="Sheller" Version="6.0.1" />
+    <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
+    <PackageReference Include="MedallionShell" Version="1.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CliWrap\CliWrap.csproj" />
+    <ProjectReference Include="..\CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../CliWrap.Tests.Dummy/bin/$(Configuration)/$(TargetFramework)/CliWrap.Tests.Dummy.runtimeconfig.json">
+      <Link>CliWrap.Tests.Dummy.runtimeconfig.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </None>
+  </ItemGroup>
+
+</Project>
