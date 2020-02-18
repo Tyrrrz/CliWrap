@@ -12,7 +12,7 @@ namespace CliWrap.Internal
 
         private int _publishers;
 
-        public int Publishers => _publishers;
+        public bool IsActive => _publishers > 0;
 
         public Channel(int capacity)
         {

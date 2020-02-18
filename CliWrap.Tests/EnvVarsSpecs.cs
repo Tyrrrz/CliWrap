@@ -13,25 +13,22 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_CLI_and_specify_a_set_of_environment_variables()
         {
             // Arrange
-            var envVars = new Dictionary<string, string>
+            var env = new Dictionary<string, string>
             {
                 ["foo"] = "bar",
                 ["hello"] = "world"
             };
 
-            var expectedOutputLines = envVars.Select(kvp => $"[{kvp.Key}] = {kvp.Value}").ToArray();
+            var expectedOutputLines = env.Select(kvp => $"[{kvp.Key}] = {kvp.Value}").ToArray();
 
-            var cli = Cli.Wrap("dotnet", c =>
-            {
-                c.SetArguments(a => a
+            var cli = Cli.Wrap("dotnet")
+                .SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.PrintEnvVars));
-
-                c.SetEnvironmentVariables(envVars);
-            }).Buffered();
+                    .AddArgument(Dummy.Program.PrintEnvVars))
+                .SetEnvironmentVariables(env);
 
             // Act
-            var result = await cli.ExecuteAsync();
+            var result = await cli.ExecuteBufferedAsync();
             var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
 
             // Assert
@@ -46,17 +43,14 @@ namespace CliWrap.Tests
             const string value = "foo bar";
             var expectedOutputLine = $"[{name}] = {value}";
 
-            var cli = Cli.Wrap("dotnet", c =>
-            {
-                c.SetArguments(a => a
+            var cli = Cli.Wrap("dotnet")
+                .SetArguments(a => a
                     .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.PrintEnvVars));
-
-                c.SetEnvironmentVariables(env => env[name] = value);
-            }).Buffered();
+                    .AddArgument(Dummy.Program.PrintEnvVars))
+                .SetEnvironmentVariables(env => env[name] = value);
 
             // Act
-            var result = await cli.ExecuteAsync();
+            var result = await cli.ExecuteBufferedAsync();
             var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
 
             // Assert

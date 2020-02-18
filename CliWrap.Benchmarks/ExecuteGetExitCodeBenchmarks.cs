@@ -15,7 +15,7 @@ namespace CliWrap.Benchmarks
         [Benchmark(Description = "CliWrap", Baseline = true)]
         public async Task<int> ExecuteWithCliWrap()
         {
-            var result = await Cli.Wrap(FilePath, Args).ExecuteAsync();
+            var result = await Cli.Wrap(FilePath).SetArguments(Args).ExecuteAsync();
             return result.ExitCode;
         }
 

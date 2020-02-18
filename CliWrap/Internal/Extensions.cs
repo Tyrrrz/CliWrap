@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CliWrap.Internal
 {
     internal static class Extensions
     {
-        public static async Task<TDestination> Select<TSource, TDestination>(this Task<TSource> source, Func<TSource, TDestination> transform)
-        {
-            var result = await source;
-            return transform(result);
-        }
-
         public static MemoryStream ToStream(this byte[] data)
         {
             var stream = new MemoryStream();
@@ -23,18 +17,17 @@ namespace CliWrap.Internal
             return stream;
         }
 
-        public static ProcessStartInfo SetEnvironmentVariables(this ProcessStartInfo startInfo,
-            IReadOnlyDictionary<string, string> envVars)
+        public static async Task CopyToAsync(this StreamReader reader, StringBuilder destination,
+            CancellationToken cancellationToken = default)
         {
-#if NET45
-            foreach (var variable in envVars)
-                startInfo.EnvironmentVariables[variable.Key] = variable.Value;
-#else
-            foreach (var variable in envVars)
-                startInfo.Environment[variable.Key] = variable.Value;
-#endif
-
-            return startInfo;
+            var buffer = new char[1024 / sizeof(char)];
+            int charsRead;
+            do
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                charsRead = await reader.ReadAsync(buffer, 0, buffer.Length);
+                destination.Append(buffer, 0, charsRead);
+            } while (charsRead > 0);
         }
     }
 }

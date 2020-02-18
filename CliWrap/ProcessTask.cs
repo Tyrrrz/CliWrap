@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 
 namespace CliWrap
 {
-    public class CliTask<TResult> : IDisposable
+    public class ProcessTask<TResult> : IDisposable
     {
         public Task<TResult> Task { get; }
 
         public int ProcessId { get; }
 
-        public CliTask(Task<TResult> task, int processId)
+        public ProcessTask(Task<TResult> task, int processId)
         {
             Task = task;
             ProcessId = processId;
