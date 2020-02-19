@@ -20,10 +20,10 @@ namespace CliWrap.Tests
         {
             // Arrange
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.SetExitCode)
-                    .AddArgument(-1));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.SetExitCode)
+                    .Add(-1));
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<CliExecutionException>(async () => await cli.ExecuteAsync());
@@ -35,10 +35,10 @@ namespace CliWrap.Tests
         {
             // Arrange
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.SetExitCode)
-                    .AddArgument(-1));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.SetExitCode)
+                    .Add(-1));
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<CliExecutionException>(async () => await cli.ExecuteBufferedAsync());

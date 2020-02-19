@@ -22,10 +22,10 @@ namespace CliWrap.Tests
             var expectedOutputLines = env.Select(kvp => $"[{kvp.Key}] = {kvp.Value}").ToArray();
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.PrintEnvVars))
-                .SetEnvironmentVariables(env);
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.PrintEnvVars))
+                .WithEnvironmentVariables(env);
 
             // Act
             var result = await cli.ExecuteBufferedAsync();
@@ -44,10 +44,10 @@ namespace CliWrap.Tests
             var expectedOutputLine = $"[{name}] = {value}";
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.PrintEnvVars))
-                .SetEnvironmentVariables(env => env[name] = value);
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.PrintEnvVars))
+                .WithEnvironmentVariables(env => env[name] = value);
 
             // Act
             var result = await cli.ExecuteBufferedAsync();

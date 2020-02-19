@@ -12,36 +12,36 @@ namespace CliWrap
 
         private readonly List<string> _args = new List<string>();
 
-        public CliArgumentBuilder AddArgument(string value)
+        public CliArgumentBuilder Add(string value)
         {
             _args.Add(value);
             return this;
         }
 
-        public CliArgumentBuilder AddArguments(IEnumerable<string> values)
+        public CliArgumentBuilder Add(IEnumerable<string> values)
         {
             foreach (var value in values)
-                AddArgument(value);
+                Add(value);
 
             return this;
         }
 
-        public CliArgumentBuilder AddArgument(IFormattable value, CultureInfo cultureInfo) =>
-            AddArgument(value.ToString(null, cultureInfo));
+        public CliArgumentBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
+            Add(value.ToString(null, cultureInfo));
 
-        public CliArgumentBuilder AddArgument(IFormattable value) =>
-            AddArgument(value, DefaultCulture);
+        public CliArgumentBuilder Add(IFormattable value) =>
+            Add(value, DefaultCulture);
 
-        public CliArgumentBuilder AddArguments(IEnumerable<IFormattable> values, CultureInfo cultureInfo)
+        public CliArgumentBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo)
         {
             foreach (var value in values)
-                AddArgument(value, cultureInfo);
+                Add(value, cultureInfo);
 
             return this;
         }
 
-        public CliArgumentBuilder AddArguments(IEnumerable<IFormattable> values) =>
-            AddArguments(values, DefaultCulture);
+        public CliArgumentBuilder Add(IEnumerable<IFormattable> values) =>
+            Add(values, DefaultCulture);
 
         public string Build()
         {

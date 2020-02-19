@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Tests.Internal;
 using Xunit;
 
 namespace CliWrap.Tests
@@ -15,10 +14,10 @@ namespace CliWrap.Tests
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.Sleep)
-                    .AddArgument(10_000));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.Sleep)
+                    .Add(10_000));
 
             // Act
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await cli.ExecuteAsync(cts.Token));
@@ -32,10 +31,10 @@ namespace CliWrap.Tests
             cts.Cancel();
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.Sleep)
-                    .AddArgument(10_000));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.Sleep)
+                    .Add(10_000));
 
             // Act
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await cli.ExecuteAsync(cts.Token));

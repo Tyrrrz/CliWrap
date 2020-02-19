@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +15,19 @@ namespace CliWrap
 
     public partial class PipeTarget
     {
-        public static PipeTarget FromStream(Stream stream) => new StreamPipeTarget(stream);
+        public static PipeTarget ToStream(Stream stream) => new StreamPipeTarget(stream);
+
+        public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding) =>
+            new StringBuilderPipeTarget(stringBuilder, encoding);
+
+        public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
+            ToStringBuilder(stringBuilder, Console.OutputEncoding);
+
+        public static PipeTarget ToDelegate(Action<string> lineHandler, Encoding encoding) =>
+            new DelegatePipeTarget(lineHandler, encoding);
+
+        public static PipeTarget ToDelegate(Action<string> lineHandler) =>
+            ToDelegate(lineHandler, Console.OutputEncoding);
 
         public static PipeTarget Merge(IEnumerable<PipeTarget> targets)
         {
@@ -30,7 +44,7 @@ namespace CliWrap
 
         public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>) targets);
 
-        public static PipeTarget Null { get; } = FromStream(Stream.Null);
+        public static PipeTarget Null { get; } = ToStream(Stream.Null);
     }
 
     internal class StreamPipeTarget : PipeTarget
@@ -44,6 +58,49 @@ namespace CliWrap
 
         public override Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
             source.CopyToAsync(_stream, cancellationToken);
+    }
+
+    internal class StringBuilderPipeTarget : PipeTarget
+    {
+        private readonly StringBuilder _stringBuilder;
+        private readonly Encoding _encoding;
+
+        public StringBuilderPipeTarget(StringBuilder stringBuilder, Encoding encoding)
+        {
+            _stringBuilder = stringBuilder;
+            _encoding = encoding;
+        }
+
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+        {
+            using var buffer = new MemoryStream();
+            await source.CopyToAsync(buffer, cancellationToken);
+            _stringBuilder.Append(_encoding.GetChars(buffer.ToArray()));
+        }
+    }
+
+    internal class DelegatePipeTarget : PipeTarget
+    {
+        private readonly Action<string> _handler;
+        private readonly Encoding _encoding;
+
+        public DelegatePipeTarget(Action<string> handler, Encoding encoding)
+        {
+            _handler = handler;
+            _encoding = encoding;
+        }
+
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+        {
+            using var reader = new StreamReader(source, _encoding, false, 1024, true);
+            string line;
+
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                // TODO: HANDLE CANCELLATION!
+                _handler(line);
+            }
+        }
     }
 
     internal class MergedPipeTarget : PipeTarget

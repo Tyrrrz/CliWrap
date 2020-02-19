@@ -12,133 +12,179 @@ namespace CliWrap
 {
     public partial class Cli
     {
-        private readonly string _targetFilePath;
+        public string TargetFilePath { get; }
 
-        private string _workingDirPath = Directory.GetCurrentDirectory();
-        private string _arguments = "";
+        public string Arguments { get; }
 
-        private PipeSource _stdInPipe = PipeSource.Null;
-        private PipeTarget _stdOutPipe = PipeTarget.Null;
-        private PipeTarget _stdErrPipe = PipeTarget.Null;
+        public string WorkingDirPath { get; }
 
+        public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
+        public ResultValidation Validation { get; }
 
-        private IReadOnlyDictionary<string, string> _env = new Dictionary<string, string>();
-        private Encoding _stdOutEncoding = Console.OutputEncoding;
-        private Encoding _stdErrEncoding = Console.OutputEncoding;
-        private bool _isExitCodeValidationEnabled = true;
+        public PipeSource StandardInputPipe { get; }
 
-        public Cli(string targetFilePath)
+        public PipeTarget StandardOutputPipe { get; }
+
+        public PipeTarget StandardErrorPipe { get; }
+
+        public Cli(
+            string targetFilePath,
+            string arguments,
+            string workingDirPath,
+            IReadOnlyDictionary<string, string> environmentVariables,
+            ResultValidation validation,
+            PipeSource standardInputPipe,
+            PipeTarget standardOutputPipe,
+            PipeTarget standardErrorPipe)
         {
-            _targetFilePath = targetFilePath;
+            TargetFilePath = targetFilePath;
+            Arguments = arguments;
+            WorkingDirPath = workingDirPath;
+            EnvironmentVariables = environmentVariables;
+            Validation = validation;
+            StandardInputPipe = standardInputPipe;
+            StandardOutputPipe = standardOutputPipe;
+            StandardErrorPipe = standardErrorPipe;
         }
 
-        public Cli SetWorkingDirectory(string path)
+        public Cli(string targetFilePath) : this(
+            targetFilePath,
+            "",
+            Directory.GetCurrentDirectory(),
+            new Dictionary<string, string>(),
+            ResultValidation.ZeroExitCode,
+            PipeSource.Null,
+            PipeTarget.Null,
+            PipeTarget.Null)
         {
-            _workingDirPath = path;
-            return this;
         }
 
-        public Cli SetArguments(string arguments)
-        {
-            _arguments = arguments;
-            return this;
-        }
+        public Cli WithArguments(string arguments) => new Cli(
+            TargetFilePath,
+            arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe);
 
-        public Cli SetArguments(Action<CliArgumentBuilder> configure)
+        public Cli WithArguments(Action<CliArgumentBuilder> configure)
         {
             var builder = new CliArgumentBuilder();
             configure(builder);
 
-            return SetArguments(builder.Build());
+            return WithArguments(builder.Build());
         }
 
-        public Cli PipeStandardInput(PipeSource source)
-        {
-            _stdInPipe = source;
-            return this;
-        }
+        public Cli WithWorkingDirectory(string workingDirPath) => new Cli(
+            TargetFilePath,
+            Arguments,
+            workingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe);
 
-        public Cli PipeStandardOutput(PipeTarget target)
-        {
-            _stdOutPipe = target;
-            return this;
-        }
+        public Cli WithEnvironmentVariables(IReadOnlyDictionary<string, string> environmentVariables) => new Cli(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            environmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe);
 
-        public Cli PipeStandardError(PipeTarget target)
-        {
-            _stdErrPipe = target;
-            return this;
-        }
-
-        public Cli SetEnvironmentVariables(IReadOnlyDictionary<string, string> env)
-        {
-            _env = env;
-            return this;
-        }
-
-        public Cli SetEnvironmentVariables(Action<IDictionary<string, string>> configure)
+        public Cli WithEnvironmentVariables(Action<IDictionary<string, string>> configure)
         {
             var variables = new Dictionary<string, string>(StringComparer.Ordinal);
             configure(variables);
 
-            return SetEnvironmentVariables(variables);
+            return WithEnvironmentVariables(variables);
         }
 
-        public Cli SetStandardOutputEncoding(Encoding encoding)
-        {
-            _stdOutEncoding = encoding;
-            return this;
-        }
+        public Cli WithValidation(ResultValidation validation) => new Cli(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe);
 
-        public Cli SetStandardErrorEncoding(Encoding encoding)
-        {
-            _stdErrEncoding = encoding;
-            return this;
-        }
+        public Cli WithStandardInputPipe(PipeSource source) => new Cli(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            source,
+            StandardOutputPipe,
+            StandardErrorPipe);
 
-        public Cli EnableExitCodeValidation(bool isEnabled = true)
-        {
-            _isExitCodeValidationEnabled = isEnabled;
-            return this;
-        }
+        public Cli WithStandardOutputPipe(PipeTarget target) => new Cli(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            target,
+            StandardErrorPipe);
+
+        public Cli WithStandardErrorPipe(PipeTarget target) => new Cli(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            target);
 
         private ProcessStartInfo GetStartInfo()
         {
             var result = new ProcessStartInfo
             {
-                FileName = _targetFilePath,
-                WorkingDirectory = _workingDirPath,
-                Arguments = _arguments,
-                StandardOutputEncoding = _stdOutEncoding,
-                StandardErrorEncoding = _stdErrEncoding,
+                FileName = TargetFilePath,
+                WorkingDirectory = WorkingDirPath,
+                Arguments = Arguments,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
 
-            foreach (var variable in _env)
+            foreach (var variable in EnvironmentVariables)
                 result.Environment[variable.Key] = variable.Value;
 
             return result;
         }
 
-        private async Task<CliResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        private async Task<CliResult> ExecuteAsync(
+            ProcessEx process,
+            PipeSource stdInPipe,
+            PipeTarget stdOutPipe,
+            PipeTarget stdErrPipe,
+            CancellationToken cancellationToken = default)
         {
             using var _ = process;
 
             process.Start();
 
             using (process.StdIn)
-                await _stdInPipe.CopyToAsync(process.StdIn.BaseStream, cancellationToken);
+                await stdInPipe.CopyToAsync(process.StdIn.BaseStream, cancellationToken);
 
             await Task.WhenAll(
-                _stdOutPipe.CopyFromAsync(process.StdOut.BaseStream, cancellationToken),
-                _stdErrPipe.CopyFromAsync(process.StdErr.BaseStream, cancellationToken),
+                stdOutPipe.CopyFromAsync(process.StdOut.BaseStream, cancellationToken),
+                stdErrPipe.CopyFromAsync(process.StdErr.BaseStream, cancellationToken),
                 process.WaitUntilExitAsync(cancellationToken));
 
-            if (_isExitCodeValidationEnabled && process.ExitCode != 0)
-                throw CliExecutionException.ExitCodeValidation(_targetFilePath, _arguments, process.ExitCode);
+            if (Validation.IsZeroExitCodeValidationEnabled() && process.ExitCode != 0)
+                throw CliExecutionException.ExitCodeValidation(TargetFilePath, Arguments, process.ExitCode);
 
             return new CliResult(process.ExitCode, process.StartTime, process.ExitTime);
         }
@@ -146,24 +192,24 @@ namespace CliWrap
         public ProcessTask<CliResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
             var process = new ProcessEx(GetStartInfo());
-            var task = ExecuteAsync(process, cancellationToken);
+            var task = ExecuteAsync(process, StandardInputPipe, StandardOutputPipe, StandardErrorPipe, cancellationToken);
 
             return new ProcessTask<CliResult>(task, process.Id);
         }
 
         private async Task<BufferedCliResult> ExecuteBufferedAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
-            var stdOutBuffer = new MemoryStream();
-            var stdErrBuffer = new MemoryStream();
+            var stdOutBuffer = new StringBuilder();
+            var stdErrBuffer = new StringBuilder();
 
-            // TODO: this shouldn't happen on every execute
-            _stdOutPipe = PipeTarget.Merge(_stdOutPipe, PipeTarget.FromStream(stdOutBuffer));
-            _stdErrPipe = PipeTarget.Merge(_stdErrPipe, PipeTarget.FromStream(stdErrBuffer));
+            var stdInPipe = StandardInputPipe;
+            var stdOutPipe = PipeTarget.Merge(StandardOutputPipe, PipeTarget.ToStringBuilder(stdOutBuffer));
+            var stdErrPipe = PipeTarget.Merge(StandardErrorPipe, PipeTarget.ToStringBuilder(stdErrBuffer));
 
-            var result = await ExecuteAsync(process, cancellationToken);
+            var result = await ExecuteAsync(process, stdInPipe, stdOutPipe, stdErrPipe, cancellationToken);
 
-            var stdOut = _stdOutEncoding.GetString(stdOutBuffer.ToArray());
-            var stdErr = _stdErrEncoding.GetString(stdErrBuffer.ToArray());
+            var stdOut = stdOutBuffer.ToString();
+            var stdErr = stdErrBuffer.ToString();
 
             return new BufferedCliResult(result.ExitCode, result.StartTime, result.ExitTime, stdOut, stdErr);
         }
@@ -176,25 +222,34 @@ namespace CliWrap
             return new ProcessTask<BufferedCliResult>(task, process.Id);
         }
 
-        public override string ToString() => $"{_targetFilePath} {_arguments}";
+        public override string ToString() => $"{TargetFilePath} {Arguments}";
     }
 
     public partial class Cli
     {
         public static Cli operator |(Cli source, PipeTarget target) =>
-            source.PipeStandardOutput(target);
+            source.WithStandardOutputPipe(target);
 
         public static Cli operator |(Cli source, Stream target) =>
-            source | PipeTarget.FromStream(target);
+            source | PipeTarget.ToStream(target);
 
         public static Cli operator |(Cli source, ValueTuple<PipeTarget, PipeTarget> target) =>
-            source.PipeStandardOutput(target.Item1).PipeStandardError(target.Item2);
+            source
+                .WithStandardOutputPipe(target.Item1)
+                .WithStandardErrorPipe(target.Item2);
 
         public static Cli operator |(Cli source, ValueTuple<Stream, Stream> target) =>
-            source.PipeStandardOutput(PipeTarget.FromStream(target.Item1)).PipeStandardError(PipeTarget.FromStream(target.Item2));
+            source
+                .WithStandardOutputPipe(PipeTarget.ToStream(target.Item1))
+                .WithStandardErrorPipe(PipeTarget.ToStream(target.Item2));
+
+        public static Cli operator |(Cli source, ValueTuple<Action<string>, Action<string>> target) =>
+            source
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(target.Item1))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(target.Item2));
 
         public static Cli operator |(PipeSource source, Cli target) =>
-            target.PipeStandardInput(source);
+            target.WithStandardInputPipe(source);
 
         public static Cli operator |(Stream source, Cli target) =>
             PipeSource.FromStream(source) | target;

@@ -50,6 +50,6 @@ namespace CliWrap
         }
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await _cli.PipeStandardOutput(PipeTarget.FromStream(destination)).ExecuteAsync(cancellationToken);
+            await _cli.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
     }
 }

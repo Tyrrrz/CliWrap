@@ -14,11 +14,11 @@ namespace CliWrap.Tests
             const int expectedExitCode = 13;
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.SetExitCode)
-                    .AddArgument(expectedExitCode))
-                .EnableExitCodeValidation(false);
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.SetExitCode)
+                    .Add(expectedExitCode))
+                .WithValidation(ResultValidation.None);
 
             // Act
             var result = await cli.ExecuteBufferedAsync();
@@ -35,10 +35,10 @@ namespace CliWrap.Tests
             const string expectedStdOut = "Hello stdout";
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.EchoStdOut)
-                    .AddArgument(expectedStdOut));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.EchoStdOut)
+                    .Add(expectedStdOut));
 
             // Act
             var result = await cli.ExecuteBufferedAsync();
@@ -57,10 +57,10 @@ namespace CliWrap.Tests
             const string expectedStdErr = "Hello stderr";
 
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.EchoStdErr)
-                    .AddArgument(expectedStdErr));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.EchoStdErr)
+                    .Add(expectedStdErr));
 
             // Act
             var result = await cli.ExecuteBufferedAsync();
@@ -76,7 +76,7 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Arrange
-            var cli = Cli.Wrap("dotnet").SetArguments(Dummy.Program.Location);
+            var cli = Cli.Wrap("dotnet").WithArguments(Dummy.Program.Location);
 
             // Act
             var task = cli.ExecuteBufferedAsync();
@@ -91,10 +91,10 @@ namespace CliWrap.Tests
         {
             // Arrange
             var cli = Cli.Wrap("dotnet")
-                .SetArguments(a => a
-                    .AddArgument(Dummy.Program.Location)
-                    .AddArgument(Dummy.Program.LoopBoth)
-                    .AddArgument(100_000));
+                .WithArguments(a => a
+                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.LoopBoth)
+                    .Add(100_000));
 
             // Act
             await cli.ExecuteBufferedAsync();
