@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
@@ -81,7 +82,7 @@ namespace CliWrap.Tests
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be("4");
+            result.StandardOutput.TrimEnd().Should().Be((2 + Environment.NewLine.Length).ToString());
         }
 
         [Fact(Timeout = 10000)]
