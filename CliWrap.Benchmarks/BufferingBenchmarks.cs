@@ -13,7 +13,7 @@ namespace CliWrap.Benchmarks
     public class BufferingBenchmarks
     {
         private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.Location} {Tests.Dummy.Program.LoopStdOut} 100000";
+        private static readonly string Args = $"{Tests.Dummy.Program.Location} {Tests.Dummy.Program.LoopBoth} 100000";
 
         [Benchmark(Description = "CliWrap", Baseline = true)]
         public async Task<(string, string)> ExecuteWithCliWrap()
@@ -39,7 +39,7 @@ namespace CliWrap.Benchmarks
         [Benchmark(Description = "MedallionShell")]
         public async Task<(string, string)> ExecuteWithMedallionShell()
         {
-            var result = await Medallion.Shell.Shell.Default.Run(FilePath, Args).Task;
+            var result = await Medallion.Shell.Shell.Default.Run(FilePath, Args.Split(' ')).Task;
             return (result.StandardOutput, result.StandardError);
         }
 

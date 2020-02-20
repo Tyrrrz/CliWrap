@@ -5,14 +5,13 @@ using System.Threading;
 namespace CliWrap.Buffered
 {
     /// <summary>
-    /// Convenience extensions for executing a command and buffering its streams.
+    /// Convenience extension for executing a command while buffering its streams.
     /// </summary>
     public static class BufferedCommandExtensions
     {
         /// <summary>
         /// Executes the command asynchronously.
-        /// Pipes the standard output and standard error streams into in-memory buffers which are contained within the result.
-        /// Any existing pipes are also preserved.
+        /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
         /// This method can be awaited.
         /// </summary>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
@@ -46,7 +45,7 @@ namespace CliWrap.Buffered
 
         /// <summary>
         /// Executes the command asynchronously.
-        /// Pipes the standard output and standard error streams into in-memory buffers which are contained within the result.
+        /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
         /// This method can be awaited.
         /// </summary>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
@@ -57,9 +56,9 @@ namespace CliWrap.Buffered
 
         /// <summary>
         /// Executes the command asynchronously.
-        /// Pipes the standard output and standard error streams into in-memory buffers which are contained within the result.
-        /// This method can be awaited.
+        /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
+        /// This method can be awaited.
         /// </summary>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             this Command command,

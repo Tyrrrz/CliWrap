@@ -6,6 +6,9 @@ namespace CliWrap.Internal
 {
     internal static class Extensions
     {
+        // Polyfill to support older frameworks
+        public static bool IsCompletedSuccessfully(this Task task) => task.Status == TaskStatus.RanToCompletion;
+
         public static async Task<TDestination> Select<TSource, TDestination>(this Task<TSource> task, Func<TSource, TDestination> transform)
         {
             var result = await task.ConfigureAwait(false);
