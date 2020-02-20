@@ -59,7 +59,7 @@ namespace CliWrap.Buffered
         /// Executes the command asynchronously.
         /// Pipes the standard output and standard error streams into in-memory buffers which are contained within the result.
         /// This method can be awaited.
-        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             this Command command,
