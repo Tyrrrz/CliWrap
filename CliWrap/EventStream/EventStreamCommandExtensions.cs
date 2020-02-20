@@ -15,7 +15,7 @@ namespace CliWrap.EventStream
     {
         /// <summary>
         /// Executes the command as an asynchronous event stream.
-        /// Use <code>await foreach</code> to listen to the stream and pattern matching to handle command events.
+        /// Use <code>await foreach</code> to listen to the stream and handle command events.
         /// </summary>
         public static async IAsyncEnumerable<CommandEvent> ListenAsync(
             this Command command,
@@ -70,5 +70,33 @@ namespace CliWrap.EventStream
             this Command command,
             CancellationToken cancellationToken = default) =>
             command.ListenAsync(Console.OutputEncoding, cancellationToken);
+
+        /// <summary>
+        /// Executes the command as an observable event stream.
+        /// </summary>
+        public static ICommandEventObservable Observe(
+            this Command command,
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken cancellationToken = default) =>
+            new CommandEventObservable(command, standardOutputEncoding, standardErrorEncoding, cancellationToken);
+
+        /// <summary>
+        /// Executes the command as an observable event stream.
+        /// </summary>
+        public static ICommandEventObservable Observe(
+            this Command command,
+            Encoding encoding,
+            CancellationToken cancellationToken = default) =>
+            command.Observe(encoding, encoding, cancellationToken);
+
+        /// <summary>
+        /// Executes the command as an observable event stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
+        /// </summary>
+        public static ICommandEventObservable Observe(
+            this Command command,
+            CancellationToken cancellationToken = default) =>
+            command.Observe(Console.OutputEncoding, cancellationToken);
     }
 }

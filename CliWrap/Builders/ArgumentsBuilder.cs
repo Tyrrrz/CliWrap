@@ -13,7 +13,7 @@ namespace CliWrap.Builders
     {
         private static readonly CultureInfo DefaultCulture = CultureInfo.InvariantCulture;
 
-        private readonly List<string> _args = new List<string>();
+        private readonly IList<string> _args = new List<string>();
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
