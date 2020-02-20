@@ -224,12 +224,7 @@ namespace CliWrap
             return result;
         }
 
-        private async Task<CommandResult> ExecuteAsync(
-            ProcessEx process,
-            PipeSource stdInPipe,
-            PipeTarget stdOutPipe,
-            PipeTarget stdErrPipe,
-            CancellationToken cancellationToken = default)
+        private async Task<CommandResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
             using var _ = process;
 
@@ -240,12 +235,12 @@ namespace CliWrap
 
             // Handle stdin pipe
             using (process.StdIn)
-                await stdInPipe.CopyToAsync(process.StdIn, cancellationToken);
+                await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken);
 
             // Handle stdout/stderr pipes and wait for exit
             await Task.WhenAll(
-                stdOutPipe.CopyFromAsync(process.StdOut, cancellationToken),
-                stdErrPipe.CopyFromAsync(process.StdErr, cancellationToken),
+                StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken),
+                StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken),
                 process.WaitUntilExitAsync());
 
             if (Validation.IsZeroExitCodeValidationEnabled() && process.ExitCode != 0)
@@ -261,7 +256,7 @@ namespace CliWrap
         public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
             var process = new ProcessEx(GetStartInfo());
-            var task = ExecuteAsync(process, StandardInputPipe, StandardOutputPipe, StandardErrorPipe, cancellationToken);
+            var task = ExecuteAsync(process, cancellationToken);
 
             return new CommandTask<CommandResult>(task, process.Id);
         }
