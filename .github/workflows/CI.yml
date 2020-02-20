@@ -8,17 +8,18 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
 
     - name: Install .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v1.4.0
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.100
 
     - name: Build & test
       run: dotnet test --configuration Release
 
-    - name: Coverage
-      run: |
-        choco install codecov --no-progress
-        codecov -f CliWrap.Tests/bin/Release/Coverage.xml -t ${{secrets.CODECOV_TOKEN}} --required
+    - name: Upload coverage
+      uses: codecov/codecov-action@v1.0.5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: CliWrap.Tests/bin/Release/Coverage.xml
