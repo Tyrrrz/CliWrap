@@ -12,7 +12,7 @@ namespace CliWrap.EventStream
     /// Represents an event that is triggered when the command starts executing.
     /// This event may only appear once in the event stream.
     /// </summary>
-    public class StartCommandEvent : CommandEvent
+    public class StartedCommandEvent : CommandEvent
     {
         /// <summary>
         /// Underlying process ID.
@@ -20,9 +20,9 @@ namespace CliWrap.EventStream
         public int ProcessId { get; }
 
         /// <summary>
-        /// Initializes an instance of <see cref="StartCommandEvent"/>.
+        /// Initializes an instance of <see cref="StartedCommandEvent"/>.
         /// </summary>
-        public StartCommandEvent(int processId) => ProcessId = processId;
+        public StartedCommandEvent(int processId) => ProcessId = processId;
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ namespace CliWrap.EventStream
     /// Represents an event that is triggered when the command finishes executing.
     /// This event may only appear once in the event stream.
     /// </summary>
-    public class CompleteCommandEvent : CommandEvent
+    public class CompletedCommandEvent : CommandEvent
     {
         /// <summary>
         /// Exit code set by the underlying process.
@@ -69,9 +69,9 @@ namespace CliWrap.EventStream
         public int ExitCode { get; }
 
         /// <summary>
-        /// Initializes an instance of <see cref="CompleteCommandEvent"/>.
+        /// Initializes an instance of <see cref="CompletedCommandEvent"/>.
         /// </summary>
-        public CompleteCommandEvent(int exitCode) => ExitCode = exitCode;
+        public CompletedCommandEvent(int exitCode) => ExitCode = exitCode;
     }
 
     /// <summary>
@@ -88,9 +88,9 @@ namespace CliWrap.EventStream
         }
 
         /// <summary>
-        /// Matches the specified event with <see cref="StartCommandEvent"/>.
+        /// Matches the specified event with <see cref="StartedCommandEvent"/>.
         /// </summary>
-        public static CommandEvent OnStart(this CommandEvent commandEvent, Action<StartCommandEvent> handler) =>
+        public static CommandEvent OnStarted(this CommandEvent commandEvent, Action<StartedCommandEvent> handler) =>
             commandEvent.On(handler);
 
         /// <summary>
@@ -106,9 +106,9 @@ namespace CliWrap.EventStream
             commandEvent.On(handler);
 
         /// <summary>
-        /// Matches the specified event with <see cref="CompleteCommandEvent"/>.
+        /// Matches the specified event with <see cref="CompletedCommandEvent"/>.
         /// </summary>
-        public static CommandEvent OnComplete(this CommandEvent commandEvent, Action<CompleteCommandEvent> handler) =>
+        public static CommandEvent OnCompleted(this CommandEvent commandEvent, Action<CompletedCommandEvent> handler) =>
             commandEvent.On(handler);
     }
 }

@@ -63,7 +63,7 @@ namespace CliWrap.EventStream
                 .WithStandardErrorPipe(stdErrPipe);
 
             var commandTask = commandPiped.ExecuteAsync(_cancellationToken);
-            Next(new StartCommandEvent(commandTask.ProcessId));
+            Next(new StartedCommandEvent(commandTask.ProcessId));
 
             _ = commandTask
                 .Task
@@ -71,7 +71,7 @@ namespace CliWrap.EventStream
                 {
                     if (t.Exception == null)
                     {
-                        Next(new CompleteCommandEvent(t.Result.ExitCode));
+                        Next(new CompletedCommandEvent(t.Result.ExitCode));
                         Completed();
                     }
                     else
@@ -90,7 +90,7 @@ namespace CliWrap.EventStream
     public interface ICommandEventObservable : IObservable<CommandEvent>
     {
         /// <summary>
-        /// Start the execution of the underlying command which in turn produces new events.
+        /// Start the execution of the underlying command.
         /// </summary>
         ICommandEventObservable Start();
     }

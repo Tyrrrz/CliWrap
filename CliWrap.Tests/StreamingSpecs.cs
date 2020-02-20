@@ -34,7 +34,7 @@ namespace CliWrap.Tests
             await foreach (var cmdEvent in cmd.ListenAsync())
             {
                 cmdEvent
-                    .OnStart(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
+                    .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
                     .OnStandardOutput(e =>
                     {
                         _output.WriteLine($"Out> {e.Text}");
@@ -45,7 +45,7 @@ namespace CliWrap.Tests
                         _output.WriteLine($"Err> {e.Text}");
                         stdErrLinesCount++;
                     })
-                    .OnComplete(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+                    .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
             }
 
             // Assert
@@ -69,11 +69,11 @@ namespace CliWrap.Tests
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
 
-            var observable = cmd.Observe();
+            var observable = cmd.ToObservable();
             _ = observable.ForEachAsync(cmdEvent =>
             {
                 cmdEvent
-                    .OnStart(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
+                    .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
                     .OnStandardOutput(e =>
                     {
                         _output.WriteLine($"Out> {e.Text}");
@@ -84,7 +84,7 @@ namespace CliWrap.Tests
                         _output.WriteLine($"Err> {e.Text}");
                         stdErrLinesCount++;
                     })
-                    .OnComplete(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+                    .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
             });
 
             await observable.Start();
