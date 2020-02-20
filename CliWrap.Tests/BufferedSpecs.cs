@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CliWrap.Buffered;
 using FluentAssertions;
 using Xunit;
 

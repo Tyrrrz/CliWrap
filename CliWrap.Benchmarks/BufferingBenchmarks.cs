@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
+using CliWrap.Buffered;
 using Cysharp.Diagnostics;
 using RunProcessAsTask;
 using Sheller.Implementations.Shells;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -27,6 +28,12 @@ namespace CliWrap
             Task = task;
             ProcessId = processId;
         }
+
+        /// <summary>
+        /// Lazily maps the result of the task using the specified transform.
+        /// </summary>
+        public CommandTask<T> Select<T>(Func<TResult, T> transform) =>
+            new CommandTask<T>(Task.Select(transform), ProcessId);
 
         /// <summary>
         /// Gets the awaiter of the inner task.

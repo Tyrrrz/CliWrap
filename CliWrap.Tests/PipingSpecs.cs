@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using CliWrap.Buffered;
 using FluentAssertions;
 using Xunit;
 

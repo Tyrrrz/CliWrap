@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CliWrap.Buffered;
 using CliWrap.Exceptions;
 using Xunit;
 using Xunit.Abstractions;

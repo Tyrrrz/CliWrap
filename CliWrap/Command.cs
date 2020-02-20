@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Builders;
@@ -267,31 +266,6 @@ namespace CliWrap
             return new CommandTask<CommandResult>(task, process.Id);
         }
 
-        private async Task<BufferedCommandResult> ExecuteBufferedAsync(ProcessEx process, CancellationToken cancellationToken = default)
-        {
-            var stdOutBuffer = new StringBuilder();
-            var stdErrBuffer = new StringBuilder();
-
-            var stdInPipe = StandardInputPipe;
-            var stdOutPipe = PipeTarget.Merge(StandardOutputPipe, PipeTarget.ToStringBuilder(stdOutBuffer));
-            var stdErrPipe = PipeTarget.Merge(StandardErrorPipe, PipeTarget.ToStringBuilder(stdErrBuffer));
-
-            var result = await ExecuteAsync(process, stdInPipe, stdOutPipe, stdErrPipe, cancellationToken);
-
-            var stdOut = stdOutBuffer.ToString();
-            var stdErr = stdErrBuffer.ToString();
-
-            return new BufferedCommandResult(result.ExitCode, result.StartTime, result.ExitTime, stdOut, stdErr);
-        }
-
-        public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(CancellationToken cancellationToken = default)
-        {
-            var process = new ProcessEx(GetStartInfo());
-            var task = ExecuteBufferedAsync(process, cancellationToken);
-
-            return new CommandTask<BufferedCommandResult>(task, process.Id);
-        }
-
         /// <inheritdoc />
         public override string ToString() => $"{TargetFilePath} {Arguments}";
     }
@@ -300,19 +274,19 @@ namespace CliWrap
     public partial class Command
     {
         /// <summary>
-        /// Creates a new command with the standard output pipe configured to the specified target.
+        /// Creates a new command that pipes its standard output to the specified target.
         /// </summary>
         public static Command operator |(Command source, PipeTarget target) =>
             source.WithStandardOutputPipe(target);
 
         /// <summary>
-        /// Creates a new command with the standard output pipe configured to the specified stream.
+        /// Creates a new command that pipes its standard output to the specified stream.
         /// </summary>
         public static Command operator |(Command source, Stream target) =>
             source | PipeTarget.ToStream(target);
 
         /// <summary>
-        /// Creates a new command with the standard output and error pipes configured to the specified targets.
+        /// Creates a new command that pipes its standard output and standard error to the specified targets.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<PipeTarget, PipeTarget> target) =>
             source
@@ -320,7 +294,7 @@ namespace CliWrap
                 .WithStandardErrorPipe(target.Item2);
 
         /// <summary>
-        /// Creates a new command with the standard output and error pipes configured to the specified streams.
+        /// Creates a new command that pipes its standard output and standard error to the specified streams.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<Stream, Stream> target) =>
             source
@@ -328,8 +302,8 @@ namespace CliWrap
                 .WithStandardErrorPipe(PipeTarget.ToStream(target.Item2));
 
         /// <summary>
-        /// Creates a new command with the standard output and error pipes configured to the specified delegates.
-        /// Uses <see cref="Console.OutputEncoding"/> to encode the string into byte stream.
+        /// Creates a new command that pipes its standard output and standard error to the specified delegates.
+        /// Uses <see cref="Console.OutputEncoding"/> to encode the strings from byte streams.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<Action<string>, Action<string>> target) =>
             source
@@ -337,26 +311,26 @@ namespace CliWrap
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(target.Item2));
 
         /// <summary>
-        /// Creates a new command with the standard input pipe configured to the specified source.
+        /// Creates a new command that pipes its standard input from the specified source.
         /// </summary>
         public static Command operator |(PipeSource source, Command target) =>
             target.WithStandardInputPipe(source);
 
         /// <summary>
-        /// Creates a new command with the standard input pipe configured to the specified stream.
+        /// Creates a new command that pipes its standard input from the specified stream.
         /// </summary>
         public static Command operator |(Stream source, Command target) =>
             PipeSource.FromStream(source) | target;
 
         /// <summary>
-        /// Creates a new command with the standard input pipe configured to the specified string.
+        /// Creates a new command that pipes its standard input from the specified string.
         /// Uses <see cref="Console.InputEncoding"/> to encode the string into byte stream.
         /// </summary>
         public static Command operator |(string source, Command target) =>
             PipeSource.FromString(source) | target;
 
         /// <summary>
-        /// Creates a new command with the standard input pipe configured to the specified other command.
+        /// Creates a new command that pipes its standard input from the standard output of the specified other command.
         /// </summary>
         public static Command operator |(Command source, Command target) =>
             PipeSource.FromCommand(source) | target;
