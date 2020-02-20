@@ -13,11 +13,14 @@ namespace CliWrap.Internal
 
         public int Id { get; private set; }
 
-        public StreamWriter StdIn { get; private set; } = StreamWriter.Null;
+        // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
+        // writing and reading to PipeSource/PipeTarget at the higher level.
 
-        public StreamReader StdOut { get; private set; } = StreamReader.Null;
+        public Stream StdIn { get; private set; } = Stream.Null;
 
-        public StreamReader StdErr { get; private set; } = StreamReader.Null;
+        public Stream StdOut { get; private set; } = Stream.Null;
+
+        public Stream StdErr { get; private set; } = Stream.Null;
 
         public int ExitCode { get; private set; }
 
@@ -44,9 +47,9 @@ namespace CliWrap.Internal
             StartTime = DateTimeOffset.Now;
 
             Id = _nativeProcess.Id;
-            StdIn = _nativeProcess.StandardInput;
-            StdOut = _nativeProcess.StandardOutput;
-            StdErr = _nativeProcess.StandardError;
+            StdIn = _nativeProcess.StandardInput.BaseStream;
+            StdOut = _nativeProcess.StandardOutput.BaseStream;
+            StdErr = _nativeProcess.StandardError.BaseStream;
         }
 
         public bool TryKill()
@@ -68,15 +71,11 @@ namespace CliWrap.Internal
             }
         }
 
-        public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)
-        {
-            using var registration = cancellationToken.Register(() => TryKill());
-            await _exitTcs.Task;
-        }
+        public async Task WaitUntilExitAsync() => await _exitTcs.Task;
 
         public void Dispose()
         {
-            // Kill the process if it's still alive at this point
+            // Kill the process if it's still alive by this point
             if (!_nativeProcess.HasExited)
                 TryKill();
 

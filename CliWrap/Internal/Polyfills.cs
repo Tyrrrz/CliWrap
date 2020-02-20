@@ -1,5 +1,7 @@
 ﻿// ReSharper disable CheckNamespace
 
+// Polyfills to bridge the missing APIs in older versions of the framework/standard.
+
 #if NET461 || NETSTANDARD2_0
 namespace System.IO
 {

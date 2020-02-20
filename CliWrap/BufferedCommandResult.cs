@@ -2,13 +2,13 @@
 
 namespace CliWrap
 {
-    public class BufferedCliResult : CliResult
+    public class BufferedCommandResult : CommandResult
     {
         public string StandardOutput { get; }
 
         public string StandardError { get; }
 
-        public BufferedCliResult(
+        public BufferedCommandResult(
             int exitCode,
             DateTimeOffset startTime, DateTimeOffset exitTime,
             string standardOutput, string standardError)

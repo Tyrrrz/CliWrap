@@ -7,23 +7,48 @@ using CliWrap.Internal;
 
 namespace CliWrap
 {
+    /// <summary>
+    /// Abstraction that represents an inwards-facing pipe.
+    /// </summary>
     public abstract partial class PipeSource
     {
+        /// <summary>
+        /// Copies the binary content pushed to the pipe into the destination stream.
+        /// </summary>
         public abstract Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default);
     }
 
     public partial class PipeSource
     {
+        /// <summary>
+        /// Creates a pipe source from a readable stream.
+        /// </summary>
         public static PipeSource FromStream(Stream stream) => new StreamPipeSource(stream);
 
+        /// <summary>
+        /// Creates a pipe source from in-memory data.
+        /// </summary>
         public static PipeSource FromBytes(byte[] bytes) => FromStream(bytes.ToStream());
 
+        /// <summary>
+        /// Creates a pipe source from a string.
+        /// </summary>
         public static PipeSource FromString(string str, Encoding encoding) => FromBytes(encoding.GetBytes(str));
 
+        /// <summary>
+        /// Creates a pipe source from a string.
+        /// Uses <see cref="Console.InputEncoding"/> to encode the string into byte stream.
+        /// </summary>
         public static PipeSource FromString(string str) => FromString(str, Console.InputEncoding);
 
-        public static PipeSource FromCli(Cli cli) => new CliPipeSource(cli);
+        /// <summary>
+        /// Creates a pipe source from the standard output of a command.
+        /// </summary>
+        public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
 
+        /// <summary>
+        /// Pipe source that pushes no data.
+        /// </summary>
         public static PipeSource Null { get; } = FromStream(Stream.Null);
     }
 
@@ -31,25 +56,19 @@ namespace CliWrap
     {
         private readonly Stream _stream;
 
-        public StreamPipeSource(Stream stream)
-        {
-            _stream = stream;
-        }
+        public StreamPipeSource(Stream stream) => _stream = stream;
 
         public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
             _stream.CopyToAsync(destination, cancellationToken);
     }
 
-    internal class CliPipeSource : PipeSource
+    internal class CommandPipeSource : PipeSource
     {
-        private readonly Cli _cli;
+        private readonly Command _command;
 
-        public CliPipeSource(Cli cli)
-        {
-            _cli = cli;
-        }
+        public CommandPipeSource(Command command) => _command = command;
 
-        public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await _cli.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
+        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+            _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
     }
 }

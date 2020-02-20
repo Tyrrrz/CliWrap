@@ -4,21 +4,30 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace CliWrap
+namespace CliWrap.Builders
 {
-    public class CliArgumentBuilder
+    /// <summary>
+    /// Builder that helps generate a well-formed arguments string.
+    /// </summary>
+    public class ArgumentsBuilder
     {
         private static readonly CultureInfo DefaultCulture = CultureInfo.InvariantCulture;
 
         private readonly List<string> _args = new List<string>();
 
-        public CliArgumentBuilder Add(string value)
+        /// <summary>
+        /// Adds the specified value to the list of arguments.
+        /// </summary>
+        public ArgumentsBuilder Add(string value)
         {
             _args.Add(value);
             return this;
         }
 
-        public CliArgumentBuilder Add(IEnumerable<string> values)
+        /// <summary>
+        /// Adds the specified values to the list of arguments.
+        /// </summary>
+        public ArgumentsBuilder Add(IEnumerable<string> values)
         {
             foreach (var value in values)
                 Add(value);
@@ -26,13 +35,23 @@ namespace CliWrap
             return this;
         }
 
-        public CliArgumentBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
+        /// <summary>
+        /// Adds the specified value to the list of arguments.
+        /// </summary>
+        public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
             Add(value.ToString(null, cultureInfo));
 
-        public CliArgumentBuilder Add(IFormattable value) =>
+        /// <summary>
+        /// Adds the specified value to the list of arguments.
+        /// The value is converted to string using invariant culture.
+        /// </summary>
+        public ArgumentsBuilder Add(IFormattable value) =>
             Add(value, DefaultCulture);
 
-        public CliArgumentBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo)
+        /// <summary>
+        /// Adds the specified values to the list of arguments.
+        /// </summary>
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo)
         {
             foreach (var value in values)
                 Add(value, cultureInfo);
@@ -40,9 +59,16 @@ namespace CliWrap
             return this;
         }
 
-        public CliArgumentBuilder Add(IEnumerable<IFormattable> values) =>
+        /// <summary>
+        /// Adds the specified values to the list of arguments.
+        /// The values are converted to string using invariant culture.
+        /// </summary>
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values) =>
             Add(values, DefaultCulture);
 
+        /// <summary>
+        /// Builds the resulting arguments string.
+        /// </summary>
         public string Build()
         {
             var buffer = new StringBuilder();

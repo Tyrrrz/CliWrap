@@ -13,7 +13,7 @@ namespace CliWrap.Tests
             // Arrange
             const int expectedExitCode = 13;
 
-            var cli = Cli.Wrap("dotnet")
+            var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.Location)
                     .Add(Dummy.Program.SetExitCode)
@@ -21,7 +21,7 @@ namespace CliWrap.Tests
                 .WithValidation(ResultValidation.None);
 
             // Act
-            var result = await cli.ExecuteAsync();
+            var result = await cmd.ExecuteAsync();
 
             // Assert
             result.ExitCode.Should().Be(expectedExitCode);
@@ -32,10 +32,10 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Arrange
-            var cli = Cli.Wrap("dotnet").WithArguments(Dummy.Program.Location);
+            var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.Location);
 
             // Act
-            var task = cli.ExecuteAsync();
+            var task = cmd.ExecuteAsync();
 
             // Assert
             task.ProcessId.Should().NotBe(0);
@@ -46,14 +46,14 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_CLI_and_it_will_not_deadlock_on_very_large_stdout_and_stderr()
         {
             // Arrange
-            var cli = Cli.Wrap("dotnet")
+            var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.Location)
                     .Add(Dummy.Program.LoopBoth)
                     .Add(100_000));
 
             // Act
-            await cli.ExecuteAsync();
+            await cmd.ExecuteAsync();
         }
     }
 }
