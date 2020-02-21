@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0;net461;netcoreapp3.0</TargetFrameworks>
     <Authors>$(Company)</Authors>
-    <Description>Wrapper for command line interface executables</Description>
+    <Description>Library for running shell commands with extensive support for piping</Description>
     <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/Tyrrrz/CliWrap/blob/master/Changelog.md</PackageReleaseNotes>

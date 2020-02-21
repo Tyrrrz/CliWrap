@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -28,7 +27,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a pipe source from in-memory data.
         /// </summary>
-        public static PipeSource FromBytes(byte[] bytes) => FromStream(bytes.ToStream());
+        public static PipeSource FromBytes(byte[] data) => new InMemoryPipeSource(data);
 
         /// <summary>
         /// Creates a pipe source from a string.
@@ -60,6 +59,19 @@ namespace CliWrap
 
         public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
             _stream.CopyToAsync(destination, cancellationToken);
+    }
+
+    internal class InMemoryPipeSource : PipeSource
+    {
+        private readonly byte[] _data;
+
+        public InMemoryPipeSource(byte[] data)
+        {
+            _data = data;
+        }
+
+        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+            destination.WriteAsync(_data, 0, _data.Length, cancellationToken);
     }
 
     internal class CommandPipeSource : PipeSource
