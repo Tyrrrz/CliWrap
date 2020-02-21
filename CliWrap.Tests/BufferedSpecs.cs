@@ -19,7 +19,7 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Location)
                     .Add(Dummy.Program.SetExitCode)
                     .Add(expectedExitCode))
-                .WithValidation(ResultValidation.None);
+                .WithValidation(CommandResultValidation.None);
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();

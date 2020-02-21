@@ -38,7 +38,7 @@ namespace CliWrap
         /// <summary>
         /// Configured result validation options.
         /// </summary>
-        public ResultValidation Validation { get; }
+        public CommandResultValidation Validation { get; }
 
         /// <summary>
         /// Configured standard input pipe source.
@@ -63,7 +63,7 @@ namespace CliWrap
             string arguments,
             string workingDirPath,
             IReadOnlyDictionary<string, string> environmentVariables,
-            ResultValidation validation,
+            CommandResultValidation validation,
             PipeSource standardInputPipe,
             PipeTarget standardOutputPipe,
             PipeTarget standardErrorPipe)
@@ -86,7 +86,7 @@ namespace CliWrap
             "",
             Directory.GetCurrentDirectory(),
             new Dictionary<string, string>(),
-            ResultValidation.ZeroExitCode,
+            CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
             PipeTarget.Null)
@@ -157,7 +157,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the validation options to the specified value.
         /// </summary>
-        public Command WithValidation(ResultValidation validation) => new Command(
+        public Command WithValidation(CommandResultValidation validation) => new Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -281,6 +281,13 @@ namespace CliWrap
             source | PipeTarget.ToStream(target);
 
         /// <summary>
+        /// Creates a new command that pipes its standard output line-by-line to the specified delegate.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// </summary>
+        public static Command operator |(Command source, Action<string> target) =>
+            source | PipeTarget.ToDelegate(target);
+
+        /// <summary>
         /// Creates a new command that pipes its standard output and standard error to the specified targets.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<PipeTarget, PipeTarget> target) =>
@@ -297,8 +304,8 @@ namespace CliWrap
                 .WithStandardErrorPipe(PipeTarget.ToStream(target.Item2));
 
         /// <summary>
-        /// Creates a new command that pipes its standard output and standard error to the specified delegates.
-        /// Uses <see cref="Console.OutputEncoding"/> to encode the strings from byte streams.
+        /// Creates a new command that pipes its standard output and standard error line-by-line to the specified delegates.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<Action<string>, Action<string>> target) =>
             source

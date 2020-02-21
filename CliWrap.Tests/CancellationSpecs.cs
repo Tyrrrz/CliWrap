@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -38,6 +39,13 @@ namespace CliWrap.Tests
 
             // Act & assert
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await cmd.ExecuteAsync(cts.Token));
+        }
+
+        public async Task Test()
+        {
+            var command = "Hello world" | Cli.Wrap("foo")
+                .WithArguments("print random") | Cli.Wrap("bar")
+                .WithArguments("reverse") | (Console.WriteLine, Console.Error.WriteLine);
         }
     }
 }

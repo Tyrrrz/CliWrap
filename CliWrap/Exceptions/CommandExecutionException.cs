@@ -25,7 +25,7 @@ Underlying process reported a non-zero exit code ({exitCode}).
 Command:
     {filePath} {arguments}
 
-You can suppress this validation by calling `WithValidation(ResultValidation.None)` on the command.".Trim();
+You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
 
             return new CommandExecutionException(message);
         }

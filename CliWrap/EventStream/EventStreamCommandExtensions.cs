@@ -47,8 +47,9 @@ namespace CliWrap.EventStream
                     await Task.WhenAny(commandTask, channel.WaitUntilNextAsync());
             }
 
-            if (commandTask.Task.IsCompletedSuccessfully())
-                yield return new CompletedCommandEvent(commandTask.Task.Result.ExitCode);
+            await commandTask;
+
+            yield return new CompletedCommandEvent(commandTask.Task.Result.ExitCode);
         }
 
         /// <summary>
