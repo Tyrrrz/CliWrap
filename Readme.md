@@ -27,7 +27,7 @@ CliWrap is a library for interacting with command line executables in a function
 
 ## Usage
 
-_Looking for documentation for CliWrap v2.x? You [can find it here](https://github.com/Tyrrrz/CliWrap/blob/43a93e37c81d8dda9c96343c6c7fb160933415ac/Readme.md)._
+_Looking for documentation for CliWrap v2.5? You [can find it here](https://github.com/Tyrrrz/CliWrap/blob/43a93e37c81d8dda9c96343c6c7fb160933415ac/Readme.md). For v2.5 to v3.0 migration guide [check out the wiki](https://github.com/Tyrrrz/CliWrap/wiki/Migration-guide-(from-v2.5-to-v3.0\))._
 
 ### Executing a command with predefined arguments
 
@@ -199,6 +199,8 @@ CliWrap also supports an alternative method of running commands, which is by rep
 Pull-based event streams can be obtained by calling `command.ListenAsync()` which returns an `IAsyncEnumerable<CommandEvent>`. This is an asynchronous data stream that you can iterate through using the `await foreach` semantics introduced in C#8.
 
 ```csharp
+using CliWrap.EventStream;
+
 var cmd = Cli.Wrap("foo").WithArguments("bar");
 
 await foreach (var cmdEvent in cmd.ListenAsync())
@@ -237,6 +239,7 @@ Push-based event streams can be obtained by calling `command.ToObservable()` whi
 The following example uses the [`System.Reactive`](https://github.com/dotnet/reactive) package, which is a set of extensions that make working with `IObservable<T>` much more convenient.
 
 ```csharp
+using CliWrap.EventStream;
 using System.Reactive;
 
 var observable = cmd.ToObservable();
