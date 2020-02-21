@@ -140,7 +140,21 @@ namespace CliWrap
 
         public MergedPipeTarget(IReadOnlyList<PipeTarget> targets) => _targets = targets;
 
-        public override Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
-            Task.WhenAll(_targets.Select(t => t.CopyFromAsync(source, cancellationToken)));
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+        {
+            var buffer = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            {
+                using var bufferStream = new MemoryStream(buffer, 0, bytesRead);
+
+                foreach (var target in _targets)
+                {
+                    bufferStream.Seek(0, SeekOrigin.Begin);
+                    await target.CopyFromAsync(bufferStream, cancellationToken);
+                }
+            }
+        }
     }
 }
