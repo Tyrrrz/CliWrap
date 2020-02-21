@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using CliWrap.Internal;
 
 namespace CliWrap.EventStream
 {
@@ -47,7 +48,7 @@ namespace CliWrap.EventStream
         public IDisposable Subscribe(IObserver<CommandEvent> observer)
         {
             _observers.Add(observer);
-            return EmptyDisposable.Instance;
+            return new DelegatedDisposable(() => _observers.Remove(observer));
         }
 
         public ICommandEventObservable Start()
@@ -93,12 +94,5 @@ namespace CliWrap.EventStream
         /// Start the execution of the underlying command.
         /// </summary>
         ICommandEventObservable Start();
-    }
-
-    internal class EmptyDisposable : IDisposable
-    {
-        public static EmptyDisposable Instance { get; } = new EmptyDisposable();
-
-        public void Dispose() { }
     }
 }
