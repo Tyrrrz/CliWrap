@@ -101,7 +101,7 @@ await task;
 
 ### Lazily mapping the result of an execution
 
-Additionally, you can transform the result of `CommandTask<T>` lazily with the help of `Select()` method. It works very similar to its LINQ equivalent.
+Additionally, you can transform the result of `CommandTask<T>` lazily with the help of `Select()` method. It works exactly like its LINQ equivalent.
 
 ```csharp
 // We're only interested in the exit code
@@ -135,7 +135,7 @@ var command = Cli.Wrap("git")
         .Add(10));
 ```
 
-When using the second approach, CliWrap builds the string automatically, appending individual arguments and escaping any special characters that need to be escaped. In general, this approach is more preferable to the first one because you don't have to worry about formatting.
+When using the second approach, CliWrap builds the string automatically, appending individual arguments and escaping any special characters that need to be escaped. In general, this approach is more preferable than the first one because you don't have to worry about formatting.
 
 You can also configure other aspects, such as environment variables and working directory:
 
@@ -151,7 +151,7 @@ var command = Cli.Wrap("git")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
 ```
 
-Note that each call to one of these `WithXyz()` methods returns a new immutable object. That means you can safely re-use parts of your commands as you see fit:
+Note that each call to one of these `WithXyz()` methods returns a new immutable object, with the corresponding property set to the specified value. That means you can safely re-use parts of your commands as you see fit:
 
 ```csharp
 var command1 = Cli.Wrap("git")
@@ -232,7 +232,7 @@ There also overloads for `ListenAsync()` that accept encoding options and provid
 
 #### Push-based event streams
 
-Push-based event streams can be obtained by calling `command.ToObservable()` which returns an `IObservable<CommandEvent>`. Unlike with `ListenAsync()`, calling `ToObservable()` doesn't execute the command just yet, instead it returns an observable you can subscribe to in advance. When you're ready to execute the command, simply call `Start()` on it. Essentially, `ToObservable()` returns the so-called "cold observable".
+Push-based event streams can be obtained by calling `command.ToObservable()` which returns an `IObservable<CommandEvent>`. Unlike with `ListenAsync()`, calling `ToObservable()` doesn't execute the command just yet, instead it returns a cold observable. When you're ready to execute the command, simply call `Start()` on it.
 
 The following example uses the [`System.Reactive`](https://github.com/dotnet/reactive) package, which is a set of extensions that make working with `IObservable<T>` much more convenient.
 
@@ -270,7 +270,7 @@ Most of the features you've seen so far are based on CliWrap's core model of pip
 
 To facilitate piping, `Command` object has three methods: `WithStandardInputPipe(PipeSource source)`, `WithStandardOutputPipe(PipeTarget target)`, `WithStandardErrorPipe(PipeTarget target)`, which let you specify how you want to have the streams redirected. Similarly to other `WithXyz()` methods, these produce new immutable commands, so any existing command instances are unaffected.
 
-By default, every command is piped from `PipeSource.Null` and pipes to `PipeTarget.Null`, which are CliWrap's equivalents of `/dev/null`. We can change that and, for example, have the command pipe its standard input from one file and redirect its standard output to another file:
+By default, every command is piped from `PipeSource.Null` and is itself piped to `PipeTarget.Null`, which are CliWrap's equivalents of `/dev/null`. You can change that and, for example, have the command pipe its standard input from one file and redirect its standard output to another:
 
 ```csharp
 await using var input = File.OpenRead("input.txt");
@@ -291,7 +291,7 @@ await using var output = File.Create("output.txt");
 await (input | Cli.Wrap("foo") | output).ExecuteAsync();
 ```
 
-There are many ways you can create new instances of `PipeSource` or `PipeTarget`:
+There are many ways you can create new instances of `PipeSource` and `PipeTarget`:
 
 - `PipeSource.Null` -- represents an empty pipe source.
 - `PipeSource.FromStream()` -- pipes data from any readable stream.
@@ -301,10 +301,10 @@ There are many ways you can create new instances of `PipeSource` or `PipeTarget`
 - `PipeTarget.Null` - represents a pipe target that discards all data.
 - `PipeTarget.ToStream()` -- pipes data into any writeable stream.
 - `PipeTarget.ToStringBuilder()` -- pipes data as text into `StringBuilder` (supports custom encoding).
-- `PipeTarget.ToDelegate()` -- pipes data as text, line-by-line, into `Action<string>` delegate (supports custom encoding).
-- `PipeTarget.Merge()` -- merges multiple pipes into one, which pipes data to multiple targets simultaneously.
+- `PipeTarget.ToDelegate()` -- pipes data as text, line-by-line, into `Action<string>` (supports custom encoding).
+- `PipeTarget.Merge()` -- merges multiple pipes into one.
 
-The pipe operator has overloads for most of these. Here are some examples of what you can do:
+The pipe operator also has overloads for most of these. Here are some examples of what you can do:
 
 ```csharp
 // Pipe a string as stdin
@@ -358,9 +358,9 @@ var command = "Hello world" | Cli.Wrap("foo")
 var result = await command.ExecuteAsync();
 ```
 
-Piping is not only used for convenience but also to avoid memory allocations that would otherwise be caused by buffering all data in memory. CliWrap makes building command pipelines very simple -- just imagine doing the same thing with `System.Diagnostics.Process`.
+Piping is not only used for convenience but also to avoid memory allocations that would otherwise be caused by buffering data in memory. CliWrap makes building command pipelines very simple -- just imagine doing the same thing with `System.Diagnostics.Process`.
 
-As you can probably guess, the extension methods we have seen earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `ToObservable()` are all based on this piping model. In fact we can even go a level deeper and combine these approaches:
+As you can probably guess, the extension methods mentioned earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `ToObservable()`, are all based on this piping model. In fact we can even go a level deeper and combine these approaches together:
 
 ```csharp
 await using var input = File.OpenRead("input.txt");
