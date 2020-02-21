@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Internal;
 
 namespace CliWrap.EventStream
 {
@@ -39,12 +38,13 @@ namespace CliWrap.EventStream
 
             yield return new StartedCommandEvent(commandTask.ProcessId);
 
-            while (!commandTask.Task.IsCompleted && !cancellationToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (channel.TryGetNext(out var next))
                     yield return next;
-                else
+                else if (!commandTask.Task.IsCompleted)
                     await Task.WhenAny(commandTask, channel.WaitUntilNextAsync());
+                else break;
             }
 
             await commandTask;
