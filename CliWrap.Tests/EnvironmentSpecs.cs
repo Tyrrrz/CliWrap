@@ -16,7 +16,7 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_command_and_specify_working_directory_path()
         {
             // Arrange
-            var workingDirPath = PathEx.NormalizePath(Path.GetTempPath());
+            var workingDirPath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithWorkingDirectory(workingDirPath)
@@ -28,7 +28,7 @@ namespace CliWrap.Tests
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            PathEx.NormalizePath(result.StandardOutput.TrimEnd()).Should().Be(workingDirPath);
+            result.StandardOutput.TrimEnd().Should().Be(workingDirPath);
         }
 
         [Fact(Timeout = 10000)]
