@@ -10,7 +10,7 @@ namespace CliWrap.Benchmarks
     public class BasicBenchmarks
     {
         private const string FilePath = "dotnet";
-        private static readonly string Args = Tests.Dummy.Program.Location;
+        private static readonly string Args = Tests.Dummy.Program.FilePath;
 
         [Benchmark(Description = "CliWrap", Baseline = true)]
         public async Task<int> ExecuteWithCliWrap()

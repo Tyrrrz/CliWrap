@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -10,29 +11,25 @@ namespace CliWrap.Tests.Dummy
     // Shared metadata
     public static partial class Program
     {
-        public static string Location { get; } = typeof(Program).Assembly.Location;
-
-        public const string Echo = nameof(Echo);
-
-        public const string EchoStdIn = nameof(EchoStdIn);
-
-        public const string EchoStdOut = nameof(EchoStdOut);
-
-        public const string EchoStdErr = nameof(EchoStdErr);
+        public static string FilePath { get; } = typeof(Program).Assembly.Location;
 
         public const string SetExitCode = nameof(SetExitCode);
 
-        public const string LoopStdOut = nameof(LoopStdOut);
+        public const string EchoArgsToStdOut = nameof(EchoArgsToStdOut);
 
-        public const string LoopStdErr = nameof(LoopStdErr);
+        public const string EchoArgsToStdErr = nameof(EchoArgsToStdErr);
 
-        public const string LoopBoth = nameof(LoopBoth);
+        public const string EchoStdInToStdOut = nameof(EchoStdInToStdOut);
 
-        public const string Binary = nameof(Binary);
+        public const string PrintStdInLength = nameof(PrintStdInLength);
 
-        public const string GetStdInSize = nameof(GetStdInSize);
+        public const string PrintWorkingDir = nameof(PrintWorkingDir);
 
         public const string PrintEnvVars = nameof(PrintEnvVars);
+
+        public const string PrintLines = nameof(PrintLines);
+
+        public const string ProduceBinary = nameof(ProduceBinary);
 
         public const string Sleep = nameof(Sleep);
     }
@@ -45,19 +42,56 @@ namespace CliWrap.Tests.Dummy
         private static readonly IReadOnlyDictionary<string, Func<string[], int>> Commands =
             new Dictionary<string, Func<string[], int>>(StringComparer.OrdinalIgnoreCase)
             {
-                [Echo] = args =>
+                [SetExitCode] = args =>
                 {
-                    Console.WriteLine(string.Join(" ", args));
+                    var exitCode = int.Parse(args.Single(), CultureInfo.InvariantCulture);
+
+                    Console.Error.WriteLine($"Returning exit code {exitCode}");
+                    return exitCode;
+                },
+
+                [EchoArgsToStdOut] = args =>
+                {
+                    var text = string.Join(" ", args);
+                    Console.WriteLine(text);
+
                     return 0;
                 },
 
-                [EchoStdIn] = args =>
+                [EchoArgsToStdErr] = args =>
+                {
+                    var text = string.Join(" ", args);
+                    Console.Error.WriteLine(text);
+
+                    return 0;
+                },
+
+                [EchoStdInToStdOut] = args =>
                 {
                     using var input = Console.OpenStandardInput();
                     using var output = Console.OpenStandardOutput();
 
                     input.CopyTo(output);
 
+                    return 0;
+                },
+
+                [PrintStdInLength] = args =>
+                {
+                    using var input = Console.OpenStandardInput();
+
+                    var i = 0L;
+                    while (input.ReadByte() >= 0)
+                        i++;
+
+                    Console.WriteLine(i.ToString(CultureInfo.InvariantCulture));
+
+                    return 0;
+                },
+
+                [PrintWorkingDir] = args =>
+                {
+                    Console.WriteLine(Directory.GetCurrentDirectory());
                     return 0;
                 },
 
@@ -69,47 +103,7 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [EchoStdOut] = args =>
-                {
-                    Console.WriteLine(string.Join(" ", args));
-                    return 0;
-                },
-
-                [EchoStdErr] = args =>
-                {
-                    Console.Error.WriteLine(string.Join(" ", args));
-                    return 0;
-                },
-
-                [SetExitCode] = args =>
-                {
-                    var exitCode = int.Parse(args.Single(), CultureInfo.InvariantCulture);
-
-                    Console.Error.WriteLine($"Returning exit code {exitCode}");
-                    return exitCode;
-                },
-
-                [LoopStdOut] = args =>
-                {
-                    var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
-
-                    for (var i = 0; i < count; i++)
-                        Console.WriteLine(i.ToString(CultureInfo.InvariantCulture));
-
-                    return 0;
-                },
-
-                [LoopStdErr] = args =>
-                {
-                    var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
-
-                    for (var i = 0; i < count; i++)
-                        Console.Error.WriteLine(i.ToString(CultureInfo.InvariantCulture));
-
-                    return 0;
-                },
-
-                [LoopBoth] = args =>
+                [PrintLines] = args =>
                 {
                     var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
 
@@ -122,7 +116,7 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [Binary] = args =>
+                [ProduceBinary] = args =>
                 {
                     var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
 
@@ -130,19 +124,6 @@ namespace CliWrap.Tests.Dummy
                     Random.NextBytes(buffer);
 
                     Console.OpenStandardOutput().Write(buffer, 0, buffer.Length);
-
-                    return 0;
-                },
-
-                [GetStdInSize] = args =>
-                {
-                    using var input = Console.OpenStandardInput();
-
-                    var i = 0L;
-                    while (input.ReadByte() >= 0)
-                        i++;
-
-                    Console.WriteLine(i.ToString(CultureInfo.InvariantCulture));
 
                     return 0;
                 },

@@ -14,18 +14,18 @@ namespace CliWrap.Tests
             _output = output;
         }
 
-        [Fact]
-        public async Task I_can_execute_a_CLI_and_get_an_exception_if_it_returns_a_non_zero_exit_code()
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_get_an_exception_if_it_returns_a_non_zero_exit_code()
         {
             // Arrange
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.FilePath)
                     .Add(Dummy.Program.SetExitCode)
                     .Add(-1));
 
             // Act & assert
-            var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteAsync());
+            var ex = await Assert.ThrowsAsync<CommandExecutionException>(() => cmd.ExecuteAsync());
             _output.WriteLine(ex.Message);
         }
     }

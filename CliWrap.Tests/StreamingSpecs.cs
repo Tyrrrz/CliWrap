@@ -17,15 +17,15 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_as_an_async_event_stream()
+        public async Task I_can_execute_a_command_as_an_async_event_stream()
         {
             // Arrange
             const int expectedLinesCount = 1000;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.LoopBoth)
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintLines)
                     .Add(expectedLinesCount));
 
             // Act
@@ -54,15 +54,15 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_as_an_observable_event_stream()
+        public async Task I_can_execute_a_command_as_an_observable_event_stream()
         {
             // Arrange
             const int expectedLinesCount = 1000;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.LoopBoth)
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintLines)
                     .Add(expectedLinesCount));
 
             // Act

@@ -13,7 +13,7 @@ namespace CliWrap.Benchmarks
     public class BufferingBenchmarks
     {
         private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.Location} {Tests.Dummy.Program.LoopBoth} 100000";
+        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} {Tests.Dummy.Program.PrintLines} 100000";
 
         [Benchmark(Description = "CliWrap", Baseline = true)]
         public async Task<(string, string)> ExecuteWithCliWrap()

@@ -5,17 +5,17 @@ using Xunit;
 
 namespace CliWrap.Tests
 {
-    public class BasicSpecs
+    public class GeneralSpecs
     {
-        [Fact]
-        public async Task I_can_execute_a_CLI_and_get_the_execution_result()
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_get_the_execution_result()
         {
             // Arrange
             const int expectedExitCode = 13;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
+                    .Add(Dummy.Program.FilePath)
                     .Add(Dummy.Program.SetExitCode)
                     .Add(expectedExitCode))
                 .WithValidation(CommandResultValidation.None);
@@ -28,11 +28,11 @@ namespace CliWrap.Tests
             result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
         }
 
-        [Fact]
-        public async Task I_can_execute_a_CLI_and_get_the_underlying_process_ID_while_it_is_running()
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Arrange
-            var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.Location);
+            var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.FilePath);
 
             // Act
             var task = cmd.ExecuteAsync();
@@ -43,13 +43,13 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_it_will_not_deadlock_on_very_large_stdout_and_stderr()
+        public async Task I_can_execute_a_command_with_very_large_stdout_and_stderr_and_get_the_result_without_deadlocks()
         {
             // Arrange
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.LoopBoth)
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintLines)
                     .Add(100_000));
 
             // Act

@@ -11,27 +11,26 @@ namespace CliWrap.Tests
     public class PipingSpecs
     {
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_pipe_a_stream_as_input()
+        public async Task I_can_execute_a_command_and_pipe_a_stream_into_stdin()
         {
             // Arrange
-            var data = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-            await using var stream = new MemoryStream(data);
+            await using var stream = File.OpenRead(typeof(PipingSpecs).Assembly.Location);
 
             var cmd = stream | Cli
                 .Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.GetStdInSize));
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintStdInLength));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be(data.Length.ToString(CultureInfo.InvariantCulture));
+            result.StandardOutput.TrimEnd().Should().Be(stream.Length.ToString(CultureInfo.InvariantCulture));
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_pipe_a_string_as_input()
+        public async Task I_can_execute_a_command_and_pipe_a_string_into_stdin()
         {
             // Arrange
             const string str = "Hello world";
@@ -39,8 +38,8 @@ namespace CliWrap.Tests
             var cmd = str | Cli
                 .Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.EchoStdIn));
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoStdInToStdOut));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
@@ -50,33 +49,45 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_pipe_another_CLI_as_input()
+        public async Task I_can_execute_a_command_and_pipe_another_command_into_stdin()
         {
             // Arrange
             const int expectedSize = 1_000_000;
 
             var cmd =
-                Cli.Wrap("dotnet").WithArguments(a => a.Add(Dummy.Program.Location).Add(Dummy.Program.Binary).Add(expectedSize)) |
-                Cli.Wrap("dotnet").WithArguments(a => a.Add(Dummy.Program.Location).Add(Dummy.Program.GetStdInSize));
+                Cli.Wrap("dotnet").WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.ProduceBinary)
+                    .Add(expectedSize)) |
+                Cli.Wrap("dotnet").WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintStdInLength));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
-            var size = int.Parse(result.StandardOutput, CultureInfo.InvariantCulture);
 
             // Assert
-            size.Should().Be(expectedSize);
+            result.StandardOutput.TrimEnd().Should().Be(expectedSize.ToString(CultureInfo.InvariantCulture));
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_pipe_a_chain_of_CLIs_into_its_stdin()
+        public async Task I_can_execute_a_command_and_pipe_a_chain_of_commands_into_stdin()
         {
             // Arrange
             var cmd =
                 "Hello world" |
-                Cli.Wrap("dotnet").WithArguments(a => a.Add(Dummy.Program.Location).Add(Dummy.Program.EchoStdIn)) |
-                Cli.Wrap("dotnet").WithArguments(a => a.Add(Dummy.Program.Location).Add(Dummy.Program.GetStdInSize)) |
-                Cli.Wrap("dotnet").WithArguments(a => a.Add(Dummy.Program.Location).Add(Dummy.Program.EchoStdIn)) |
-                Cli.Wrap("dotnet").WithArguments(a => a.Add(Dummy.Program.Location).Add(Dummy.Program.GetStdInSize));
+                Cli.Wrap("dotnet").WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoStdInToStdOut)) |
+                Cli.Wrap("dotnet").WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintStdInLength)) |
+                Cli.Wrap("dotnet").WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoStdInToStdOut)) |
+                Cli.Wrap("dotnet").WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintStdInLength));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
@@ -86,18 +97,17 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_pipe_its_stdout_into_a_stream()
+        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_stream()
         {
             // Arrange
             const int expectedSize = 1_000_000;
-
             await using var stream = new MemoryStream();
 
             var cmd = Cli
                 .Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.Binary)
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.ProduceBinary)
                     .Add(expectedSize)) | stream;
 
             // Act
@@ -108,7 +118,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_and_pipe_its_stdout_and_stderr_into_separate_streams()
+        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_streams()
         {
             // Arrange
             await using var stdOut = new MemoryStream();
@@ -117,8 +127,8 @@ namespace CliWrap.Tests
             var cmd = Cli
                 .Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.LoopBoth)
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintLines)
                     .Add(100)) | (stdOut, stdErr);
 
             // Act
@@ -130,14 +140,14 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_CLI_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
+        public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
         {
             // Arrange
             var cmd = Cli
                 .Wrap("dotnet")
                 .WithArguments(a => a
-                    .Add(Dummy.Program.Location)
-                    .Add(Dummy.Program.GetStdInSize));
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintStdInLength));
 
             // Act
             await cmd.ExecuteAsync();
