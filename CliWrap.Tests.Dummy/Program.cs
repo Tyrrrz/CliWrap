@@ -21,6 +21,8 @@ namespace CliWrap.Tests.Dummy
 
         public const string EchoStdInToStdOut = nameof(EchoStdInToStdOut);
 
+        public const string EchoPartStdInToStdOut = nameof(EchoPartStdInToStdOut);
+
         public const string PrintStdInLength = nameof(PrintStdInLength);
 
         public const string PrintWorkingDir = nameof(PrintWorkingDir);
@@ -72,6 +74,28 @@ namespace CliWrap.Tests.Dummy
                     using var output = Console.OpenStandardOutput();
 
                     input.CopyTo(output);
+
+                    return 0;
+                },
+
+                [EchoPartStdInToStdOut] = args =>
+                {
+                    var takeSize = long.Parse(args.Single());
+
+                    using var input = Console.OpenStandardInput();
+                    using var output = Console.OpenStandardOutput();
+
+                    var copiedSize = 0L;
+
+                    while (copiedSize < takeSize)
+                    {
+                        var i = input.ReadByte();
+                        if (i < 0)
+                            break;
+
+                        output.WriteByte((byte) i);
+                        copiedSize++;
+                    }
 
                     return 0;
                 },
