@@ -7,10 +7,16 @@ namespace CliWrap.EventStream
 {
     internal class Channel<T> : IDisposable
     {
+        private readonly int _capacity;
         private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
 
         private bool _isDisposed;
+
+        public Channel(int capacity)
+        {
+            _capacity = capacity;
+        }
 
         private void EnsureNotDisposed()
         {
@@ -21,8 +27,15 @@ namespace CliWrap.EventStream
         public void Publish(T item)
         {
             EnsureNotDisposed();
-            _queue.Enqueue(item);
-            _semaphore.Release();
+
+            // This will block the publisher, but, considering that this is used from
+            // async event stream, we're okay with blocking command execution since
+            // it's taking place on a separate thread anyway.
+            if (SpinWait.SpinUntil(() => _queue.Count < _capacity, TimeSpan.FromMinutes(10)))
+            {
+                _queue.Enqueue(item);
+                _semaphore.Release();
+            }
         }
 
         public async Task WaitUntilNextAsync()

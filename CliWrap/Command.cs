@@ -217,6 +217,8 @@ namespace CliWrap
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
             };
 
             foreach (var variable in EnvironmentVariables)

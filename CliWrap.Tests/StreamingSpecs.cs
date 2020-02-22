@@ -31,6 +31,7 @@ namespace CliWrap.Tests
             // Act
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
+
             await foreach (var cmdEvent in cmd.ListenAsync())
             {
                 cmdEvent

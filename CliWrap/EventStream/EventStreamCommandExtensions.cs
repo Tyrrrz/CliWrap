@@ -23,7 +23,7 @@ namespace CliWrap.EventStream
             Encoding standardErrorEncoding,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            using var channel = new Channel<CommandEvent>();
+            using var channel = new Channel<CommandEvent>(1000);
 
             // Preserve the existing pipes by merging them with ours
             var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
