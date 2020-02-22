@@ -74,7 +74,7 @@ namespace CliWrap.EventStream
             command.ListenAsync(Console.OutputEncoding, cancellationToken);
 
         /// <summary>
-        /// Creates an observable event stream from the command.
+        /// Executes the command as an observable event stream.
         /// </summary>
         public static IObservable<CommandEvent> Observe(
             this Command command,
@@ -115,7 +115,7 @@ namespace CliWrap.EventStream
             });
 
         /// <summary>
-        /// Creates an observable event stream from the command.
+        /// Executes the command as an observable event stream.
         /// </summary>
         public static IObservable<CommandEvent> Observe(
             this Command command,
@@ -124,7 +124,7 @@ namespace CliWrap.EventStream
             command.Observe(encoding, encoding, cancellationToken);
 
         /// <summary>
-        /// Creates an observable event stream from the command.
+        /// Executes the command as an observable event stream.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
         public static IObservable<CommandEvent> Observe(

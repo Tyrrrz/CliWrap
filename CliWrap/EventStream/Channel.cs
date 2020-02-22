@@ -43,9 +43,6 @@ namespace CliWrap.EventStream
                 return;
 
             _isDisposed = true;
-
-            // Release semaphore to free up any awaiting subscribers
-            _semaphore.Release(int.MaxValue);
             _semaphore.Dispose();
         }
     }
