@@ -48,7 +48,6 @@ namespace CliWrap.Tests.Dummy
                 {
                     var exitCode = int.Parse(args.Single(), CultureInfo.InvariantCulture);
 
-                    Console.Error.WriteLine($"Returning exit code {exitCode}");
                     return exitCode;
                 },
 
@@ -116,6 +115,7 @@ namespace CliWrap.Tests.Dummy
                 [PrintWorkingDir] = args =>
                 {
                     Console.WriteLine(Directory.GetCurrentDirectory());
+
                     return 0;
                 },
 
@@ -142,12 +142,22 @@ namespace CliWrap.Tests.Dummy
 
                 [ProduceBinary] = args =>
                 {
-                    var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
+                    var count = long.Parse(args.Single(), CultureInfo.InvariantCulture);
 
-                    var buffer = new byte[count];
-                    Random.NextBytes(buffer);
+                    using var output = Console.OpenStandardOutput();
 
-                    Console.OpenStandardOutput().Write(buffer, 0, buffer.Length);
+                    var buffer = new byte[1024];
+                    var bytesRemaining = count;
+
+                    while (bytesRemaining > 0)
+                    {
+                        Random.NextBytes(buffer);
+
+                        var bytesToCopy = Math.Min((int) bytesRemaining, buffer.Length);
+                        output.Write(buffer, 0, bytesToCopy);
+
+                        bytesRemaining -= bytesToCopy;
+                    }
 
                     return 0;
                 },
@@ -157,6 +167,7 @@ namespace CliWrap.Tests.Dummy
                     var duration = int.Parse(args.Single(), CultureInfo.InvariantCulture);
 
                     Thread.Sleep(duration);
+
                     return 0;
                 }
             };

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -87,8 +88,8 @@ namespace CliWrap
 
         public StreamPipeTarget(Stream stream) => _stream = stream;
 
-        public override Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
-            source.CopyToAsync(_stream, cancellationToken);
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
+            await source.CopyToAsync(_stream, cancellationToken);
     }
 
     internal class StringBuilderPipeTarget : PipeTarget
@@ -104,9 +105,15 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
-            using var buffer = new MemoryStream();
-            await source.CopyToAsync(buffer, cancellationToken);
-            _stringBuilder.Append(_encoding.GetChars(buffer.ToArray()));
+            using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
+
+            var buffer = new char[BufferSizes.StreamReader];
+            int charsRead;
+
+            while ((charsRead = await reader.ReadAsync(buffer, cancellationToken)) > 0)
+            {
+                _stringBuilder.Append(buffer, 0, charsRead);
+            }
         }
     }
 
@@ -123,13 +130,49 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
-            using var reader = new StreamReader(source, _encoding, false, 1024, true);
-            string line;
+            using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
 
-            while ((line = await reader.ReadLineAsync()) != null)
+            var stringBuilder = new StringBuilder();
+
+            var buffer = new char[BufferSizes.StreamReader];
+            int charsRead;
+
+            while ((charsRead = await reader.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                // TODO: HANDLE CANCELLATION!
-                _handler(line);
+                for (var i = 0; i < charsRead; i++)
+                {
+                    // Found new line (Linux, macOS)
+                    if (buffer[i] == '\n')
+                    {
+                        // Trigger on buffered input
+                        if (stringBuilder.Length > 0)
+                        {
+                            _handler(stringBuilder.ToString());
+                            stringBuilder.Clear();
+                        }
+                    }
+                    // Found caret return (Windows)
+                    else if (buffer[i] == '\r')
+                    {
+                        // Skip new line character as well
+                        if (i + 1 < charsRead && buffer[i + 1] == '\n')
+                        {
+                            i++;
+                        }
+
+                        // Trigger on buffered input
+                        if (stringBuilder.Length > 0)
+                        {
+                            _handler(stringBuilder.ToString());
+                            stringBuilder.Clear();
+                        }
+                    }
+                    // Found any other character - add it to string builder
+                    else
+                    {
+                        stringBuilder.Append(buffer[i]);
+                    }
+                }
             }
         }
     }
@@ -142,12 +185,12 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
-            var buffer = new byte[1024];
+            var buffer = new byte[BufferSizes.Stream];
             int bytesRead;
 
-            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            while ((bytesRead = await source.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                using var bufferStream = new MemoryStream(buffer, 0, bytesRead);
+                using var bufferStream = new MemoryStream(buffer, 0, bytesRead, false);
 
                 foreach (var target in _targets)
                 {

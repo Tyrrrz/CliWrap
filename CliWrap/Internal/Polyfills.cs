@@ -1,6 +1,7 @@
 ﻿// ReSharper disable CheckNamespace
 
 // Polyfills to bridge the missing APIs in older versions of the framework/standard.
+// In some cases, these just proxy calls to existing methods but also provide a signature that matches .netstd2.1
 
 #if NET461 || NETSTANDARD2_0
 namespace System.IO
@@ -15,11 +16,27 @@ namespace System.IO
             var buffer = new byte[81920];
             int bytesRead;
 
-            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) != 0)
+            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) != 0)
             {
-                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken);
             }
         }
+
+        public static async ValueTask<int> ReadAsync(this Stream stream, byte[] buffer, CancellationToken cancellationToken) =>
+            await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+
+        public static async ValueTask<int> ReadAsync(this StreamReader reader, char[] buffer, CancellationToken cancellationToken)
+        {
+            // StreamReader doesn't accept cancellation token anywhere (pre-netstd2.1)
+
+            var read = await reader.ReadAsync(buffer, 0, buffer.Length);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return read;
+        }
+
+        public static async ValueTask WriteAsync(this Stream stream, byte[] buffer, CancellationToken cancellationToken) =>
+            await stream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
     }
 }
 #endif

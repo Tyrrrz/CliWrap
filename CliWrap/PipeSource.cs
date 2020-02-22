@@ -57,21 +57,18 @@ namespace CliWrap
 
         public StreamPipeSource(Stream stream) => _stream = stream;
 
-        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            _stream.CopyToAsync(destination, cancellationToken);
+        public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+            await _stream.CopyToAsync(destination, cancellationToken);
     }
 
     internal class InMemoryPipeSource : PipeSource
     {
         private readonly byte[] _data;
 
-        public InMemoryPipeSource(byte[] data)
-        {
-            _data = data;
-        }
+        public InMemoryPipeSource(byte[] data) => _data = data;
 
-        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            destination.WriteAsync(_data, 0, _data.Length, cancellationToken);
+        public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+            await destination.WriteAsync(_data, cancellationToken);
     }
 
     internal class CommandPipeSource : PipeSource
@@ -80,7 +77,7 @@ namespace CliWrap
 
         public CommandPipeSource(Command command) => _command = command;
 
-        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
+        public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+            await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
     }
 }
