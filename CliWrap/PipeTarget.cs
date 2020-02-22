@@ -35,7 +35,7 @@ namespace CliWrap
 
         /// <summary>
         /// Creates a pipe target from a string builder.
-        /// Uses <see cref="Console.OutputEncoding"/> to encode the string from byte stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
         public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
             ToStringBuilder(stringBuilder, Console.OutputEncoding);
@@ -48,7 +48,7 @@ namespace CliWrap
 
         /// <summary>
         /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
-        /// Uses <see cref="Console.OutputEncoding"/> to encode the string from byte stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
         public static PipeTarget ToDelegate(Action<string> lineHandler) =>
             ToDelegate(lineHandler, Console.OutputEncoding);

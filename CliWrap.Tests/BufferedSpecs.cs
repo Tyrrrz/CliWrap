@@ -53,6 +53,28 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_get_the_result_which_contains_buffered_stdout_and_stderr()
+        {
+            // Arrange
+            const string expectedStdOut = "Hello stdout";
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoArgsToStdOutAndStdErr)
+                    .Add(expectedStdOut));
+
+            // Act
+            var result = await cmd.ExecuteBufferedAsync();
+
+            // Assert
+            result.ExitCode.Should().Be(0);
+            result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
+            result.StandardOutput.TrimEnd().Should().Be(expectedStdOut);
+            result.StandardError.TrimEnd().Should().Be(expectedStdOut);
+        }
+
+        [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_command_with_very_large_stdout_and_stderr_and_get_the_buffered_result_without_deadlocks()
         {
             // Arrange

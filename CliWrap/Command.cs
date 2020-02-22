@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Builders;
@@ -281,6 +282,13 @@ namespace CliWrap
             source | PipeTarget.ToStream(target);
 
         /// <summary>
+        /// Creates a new command that pipes its standard output to the specified string builder.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// </summary>
+        public static Command operator |(Command source, StringBuilder target) =>
+            source | PipeTarget.ToStringBuilder(target);
+
+        /// <summary>
         /// Creates a new command that pipes its standard output line-by-line to the specified delegate.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
@@ -299,18 +307,21 @@ namespace CliWrap
         /// Creates a new command that pipes its standard output and standard error to the specified streams.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<Stream, Stream> target) =>
-            source
-                .WithStandardOutputPipe(PipeTarget.ToStream(target.Item1))
-                .WithStandardErrorPipe(PipeTarget.ToStream(target.Item2));
+            source | (PipeTarget.ToStream(target.Item1), PipeTarget.ToStream(target.Item2));
+
+        /// <summary>
+        /// Creates a new command that pipes its standard output and standard error to the specified string builders.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// </summary>
+        public static Command operator |(Command source, ValueTuple<StringBuilder, StringBuilder> target) =>
+            source | (PipeTarget.ToStringBuilder(target.Item1), PipeTarget.ToStringBuilder(target.Item2));
 
         /// <summary>
         /// Creates a new command that pipes its standard output and standard error line-by-line to the specified delegates.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<Action<string>, Action<string>> target) =>
-            source
-                .WithStandardOutputPipe(PipeTarget.ToDelegate(target.Item1))
-                .WithStandardErrorPipe(PipeTarget.ToDelegate(target.Item2));
+            source | (PipeTarget.ToDelegate(target.Item1), PipeTarget.ToDelegate(target.Item2));
 
         /// <summary>
         /// Creates a new command that pipes its standard input from the specified source.

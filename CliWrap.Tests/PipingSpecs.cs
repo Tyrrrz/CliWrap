@@ -1,6 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using FluentAssertions;
@@ -159,6 +159,26 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_string_builder()
+        {
+            // Arrange
+            const string expectedOutput = "Hello world!";
+            var buffer = new StringBuilder();
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoArgsToStdOut)
+                    .Add(expectedOutput)) | buffer;
+
+            // Act
+            await cmd.ExecuteAsync();
+
+            // Assert
+            buffer.ToString().TrimEnd().Should().Be(expectedOutput);
+        }
+
+        [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_delegate()
         {
             // Arrange
@@ -200,6 +220,29 @@ namespace CliWrap.Tests
             // Assert
             stdOut.Length.Should().NotBe(0);
             stdErr.Length.Should().NotBe(0);
+        }
+
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_string_builders()
+        {
+            // Arrange
+            const string expectedOutput = "Hello world!";
+
+            var stdOutBuffer = new StringBuilder();
+            var stdErrBuffer = new StringBuilder();
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoArgsToStdOutAndStdErr)
+                    .Add(expectedOutput)) | (stdOutBuffer, stdErrBuffer);
+
+            // Act
+            await cmd.ExecuteAsync();
+
+            // Assert
+            stdOutBuffer.ToString().TrimEnd().Should().Be(expectedOutput);
+            stdErrBuffer.ToString().TrimEnd().Should().Be(expectedOutput);
         }
 
         [Fact(Timeout = 10000)]

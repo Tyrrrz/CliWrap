@@ -19,6 +19,8 @@ namespace CliWrap.Tests.Dummy
 
         public const string EchoArgsToStdErr = nameof(EchoArgsToStdErr);
 
+        public const string EchoArgsToStdOutAndStdErr = nameof(EchoArgsToStdOutAndStdErr);
+
         public const string EchoStdInToStdOut = nameof(EchoStdInToStdOut);
 
         public const string EchoPartStdInToStdOut = nameof(EchoPartStdInToStdOut);
@@ -62,6 +64,15 @@ namespace CliWrap.Tests.Dummy
                 [EchoArgsToStdErr] = args =>
                 {
                     var text = string.Join(" ", args);
+                    Console.Error.WriteLine(text);
+
+                    return 0;
+                },
+
+                [EchoArgsToStdOutAndStdErr] = args =>
+                {
+                    var text = string.Join(" ", args);
+                    Console.WriteLine(text);
                     Console.Error.WriteLine(text);
 
                     return 0;
