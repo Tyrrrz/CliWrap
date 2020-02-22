@@ -23,7 +23,7 @@ namespace CliWrap.EventStream
             Encoding standardErrorEncoding,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var channel = new Channel<CommandEvent>();
+            using var channel = new Channel<CommandEvent>();
 
             // Preserve the existing pipes by merging them with ours
             var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
@@ -48,9 +48,9 @@ namespace CliWrap.EventStream
                 else break;
             }
 
-            await commandTask;
+            var exitCode = await commandTask.Select(r => r.ExitCode);
 
-            yield return new CompletedCommandEvent(commandTask.Task.Result.ExitCode);
+            yield return new ExitedCommandEvent(exitCode);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace CliWrap.EventStream
                     {
                         if (t.Exception == null)
                         {
-                            observer.OnNext(new CompletedCommandEvent(t.Result.ExitCode));
+                            observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
                             observer.OnCompleted();
                         }
                         else

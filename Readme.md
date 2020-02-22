@@ -217,7 +217,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
             _output.WriteLine($"Err> {e.Text}");
             stdErrLinesCount++;
         })
-        .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+        .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
 }
 ```
 
@@ -226,7 +226,7 @@ The `cmdEvent` object itself is of an abstract type `CommandEvent` that can be o
 - `StartedCommandEvent` -- received just once, when the command starts executing. Contains the process ID.
 - `StandardOutputCommandEvent` -- received every time the underlying process writes a new line to output stream. Contains the text as string.
 - `StandardErrorCommandEvent` -- received every time the underlying process writes a new line to error stream. Contains the text as string.
-- `CompletedCommandEvent` -- received just once, when the command successfully finishes executing. Contains the exit code.
+- `ExitedCommandEvent` -- received just once, when the command successfully finishes executing. Contains the exit code.
 
 You can either do pattern matching yourself or use the provided extension methods (`OnStarted`, `OnStandardOutput`) to handle different event types.
 
@@ -256,7 +256,7 @@ await cmd.Observe().ForEachAsync(cmdEvent =>
             _output.WriteLine($"Err> {e.Text}");
             stdErrLinesCount++;
         })
-        .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+        .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
 });
 ```
 

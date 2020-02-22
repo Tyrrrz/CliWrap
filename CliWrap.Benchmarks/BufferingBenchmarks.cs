@@ -48,7 +48,7 @@ namespace CliWrap.Benchmarks
         {
             var (_, stdOutStream, stdErrStream) = ProcessX.GetDualAsyncEnumerable(FilePath, arguments: Args);
             var stdOutTask = stdOutStream.ToTask();
-            var stdErrTask =stdErrStream.ToTask();
+            var stdErrTask = stdErrStream.ToTask();
 
             await Task.WhenAll(stdOutTask, stdErrTask);
 

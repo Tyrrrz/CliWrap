@@ -11,7 +11,7 @@ namespace CliWrap.Internal
         public IDisposable Subscribe(IObserver<T> observer) => _subscribe(observer);
     }
 
-    internal class Observable
+    internal static class Observable
     {
         public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe) =>
             new Observable<T>(subscribe);

@@ -61,7 +61,7 @@ namespace CliWrap.EventStream
     /// Represents an event that is triggered when the command finishes executing.
     /// This event may only appear once in the event stream.
     /// </summary>
-    public class CompletedCommandEvent : CommandEvent
+    public class ExitedCommandEvent : CommandEvent
     {
         /// <summary>
         /// Exit code set by the underlying process.
@@ -69,9 +69,9 @@ namespace CliWrap.EventStream
         public int ExitCode { get; }
 
         /// <summary>
-        /// Initializes an instance of <see cref="CompletedCommandEvent"/>.
+        /// Initializes an instance of <see cref="ExitedCommandEvent"/>.
         /// </summary>
-        public CompletedCommandEvent(int exitCode) => ExitCode = exitCode;
+        public ExitedCommandEvent(int exitCode) => ExitCode = exitCode;
     }
 
     /// <summary>
@@ -106,9 +106,9 @@ namespace CliWrap.EventStream
             commandEvent.On(handler);
 
         /// <summary>
-        /// Matches the specified event with <see cref="CompletedCommandEvent"/>.
+        /// Matches the specified event with <see cref="ExitedCommandEvent"/>.
         /// </summary>
-        public static CommandEvent OnCompleted(this CommandEvent commandEvent, Action<CompletedCommandEvent> handler) =>
+        public static CommandEvent OnExited(this CommandEvent commandEvent, Action<ExitedCommandEvent> handler) =>
             commandEvent.On(handler);
     }
 }

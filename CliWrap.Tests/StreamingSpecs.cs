@@ -45,7 +45,7 @@ namespace CliWrap.Tests
                         _output.WriteLine($"Err> {e.Text}");
                         stdErrLinesCount++;
                     })
-                    .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+                    .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
             }
 
             // Assert
@@ -83,7 +83,7 @@ namespace CliWrap.Tests
                         _output.WriteLine($"Err> {e.Text}");
                         stdErrLinesCount++;
                     })
-                    .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+                    .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
             });
 
             // Assert
