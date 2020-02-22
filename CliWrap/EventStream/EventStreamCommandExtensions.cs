@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Internal;
 
 namespace CliWrap.EventStream
 {
@@ -75,29 +76,60 @@ namespace CliWrap.EventStream
         /// <summary>
         /// Creates an observable event stream from the command.
         /// </summary>
-        public static ICommandEventObservable ToObservable(
+        public static IObservable<CommandEvent> Observe(
             this Command command,
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
             CancellationToken cancellationToken = default) =>
-            new CommandEventObservable(command, standardOutputEncoding, standardErrorEncoding, cancellationToken);
+            Observable.Create<CommandEvent>(observer =>
+            {
+                // Preserve the existing pipes by merging them with ours
+                var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
+                    PipeTarget.ToDelegate(s => observer.OnNext(new StandardOutputCommandEvent(s)), standardOutputEncoding));
+                var stdErrPipe = PipeTarget.Merge(command.StandardErrorPipe,
+                    PipeTarget.ToDelegate(s => observer.OnNext(new StandardErrorCommandEvent(s)), standardErrorEncoding));
+
+                var commandPiped = command
+                    .WithStandardOutputPipe(stdOutPipe)
+                    .WithStandardErrorPipe(stdErrPipe);
+
+                var commandTask = commandPiped.ExecuteAsync(cancellationToken);
+                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
+
+                _ = commandTask
+                    .Task
+                    .ContinueWith(t =>
+                    {
+                        if (t.Exception == null)
+                        {
+                            observer.OnNext(new CompletedCommandEvent(t.Result.ExitCode));
+                            observer.OnCompleted();
+                        }
+                        else
+                        {
+                            observer.OnError(t.Exception);
+                        }
+                    }, cancellationToken);
+
+                return Disposable.Null;
+            });
 
         /// <summary>
         /// Creates an observable event stream from the command.
         /// </summary>
-        public static ICommandEventObservable ToObservable(
+        public static IObservable<CommandEvent> Observe(
             this Command command,
             Encoding encoding,
             CancellationToken cancellationToken = default) =>
-            command.ToObservable(encoding, encoding, cancellationToken);
+            command.Observe(encoding, encoding, cancellationToken);
 
         /// <summary>
         /// Creates an observable event stream from the command.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
-        public static ICommandEventObservable ToObservable(
+        public static IObservable<CommandEvent> Observe(
             this Command command,
             CancellationToken cancellationToken = default) =>
-            command.ToObservable(Console.OutputEncoding, cancellationToken);
+            command.Observe(Console.OutputEncoding, cancellationToken);
     }
 }

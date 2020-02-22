@@ -234,7 +234,7 @@ There also overloads for `ListenAsync()` that accept encoding options and provid
 
 #### Push-based event streams
 
-Push-based event streams can be obtained by calling `command.ToObservable()` which returns an `IObservable<CommandEvent>`. Unlike with `ListenAsync()`, calling `ToObservable()` doesn't execute the command just yet, instead it returns a cold observable. When you're ready to execute the command, simply call `Start()` on it.
+Push-based event streams can be obtained by calling `command.Observe()` which returns a cold `IObservable<CommandEvent>`.
 
 The following example uses the [`System.Reactive`](https://github.com/dotnet/reactive) package, which is a set of extensions that make working with `IObservable<T>` much more convenient.
 
@@ -242,8 +242,7 @@ The following example uses the [`System.Reactive`](https://github.com/dotnet/rea
 using CliWrap.EventStream;
 using System.Reactive;
 
-var observable = cmd.ToObservable();
-_ = observable.ForEachAsync(cmdEvent =>
+await cmd.Observe().ForEachAsync(cmdEvent =>
 {
     cmdEvent
         .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
@@ -259,13 +258,11 @@ _ = observable.ForEachAsync(cmdEvent =>
         })
         .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
 });
-
-await observable.Start();
 ```
 
 Using reactive extensions, you can do a lot of different things with event streams, including filtering, transforming, reducing, merging, etc.
 
-There also overloads for `ToObservable()` that accept encoding options and provide cancellation support.
+There also overloads for `Observe()` that accept encoding options and provide cancellation support.
 
 ### Piping
 
@@ -363,7 +360,7 @@ var result = await command.ExecuteAsync();
 
 Piping is not only used for convenience but also to avoid memory allocations that would otherwise be caused by buffering data in memory. CliWrap makes building command pipelines very simple -- just imagine doing the same thing with `System.Diagnostics.Process`.
 
-As you can probably guess, the extension methods mentioned earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `ToObservable()`, are all based on this piping model. In fact we can even go a level deeper and combine these approaches together:
+As you can probably guess, the extension methods mentioned earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `Observe()`, are all based on this piping model. In fact we can even go a level deeper and combine these approaches together:
 
 ```csharp
 await using var input = File.OpenRead("input.txt");

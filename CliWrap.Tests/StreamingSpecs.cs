@@ -69,8 +69,7 @@ namespace CliWrap.Tests
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
 
-            var observable = cmd.ToObservable();
-            var forEachTask = observable.ForEachAsync(cmdEvent =>
+            await cmd.Observe().ForEachAsync(cmdEvent =>
             {
                 cmdEvent
                     .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
@@ -86,9 +85,6 @@ namespace CliWrap.Tests
                     })
                     .OnCompleted(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
             });
-
-            observable.Start();
-            await forEachTask;
 
             // Assert
             stdOutLinesCount.Should().Be(expectedLinesCount);
