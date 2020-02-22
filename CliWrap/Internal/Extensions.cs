@@ -7,7 +7,7 @@ namespace CliWrap.Internal
     {
         public static async Task<TDestination> Select<TSource, TDestination>(this Task<TSource> task, Func<TSource, TDestination> transform)
         {
-            var result = await task.ConfigureAwait(false);
+            var result = await task;
             return transform(result);
         }
     }
