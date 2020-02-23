@@ -23,7 +23,6 @@ namespace CliWrap.Buffered
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
 
-            // Preserve the existing pipes by merging them with ours
             var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
                 PipeTarget.ToStringBuilder(stdOutBuffer, standardOutputEncoding));
             var stdErrPipe = PipeTarget.Merge(command.StandardErrorPipe,

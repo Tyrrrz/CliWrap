@@ -29,10 +29,8 @@ namespace System.IO
         {
             // StreamReader doesn't accept cancellation token anywhere (pre-netstd2.1)
 
-            var read = await reader.ReadAsync(buffer, 0, buffer.Length);
             cancellationToken.ThrowIfCancellationRequested();
-
-            return read;
+            return await reader.ReadAsync(buffer, 0, buffer.Length);
         }
 
         public static async ValueTask WriteAsync(this Stream stream, byte[] buffer, CancellationToken cancellationToken) =>

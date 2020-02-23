@@ -202,6 +202,33 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_an_async_delegate()
+        {
+            // Arrange
+            const int expectedLinesCount = 100;
+
+            var stdOutLinesCount = 0;
+
+            async Task HandleStdOutAsync(string s)
+            {
+                await Task.Yield();
+                stdOutLinesCount++;
+            }
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintLines)
+                    .Add(expectedLinesCount)) | HandleStdOutAsync;
+
+            // Act
+            await cmd.ExecuteAsync();
+
+            // Assert
+            stdOutLinesCount.Should().Be(expectedLinesCount);
+        }
+
+        [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_streams()
         {
             // Arrange
@@ -262,6 +289,41 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.FilePath)
                     .Add(Dummy.Program.PrintLines)
                     .Add(expectedLinesCount)) | (HandleStdOut, HandleStdErr);
+
+            // Act
+            await cmd.ExecuteAsync();
+
+            // Assert
+            stdOutLinesCount.Should().Be(expectedLinesCount);
+            stdErrLinesCount.Should().Be(expectedLinesCount);
+        }
+
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_async_delegates()
+        {
+            // Arrange
+            const int expectedLinesCount = 100;
+
+            var stdOutLinesCount = 0;
+            var stdErrLinesCount = 0;
+
+            async Task HandleStdOutAsync(string s)
+            {
+                await Task.Yield();
+                stdOutLinesCount++;
+            }
+
+            async Task HandleStdErrAsync(string s)
+            {
+                await Task.Yield();
+                stdErrLinesCount++;
+            }
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintLines)
+                    .Add(expectedLinesCount)) | (HandleStdOutAsync, HandleStdErrAsync);
 
             // Act
             await cmd.ExecuteAsync();

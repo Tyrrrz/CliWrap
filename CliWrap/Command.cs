@@ -304,6 +304,13 @@ namespace CliWrap
             source | PipeTarget.ToDelegate(target);
 
         /// <summary>
+        /// Creates a new command that pipes its standard output line-by-line to the specified delegate.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// </summary>
+        public static Command operator |(Command source, Func<string, Task> target) =>
+            source | PipeTarget.ToDelegate(target);
+
+        /// <summary>
         /// Creates a new command that pipes its standard output and standard error to the specified targets.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<PipeTarget, PipeTarget> target) =>
@@ -329,6 +336,13 @@ namespace CliWrap
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
         public static Command operator |(Command source, ValueTuple<Action<string>, Action<string>> target) =>
+            source | (PipeTarget.ToDelegate(target.Item1), PipeTarget.ToDelegate(target.Item2));
+
+        /// <summary>
+        /// Creates a new command that pipes its standard output and standard error line-by-line to the specified delegates.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
+        /// </summary>
+        public static Command operator |(Command source, ValueTuple<Func<string, Task>, Func<string, Task>> target) =>
             source | (PipeTarget.ToDelegate(target.Item1), PipeTarget.ToDelegate(target.Item2));
 
         /// <summary>

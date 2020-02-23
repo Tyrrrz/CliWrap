@@ -1,27 +1,31 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CliWrap.EventStream
 {
     // This is a very simple channel implementation used to convert push-based streams into pull-based.
-    // We can work within our guaranteed constraints:
-    // - there will always be exactly 2 publishers and 1 listener.
-    // - the publishers and the listener are all on separate threads.
+    // Back-pressure is performed using a write lock. Only one publisher may write at a time.
+    // Only one message is buffered and read at a time.
+
+    // Flow:
+    // - Write lock is released initially, read lock is not
+    // - Consumer waits for read lock
+    // - Publisher claims write lock, writes a message, releases a read lock
+    // - Consumer goes through, claims read lock, reads one message, releases write lock
+    // - Process repeats until the channel transmission is terminated
 
     internal class Channel<T> : IDisposable
     {
-        private readonly int _capacity;
         private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
+        private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _readLock = new SemaphoreSlim(0, 1);
+        private readonly TaskCompletionSource<object?> _closedTcs = new TaskCompletionSource<object?>();
 
         private bool _isDisposed;
-
-        public Channel(int capacity)
-        {
-            _capacity = capacity;
-        }
 
         private void EnsureNotDisposed()
         {
@@ -29,37 +33,35 @@ namespace CliWrap.EventStream
                 throw new ObjectDisposedException(GetType().Name);
         }
 
-        public void Publish(T item)
+        public async Task PublishAsync(T item, CancellationToken cancellationToken)
         {
             EnsureNotDisposed();
 
-            // This will block the publisher, but, considering that this is used from
-            // async event stream, we're okay with blocking command execution since
-            // it's taking place on a separate thread anyway.
-            if (SpinWait.SpinUntil(() => _queue.Count < _capacity, TimeSpan.FromMinutes(10)))
-            {
-                _queue.Enqueue(item);
+            await _writeLock.WaitAsync(cancellationToken);
+            _queue.Enqueue(item);
+            _readLock.Release();
+        }
 
-                // This might release more than one semaphore when there is a race between
-                // the two publishers we have. But that's okay, worst case scenario is that
-                // the listener will perform an extra cycle, which is better than getting a
-                // SemaphoreFullException.
-                if (_semaphore.CurrentCount == 0)
-                    _semaphore.Release();
+        public async IAsyncEnumerable<T> ReceiveAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            EnsureNotDisposed();
+
+            while (!_isDisposed)
+            {
+                // Wait for read lock and completion, whatever comes first.
+                // If completion happens first, break.
+                if (_closedTcs.Task == await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task))
+                    yield break;
+
+                if (_queue.TryDequeue(out var next))
+                {
+                    _writeLock.Release();
+                    yield return next;
+                }
             }
         }
 
-        public async Task WaitUntilNextAsync()
-        {
-            EnsureNotDisposed();
-            await _semaphore.WaitAsync();
-        }
-
-        public bool TryGetNext(out T result)
-        {
-            EnsureNotDisposed();
-            return _queue.TryDequeue(out result);
-        }
+        public void Close() => _closedTcs.TrySetResult(null);
 
         public void Dispose()
         {
@@ -67,7 +69,8 @@ namespace CliWrap.EventStream
                 return;
 
             _isDisposed = true;
-            _semaphore.Dispose();
+            _writeLock.Dispose();
+            _readLock.Dispose();
         }
     }
 }

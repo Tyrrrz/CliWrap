@@ -43,15 +43,25 @@ namespace CliWrap
         /// <summary>
         /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
         /// </summary>
-        public static PipeTarget ToDelegate(Action<string> lineHandler, Encoding encoding) =>
-            new DelegatePipeTarget(lineHandler, encoding);
+        public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding) =>
+            new DelegatePipeTarget(handleLine, encoding);
 
         /// <summary>
         /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
-        public static PipeTarget ToDelegate(Action<string> lineHandler) =>
-            ToDelegate(lineHandler, Console.OutputEncoding);
+        public static PipeTarget ToDelegate(Action<string> handleLine) =>
+            ToDelegate(handleLine, Console.OutputEncoding);
+
+        public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
+            new AsyncDelegatePipeTarget(handleLineAsync, encoding);
+
+        /// <summary>
+        /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// </summary>
+        public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
+            ToDelegate(handleLineAsync, Console.OutputEncoding);
 
         /// <summary>
         /// Merges multiple pipe targets into a single one.
@@ -119,12 +129,12 @@ namespace CliWrap
 
     internal class DelegatePipeTarget : PipeTarget
     {
-        private readonly Action<string> _handler;
+        private readonly Action<string> _handle;
         private readonly Encoding _encoding;
 
-        public DelegatePipeTarget(Action<string> handler, Encoding encoding)
+        public DelegatePipeTarget(Action<string> handle, Encoding encoding)
         {
-            _handler = handler;
+            _handle = handle;
             _encoding = encoding;
         }
 
@@ -132,47 +142,31 @@ namespace CliWrap
         {
             using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
 
-            var stringBuilder = new StringBuilder();
-
-            var buffer = new char[BufferSizes.StreamReader];
-            int charsRead;
-
-            while ((charsRead = await reader.ReadAsync(buffer, cancellationToken)) > 0)
+            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken))
             {
-                for (var i = 0; i < charsRead; i++)
-                {
-                    // Found new line (Linux, macOS)
-                    if (buffer[i] == '\n')
-                    {
-                        // Trigger on buffered input
-                        if (stringBuilder.Length > 0)
-                        {
-                            _handler(stringBuilder.ToString());
-                            stringBuilder.Clear();
-                        }
-                    }
-                    // Found caret return (Windows)
-                    else if (buffer[i] == '\r')
-                    {
-                        // Skip new line character as well
-                        if (i + 1 < charsRead && buffer[i + 1] == '\n')
-                        {
-                            i++;
-                        }
+                _handle(line);
+            }
+        }
+    }
 
-                        // Trigger on buffered input
-                        if (stringBuilder.Length > 0)
-                        {
-                            _handler(stringBuilder.ToString());
-                            stringBuilder.Clear();
-                        }
-                    }
-                    // Found any other character - add it to string builder
-                    else
-                    {
-                        stringBuilder.Append(buffer[i]);
-                    }
-                }
+    internal class AsyncDelegatePipeTarget : PipeTarget
+    {
+        private readonly Func<string, Task> _handleAsync;
+        private readonly Encoding _encoding;
+
+        public AsyncDelegatePipeTarget(Func<string, Task> handleAsync, Encoding encoding)
+        {
+            _handleAsync = handleAsync;
+            _encoding = encoding;
+        }
+
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+        {
+            using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
+
+            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken))
+            {
+                await _handleAsync(line);
             }
         }
     }
