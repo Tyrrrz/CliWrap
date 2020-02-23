@@ -5,11 +5,16 @@ using System.Threading.Tasks;
 
 namespace CliWrap.EventStream
 {
+    // This is a very simple channel implementation used to convert push-based streams into pull-based.
+    // We can work within our guaranteed constraints:
+    // - there will always be exactly 2 publishers and 1 listener.
+    // - the publishers and the listener are all on separate threads.
+
     internal class Channel<T> : IDisposable
     {
         private readonly int _capacity;
         private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0, 1);
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
 
         private bool _isDisposed;
 
@@ -35,6 +40,10 @@ namespace CliWrap.EventStream
             {
                 _queue.Enqueue(item);
 
+                // This might release more than one semaphore when there is a race between
+                // the two publishers we have. But that's okay, worst case scenario is that
+                // the listener will perform an extra cycle, which is better than getting a
+                // SemaphoreFullException.
                 if (_semaphore.CurrentCount == 0)
                     _semaphore.Release();
             }
