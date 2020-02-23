@@ -20,9 +20,15 @@ namespace CliWrap.Benchmarks
 
             await foreach (var cmdEvent in Cli.Wrap(FilePath).WithArguments(Args).ListenAsync())
             {
-                cmdEvent
-                    .OnStandardOutput(_ => counter++)
-                    .OnStandardError(_ => counter++);
+                switch (cmdEvent)
+                {
+                    case StandardOutputCommandEvent _:
+                        counter++;
+                        break;
+                    case StandardErrorCommandEvent _:
+                        counter++;
+                        break;
+                }
             }
 
             return counter;
@@ -35,9 +41,15 @@ namespace CliWrap.Benchmarks
 
             await Cli.Wrap(FilePath).WithArguments(Args).Observe().ForEachAsync(cmdEvent =>
             {
-                cmdEvent
-                    .OnStandardOutput(_ => counter++)
-                    .OnStandardError(_ => counter++);
+                switch (cmdEvent)
+                {
+                    case StandardOutputCommandEvent _:
+                        counter++;
+                        break;
+                    case StandardErrorCommandEvent _:
+                        counter++;
+                        break;
+                }
             });
 
             return counter;

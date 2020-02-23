@@ -1,10 +1,13 @@
-﻿using System;
-
-namespace CliWrap.EventStream
+﻿namespace CliWrap.EventStream
 {
     /// <summary>
     /// Represents an abstract event produced by a command.
-    /// To match an instance of this type with a particular event type use pattern matching or the <code>.OnXyz()</code> extension methods.
+    /// Use pattern matching to handle specific instances of this type.
+    /// Can be one of the following:
+    /// <see cref="StartedCommandEvent"/>,
+    /// <see cref="StandardOutputCommandEvent"/>,
+    /// <see cref="StandardErrorCommandEvent"/>,
+    /// <see cref="ExitedCommandEvent"/>.
     /// </summary>
     public abstract class CommandEvent { }
 
@@ -72,43 +75,5 @@ namespace CliWrap.EventStream
         /// Initializes an instance of <see cref="ExitedCommandEvent"/>.
         /// </summary>
         public ExitedCommandEvent(int exitCode) => ExitCode = exitCode;
-    }
-
-    /// <summary>
-    /// Extension methods to simplify pattern matching on <see cref="CommandEvent"/>.
-    /// </summary>
-    public static class ProcessEventMatchers
-    {
-        private static CommandEvent On<TEvent>(this CommandEvent commandEvent, Action<TEvent> handler) where TEvent : CommandEvent
-        {
-            if (commandEvent is TEvent matchedEvent)
-                handler(matchedEvent);
-
-            return commandEvent;
-        }
-
-        /// <summary>
-        /// Matches the specified event with <see cref="StartedCommandEvent"/>.
-        /// </summary>
-        public static CommandEvent OnStarted(this CommandEvent commandEvent, Action<StartedCommandEvent> handler) =>
-            commandEvent.On(handler);
-
-        /// <summary>
-        /// Matches the specified event with <see cref="StandardOutputCommandEvent"/>.
-        /// </summary>
-        public static CommandEvent OnStandardOutput(this CommandEvent commandEvent, Action<StandardOutputCommandEvent> handler) =>
-            commandEvent.On(handler);
-
-        /// <summary>
-        /// Matches the specified event with <see cref="StandardErrorCommandEvent"/>.
-        /// </summary>
-        public static CommandEvent OnStandardError(this CommandEvent commandEvent, Action<StandardErrorCommandEvent> handler) =>
-            commandEvent.On(handler);
-
-        /// <summary>
-        /// Matches the specified event with <see cref="ExitedCommandEvent"/>.
-        /// </summary>
-        public static CommandEvent OnExited(this CommandEvent commandEvent, Action<ExitedCommandEvent> handler) =>
-            commandEvent.On(handler);
     }
 }

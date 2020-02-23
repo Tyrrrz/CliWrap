@@ -196,7 +196,16 @@ CliWrap also supports an alternative method of running commands, which is by rep
 
 #### Pull-based event streams
 
-Pull-based event streams can be obtained by calling `command.ListenAsync()` which returns an `IAsyncEnumerable<CommandEvent>`. This is an asynchronous data stream that you can iterate through using the `await foreach` semantics introduced in C#8.
+Pull-based event streams can be obtained by calling `command.ListenAsync()` which returns an `IAsyncEnumerable<CommandEvent>`. This is an asynchronous data stream that you can iterate through using the `await foreach` semantics introduced in C# 8.
+
+`CommandEvent` itself is an abstract type which can be either one of the following:
+
+- `StartedCommandEvent` -- received just once, when the command starts executing. Contains the process ID.
+- `StandardOutputCommandEvent` -- received every time the underlying process writes a new line to output stream. Contains the text as string.
+- `StandardErrorCommandEvent` -- received every time the underlying process writes a new line to error stream. Contains the text as string.
+- `ExitedCommandEvent` -- received just once, when the command successfully finishes executing. Contains the exit code.
+
+You can use a `switch` statement or a series of `if` statements to perform pattern matching and handle events of different types.
 
 ```csharp
 using CliWrap.EventStream;
@@ -205,30 +214,23 @@ var cmd = Cli.Wrap("foo").WithArguments("bar");
 
 await foreach (var cmdEvent in cmd.ListenAsync())
 {
-    cmdEvent
-        .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
-        .OnStandardOutput(e =>
-        {
-            _output.WriteLine($"Out> {e.Text}");
-            stdOutLinesCount++;
-        })
-        .OnStandardError(e =>
-        {
-            _output.WriteLine($"Err> {e.Text}");
-            stdErrLinesCount++;
-        })
-        .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+    switch (cmdEvent)
+    {
+        case StartedCommandEvent started:
+            _output.WriteLine($"Process started; ID: {started.ProcessId}");
+            break;
+        case StandardOutputCommandEvent stdOut:
+            _output.WriteLine($"Out> {stdOut.Text}");
+            break;
+        case StandardErrorCommandEvent stdErr:
+            _output.WriteLine($"Err> {stdErr.Text}");
+            break;
+        case ExitedCommandEvent exited:
+            _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+            break;
+    }
 }
 ```
-
-The `cmdEvent` object itself is of an abstract type `CommandEvent` that can be one of the following derived types:
-
-- `StartedCommandEvent` -- received just once, when the command starts executing. Contains the process ID.
-- `StandardOutputCommandEvent` -- received every time the underlying process writes a new line to output stream. Contains the text as string.
-- `StandardErrorCommandEvent` -- received every time the underlying process writes a new line to error stream. Contains the text as string.
-- `ExitedCommandEvent` -- received just once, when the command successfully finishes executing. Contains the exit code.
-
-You can either do pattern matching yourself or use the provided extension methods (`OnStarted`, `OnStandardOutput`) to handle different event types.
 
 There also overloads for `ListenAsync()` that accept encoding options and provide cancellation support.
 
@@ -244,19 +246,21 @@ using System.Reactive;
 
 await cmd.Observe().ForEachAsync(cmdEvent =>
 {
-    cmdEvent
-        .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
-        .OnStandardOutput(e =>
-        {
-            _output.WriteLine($"Out> {e.Text}");
-            stdOutLinesCount++;
-        })
-        .OnStandardError(e =>
-        {
-            _output.WriteLine($"Err> {e.Text}");
-            stdErrLinesCount++;
-        })
-        .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+    switch (cmdEvent)
+    {
+        case StartedCommandEvent started:
+            _output.WriteLine($"Process started; ID: {started.ProcessId}");
+            break;
+        case StandardOutputCommandEvent stdOut:
+            _output.WriteLine($"Out> {stdOut.Text}");
+            break;
+        case StandardErrorCommandEvent stdErr:
+            _output.WriteLine($"Err> {stdErr.Text}");
+            break;
+        case ExitedCommandEvent exited:
+            _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+            break;
+    }
 });
 ```
 

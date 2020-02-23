@@ -34,19 +34,23 @@ namespace CliWrap.Tests
 
             await foreach (var cmdEvent in cmd.ListenAsync())
             {
-                cmdEvent
-                    .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
-                    .OnStandardOutput(e =>
-                    {
-                        _output.WriteLine($"Out> {e.Text}");
+                switch (cmdEvent)
+                {
+                    case StartedCommandEvent started:
+                        _output.WriteLine($"Process started; ID: {started.ProcessId}");
+                        break;
+                    case StandardOutputCommandEvent stdOut:
+                        _output.WriteLine($"Out> {stdOut.Text}");
                         stdOutLinesCount++;
-                    })
-                    .OnStandardError(e =>
-                    {
-                        _output.WriteLine($"Err> {e.Text}");
+                        break;
+                    case StandardErrorCommandEvent stdErr:
+                        _output.WriteLine($"Err> {stdErr.Text}");
                         stdErrLinesCount++;
-                    })
-                    .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+                        break;
+                    case ExitedCommandEvent exited:
+                        _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                        break;
+                }
             }
 
             // Assert
@@ -72,19 +76,23 @@ namespace CliWrap.Tests
 
             await cmd.Observe().ForEachAsync(cmdEvent =>
             {
-                cmdEvent
-                    .OnStarted(e => _output.WriteLine($"Process started; ID: {e.ProcessId}"))
-                    .OnStandardOutput(e =>
-                    {
-                        _output.WriteLine($"Out> {e.Text}");
+                switch (cmdEvent)
+                {
+                    case StartedCommandEvent started:
+                        _output.WriteLine($"Process started; ID: {started.ProcessId}");
+                        break;
+                    case StandardOutputCommandEvent stdOut:
+                        _output.WriteLine($"Out> {stdOut.Text}");
                         stdOutLinesCount++;
-                    })
-                    .OnStandardError(e =>
-                    {
-                        _output.WriteLine($"Err> {e.Text}");
+                        break;
+                    case StandardErrorCommandEvent stdErr:
+                        _output.WriteLine($"Err> {stdErr.Text}");
                         stdErrLinesCount++;
-                    })
-                    .OnExited(e => _output.WriteLine($"Process exited; Code: {e.ExitCode}"));
+                        break;
+                    case ExitedCommandEvent exited:
+                        _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                        break;
+                }
             });
 
             // Assert
