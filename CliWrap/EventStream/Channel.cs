@@ -20,7 +20,8 @@ namespace CliWrap.EventStream
 
     internal class Channel<T> : IDisposable
     {
-        private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
+        // No need for concurrent queue because we have locks
+        private readonly Queue<T> _queue = new Queue<T>(1);
         private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _readLock = new SemaphoreSlim(0, 1);
         private readonly TaskCompletionSource<object?> _closedTcs = new TaskCompletionSource<object?>();
@@ -48,16 +49,22 @@ namespace CliWrap.EventStream
 
             while (!_isDisposed)
             {
-                // Wait for read lock and completion, whatever comes first.
-                // If completion happens first, break.
-                if (_closedTcs.Task == await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task))
-                    yield break;
+                // Await read lock and completion.
+                // If read lock is claimed first, it means the channel is still active and there's a new message.
+                // If completion finishes first, it means that the channel is closed, but there still might be one more message
+                // in the queue because _readLock.WaitAsync() always yields before finishing.
+                var isClosed = _closedTcs.Task == await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task);
 
                 if (_queue.TryDequeue(out var next))
                 {
-                    _writeLock.Release();
                     yield return next;
+
+                    if (!isClosed)
+                        _writeLock.Release();
                 }
+
+                if (isClosed)
+                    yield break;
             }
         }
 

@@ -39,6 +39,26 @@ namespace System.IO
 }
 #endif
 
+#if NET461 || NETSTANDARD2_0
+namespace System.Collections.Generic
+{
+    internal static class Extensions
+    {
+        public static bool TryDequeue<T>(this Queue<T> queue, out T item)
+        {
+            if (queue.Count > 0)
+            {
+                item = queue.Dequeue();
+                return true;
+            }
+
+            item = default;
+            return false;
+        }
+    }
+}
+#endif
+
 #if NET461
 namespace System.Diagnostics
 {
