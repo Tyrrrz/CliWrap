@@ -9,7 +9,7 @@ namespace CliWrap.EventStream
     {
         private readonly int _capacity;
         private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0, 1);
 
         private bool _isDisposed;
 
@@ -34,7 +34,9 @@ namespace CliWrap.EventStream
             if (SpinWait.SpinUntil(() => _queue.Count < _capacity, TimeSpan.FromMinutes(10)))
             {
                 _queue.Enqueue(item);
-                _semaphore.Release();
+
+                if (_semaphore.CurrentCount == 0)
+                    _semaphore.Release();
             }
         }
 
