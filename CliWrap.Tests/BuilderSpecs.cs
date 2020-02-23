@@ -25,6 +25,21 @@ namespace CliWrap.Tests
         }
 
         [Fact]
+        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_arguments_list()
+        {
+            // Arrange
+            var cmd = Cli.Wrap("foo").WithArguments("xxx");
+
+            // Act
+            var cmdOther = cmd.WithArguments(new[] {"-a", "foo bar"});
+
+            // Assert
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+            cmd.Arguments.Should().NotBe(cmdOther.Arguments);
+            cmdOther.Arguments.Should().Be("-a \"foo bar\"");
+        }
+
+        [Fact]
         public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_working_directory()
         {
             // Arrange
