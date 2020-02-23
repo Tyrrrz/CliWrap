@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Internal;
 using FluentAssertions;
 using Xunit;
 
