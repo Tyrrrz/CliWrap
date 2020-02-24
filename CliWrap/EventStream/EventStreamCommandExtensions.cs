@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using CliWrap.Internal;
 
 namespace CliWrap.EventStream
@@ -41,9 +42,11 @@ namespace CliWrap.EventStream
             var commandTask = commandPiped.ExecuteAsync(cancellationToken);
             yield return new StartedCommandEvent(commandTask.ProcessId);
 
+            // Don't pass cancellation token to continuation because we need it to always trigger
+            // regardless of how the task completed.
             _ = commandTask
                 .Task
-                .ContinueWith(_ => channel.Close(), cancellationToken);
+                .ContinueWith(_ => channel.Close(), TaskContinuationOptions.None);
 
             await foreach (var cmdEvent in channel.ReceiveAsync(cancellationToken))
             {
@@ -101,11 +104,18 @@ namespace CliWrap.EventStream
                 var commandTask = commandPiped.ExecuteAsync(cancellationToken);
                 observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
+                // Don't pass cancellation token to continuation because we need it to always trigger
+                // regardless of how the task completed.
                 _ = commandTask
                     .Task
                     .ContinueWith(t =>
                     {
-                        if (t.Exception == null)
+                        // Canceled tasks don't have exception
+                        if (t.IsCanceled)
+                        {
+                            observer.OnError(new OperationCanceledException("Command execution has been canceled."));
+                        }
+                        else if (t.Exception == null)
                         {
                             observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
                             observer.OnCompleted();
@@ -114,7 +124,7 @@ namespace CliWrap.EventStream
                         {
                             observer.OnError(t.Exception);
                         }
-                    }, cancellationToken);
+                    }, TaskContinuationOptions.None);
 
                 return Disposable.Null;
             });

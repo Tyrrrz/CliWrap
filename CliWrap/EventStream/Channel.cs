@@ -48,11 +48,16 @@ namespace CliWrap.EventStream
 
             while (!_isDisposed)
             {
-                // Await read lock and completion.
-                // If read lock is claimed first, it means the channel is still active and there's a new message.
-                // If completion finishes first, it means that the channel is closed, but there still might be one more message
-                // in the queue because _readLock.WaitAsync() always yields before finishing.
-                var isClosed = _closedTcs.Task == await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task);
+                var task = await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task);
+
+                // Task.WhenAny() does not throw if the underlying task was cancelled.
+                // So we check it ourselves and propagate it if it was.
+                if (task.IsCanceled)
+                    await task;
+
+                // If the first task to complete was the closing signal, then we will need to break loop.
+                // Because WaitAsync() may have completed asynchronously, we try to read from the queue one last time anyway.
+                var isClosed = task == _closedTcs.Task;
 
                 if (_queue.TryDequeue(out var next))
                 {
