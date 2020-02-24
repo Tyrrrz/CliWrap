@@ -42,9 +42,11 @@ namespace System.IO
 #if NET461 || NETSTANDARD2_0
 namespace System.Collections.Generic
 {
+    using System.Diagnostics.CodeAnalysis;
+
     internal static class Extensions
     {
-        public static bool TryDequeue<T>(this Queue<T> queue, out T item)
+        public static bool TryDequeue<T>(this Queue<T> queue, [MaybeNullWhen(false)] out T item)
         {
             if (queue.Count > 0)
             {

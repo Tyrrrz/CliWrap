@@ -53,11 +53,15 @@ namespace CliWrap
         public static PipeTarget ToDelegate(Action<string> handleLine) =>
             ToDelegate(handleLine, Console.OutputEncoding);
 
+        /// <summary>
+        /// Creates a pipe target from a delegate that asynchronously handles the content on a line-by-line basis.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// </summary>
         public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
             new AsyncDelegatePipeTarget(handleLineAsync, encoding);
 
         /// <summary>
-        /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
+        /// Creates a pipe target from a delegate that asynchronously handles the content on a line-by-line basis.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
         public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
