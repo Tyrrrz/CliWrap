@@ -75,6 +75,8 @@ namespace CliWrap.EventStream
                 return;
 
             _isDisposed = true;
+
+            Close();
             _writeLock.Dispose();
             _readLock.Dispose();
         }
