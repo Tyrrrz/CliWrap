@@ -49,6 +49,7 @@ namespace CliWrap.Tests.Dummy
                 [SetExitCode] = args =>
                 {
                     var exitCode = int.Parse(args.Single(), CultureInfo.InvariantCulture);
+                    Console.Error.WriteLine($"Exit code set to {exitCode}");
 
                     return exitCode;
                 },

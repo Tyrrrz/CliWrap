@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
+using CliWrap.Exceptions;
 
 namespace CliWrap.Buffered
 {
@@ -30,16 +31,33 @@ namespace CliWrap.Buffered
 
             var commandPiped = command
                 .WithStandardOutputPipe(stdOutPipe)
-                .WithStandardErrorPipe(stdErrPipe);
+                .WithStandardErrorPipe(stdErrPipe)
+                .WithValidation(CommandResultValidation.None); // disable validation because we have our own
 
             return commandPiped
                 .ExecuteAsync(cancellationToken)
-                .Select(r => new BufferedCommandResult(
-                    r.ExitCode,
-                    r.StartTime,
-                    r.ExitTime,
-                    stdOutBuffer.ToString(),
-                    stdErrBuffer.ToString()));
+                .Select(r =>
+                {
+                    // Transform the result
+                    var result = new BufferedCommandResult(
+                        r.ExitCode,
+                        r.StartTime,
+                        r.ExitTime,
+                        stdOutBuffer.ToString(),
+                        stdErrBuffer.ToString());
+
+                    // We perform validation separately here because we want to include stderr in the exception as well
+                    if (result.ExitCode != 0 && command.Validation.IsZeroExitCodeValidationEnabled())
+                    {
+                        throw CommandExecutionException.ExitCodeValidation(
+                            command.TargetFilePath,
+                            command.Arguments,
+                            result.ExitCode,
+                            result.StandardError.Trim());
+                    }
+
+                    return result;
+                });
         }
 
         /// <summary>

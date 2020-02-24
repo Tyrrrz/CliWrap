@@ -22,8 +22,25 @@ namespace CliWrap.Exceptions
         {
             var message = @$"
 Underlying process reported a non-zero exit code ({exitCode}).
+
 Command:
-    {filePath} {arguments}
+  {filePath} {arguments}
+
+You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
+
+            return new CommandExecutionException(message);
+        }
+
+        internal static CommandExecutionException ExitCodeValidation(string filePath, string arguments, int exitCode, string standardError)
+        {
+            var message = @$"
+Underlying process reported a non-zero exit code ({exitCode}).
+
+Command:
+  {filePath} {arguments}
+
+Standard error:
+  {standardError}
 
 You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
 

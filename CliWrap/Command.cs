@@ -252,7 +252,7 @@ namespace CliWrap
                 StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken),
                 process.WaitUntilExitAsync());
 
-            if (Validation.IsZeroExitCodeValidationEnabled() && process.ExitCode != 0)
+            if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
                 throw CommandExecutionException.ExitCodeValidation(TargetFilePath, Arguments, process.ExitCode);
 
             return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
