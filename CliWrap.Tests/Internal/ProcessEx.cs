@@ -1,27 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Management;
+﻿using System.Diagnostics;
 
 namespace CliWrap.Tests.Internal
 {
     internal static class ProcessEx
     {
-        public static IReadOnlyList<Process> GetChildProcesses(int processId)
+        public static bool IsRunning(int processId)
         {
-            using var searcher = new ManagementObjectSearcher($"Select * From Win32_Process Where ParentProcessID={processId}");
-            using var results = searcher.Get();
-
-            return results.Cast<ManagementObject>()
-                .Select(managementObject => Convert.ToInt32(managementObject["ProcessId"]))
-                .Select(Process.GetProcessById)
-                .ToArray();
+            try
+            {
+                using var process = Process.GetProcessById(processId);
+                return !process.HasExited;
+            }
+            catch
+            {
+                return false;
+            }
         }
-
-        public static IReadOnlyList<Process> GetDescendantProcesses(int processId) =>
-            GetChildProcesses(processId)
-                .SelectMany(p => GetDescendantProcesses(p.Id).Concat(new[] {Process.GetProcessById(p.Id)}))
-                .ToArray();
     }
 }

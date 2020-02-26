@@ -2,10 +2,10 @@
   <Import Project="../CliWrap.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net45;netcoreapp3.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net461;netcoreapp3.0</TargetFrameworks>
     <Authors>$(Company)</Authors>
-    <Description>Wrapper for command line interface executables</Description>
-    <PackageTags>command line executable interface wrapper standard input output error arguments net core</PackageTags>
+    <Description>Library for running shell commands with extensive support for piping</Description>
+    <PackageTags>shell pipe command line executable interface wrapper standard input output error arguments net core</PackageTags>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/Tyrrrz/CliWrap/blob/master/Changelog.md</PackageReleaseNotes>
     <PackageIcon>favicon.png</PackageIcon>
@@ -19,18 +19,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConfigureAwait.Fody" Version="3.1.0" PrivateAssets="all" />
-    <PackageReference Include="Fody" Version="4.2.1" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0-preview.2" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19554-01" PrivateAssets="all"/>
-    <PackageReference Include="Nullable" Version="1.1.1" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="../favicon.png" Pack="True" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+  <ItemGroup>
+    <PackageReference Include="ConfigureAwait.Fody" Version="3.3.1" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.1.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="Nullable" Version="1.2.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.Management" />
   </ItemGroup>
 
