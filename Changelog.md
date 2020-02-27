@@ -1,3 +1,13 @@
+### v3.0 (27-Feb-2020)
+
+- Complete rework of the library.
+- Added extensive support for piping.
+- Multitude of improvements and breaking changes.
+
+Refer to the [migration guide](https://github.com/Tyrrrz/CliWrap/wiki/Migration-guide-(from-v2.5-to-v3.0)) to see how you can update your old code to work with CliWrap v3.0.
+
+Check out the new readme to see the whole list of new features.
+
 ### v2.5 (30-Oct-2019)
 
 - Added callbacks that trigger when stdout/stderr streams are closed. (Thanks @Daniel15)
