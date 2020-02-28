@@ -45,7 +45,7 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-In this scenario, all of the streams are redirected into CliWrap's equivalent of `/dev/null`, avoiding unnecessary memory allocations. This approach is useful if you want to execute a command, but don't care about what it writes to the console. You still get the returned exit code, which is usually enough to determine whether the command ran successfully or not.
+In this scenario, all of the streams are redirected into CliWrap's equivalent of `/dev/null`, avoiding unnecessary memory allocations. This approach is useful if you want to execute a command, but don't care about what it writes to the console. You still get the returned exit code, which is usually enough to determine whether the command has run successfully or not.
 
 By default, `ExecuteAsync()` will throw a `CommandExecutionException` if the underlying process returned a non-zero exit code. You can choose to [disable this check](#configuring-arguments-and-other-options).
 
@@ -78,7 +78,7 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-Calling `ExecuteBufferedAsync()` is similar to `ExecuteAsync()`, but the returned result contains two extra fields: `StandardOutput` and `StandardError`. These contain the aggregated text data produced by the underlying command. This approach is useful if you want execute a command and then inspect what it wrote to the console. Note, however, that some commands may produce really large outputs or even write binary content instead of text, in which case it's better to use direct piping methods ([explained later](#piping)).
+Calling `ExecuteBufferedAsync()` is similar to `ExecuteAsync()`, but the returned result contains two extra fields: `StandardOutput` and `StandardError`. These contain the aggregated text data produced by the underlying command. This approach is useful if you want to execute a command and then inspect what it wrote to the console. Note, however, that some commands may produce really large outputs or even write binary content instead of text, in which case it's better to use [direct piping methods](#piping).
 
 By default, this method will assume that the underlying command uses `Console.OutputEncoding` for writing text to the console. If it doesn't, you can override it using one of the overloads:
 
@@ -200,7 +200,6 @@ using var cts = new CancellationTokenSource();
 // Cancel automatically after a timeout of 10 seconds
 cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-// If this is canceled, a TaskCanceledException is thrown
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 ```
 
@@ -244,7 +243,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 }
 ```
 
-The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumreable<CommandEvent>`, which you can iterate over using the `await foreach` construct introduced with C# 8. In this scenario, back-pressure is performed by locking the pipes until an event is processed, which means there's no buffering of data in memory.
+The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate over using the `await foreach` construct introduced with C# 8. In this scenario, back-pressure is performed by locking the pipes until an event is processed, which means there's no buffering of data in memory.
 
 Alternatively, you can also start a command as an observable push-based stream instead:
 
@@ -406,7 +405,7 @@ await cmd.ExecuteAsync();
 
 As you can see, piping enables a wide range of different use cases. It's not only used for convenience, but also to improve memory efficiency when dealing with large and/or binary inputs and outputs. With the help of CliWrap's pipe operators, configuring pipelines is really easy -- just imagine doing the same with `System.Diagnostics.Process` manually.
 
-The different execution models which we saw earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `Observe()` are all based on the concept of piping, but these approaches are not exclusive. For example, you can create a piped command and start it as an event stream:
+The different execution models which we saw earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `Observe()` are all based on the concept of piping, but these approaches are not mutually exclusive. For example, you can create a piped command and start it as an event stream:
 
 ```csharp
 await using var input = File.OpenRead("input.txt");
