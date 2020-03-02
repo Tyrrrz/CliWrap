@@ -101,7 +101,7 @@ The promise returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is in fact
 You can inspect the task object and get the ID of the underlying process that is represented by this command execution:
 
 ```csharp
-var task = await Cli.Wrap("path/to/exe")
+var task = Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .ExecuteAsync();
 
