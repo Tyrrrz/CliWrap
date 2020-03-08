@@ -271,7 +271,7 @@ await cmd.Observe().ForEachAsync(cmdEvent =>
 });
 ```
 
-In this case, `Observe()` starts the command and returns an `IObservable<CommandEvent>`. You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet/reactive) to transform, filter, throttle, and otherwise manipulate the stream. There is no locking in this scenario so the data is pushed as soon as it's available.
+In this case, `Observe()` returns a cold `IObservable<CommandEvent>` that represents the command execution. You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet/reactive) to transform, filter, throttle, and otherwise manipulate the stream. There is no locking in this scenario so the data is pushed at the rate it becomes available.
 
 Both `ListenAsync()` and `Observe()` also have overloads that accept custom encoding and/or a cancellation token.
 
