@@ -20,7 +20,7 @@ jobs:
         dotnet-version: 3.1.100
 
     - name: Build & test
-      run: dotnet test --configuration Release
+      run: dotnet test --configuration Release --logger GitHubActions
 
     - name: Upload coverage
       uses: codecov/codecov-action@v1.0.5
