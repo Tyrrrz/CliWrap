@@ -8,7 +8,11 @@ namespace CliWrap.Internal
     internal class ProcessEx : IDisposable
     {
         private readonly Process _nativeProcess;
+#if NETSTANDARD2_0
         private readonly TaskCompletionSource<object?> _exitTcs = new TaskCompletionSource<object?>();
+#else
+        private readonly TaskCompletionSource<object?> _exitTcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
 
         public int Id { get; private set; }
 
