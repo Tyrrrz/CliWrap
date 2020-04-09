@@ -54,7 +54,7 @@ namespace System.Collections.Generic
                 return true;
             }
 
-            item = default;
+            item = default!;
             return false;
         }
     }
