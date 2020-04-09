@@ -27,6 +27,15 @@ CliWrap is a library for interacting with command line executables in a function
 
 _Looking for documentation for CliWrap v2.5? You [can find it here](https://github.com/Tyrrrz/CliWrap/blob/43a93e37c81d8dda9c96343c6c7fb160933415ac/Readme.md). For v2.5 to v3.0 migration guide [check out the wiki](https://github.com/Tyrrrz/CliWrap/wiki/Migration-guide-(from-v2.5-to-v3.0))._
 
+- [Executing a command](#executing-a-command)
+- [Executing a command with buffering](#executing-a-command-with-buffering)
+- [Getting process ID](#getting-process-id)
+- [Lazily mapping the result of an execution](#lazily-mapping-the-result-of-an-execution)
+- [Configuring arguments and other options](#configuring-arguments-and-other-options)
+- [Timeout and cancellation](#timeout-and-cancellation)
+- [Executing a command as an event stream](#executing-a-command-as-an-event-stream)
+- [Piping](#piping)
+
 ### Executing a command
 
 The following is a basic example that shows how to asynchronously execute a command by specifying command line arguments:
