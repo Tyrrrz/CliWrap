@@ -20,7 +20,7 @@ CliWrap is a library for interacting with command line executables in a function
 - Fully asynchronous and cancellation-aware API
 - Safety against typical deadlock scenarios
 - Tested on Windows, Linux, and macOS
-- Targets .NET Standard 2.0+, .NET Core 2.0+, .NET Framework 4.6.1+
+- Works with .NET Standard 2.0+, .NET Core 2.0+, .NET Framework 4.6.1+
 - No external dependencies
 
 ## Usage
