@@ -18,6 +18,7 @@ CliWrap is a library for interacting with command line executables in a function
 - Fluent interface for configuring commands
 - Flexible support for piping with variety of sources and targets
 - Fully asynchronous and cancellation-aware API
+- Design with strict immutability in mind
 - Safety against typical deadlock scenarios
 - Tested on Windows, Linux, and macOS
 - Works with .NET Standard 2.0+, .NET Core 2.0+, .NET Framework 4.6.1+
@@ -72,7 +73,7 @@ for (var i = 0; i < 5; i++)
 
 ### Executing a command with buffering
 
-Often times a command may write some useful information to the console that you'll want to extract. There are different ways to do that with CliWrap. -- one of them is to execute the command with buffering:
+Often times a command may write some useful information to the console that you'll want to extract. There are different ways to do that with CliWrap -- one of them is to execute the command with buffering:
 
 ```csharp
 using CliWrap;
@@ -173,7 +174,7 @@ In the above example, `pullCmd` and `pushCmd` are separate objects. They have th
 
 Besides executing a command as a task, CliWrap also supports an alternative model, in which an execution is represented as an event stream.
 
-This lets you start a command and react to events it produces as it run. These events are:
+This lets you start a command and react to events it produces as it runs. These events are:
 
 - `StartedCommandEvent` -- received just once, when the command starts executing. Contains the process ID.
 - `StandardOutputCommandEvent` -- received every time the underlying process writes a new line to the output stream. Contains the text as string.
