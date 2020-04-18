@@ -117,19 +117,18 @@ With the help of CliWrap's fluent interface and many overloads, it's really easy
 ```csharp
 // Set arguments directly (no formatting, no escaping)
 var command = Cli.Wrap("git")
-    .WithArguments("clone https://github.com/Tyrrrz/CliWrap --depth 10");
+    .WithArguments("commit -m \"my commit\"");
 
 // Set arguments from a list (joined to a string, with escaping)
 var command = Cli.Wrap("git")
-    .WithArguments(new[] {"clone", "https://github.com/Tyrrrz/CliWrap", "--depth", "10"});
+    .WithArguments(new[] {"commit", "-m", "my commit"});
 
 // Build arguments from parts (joined to a string, with escaping & formatting)
 var command = Cli.Wrap("git")
     .WithArguments(a => a
-        .Add("clone")
-        .Add("https://github.com/Tyrrrz/CliWrap")
-        .Add("--depth")
-        .Add(10));
+        .Add("commit")
+        .Add("-m")
+        .Add("my commit"));
 ```
 
 While all of these approaches can be used interchangeably, the last two take care of escaping automatically for you, which is useful as you don't have to worry about spaces and other special characters. Moreover, the builder approach can automatically format values like `int` or `double` so you don't have to convert them yourself.
@@ -140,9 +139,10 @@ Besides command line arguments, you can also configure other aspects, such as en
 var command = Cli.Wrap("git")
     .WithWorkingDirectory("path/to/repo/")
     .WithArguments(a => a
-        .Add("commit")
-        .Add("-m")
-        .Add("my commit"))
+        .Add("clone")
+        .Add("https://github.com/Tyrrrz/CliWrap")
+        .Add("--depth")
+        .Add(10))
     .WithEnvironmentVariables(e => e
         .Set("GIT_AUTHOR_NAME", "John")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
@@ -165,7 +165,7 @@ var pullCmd = Cli.Wrap("git")
         .Set("GIT_AUTHOR_NAME", "John")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
 
-var pushCmd = command1.WithArguments("push");
+var pushCmd = pullCmd.WithArguments("push");
 ```
 
 In the above example, `pullCmd` and `pushCmd` are separate objects. They have the same target executable, working directory and environment variables, but different command line arguments.
