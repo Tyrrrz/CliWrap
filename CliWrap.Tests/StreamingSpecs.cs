@@ -11,10 +11,7 @@ namespace CliWrap.Tests
     {
         private readonly ITestOutputHelper _output;
 
-        public StreamingSpecs(ITestOutputHelper output)
-        {
-            _output = output;
-        }
+        public StreamingSpecs(ITestOutputHelper output) => _output = output;
 
         [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_command_as_an_async_event_stream()
@@ -29,8 +26,10 @@ namespace CliWrap.Tests
                     .Add(expectedLinesCount));
 
             // Act
+            var processHasStarted = false;
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
+            var processHasExited = false;
 
             await foreach (var cmdEvent in cmd.ListenAsync())
             {
@@ -38,6 +37,7 @@ namespace CliWrap.Tests
                 {
                     case StartedCommandEvent started:
                         _output.WriteLine($"Process started; ID: {started.ProcessId}");
+                        processHasStarted = true;
                         break;
                     case StandardOutputCommandEvent stdOut:
                         _output.WriteLine($"Out> {stdOut.Text}");
@@ -49,13 +49,16 @@ namespace CliWrap.Tests
                         break;
                     case ExitedCommandEvent exited:
                         _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                        processHasExited = true;
                         break;
                 }
             }
 
             // Assert
+            processHasStarted.Should().BeTrue();
             stdOutLinesCount.Should().Be(expectedLinesCount);
             stdErrLinesCount.Should().Be(expectedLinesCount);
+            processHasExited.Should().BeTrue();
         }
 
         [Fact(Timeout = 10000)]
@@ -71,8 +74,10 @@ namespace CliWrap.Tests
                     .Add(expectedLinesCount));
 
             // Act
+            var processHasStarted = false;
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
+            var processHasExited = false;
 
             await cmd.Observe().ForEachAsync(cmdEvent =>
             {
@@ -80,6 +85,7 @@ namespace CliWrap.Tests
                 {
                     case StartedCommandEvent started:
                         _output.WriteLine($"Process started; ID: {started.ProcessId}");
+                        processHasStarted = true;
                         break;
                     case StandardOutputCommandEvent stdOut:
                         _output.WriteLine($"Out> {stdOut.Text}");
@@ -91,13 +97,16 @@ namespace CliWrap.Tests
                         break;
                     case ExitedCommandEvent exited:
                         _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                        processHasExited = true;
                         break;
                 }
             });
 
             // Assert
+            processHasStarted.Should().BeTrue();
             stdOutLinesCount.Should().Be(expectedLinesCount);
             stdErrLinesCount.Should().Be(expectedLinesCount);
+            processHasExited.Should().BeTrue();
         }
     }
 }

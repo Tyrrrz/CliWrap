@@ -11,10 +11,10 @@ namespace CliWrap.Tests
     public class PipingSpecs
     {
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_a_stream_into_stdin()
+        public async Task I_can_execute_a_command_that_pipes_stdin_from_a_stream()
         {
             // Arrange
-            await using var stream = File.OpenRead(typeof(PipingSpecs).Assembly.Location);
+            await using var stream = new MemoryStream(new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
@@ -25,11 +25,11 @@ namespace CliWrap.Tests
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be(stream.Length.ToString(CultureInfo.InvariantCulture));
+            result.StandardOutput.TrimEnd().Should().Be("10");
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_a_file_into_stdin()
+        public async Task I_can_execute_a_command_that_pipes_stdin_from_a_file()
         {
             // Arrange
             const string expectedContent = "Hell world!";
@@ -51,7 +51,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_a_string_into_stdin()
+        public async Task I_can_execute_a_command_that_pipes_stdin_from_a_string()
         {
             // Arrange
             const string str = "Hello world";
@@ -69,7 +69,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_another_command_into_stdin()
+        public async Task I_can_execute_a_command_that_pipes_its_stdin_from_stdout_of_another_command()
         {
             // Arrange
             const int expectedSize = 1_000_000;
@@ -87,11 +87,11 @@ namespace CliWrap.Tests
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be(expectedSize.ToString(CultureInfo.InvariantCulture));
+            result.StandardOutput.TrimEnd().Should().Be("1000000");
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_a_chain_of_commands_into_stdin()
+        public async Task I_can_execute_a_command_that_represents_a_pipeline_of_multiple_commands()
         {
             // Arrange
             var cmd =
@@ -115,7 +115,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_stream()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream()
         {
             // Arrange
             const int expectedSize = 1_000_000;
@@ -135,7 +135,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_file()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_file()
         {
             // Arrange
             const int expectedSize = 1_000_000;
@@ -159,7 +159,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_string_builder()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_string_builder()
         {
             // Arrange
             const string expectedOutput = "Hello world!";
@@ -179,7 +179,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_delegate()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_delegate()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -202,7 +202,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_an_async_delegate()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_an_async_delegate()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -229,7 +229,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_streams()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_streams()
         {
             // Arrange
             await using var stdOut = new MemoryStream();
@@ -250,7 +250,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_string_builders()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_string_builders()
         {
             // Arrange
             const string expectedOutput = "Hello world!";
@@ -273,7 +273,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_delegates()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_delegates()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -299,7 +299,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_and_stderr_into_separate_async_delegates()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_async_delegates()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -334,7 +334,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_multiple_streams()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_multiple_streams()
         {
             // Arrange
             const int expectedSize = 1_000_000;
@@ -345,7 +345,8 @@ namespace CliWrap.Tests
             var pipeTarget = PipeTarget.Merge(
                 PipeTarget.ToStream(stream1),
                 PipeTarget.ToStream(stream2),
-                PipeTarget.ToStream(stream3));
+                PipeTarget.ToStream(stream3)
+            );
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
@@ -363,7 +364,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_pipe_its_stdout_into_a_stream_while_also_buffering()
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream_while_also_buffering()
         {
             // Arrange
             const string expectedContent = "Hello world!";

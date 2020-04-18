@@ -12,7 +12,7 @@ namespace CliWrap.Tests
     public class EnvironmentSpecs
     {
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_specify_working_directory_path()
+        public async Task I_can_execute_a_command_with_a_custom_working_directory_path()
         {
             // Arrange
             var workingDirPath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
@@ -31,7 +31,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_specify_a_set_of_environment_variables()
+        public async Task I_can_execute_a_command_with_custom_environment_variables()
         {
             // Arrange
             var env = new Dictionary<string, string>

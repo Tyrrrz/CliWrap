@@ -13,7 +13,7 @@ namespace CliWrap.Tests
     public class CancellationSpecs
     {
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_cancel_execution_immediately()
+        public async Task I_can_execute_a_command_and_cancel_it_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -34,7 +34,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_and_cancel_execution_while_it_is_in_progress()
+        public async Task I_can_execute_a_command_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -54,7 +54,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_with_buffering_and_cancel_execution_immediately()
+        public async Task I_can_execute_a_command_with_buffering_and_cancel_it_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -75,7 +75,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_with_buffering_and_cancel_execution_while_it_is_in_progress()
+        public async Task I_can_execute_a_command_with_buffering_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -95,7 +95,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_execution_immediately()
+        public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_it_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -108,14 +108,14 @@ namespace CliWrap.Tests
                     .Add(10_000));
 
             // Act
-            var task = cmd.ListenAsync(cts.Token).DiscardAsync();
+            var task = cmd.ListenAsync(cts.Token).IterateDiscardAsync();
 
             // Assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_execution_while_it_is_in_progress()
+        public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -127,14 +127,14 @@ namespace CliWrap.Tests
                     .Add(10_000));
 
             // Act
-            var task = cmd.ListenAsync(cts.Token).DiscardAsync();
+            var task = cmd.ListenAsync(cts.Token).IterateDiscardAsync();
 
             // Assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_execution_immediately()
+        public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_it_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -154,7 +154,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
-        public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_execution_while_it_is_in_progress()
+        public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
