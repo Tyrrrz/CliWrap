@@ -10,9 +10,9 @@ Check out the new readme to see the whole list of new features.
 
 ### v2.5 (30-Oct-2019)
 
-- Added callbacks that trigger when stdout/stderr streams are closed. (Thanks @Daniel15)
-- Added an overload for `SetCancellationToken` that accepts `killEntireProcessTree`. Passing `true` to this option will make CliWrap attempt to kill the entire process tree when cancellation is requested, as opposed to only the parent process. Note, this option is only available on .NET Framework 4.5+ and .NET Core 3.0+. (Thanks @M-Patrone)
-- Removed ReSharpe annotations.
+- Added callbacks that trigger when stdout/stderr streams are closed. (Thanks [@Daniel15](https://github.com/Daniel15))
+- Added an overload for `SetCancellationToken` that accepts `killEntireProcessTree`. Passing `true` to this option will make CliWrap attempt to kill the entire process tree when cancellation is requested, as opposed to only the parent process. Note, this option is only available on .NET Framework 4.5+ and .NET Core 3.0+. (Thanks [@M-Patrone](https://github.com/M-Patrone))
+- Removed ReSharper annotations.
 
 ### v2.4 (03-Oct-2019)
 
