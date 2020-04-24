@@ -1,4 +1,6 @@
-﻿namespace CliWrap.EventStream
+﻿using System.Diagnostics;
+
+namespace CliWrap.EventStream
 {
     /// <summary>
     /// Represents an abstract event produced by a command.
@@ -15,6 +17,7 @@
     /// Represents an event that is triggered when the command starts executing.
     /// This event may only appear once in the event stream.
     /// </summary>
+    [DebuggerDisplay("Process ID: {ProcessId}")]
     public class StartedCommandEvent : CommandEvent
     {
         /// <summary>
@@ -31,6 +34,7 @@
     /// <summary>
     /// Represents an event that is triggered when the underlying process prints a line of text to the standard output stream.
     /// </summary>
+    [DebuggerDisplay("{Text}")]
     public class StandardOutputCommandEvent : CommandEvent
     {
         /// <summary>
@@ -47,6 +51,7 @@
     /// <summary>
     /// Represents an event that is triggered when the underlying process prints a line of text to the standard error stream.
     /// </summary>
+    [DebuggerDisplay("{Text}")]
     public class StandardErrorCommandEvent : CommandEvent
     {
         /// <summary>
@@ -64,6 +69,7 @@
     /// Represents an event that is triggered when the command finishes executing.
     /// This event may only appear once in the event stream.
     /// </summary>
+    [DebuggerDisplay("Exit code: {ExitCode}")]
     public class ExitedCommandEvent : CommandEvent
     {
         /// <summary>
