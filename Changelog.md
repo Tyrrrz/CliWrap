@@ -1,3 +1,8 @@
+### v3.0.1 (26-Apr-2020)
+
+- Slightly improved performance by using `TaskCreationOptions.RunContinuationsAsynchronously` where appropriate. (Thanks [@Georg Jung](https://github.com/georg-jung))
+- Added DebuggerDisplay attribute to derivatives of `CommandEvent` to aid in debugging. (Thanks [@Zoltán Lehóczky](https://github.com/Piedone))
+
 ### v3.0 (27-Feb-2020)
 
 - Complete rework of the library.
