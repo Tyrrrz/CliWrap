@@ -1,3 +1,7 @@
+### v3.0.2 (28-Apr-2020)
+
+- Fixed an issue where piping stdin to an executable that also writes stdout caused a deadlock when the stdout was beyond a certain size.
+
 ### v3.0.1 (26-Apr-2020)
 
 - Slightly improved performance by using `TaskCreationOptions.RunContinuationsAsynchronously` where appropriate. (Thanks [@Georg Jung](https://github.com/georg-jung))
