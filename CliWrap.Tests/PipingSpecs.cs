@@ -1,8 +1,8 @@
-﻿using System.Globalization;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
+using CliWrap.Tests.Internal;
 using FluentAssertions;
 using Xunit;
 
@@ -396,6 +396,21 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add(Dummy.Program.PrintStdInLength));
+
+            // Act
+            await cmd.ExecuteAsync();
+        }
+
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_and_pipe_a_really_large_stdin_while_it_also_writes_stdout_and_it_will_not_deadlock()
+        {
+            // Arrange
+            await using var stream = new RandomStream(10_000_000);
+
+            var cmd = stream | Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoStdInToStdOut));
 
             // Act
             await cmd.ExecuteAsync();

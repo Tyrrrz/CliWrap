@@ -242,15 +242,34 @@ namespace CliWrap
             // Register cancellation
             using var cancellation = cancellationToken.Register(() => process.TryKill());
 
-            // Handle stdin pipe
-            using (process.StdIn)
-                await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken);
+            // Stdin must be closed after it finished to avoid deadlock if the process reads the stream to end
+            async Task HandleStdInAsync()
+            {
+                using (process.StdIn)
+                    await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken);
+            }
 
-            // Handle stdout/stderr pipes and wait for exit
+            // Stdout doesn't need to be closed but we do it for good measure
+            async Task HandleStdOutAsync()
+            {
+                using (process.StdOut)
+                    await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken);
+            }
+
+            // Stderr doesn't need to be closed but we do it for good measure
+            async Task HandleStdErrAsync()
+            {
+                using (process.StdErr)
+                    await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken);
+            }
+
+            // Handle pipes in parallel to avoid deadlocks
             await Task.WhenAll(
-                StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken),
-                StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken),
-                process.WaitUntilExitAsync());
+                HandleStdInAsync(),
+                HandleStdOutAsync(),
+                HandleStdErrAsync(),
+                process.WaitUntilExitAsync()
+            );
 
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
                 throw CommandExecutionException.ExitCodeValidation(TargetFilePath, Arguments, process.ExitCode);
