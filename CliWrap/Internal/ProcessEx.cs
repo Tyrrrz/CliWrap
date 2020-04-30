@@ -51,12 +51,19 @@ namespace CliWrap.Internal
             StdErr = _nativeProcess.StandardError.BaseStream;
         }
 
-        public bool TryKill()
+        public bool TryKill(bool gracefully = false)
         {
             try
             {
                 _nativeProcess.EnableRaisingEvents = false;
-                _nativeProcess.Kill(true);
+                if (gracefully)
+                {
+                    Cli.Wrap("taskkill").WithArguments("/PID " + Id).ExecuteAsync();
+                }
+                else
+                { 
+                    _nativeProcess.Kill(true);
+                }
 
                 return true;
             }
