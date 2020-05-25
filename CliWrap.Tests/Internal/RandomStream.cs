@@ -9,7 +9,7 @@ namespace CliWrap.Tests.Internal
 
         public override bool CanRead { get; } = true;
         public override bool CanSeek { get; } = false;
-        public override bool CanWrite { get; } = true;
+        public override bool CanWrite { get; } = false;
 
         public override long Length { get; }
         public override long Position { get; set; }

@@ -42,7 +42,11 @@ namespace CliWrap.Internal
                 _exitTcs.TrySetResult(null);
             };
 
-            _nativeProcess.Start();
+            var hasStarted = _nativeProcess.Start();
+
+            if (!hasStarted)
+                throw new InvalidOperationException("Failed to obtain handle when starting the process.");
+
             StartTime = DateTimeOffset.Now;
 
             Id = _nativeProcess.Id;
