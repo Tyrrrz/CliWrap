@@ -125,6 +125,12 @@ namespace CliWrap
             WithArguments(args => args.Add(arguments));
 
         /// <summary>
+        /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
+        /// </summary>
+        public Command WithArguments(params string[] arguments) =>
+            WithArguments(args => args.Add(arguments));
+        
+        /// <summary>
         /// Creates a copy of this command, settings the working directory path to the specified value.
         /// </summary>
         public Command WithWorkingDirectory(string workingDirPath) => new Command(
