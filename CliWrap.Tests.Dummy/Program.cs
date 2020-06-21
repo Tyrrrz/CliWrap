@@ -21,6 +21,8 @@ namespace CliWrap.Tests.Dummy
 
         public const string EchoArgsToStdOutAndStdErr = nameof(EchoArgsToStdOutAndStdErr);
 
+        public const string EchoFirstArgToStdOut = nameof(EchoFirstArgToStdOut);
+
         public const string EchoStdInToStdOut = nameof(EchoStdInToStdOut);
 
         public const string EchoPartStdInToStdOut = nameof(EchoPartStdInToStdOut);
@@ -76,6 +78,12 @@ namespace CliWrap.Tests.Dummy
                     Console.WriteLine(text);
                     Console.Error.WriteLine(text);
 
+                    return 0;
+                },
+
+                [EchoFirstArgToStdOut] = args =>
+                {
+                    Console.WriteLine(args.FirstOrDefault());
                     return 0;
                 },
 

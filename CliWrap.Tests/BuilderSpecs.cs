@@ -138,12 +138,10 @@ namespace CliWrap.Tests
                 .Add("bar")
                 .Add("two words")
                 .Add(new[] {"array", "of", "many"})
-                .Add("quote \" in the \\\" middle")
-                .Add("\\")
                 .Build();
 
             // Assert
-            arguments.Should().Be("foo bar \"two words\" array of many \"quote \\\" in the \\\\\\\" middle\" \\");
+            arguments.Should().Be("foo bar \"two words\" array of many");
         }
 
         [Fact]
