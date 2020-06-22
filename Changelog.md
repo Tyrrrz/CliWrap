@@ -1,3 +1,7 @@
+### v3.0.3 (22-Jun-2020)
+
+- Added error handling for when the internal call to `Process.Start()` returns `false`. This will now throw a more descriptive exception than it did previously. 
+
 ### v3.0.2 (28-Apr-2020)
 
 - Fixed an issue where piping stdin to an executable that also writes stdout caused a deadlock when the stdout was beyond a certain size.
