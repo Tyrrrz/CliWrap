@@ -42,10 +42,13 @@ namespace CliWrap.Internal
                 _exitTcs.TrySetResult(null);
             };
 
-            var hasStarted = _nativeProcess.Start();
-
-            if (!hasStarted)
-                throw new InvalidOperationException("Failed to obtain handle when starting the process.");
+            if (!_nativeProcess.Start())
+            {
+                throw new InvalidOperationException(
+                    "Failed to obtain the handle when starting a process. " +
+                    "This could mean that the target executable doesn't exist or that execute permission is missing."
+                );
+            }
 
             StartTime = DateTimeOffset.Now;
 
