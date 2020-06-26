@@ -263,7 +263,15 @@ namespace CliWrap
             {
                 try
                 {
-                    await StandardInputPipe.CopyToAsync(process.StdIn, stdInCts.Token);
+                    // Some streams don't support cancellation, in which case we need a fallback mechanism to avoid deadlocks.
+                    // For example, WindowsConsoleStream (from Console.OpenStandardInput()) in particular doesn't support cancellation.
+                    // In the following case the operation will terminate but a rogue Task will leak and might cause problems.
+                    // This is a non-issue, however, if the user closes the stream at the earliest opportunity.
+                    // Otherwise we enter an indeterminate state and tell ourselves we did everything we could to avoid it.
+                    await Task.WhenAny(
+                        StandardInputPipe.CopyToAsync(process.StdIn, stdInCts.Token),
+                        Task.Delay(-1, stdInCts.Token)
+                    );
                 }
                 // Ignore cancellation here, will propagate later
                 catch (OperationCanceledException)
@@ -319,7 +327,7 @@ namespace CliWrap
             {
                 HandleStdInAsync(),
                 HandleStdOutAsync(),
-                HandleStdErrAsync(),
+                HandleStdErrAsync()
             };
 
             // Wait until the process terminates or gets killed
