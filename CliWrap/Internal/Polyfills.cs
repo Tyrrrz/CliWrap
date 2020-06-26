@@ -46,6 +46,12 @@ namespace System.Collections.Generic
 
     internal static class Extensions
     {
+        public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey key, out TValue value)
+        {
+            key = pair.Key;
+            value = pair.Value;
+        }
+
         public static bool TryDequeue<T>(this Queue<T> queue, [MaybeNullWhen(false)] out T item)
         {
             if (queue.Count > 0)

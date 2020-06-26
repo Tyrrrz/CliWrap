@@ -105,7 +105,8 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe);
+            StandardErrorPipe
+        );
 
         /// <summary>
         /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
@@ -121,8 +122,15 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
         /// </summary>
+        public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
+            WithArguments(args => args.Add(arguments, escape));
+
+        /// <summary>
+        /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
+        /// </summary>
+        // TODO: replace with optional argument when breaking changes are ok
         public Command WithArguments(IEnumerable<string> arguments) =>
-            WithArguments(args => args.Add(arguments));
+            WithArguments(arguments, true);
 
         /// <summary>
         /// Creates a copy of this command, settings the working directory path to the specified value.
@@ -135,7 +143,8 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe);
+            StandardErrorPipe
+        );
 
         /// <summary>
         /// Creates a copy of this command, setting the environment variables to the specified value.
@@ -148,7 +157,8 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe);
+            StandardErrorPipe
+        );
 
         /// <summary>
         /// Creates a copy of this command, setting the environment variables to the value configured by the specified delegate.
@@ -172,7 +182,8 @@ namespace CliWrap
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe);
+            StandardErrorPipe
+        );
 
         /// <summary>
         /// Creates a copy of this command, setting the standard input pipe to the specified source.
@@ -185,7 +196,8 @@ namespace CliWrap
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe);
+            StandardErrorPipe
+        );
 
         /// <summary>
         /// Creates a copy of this command, setting the standard output pipe to the specified target.
@@ -198,7 +210,8 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe);
+            StandardErrorPipe
+        );
 
         /// <summary>
         /// Creates a copy of this command, setting the standard error pipe to the specified target.
@@ -211,7 +224,8 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            target);
+            target
+        );
 
         private ProcessStartInfo GetStartInfo()
         {
@@ -227,8 +241,8 @@ namespace CliWrap
                 CreateNoWindow = true
             };
 
-            foreach (var variable in EnvironmentVariables)
-                result.Environment[variable.Key] = variable.Value;
+            foreach (var (key, value) in EnvironmentVariables)
+                result.Environment[key] = value;
 
             return result;
         }

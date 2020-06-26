@@ -9,130 +9,172 @@ namespace CliWrap.Builders
     /// <summary>
     /// Builder that helps generate a well-formed arguments string.
     /// </summary>
-    public class ArgumentsBuilder
+    public partial class ArgumentsBuilder
     {
         private static readonly CultureInfo DefaultCulture = CultureInfo.InvariantCulture;
 
-        private readonly IList<string> _args = new List<string>();
+        private readonly StringBuilder _buffer = new StringBuilder();
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
         /// </summary>
-        public ArgumentsBuilder Add(string value)
+        public ArgumentsBuilder Add(string value, bool escape)
         {
-            _args.Add(value);
+            if (_buffer.Length > 0)
+                _buffer.Append(' ');
+
+            _buffer.Append(escape
+                ? Escape(value)
+                : value
+            );
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds the specified value to the list of arguments.
+        /// </summary>
+        // TODO: replace with optional argument when breaking changes are ok
+        public ArgumentsBuilder Add(string value) =>
+            Add(value, true);
+
+        /// <summary>
+        /// Adds the specified values to the list of arguments.
+        /// </summary>
+        public ArgumentsBuilder Add(IEnumerable<string> values, bool escape)
+        {
+            foreach (var value in values)
+                Add(value, escape);
+
             return this;
         }
 
         /// <summary>
         /// Adds the specified values to the list of arguments.
         /// </summary>
-        public ArgumentsBuilder Add(IEnumerable<string> values)
-        {
-            foreach (var value in values)
-                Add(value);
-
-            return this;
-        }
+        // TODO: replace with optional argument when breaking changes are ok
+        public ArgumentsBuilder Add(IEnumerable<string> values) =>
+            Add(values, true);
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
         /// </summary>
+        public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, bool escape) =>
+            Add(value.ToString(null, cultureInfo), escape);
+
+        /// <summary>
+        /// Adds the specified value to the list of arguments.
+        /// </summary>
+        // TODO: replace with optional argument when breaking changes are ok
         public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
-            Add(value.ToString(null, cultureInfo));
+            Add(value, cultureInfo, true);
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
         /// The value is converted to string using invariant culture.
         /// </summary>
+        public ArgumentsBuilder Add(IFormattable value, bool escape) =>
+            Add(value, DefaultCulture, escape);
+
+        /// <summary>
+        /// Adds the specified value to the list of arguments.
+        /// The value is converted to string using invariant culture.
+        /// </summary>
+        // TODO: replace with optional argument when breaking changes are ok
         public ArgumentsBuilder Add(IFormattable value) =>
-            Add(value, DefaultCulture);
+            Add(value, true);
 
         /// <summary>
         /// Adds the specified values to the list of arguments.
         /// </summary>
-        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo)
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo, bool escape)
         {
             foreach (var value in values)
-                Add(value, cultureInfo);
+                Add(value, cultureInfo, escape);
 
             return this;
         }
 
         /// <summary>
         /// Adds the specified values to the list of arguments.
+        /// </summary>
+        // TODO: replace with optional argument when breaking changes are ok
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo) =>
+            Add(values, cultureInfo, true);
+
+        /// <summary>
+        /// Adds the specified values to the list of arguments.
         /// The values are converted to string using invariant culture.
         /// </summary>
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape) =>
+            Add(values, DefaultCulture, escape);
+
+        /// <summary>
+        /// Adds the specified values to the list of arguments.
+        /// The values are converted to string using invariant culture.
+        /// </summary>
+        // TODO: replace with optional argument when breaking changes are ok
         public ArgumentsBuilder Add(IEnumerable<IFormattable> values) =>
-            Add(values, DefaultCulture);
+            Add(values, true);
 
         /// <summary>
         /// Builds the resulting arguments string.
         /// </summary>
-        public string Build()
+        public string Build() => _buffer.ToString();
+    }
+
+    public partial class ArgumentsBuilder
+    {
+        private static string Escape(string argument)
         {
+            // Short circuit if argument is clean and doesn't need escaping
+            if (argument.Length != 0 && argument.All(c => !char.IsWhiteSpace(c) && c != '"'))
+                return argument;
+
             var buffer = new StringBuilder();
 
-            foreach (var arg in _args)
+            buffer.Append('"');
+
+            for (var i = 0; i < argument.Length;)
             {
-                // If buffer has something in it - append a space
-                if (buffer.Length != 0)
-                    buffer.Append(' ');
+                var c = argument[i++];
 
-                // If argument is clean and doesn't need escaping - append it directly
-                if (arg.Length != 0 && arg.All(c => !char.IsWhiteSpace(c) && c != '"'))
+                if (c == '\\')
                 {
-                    buffer.Append(arg);
-                }
-                // Otherwise - escape problematic characters
-                else
-                {
-                    // Escaping logic taken from CoreFx source code
-
-                    buffer.Append('"');
-
-                    for (var i = 0; i < arg.Length;)
+                    var numBackSlash = 1;
+                    while (i < argument.Length && argument[i] == '\\')
                     {
-                        var c = arg[i++];
-
-                        if (c == '\\')
-                        {
-                            var numBackSlash = 1;
-                            while (i < arg.Length && arg[i] == '\\')
-                            {
-                                numBackSlash++;
-                                i++;
-                            }
-
-                            if (i == arg.Length)
-                            {
-                                buffer.Append('\\', numBackSlash * 2);
-                            }
-                            else if (arg[i] == '"')
-                            {
-                                buffer.Append('\\', numBackSlash * 2 + 1);
-                                buffer.Append('"');
-                                i++;
-                            }
-                            else
-                            {
-                                buffer.Append('\\', numBackSlash);
-                            }
-                        }
-                        else if (c == '"')
-                        {
-                            buffer.Append('\\');
-                            buffer.Append('"');
-                        }
-                        else
-                        {
-                            buffer.Append(c);
-                        }
+                        numBackSlash++;
+                        i++;
                     }
 
+                    if (i == argument.Length)
+                    {
+                        buffer.Append('\\', numBackSlash * 2);
+                    }
+                    else if (argument[i] == '"')
+                    {
+                        buffer.Append('\\', numBackSlash * 2 + 1);
+                        buffer.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        buffer.Append('\\', numBackSlash);
+                    }
+                }
+                else if (c == '"')
+                {
+                    buffer.Append('\\');
                     buffer.Append('"');
                 }
+                else
+                {
+                    buffer.Append(c);
+                }
             }
+
+            buffer.Append('"');
 
             return buffer.ToString();
         }
