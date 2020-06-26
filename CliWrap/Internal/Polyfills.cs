@@ -11,17 +11,6 @@ namespace System.IO
 
     internal static class Extensions
     {
-        public static async Task CopyToAsync(this Stream source, Stream destination, CancellationToken cancellationToken)
-        {
-            var buffer = new byte[81920];
-            int bytesRead;
-
-            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) != 0)
-            {
-                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken);
-            }
-        }
-
         public static async ValueTask<int> ReadAsync(this Stream stream, byte[] buffer, CancellationToken cancellationToken) =>
             await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
 

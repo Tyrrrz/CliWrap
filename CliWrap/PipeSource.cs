@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Internal;
 
 namespace CliWrap
 {
@@ -22,7 +23,13 @@ namespace CliWrap
         /// <summary>
         /// Creates a pipe source from a readable stream.
         /// </summary>
-        public static PipeSource FromStream(Stream stream) => new StreamPipeSource(stream);
+        public static PipeSource FromStream(Stream stream, bool autoFlush) => new StreamPipeSource(stream, autoFlush);
+
+        /// <summary>
+        /// Creates a pipe source from a readable stream.
+        /// </summary>
+        // TODO: change to optional argument when breaking changes are ok
+        public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
 
         /// <summary>
         /// Creates a pipe source from in-memory data.
@@ -54,11 +61,16 @@ namespace CliWrap
     internal class StreamPipeSource : PipeSource
     {
         private readonly Stream _stream;
+        private readonly bool _autoFlush;
 
-        public StreamPipeSource(Stream stream) => _stream = stream;
+        public StreamPipeSource(Stream stream, bool autoFlush)
+        {
+            _stream = stream;
+            _autoFlush = autoFlush;
+        }
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await _stream.CopyToAsync(destination, cancellationToken);
+            await _stream.CopyToAsync(destination, _autoFlush, cancellationToken);
     }
 
     internal class InMemoryPipeSource : PipeSource

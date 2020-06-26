@@ -16,6 +16,21 @@ namespace CliWrap.Internal
             return transform(result);
         }
 
+        public static async Task CopyToAsync(this Stream source, Stream destination, bool autoFlush,
+            CancellationToken cancellationToken = default)
+        {
+            var buffer = new byte[BufferSizes.Stream];
+            int bytesRead;
+
+            while ((bytesRead = await source.ReadAsync(buffer, cancellationToken)) != 0)
+            {
+                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+
+                if (autoFlush)
+                    await destination.FlushAsync(cancellationToken);
+            }
+        }
+
         public static async IAsyncEnumerable<string> ReadAllLinesAsync(this StreamReader reader,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {

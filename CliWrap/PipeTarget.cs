@@ -25,7 +25,13 @@ namespace CliWrap
         /// <summary>
         /// Creates a pipe target from a writeable stream.
         /// </summary>
-        public static PipeTarget ToStream(Stream stream) => new StreamPipeTarget(stream);
+        public static PipeTarget ToStream(Stream stream, bool autoFlush) => new StreamPipeTarget(stream, autoFlush);
+
+        /// <summary>
+        /// Creates a pipe target from a writeable stream.
+        /// </summary>
+        // TODO: change to optional argument when breaking changes are ok
+        public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
         /// <summary>
         /// Creates a pipe target from a string builder.
@@ -99,11 +105,16 @@ namespace CliWrap
     internal class StreamPipeTarget : PipeTarget
     {
         private readonly Stream _stream;
+        private readonly bool _autoFlush;
 
-        public StreamPipeTarget(Stream stream) => _stream = stream;
+        public StreamPipeTarget(Stream stream, bool autoFlush)
+        {
+            _stream = stream;
+            _autoFlush = autoFlush;
+        }
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
-            await source.CopyToAsync(_stream, cancellationToken);
+            await source.CopyToAsync(_stream, _autoFlush, cancellationToken);
     }
 
     internal class StringBuilderPipeTarget : PipeTarget
