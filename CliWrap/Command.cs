@@ -269,8 +269,9 @@ namespace CliWrap
                 catch (OperationCanceledException)
                 {
                 }
-                // Ignore I/O exceptions when the process is not running (it means that it terminated before stdin finished piping)
-                catch (IOException ex) when (ex.HResult == -2147024787)
+                // Ignore I/O exceptions when the process is not running (it means that it terminated before stdin finished piping).
+                // Unfortunately there's no way to distinguish different instances of IOException, so we have no option but to catch all.
+                catch (IOException)
                 {
                 }
                 finally
