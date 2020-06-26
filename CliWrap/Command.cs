@@ -325,14 +325,14 @@ namespace CliWrap
             // Wait until the process terminates or gets killed
             await process.WaitUntilExitAsync();
 
-            // Propagate cancellation to the user
-            cancellationToken.ThrowIfCancellationRequested();
-
             // Stop piping stdin if the process has already exited (can happen if not all of stdin is read)
             stdInCts.Cancel();
 
             // Ensure all pipes are finished
             await Task.WhenAll(pipingTasks);
+
+            // Propagate cancellation to the user
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Validate exit code
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
