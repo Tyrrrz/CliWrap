@@ -99,21 +99,25 @@ namespace CliWrap.Tests.Dummy
 
                 [EchoPartStdInToStdOut] = args =>
                 {
-                    var takeSize = long.Parse(args.Single());
+                    var size = long.Parse(args.Single());
 
                     using var input = Console.OpenStandardInput();
                     using var output = Console.OpenStandardOutput();
 
-                    var copiedSize = 0L;
+                    var buffer = new byte[81920];
 
-                    while (copiedSize < takeSize)
+                    var bytesCopied = 0L;
+
+                    while (bytesCopied < size)
                     {
-                        var i = input.ReadByte();
-                        if (i < 0)
+                        var bytesToRead = (int) Math.Min(buffer.Length, size - bytesCopied);
+
+                        var bytesRead = input.Read(buffer, 0, bytesToRead);
+                        if (bytesRead == 0)
                             break;
 
-                        output.WriteByte((byte) i);
-                        copiedSize++;
+                        output.Write(buffer, 0, bytesRead);
+                        bytesCopied += bytesRead;
                     }
 
                     return 0;

@@ -250,41 +250,90 @@ namespace CliWrap
         private async Task<CommandResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
             using var _ = process;
-
             process.Start();
 
-            // Register cancellation
+            // Stdin pipe may need to be canceled early if the process terminates before it finishes
+            using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            // Register early process termination
             using var cancellation = cancellationToken.Register(() => process.TryKill());
 
             // Stdin must be closed after it finished to avoid deadlock if the process reads the stream to end
             async Task HandleStdInAsync()
             {
-                using (process.StdIn)
-                    await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken);
+                try
+                {
+                    await StandardInputPipe.CopyToAsync(process.StdIn, stdInCts.Token);
+                }
+                // Ignore cancellation here, will propagate later
+                catch (OperationCanceledException)
+                {
+                }
+                // Ignore I/O exceptions when the process is not running (it means that it terminated before stdin finished piping)
+                catch (IOException ex) when (ex.HResult == -2147024787)
+                {
+                }
+                finally
+                {
+                    await process.StdIn.DisposeAsync();
+                }
             }
 
             // Stdout doesn't need to be closed but we do it for good measure
             async Task HandleStdOutAsync()
             {
-                using (process.StdOut)
+                try
+                {
                     await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken);
+                }
+                // Ignore cancellation here, will propagate later
+                catch (OperationCanceledException)
+                {
+                }
+                finally
+                {
+                    await process.StdOut.DisposeAsync();
+                }
             }
 
             // Stderr doesn't need to be closed but we do it for good measure
             async Task HandleStdErrAsync()
             {
-                using (process.StdErr)
+                try
+                {
                     await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken);
+                }
+                // Ignore cancellation here, will propagate later
+                catch (OperationCanceledException)
+                {
+                }
+                finally
+                {
+                    await process.StdErr.DisposeAsync();
+                }
             }
 
-            // Handle pipes in parallel to avoid deadlocks
-            await Task.WhenAll(
+            // Handle pipes in background and in parallel to avoid deadlocks
+            var pipingTasks = new[]
+            {
                 HandleStdInAsync(),
                 HandleStdOutAsync(),
                 HandleStdErrAsync(),
-                process.WaitUntilExitAsync()
-            );
+            };
 
+            // Wait until the process terminates or gets killed
+            await process.WaitUntilExitAsync();
+
+            // Propagate cancellation to the user
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Stop piping stdin if the process has already exited (can happen if not all of stdin is read)
+            stdInCts.Cancel();
+
+            // Ensure all pipes are finished
+            await Task.WhenAll(pipingTasks);
+
+            // Validate exit code
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
                 throw CommandExecutionException.ExitCodeValidation(TargetFilePath, Arguments, process.ExitCode);
 

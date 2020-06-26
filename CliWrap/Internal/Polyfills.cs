@@ -24,6 +24,12 @@ namespace System.IO
 
         public static async ValueTask WriteAsync(this Stream stream, byte[] buffer, CancellationToken cancellationToken) =>
             await stream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+
+        public static ValueTask DisposeAsync(this Stream stream)
+        {
+            stream.Dispose();
+            return default;
+        }
     }
 }
 #endif

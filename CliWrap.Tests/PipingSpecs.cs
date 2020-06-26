@@ -402,8 +402,25 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_an_empty_stream_and_it_will_not_deadlock()
+        {
+            // Arrange
+            await using var stream = new MemoryStream();
+
+            var cmd = stream | Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintStdInLength));
+
+            // Act
+            await cmd.ExecuteAsync();
+        }
+
+        [Fact(Timeout = 10000)]
         public async Task I_can_execute_a_command_and_pipe_a_really_large_stdin_while_it_also_writes_stdout_and_it_will_not_deadlock()
         {
+            // https://github.com/Tyrrrz/CliWrap/issues/61
+
             // Arrange
             await using var stream = new RandomStream(10_000_000);
 
@@ -411,6 +428,42 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add(Dummy.Program.EchoStdInToStdOut));
+
+            // Act
+            await cmd.ExecuteAsync();
+        }
+
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_that_pipes_stdin_from_an_infinite_stream_which_is_not_read_fully_and_it_will_not_deadlock()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/74
+
+            // Arrange
+            await using var stream = new RandomStream(-1);
+
+            var cmd = stream | Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoPartStdInToStdOut)
+                    .Add(10_000_000));
+
+            // Act
+            await cmd.ExecuteAsync();
+        }
+
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_that_pipes_stdin_from_an_unresolvable_stream_which_is_ignored_and_it_will_not_deadlock()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/74
+
+            // Arrange
+            await using var stream = new UnresolvableEmptyStream();
+
+            var cmd = stream | Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoPartStdInToStdOut)
+                    .Add(0));
 
             // Act
             await cmd.ExecuteAsync();

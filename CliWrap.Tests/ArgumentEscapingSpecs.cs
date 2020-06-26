@@ -36,6 +36,8 @@ namespace CliWrap.Tests
         public async Task I_can_specify_command_line_argument_that_contains_special_characters_and_disable_escaping(
             string argument, string expectedFirstArgument)
         {
+            // https://github.com/Tyrrrz/CliWrap/issues/72
+
             // Arrange
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a

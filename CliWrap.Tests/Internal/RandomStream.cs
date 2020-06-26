@@ -27,9 +27,11 @@ namespace CliWrap.Tests.Internal
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var bytesToRead = (int) Math.Min(count, Length - Position);
-            _random.NextBytes(buffer.AsSpan(0, bytesToRead));
+            var bytesToRead = Length >= 0
+                ? (int) Math.Min(count, Length - Position)
+                : count;
 
+            _random.NextBytes(buffer.AsSpan(0, bytesToRead));
             Position += bytesToRead;
 
             return bytesToRead;
