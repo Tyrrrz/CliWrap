@@ -7,6 +7,13 @@ namespace CliWrap.Tests.Internal
 {
     internal class UnresolvableEmptyStream : Stream
     {
+        private readonly bool _isCancellable;
+
+        public UnresolvableEmptyStream(bool isCancellable = true)
+        {
+            _isCancellable = isCancellable;
+        }
+
         public override bool CanRead { get; } = true;
         public override bool CanSeek { get; } = false;
         public override bool CanWrite { get; } = false;
@@ -23,7 +30,10 @@ namespace CliWrap.Tests.Internal
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<int>();
-            await using var cancellation = cancellationToken.Register(() => tcs.TrySetCanceled());
+
+            await using var cancellation = _isCancellable
+                ? cancellationToken.Register(() => tcs.TrySetCanceled())
+                : default;
 
             return await tcs.Task;
         }
@@ -31,7 +41,10 @@ namespace CliWrap.Tests.Internal
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             var tcs = new TaskCompletionSource<int>();
-            await using var cancellation = cancellationToken.Register(() => tcs.TrySetCanceled());
+
+            await using var cancellation = _isCancellable
+                ? cancellationToken.Register(() => tcs.TrySetCanceled())
+                : default;
 
             return await tcs.Task;
         }

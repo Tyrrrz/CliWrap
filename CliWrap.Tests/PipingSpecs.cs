@@ -468,5 +468,23 @@ namespace CliWrap.Tests
             // Act
             await cmd.ExecuteAsync();
         }
+
+        [Fact(Timeout = 10000)]
+        public async Task I_can_execute_a_command_that_pipes_stdin_from_an_non_cancellable_unresolvable_stream_which_is_ignored_and_it_will_not_deadlock()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/74
+
+            // Arrange
+            await using var stream = new UnresolvableEmptyStream(false);
+
+            var cmd = stream | Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.EchoPartStdInToStdOut)
+                    .Add(0));
+
+            // Act
+            await cmd.ExecuteAsync();
+        }
     }
 }
