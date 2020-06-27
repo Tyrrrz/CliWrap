@@ -13,11 +13,11 @@ namespace CliWrap.Tests
 
         public StreamingSpecs(ITestOutputHelper output) => _output = output;
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_async_event_stream()
         {
             // Arrange
-            const int expectedLinesCount = 1000;
+            const int expectedLinesCount = 100;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
@@ -61,11 +61,11 @@ namespace CliWrap.Tests
             processHasExited.Should().BeTrue();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_observable_event_stream()
         {
             // Arrange
-            const int expectedLinesCount = 1000;
+            const int expectedLinesCount = 100;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a

@@ -8,7 +8,7 @@ namespace CliWrap.Tests
 {
     public class BufferedSpecs
     {
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_get_the_result_which_contains_buffered_stdout()
         {
             // Arrange
@@ -30,7 +30,7 @@ namespace CliWrap.Tests
             result.StandardError.TrimEnd().Should().BeEmpty();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_get_the_result_which_contains_buffered_stderr()
         {
             // Arrange
@@ -52,7 +52,7 @@ namespace CliWrap.Tests
             result.StandardError.TrimEnd().Should().Be(expectedStdErr);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_get_the_result_which_contains_buffered_stdout_and_stderr()
         {
             // Arrange
@@ -74,7 +74,7 @@ namespace CliWrap.Tests
             result.StandardError.TrimEnd().Should().Be(expectedStdOut);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_with_very_large_stdout_and_stderr_and_get_the_buffered_result_without_deadlocks()
         {
             // Arrange

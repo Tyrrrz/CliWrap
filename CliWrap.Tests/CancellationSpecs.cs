@@ -12,7 +12,7 @@ namespace CliWrap.Tests
 {
     public class CancellationSpecs
     {
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_cancel_it_immediately()
         {
             // Arrange
@@ -33,7 +33,7 @@ namespace CliWrap.Tests
             ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
@@ -53,7 +53,7 @@ namespace CliWrap.Tests
             ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_with_buffering_and_cancel_it_immediately()
         {
             // Arrange
@@ -74,7 +74,7 @@ namespace CliWrap.Tests
             ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_with_buffering_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
@@ -94,7 +94,7 @@ namespace CliWrap.Tests
             ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_it_immediately()
         {
             // Arrange
@@ -114,7 +114,7 @@ namespace CliWrap.Tests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange
@@ -133,7 +133,7 @@ namespace CliWrap.Tests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_it_immediately()
         {
             // Arrange
@@ -153,7 +153,7 @@ namespace CliWrap.Tests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_it_while_it_is_in_progress()
         {
             // Arrange

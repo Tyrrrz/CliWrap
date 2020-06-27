@@ -11,7 +11,7 @@ namespace CliWrap.Tests
 {
     public class PipingSpecs
     {
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_a_stream()
         {
             // Arrange
@@ -29,7 +29,7 @@ namespace CliWrap.Tests
             result.StandardOutput.TrimEnd().Should().Be("10");
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_a_file()
         {
             // Arrange
@@ -51,7 +51,7 @@ namespace CliWrap.Tests
             result.StandardOutput.TrimEnd().Should().Be(expectedContent);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_a_string()
         {
             // Arrange
@@ -69,7 +69,7 @@ namespace CliWrap.Tests
             result.StandardOutput.Should().Be(str);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdin_from_stdout_of_another_command()
         {
             // Arrange
@@ -91,7 +91,7 @@ namespace CliWrap.Tests
             result.StandardOutput.TrimEnd().Should().Be("1000000");
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_represents_a_pipeline_of_multiple_commands()
         {
             // Arrange
@@ -115,7 +115,7 @@ namespace CliWrap.Tests
             result.StandardOutput.TrimEnd().Should().Be("5");
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream()
         {
             // Arrange
@@ -135,7 +135,7 @@ namespace CliWrap.Tests
             stream.Length.Should().Be(expectedSize);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_file()
         {
             // Arrange
@@ -159,7 +159,7 @@ namespace CliWrap.Tests
             file.Delete();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_string_builder()
         {
             // Arrange
@@ -179,7 +179,7 @@ namespace CliWrap.Tests
             buffer.ToString().TrimEnd().Should().Be(expectedOutput);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_delegate()
         {
             // Arrange
@@ -202,7 +202,7 @@ namespace CliWrap.Tests
             stdOutLinesCount.Should().Be(expectedLinesCount);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_an_async_delegate()
         {
             // Arrange
@@ -229,7 +229,7 @@ namespace CliWrap.Tests
             stdOutLinesCount.Should().Be(expectedLinesCount);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_streams()
         {
             // Arrange
@@ -250,7 +250,7 @@ namespace CliWrap.Tests
             stdErr.Length.Should().NotBe(0);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_string_builders()
         {
             // Arrange
@@ -273,7 +273,7 @@ namespace CliWrap.Tests
             stdErrBuffer.ToString().TrimEnd().Should().Be(expectedOutput);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_delegates()
         {
             // Arrange
@@ -299,7 +299,7 @@ namespace CliWrap.Tests
             stdErrLinesCount.Should().Be(expectedLinesCount);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_async_delegates()
         {
             // Arrange
@@ -334,7 +334,7 @@ namespace CliWrap.Tests
             stdErrLinesCount.Should().Be(expectedLinesCount);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_multiple_streams()
         {
             // Arrange
@@ -363,7 +363,7 @@ namespace CliWrap.Tests
             stream2.ToArray().Should().BeEquivalentTo(stream3.ToArray());
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream_while_also_buffering()
         {
             // Arrange
@@ -391,7 +391,7 @@ namespace CliWrap.Tests
             linesCount.Should().Be(expectedLinesCount);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_delegate_while_also_buffering()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/75
@@ -418,7 +418,7 @@ namespace CliWrap.Tests
             linesCount.Should().Be(expectedLinesCount);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
         {
             // Arrange
@@ -431,7 +431,7 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_an_empty_stream_and_it_will_not_deadlock()
         {
             // Arrange
@@ -446,7 +446,7 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_pipe_a_really_large_stdin_while_it_also_writes_stdout_and_it_will_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/61
@@ -463,7 +463,7 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_an_infinite_stream_which_is_not_read_fully_and_it_will_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/74
@@ -481,7 +481,7 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_an_unresolvable_stream_which_is_ignored_and_it_will_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/74
@@ -499,7 +499,7 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_an_non_cancellable_unresolvable_stream_which_is_ignored_and_it_will_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/74

@@ -39,7 +39,7 @@ namespace System.Collections.Generic
 {
     using Diagnostics.CodeAnalysis;
 
-    internal static partial class Extensions
+    internal static class Extensions
     {
         public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey key, out TValue value)
         {
@@ -58,19 +58,6 @@ namespace System.Collections.Generic
             item = default!;
             return false;
         }
-    }
-}
-#endif
-
-#if NET461 || NETSTANDARD2_0 || NETSTANDARD2_1
-namespace System.Collections.Generic
-{
-    using Linq;
-
-    internal static partial class Extensions
-    {
-        public static IEnumerable<(TFirst, TSecond)> Zip<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second) =>
-            first.Zip(second, (a, b) => (a, b));
     }
 }
 #endif

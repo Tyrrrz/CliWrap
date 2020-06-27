@@ -7,7 +7,7 @@ namespace CliWrap.Tests
 {
     public class GeneralSpecs
     {
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_get_the_execution_result()
         {
             // Arrange
@@ -28,7 +28,7 @@ namespace CliWrap.Tests
             result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_get_the_underlying_process_ID_while_it_is_running()
         {
             // Arrange
@@ -42,7 +42,7 @@ namespace CliWrap.Tests
             await task;
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_with_very_large_stdout_and_stderr_and_get_the_result_without_deadlocks()
         {
             // Arrange

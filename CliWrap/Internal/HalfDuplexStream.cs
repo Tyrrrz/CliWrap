@@ -33,13 +33,16 @@ namespace CliWrap.Internal
         {
             await _readLock.WaitAsync(cancellationToken);
 
+            // Take a portion of the buffer that the consumer is interested in
             var copyBuffer = _currentBuffer.Offset(_currentBufferBytesRead).Trim(count);
             copyBuffer.CopyTo(buffer, offset);
 
+            // If the consumer finished reading current buffer - release write lock
             if ((_currentBufferBytesRead += count) >= _currentBuffer.Length)
             {
                 _writeLock.Release();
             }
+            // Otherwise - release read lock so that they can finish reading
             else
             {
                 _readLock.Release();
@@ -58,6 +61,7 @@ namespace CliWrap.Internal
 
         public async Task ReportCompletionAsync(CancellationToken cancellationToken = default)
         {
+            // Write empty buffer that will make ReadAsync return 0, which signifies end-of-stream
             await _writeLock.WaitAsync(cancellationToken);
             _currentBuffer = Array.Empty<byte>();
             _currentBufferBytesRead = 0;

@@ -12,7 +12,7 @@ namespace CliWrap.Tests
 
         public ValidationSpecs(ITestOutputHelper output) => _output = output;
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_and_get_an_exception_if_it_returns_a_non_zero_exit_code()
         {
             // Arrange
@@ -27,7 +27,7 @@ namespace CliWrap.Tests
             _output.WriteLine(ex.Message);
         }
 
-        [Fact(Timeout = 10000)]
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_with_buffering_and_get_an_exception_that_contains_stderr_if_it_returns_a_non_zero_exit_code()
         {
             // Arrange

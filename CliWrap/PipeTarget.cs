@@ -201,12 +201,7 @@ namespace CliWrap
 
             // Start piping from those streams
             var targetTasks = _targets
-                .Zip(subStreams)
-                .Select(async tuple =>
-                {
-                    var (target, subStream) = tuple;
-                    await target.CopyFromAsync(subStream, cancellationToken);
-                })
+                .Zip(subStreams, async (target, subStream) => await target.CopyFromAsync(subStream, cancellationToken))
                 .ToArray();
 
             // Read from master stream and write data to sub-streams
