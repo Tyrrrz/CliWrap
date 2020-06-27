@@ -1,3 +1,11 @@
+### v3.1 (27-Jun-2020)
+
+- Added an option to disable automatic argument escaping to `cmd.WithArguments(string[])` as well as `builder.Add(...)`. You can use it to escape the arguments yourself if the application requires it.
+- Added an option to enable or disable auto-flushing for `PipeTarget.ToStream(...)` and `PipeSource.FromStream(...)`. If enabled, data will be copied as soon as it's available instead of waiting for the buffer to fill up. This is enabled by default, which is different from the previous behavior, although this change is not breaking for most scenarios.
+- Fixed an issue where command execution threw an exception if the wrapped application didn't read stdin completely. The exception is now caught and ignored as it's not really an exceptional situation if the stdin contains excess data which is discarded by the wrapped application.
+- Fixed an issue where command execution waited for piped stdin to resolve next bytes, even if the wrapped application didn't try to read them. This avoids unnecessary delay (which can be infinite if the stream never resolves) when the wrapped application doesn't need the rest of the stdin to complete execution.
+- Fixed an issue where `PipeTarget.Merge(...)` worked incorrectly when used with `PipeTarget.ToDelegate(...)`, causing the latter to yield lines even where there were no line breaks.
+
 ### v3.0.3 (22-Jun-2020)
 
 - Added error handling for when the internal call to `Process.Start()` returns `false`. This will now throw a more descriptive exception than it did previously. 
