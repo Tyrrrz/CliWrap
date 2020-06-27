@@ -50,7 +50,7 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add(Dummy.Program.PrintLines)
-                    .Add(100_000));
+                    .Add(10_000));
 
             // Act
             await cmd.ExecuteAsync();

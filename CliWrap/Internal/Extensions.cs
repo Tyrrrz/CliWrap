@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,16 @@ namespace CliWrap.Internal
 {
     internal static class Extensions
     {
+        public static T[] Offset<T>(this T[] arr, int count) =>
+            count > 0
+                ? arr.Skip(count).ToArray()
+                : arr;
+
+        public static T[] Trim<T>(this T[] arr, int count) =>
+            arr.Length > count
+                ? arr.Take(count).ToArray()
+                : arr;
+
         public static async Task<TDestination> Select<TSource, TDestination>(this Task<TSource> task, Func<TSource, TDestination> transform)
         {
             var result = await task;

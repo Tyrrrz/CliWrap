@@ -277,8 +277,9 @@ namespace CliWrap
                 catch (OperationCanceledException)
                 {
                 }
-                // Ignore I/O exceptions when the process is not running (it means that it terminated before stdin finished piping).
-                // Unfortunately there's no way to distinguish different instances of IOException, so we have no option but to catch all.
+                // We want to ignore I/O exceptions that happen when the output stream has already closed.
+                // This can happen when the process reads only a portion of stdin and then exits.
+                // Unfortunately we can't catch a specific exception for this exact event so we have no choice but to catch all of them.
                 catch (IOException)
                 {
                 }

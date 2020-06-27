@@ -6,8 +6,8 @@
 #if NET461 || NETSTANDARD2_0
 namespace System.IO
 {
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Threading;
+    using Threading.Tasks;
 
     internal static class Extensions
     {
@@ -37,9 +37,9 @@ namespace System.IO
 #if NET461 || NETSTANDARD2_0
 namespace System.Collections.Generic
 {
-    using System.Diagnostics.CodeAnalysis;
+    using Diagnostics.CodeAnalysis;
 
-    internal static class Extensions
+    internal static partial class Extensions
     {
         public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey key, out TValue value)
         {
@@ -62,13 +62,25 @@ namespace System.Collections.Generic
 }
 #endif
 
+#if NET461 || NETSTANDARD2_0 || NETSTANDARD2_1
+namespace System.Collections.Generic
+{
+    using Linq;
+
+    internal static partial class Extensions
+    {
+        public static IEnumerable<(TFirst, TSecond)> Zip<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second) =>
+            first.Zip(second, (a, b) => (a, b));
+    }
+}
+#endif
+
 #if NET461
 namespace System.Diagnostics
 {
     using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Management;
+    using Linq;
+    using Management;
 
     internal static class Extensions
     {

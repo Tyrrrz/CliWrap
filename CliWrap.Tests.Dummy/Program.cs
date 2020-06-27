@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using CliWrap.Tests.Dummy.Internal;
 
 namespace CliWrap.Tests.Dummy
 {
@@ -157,8 +158,8 @@ namespace CliWrap.Tests.Dummy
 
                     for (var i = 0; i < count; i++)
                     {
-                        Console.WriteLine(i.ToString(CultureInfo.InvariantCulture));
-                        Console.Error.WriteLine(i.ToString(CultureInfo.InvariantCulture));
+                        Console.WriteLine(Random.NextString(5000));
+                        Console.Error.WriteLine(Random.NextString(5000));
                     }
 
                     return 0;

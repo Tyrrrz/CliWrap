@@ -194,19 +194,40 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
+            // Create separate half-duplex sub-streams for each target
+            var subStreams = _targets
+                .Select(_ => new HalfDuplexStream())
+                .ToArray();
+
+            // Start piping from those streams
+            var targetTasks = _targets
+                .Zip(subStreams)
+                .Select(async tuple =>
+                {
+                    var (target, subStream) = tuple;
+                    await target.CopyFromAsync(subStream, cancellationToken);
+                })
+                .ToArray();
+
+            // Read from master stream and write data to sub-streams
             var buffer = new byte[BufferSizes.Stream];
             int bytesRead;
-
             while ((bytesRead = await source.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                using var bufferStream = new MemoryStream(buffer, 0, bytesRead, false);
-
-                foreach (var target in _targets)
-                {
-                    bufferStream.Seek(0, SeekOrigin.Begin);
-                    await target.CopyFromAsync(bufferStream, cancellationToken);
-                }
+                foreach (var subStream in subStreams)
+                    await subStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
             }
+
+            // Report that transmission is complete
+            foreach (var subStream in subStreams)
+                await subStream.ReportCompletionAsync(cancellationToken);
+
+            // Wait until all tasks complete so that it's safe to dispose streams
+            await Task.WhenAll(targetTasks);
+
+            // Cleanup
+            foreach (var subStream in subStreams)
+                await subStream.DisposeAsync();
         }
     }
 }
