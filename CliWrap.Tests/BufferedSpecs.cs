@@ -81,8 +81,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
-                    .Add(10_000));
+                    .Add(Dummy.Program.PrintRandomText)
+                    .Add(100_000));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();

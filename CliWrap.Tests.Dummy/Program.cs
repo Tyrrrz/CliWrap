@@ -34,9 +34,11 @@ namespace CliWrap.Tests.Dummy
 
         public const string PrintEnvVars = nameof(PrintEnvVars);
 
-        public const string PrintLines = nameof(PrintLines);
+        public const string PrintRandomText = nameof(PrintRandomText);
 
-        public const string ProduceBinary = nameof(ProduceBinary);
+        public const string PrintRandomLines = nameof(PrintRandomLines);
+
+        public const string PrintRandomBinary = nameof(PrintRandomBinary);
 
         public const string Sleep = nameof(Sleep);
     }
@@ -152,7 +154,20 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [PrintLines] = args =>
+                [PrintRandomText] = args =>
+                {
+                    var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        Console.WriteLine(Random.NextChar());
+                        Console.Error.WriteLine(Random.NextChar());
+                    }
+
+                    return 0;
+                },
+
+                [PrintRandomLines] = args =>
                 {
                     var count = int.Parse(args.Single(), CultureInfo.InvariantCulture);
 
@@ -165,7 +180,7 @@ namespace CliWrap.Tests.Dummy
                     return 0;
                 },
 
-                [ProduceBinary] = args =>
+                [PrintRandomBinary] = args =>
                 {
                     var count = long.Parse(args.Single(), CultureInfo.InvariantCulture);
 

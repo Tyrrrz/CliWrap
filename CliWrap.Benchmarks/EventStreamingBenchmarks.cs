@@ -11,7 +11,7 @@ namespace CliWrap.Benchmarks
     public class EventStreamingBenchmarks
     {
         private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} {Tests.Dummy.Program.PrintLines} 100000";
+        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} {Tests.Dummy.Program.PrintRandomLines} 100000";
 
         [Benchmark(Description = "CliWrap (async stream)", Baseline = true)]
         public async Task<int> ExecuteWithCliWrap_Async()

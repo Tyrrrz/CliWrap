@@ -22,7 +22,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount));
 
             // Act
@@ -70,7 +70,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount));
 
             // Act

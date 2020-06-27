@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,11 +34,11 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_command_that_pipes_stdin_from_a_file()
         {
             // Arrange
-            const string expectedContent = "Hell world!";
-            var filePath = Path.GetTempFileName();
-            File.WriteAllText(filePath, expectedContent);
+            const string expectedContent = "Hello world!";
+            var file = new FileInfo(Path.GetTempFileName());
+            await File.WriteAllTextAsync(file.FullName, expectedContent);
 
-            await using var fileStream = File.OpenRead(filePath);
+            var fileStream = file.OpenRead();
 
             var cmd = fileStream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
@@ -46,9 +47,12 @@ namespace CliWrap.Tests
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
+            await fileStream.DisposeAsync();
 
             // Assert
             result.StandardOutput.TrimEnd().Should().Be(expectedContent);
+
+            file.Delete();
         }
 
         [Fact(Timeout = 15000)]
@@ -78,7 +82,7 @@ namespace CliWrap.Tests
             var cmd =
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.ProduceBinary)
+                    .Add(Dummy.Program.PrintRandomBinary)
                     .Add(expectedSize)) |
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
@@ -125,7 +129,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.ProduceBinary)
+                    .Add(Dummy.Program.PrintRandomBinary)
                     .Add(expectedSize)) | stream;
 
             // Act
@@ -146,7 +150,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.ProduceBinary)
+                    .Add(Dummy.Program.PrintRandomBinary)
                     .Add(expectedSize)) | fileStream;
 
             // Act
@@ -156,6 +160,7 @@ namespace CliWrap.Tests
             // Assert
             file.Exists.Should().Be(true);
             file.Length.Should().Be(expectedSize);
+
             file.Delete();
         }
 
@@ -192,7 +197,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount)) | HandleStdOut;
 
             // Act
@@ -219,7 +224,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount)) | HandleStdOutAsync;
 
             // Act
@@ -239,7 +244,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(100)) | (stdOut, stdErr);
 
             // Act
@@ -288,7 +293,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount)) | (HandleStdOut, HandleStdErr);
 
             // Act
@@ -323,7 +328,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount)) | (HandleStdOutAsync, HandleStdErrAsync);
 
             // Act
@@ -352,13 +357,16 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.ProduceBinary)
+                    .Add(Dummy.Program.PrintRandomBinary)
                     .Add(expectedSize)) | pipeTarget;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
+            stream1.Length.Should().Be(expectedSize);
+            stream2.Length.Should().Be(expectedSize);
+            stream3.Length.Should().Be(expectedSize);
             stream1.ToArray().Should().BeEquivalentTo(stream2.ToArray());
             stream2.ToArray().Should().BeEquivalentTo(stream3.ToArray());
         }
@@ -367,15 +375,13 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream_while_also_buffering()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             await using var stream = new MemoryStream();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
-                    .Add(expectedLinesCount)) | stream;
+                    .Add(Dummy.Program.PrintRandomText)
+                    .Add(100_000)) | stream;
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
@@ -384,11 +390,8 @@ namespace CliWrap.Tests
             using var streamReader = new StreamReader(stream);
             var streamContent = await streamReader.ReadToEndAsync();
 
-            var linesCount = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length;
-
             // Assert
             result.StandardOutput.Should().Be(streamContent);
-            linesCount.Should().Be(expectedLinesCount);
         }
 
         [Fact(Timeout = 15000)]
@@ -399,23 +402,22 @@ namespace CliWrap.Tests
             // Arrange
             const int expectedLinesCount = 100;
 
-            var delegateBuffer = new StringBuilder();
-            void HandleStdOut(string s) => delegateBuffer.AppendLine(s);
+            var delegateLines = new List<string>();
+            void HandleStdOut(string s) => delegateLines.Add(s);
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintLines)
+                    .Add(Dummy.Program.PrintRandomLines)
                     .Add(expectedLinesCount)) | HandleStdOut;
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
-            var linesCount = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Length;
+            var resultLines = result.StandardOutput.Split("\n", StringSplitOptions.RemoveEmptyEntries);
 
             // Assert
-            result.StandardOutput.Should().Be(delegateBuffer.ToString());
-            linesCount.Should().Be(expectedLinesCount);
+            delegateLines.Should().HaveSameCount(resultLines);
         }
 
         [Fact(Timeout = 15000)]

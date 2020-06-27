@@ -5,18 +5,18 @@ namespace CliWrap.Tests.Dummy.Internal
 {
     internal static class Extensions
     {
+        private static readonly char[] AvailableChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+            .ToCharArray();
+
+        public static char NextChar(this Random random) =>
+            AvailableChars[random.Next(AvailableChars.Length)];
+
         public static string NextString(this Random random, int length)
         {
-            var source = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-                .ToCharArray();
-
             var buffer = new StringBuilder();
 
             for (var i = 0; i < length; i++)
-            {
-                var c = source[random.Next(source.Length)];
-                buffer.Append(c);
-            }
+                buffer.Append(random.NextChar());
 
             return buffer.ToString();
         }
