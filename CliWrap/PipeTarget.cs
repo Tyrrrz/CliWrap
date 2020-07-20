@@ -94,12 +94,17 @@ namespace CliWrap
         /// Merges multiple pipe targets into a single one.
         /// Data pushed to this pipe will be replicated for all inner targets.
         /// </summary>
-        public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>) targets);
+        public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>)targets);
 
         /// <summary>
         /// Pipe target that ignores all data.
         /// </summary>
         public static PipeTarget Null { get; } = ToStream(Stream.Null);
+
+        /// <summary>
+        /// Pipe target that pipes directly to corresponding output stream (stdout or stderr) of parent process.
+        /// </summary>
+        public static PipeTarget ParentProcess { get; } = new ParentProcessPipeTarget();
     }
 
     internal class StreamPipeTarget : PipeTarget
@@ -224,5 +229,10 @@ namespace CliWrap
             foreach (var subStream in subStreams)
                 await subStream.DisposeAsync();
         }
+    }
+
+    internal class ParentProcessPipeTarget : PipeTarget
+    {
+        public override Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Stream copy operation is not supported to parent process.");
     }
 }

@@ -55,9 +55,9 @@ namespace CliWrap.Internal
             StartTime = DateTimeOffset.Now;
 
             Id = _nativeProcess.Id;
-            StdIn = _nativeProcess.StandardInput.BaseStream;
-            StdOut = _nativeProcess.StandardOutput.BaseStream;
-            StdErr = _nativeProcess.StandardError.BaseStream;
+            StdIn = _nativeProcess.StartInfo.RedirectStandardInput ? _nativeProcess.StandardInput.BaseStream : StdIn;
+            StdOut = _nativeProcess.StartInfo.RedirectStandardOutput ? _nativeProcess.StandardOutput.BaseStream : StdOut;
+            StdErr = _nativeProcess.StartInfo.RedirectStandardError ? _nativeProcess.StandardError.BaseStream : StdErr;
         }
 
         public bool TryKill()

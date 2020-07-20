@@ -56,6 +56,11 @@ namespace CliWrap
         /// Pipe source that pushes no data.
         /// </summary>
         public static PipeSource Null { get; } = FromStream(Stream.Null);
+
+        /// <summary>
+        /// Pipe source that pipes directly from input stream of parent process.
+        /// </summary>
+        public static PipeSource ParentProcess { get;} = new ParentProcessPipeSource();
     }
 
     internal class StreamPipeSource : PipeSource
@@ -91,5 +96,10 @@ namespace CliWrap
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
             await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
+    }
+
+    internal class ParentProcessPipeSource : PipeSource
+    {
+        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Stream copy operation is not supported from parent process.");
     }
 }
