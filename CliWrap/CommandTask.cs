@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using CliWrap.Internal;
+using CliWrap.Internal.Extensions;
 
 namespace CliWrap
 {

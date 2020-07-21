@@ -4,14 +4,21 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
+using CliWrap.Tests.Fixtures;
 using CliWrap.Tests.Internal;
+using CliWrap.Tests.Internal.Extensions;
 using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests
 {
-    public class PipingSpecs
+    public class PipingSpecs : IClassFixture<TempOutputFixture>
     {
+        private readonly TempOutputFixture _tempOutputFixture;
+
+        public PipingSpecs(TempOutputFixture tempOutputFixture) =>
+            _tempOutputFixture = tempOutputFixture;
+
         [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_pipes_stdin_from_a_stream()
         {
@@ -35,8 +42,9 @@ namespace CliWrap.Tests
         {
             // Arrange
             const string expectedContent = "Hello world!";
-            var file = new FileInfo(Path.GetTempFileName());
-            await File.WriteAllTextAsync(file.FullName, expectedContent);
+
+            var file = new FileInfo(_tempOutputFixture.GetTempFilePath());
+            await file.WriteAllTextAsync(expectedContent);
 
             var fileStream = file.OpenRead();
 
@@ -51,8 +59,6 @@ namespace CliWrap.Tests
 
             // Assert
             result.StandardOutput.TrimEnd().Should().Be(expectedContent);
-
-            file.Delete();
         }
 
         [Fact(Timeout = 15000)]
@@ -144,7 +150,8 @@ namespace CliWrap.Tests
         {
             // Arrange
             const int expectedSize = 1_000_000;
-            var file = new FileInfo(Path.GetTempFileName());
+
+            var file = new FileInfo(_tempOutputFixture.GetTempFilePath());
             var fileStream = file.Create();
 
             var cmd = Cli.Wrap("dotnet")
@@ -160,8 +167,6 @@ namespace CliWrap.Tests
             // Assert
             file.Exists.Should().Be(true);
             file.Length.Should().Be(expectedSize);
-
-            file.Delete();
         }
 
         [Fact(Timeout = 15000)]

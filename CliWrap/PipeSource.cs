@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Internal;
+using CliWrap.Internal.Extensions;
 
 namespace CliWrap
 {

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Internal.Extensions;
 
 namespace CliWrap.Internal
 {
