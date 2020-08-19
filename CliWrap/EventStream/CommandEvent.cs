@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CliWrap.EventStream
 {
@@ -17,7 +18,6 @@ namespace CliWrap.EventStream
     /// Represents an event that is triggered when the command starts executing.
     /// This event may only appear once in the event stream.
     /// </summary>
-    [DebuggerDisplay("Process ID: {ProcessId}")]
     public class StartedCommandEvent : CommandEvent
     {
         /// <summary>
@@ -29,12 +29,15 @@ namespace CliWrap.EventStream
         /// Initializes an instance of <see cref="StartedCommandEvent"/>.
         /// </summary>
         public StartedCommandEvent(int processId) => ProcessId = processId;
+
+        /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        public override string ToString() => $"Process ID: {ProcessId}";
     }
 
     /// <summary>
     /// Represents an event that is triggered when the underlying process prints a line of text to the standard output stream.
     /// </summary>
-    [DebuggerDisplay("{Text}")]
     public class StandardOutputCommandEvent : CommandEvent
     {
         /// <summary>
@@ -46,12 +49,15 @@ namespace CliWrap.EventStream
         /// Initializes an instance of <see cref="StandardOutputCommandEvent"/>.
         /// </summary>
         public StandardOutputCommandEvent(string text) => Text = text;
+
+        /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        public override string ToString() => Text;
     }
 
     /// <summary>
     /// Represents an event that is triggered when the underlying process prints a line of text to the standard error stream.
     /// </summary>
-    [DebuggerDisplay("{Text}")]
     public class StandardErrorCommandEvent : CommandEvent
     {
         /// <summary>
@@ -63,13 +69,16 @@ namespace CliWrap.EventStream
         /// Initializes an instance of <see cref="StandardErrorCommandEvent"/>.
         /// </summary>
         public StandardErrorCommandEvent(string text) => Text = text;
+
+        /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        public override string ToString() => Text;
     }
 
     /// <summary>
     /// Represents an event that is triggered when the command finishes executing.
     /// This event may only appear once in the event stream.
     /// </summary>
-    [DebuggerDisplay("Exit code: {ExitCode}")]
     public class ExitedCommandEvent : CommandEvent
     {
         /// <summary>
@@ -81,5 +90,9 @@ namespace CliWrap.EventStream
         /// Initializes an instance of <see cref="ExitedCommandEvent"/>.
         /// </summary>
         public ExitedCommandEvent(int exitCode) => ExitCode = exitCode;
+
+        /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        public override string ToString() => $"Exit code: {ExitCode}";
     }
 }
