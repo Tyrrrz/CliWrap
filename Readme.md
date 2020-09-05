@@ -280,7 +280,7 @@ Besides raw streams, `PipeSource` and `PipeTarget` both have factory methods tha
 - `PipeSource.Null` -- represents an empty pipe source.
 - `PipeSource.FromStream()` -- pipes data from any readable stream.
 - `PipeSource.FromBytes()` -- pipes data from a byte array.
-- `PipeSource.FromString()` -- pipes from a text string (supports custom encoding)
+- `PipeSource.FromString()` -- pipes from a text string (supports custom encoding).
 - `PipeSource.FromCommand()` -- pipes data from standard output of another command.
 - `PipeTarget.Null` -- represents a pipe target that discards all data.
 - `PipeTarget.ToStream()` -- pipes data into any writeable stream.
