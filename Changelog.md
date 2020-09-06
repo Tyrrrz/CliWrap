@@ -1,3 +1,8 @@
+### v3.1.1 (06-Sep-2020)
+
+- Fixed an issue where `PipeTarget.Merge(...)` worked incorrectly when processing large stdout written in a single operation (more than 81920 bytes at a time). (Thanks [@Tom Pažourek](https://github.com/tompazourek))
+- Replaced `[DebuggerDisplay]` attribute with an implementation of `ToString()` on types deriving from `CommandEvent`. Calling `commandEvent.ToString()` now yields an informative string that can be useful in debugging. This change shouldn't have any unwanted side-effects.
+
 ### v3.1 (27-Jun-2020)
 
 - Added an option to disable automatic argument escaping to `cmd.WithArguments(string[])` as well as `builder.Add(...)`. You can use it to escape the arguments yourself if the application requires it.
