@@ -7,11 +7,11 @@ namespace CliWrap.Internal.Extensions
         public static T[] Offset<T>(this T[] arr, int count) =>
             count > 0
                 ? arr.Skip(count).ToArray()
-                : arr;
+                : arr.ToArray();
 
         public static T[] Trim<T>(this T[] arr, int count) =>
             arr.Length > count
                 ? arr.Take(count).ToArray()
-                : arr;
+                : arr.ToArray();
     }
 }

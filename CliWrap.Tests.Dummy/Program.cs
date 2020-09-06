@@ -182,11 +182,12 @@ namespace CliWrap.Tests.Dummy
 
                 [PrintRandomBinary] = args =>
                 {
-                    var count = long.Parse(args.Single(), CultureInfo.InvariantCulture);
+                    var count = long.Parse(args[0], CultureInfo.InvariantCulture);
+                    var bufferSize = args.Length > 1 && long.TryParse(args[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var argBufferSize) ? argBufferSize : 1024;
 
                     using var output = Console.OpenStandardOutput();
 
-                    var buffer = new byte[1024];
+                    var buffer = new byte[bufferSize];
                     var bytesRemaining = count;
 
                     while (bytesRemaining > 0)
