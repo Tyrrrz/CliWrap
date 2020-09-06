@@ -372,8 +372,41 @@ namespace CliWrap.Tests
             stream1.Length.Should().Be(expectedSize);
             stream2.Length.Should().Be(expectedSize);
             stream3.Length.Should().Be(expectedSize);
-            stream1.ToArray().Should().BeEquivalentTo(stream2.ToArray());
-            stream2.ToArray().Should().BeEquivalentTo(stream3.ToArray());
+            stream1.ToArray().Should().Equal(stream2.ToArray());
+            stream2.ToArray().Should().Equal(stream3.ToArray());
+        }
+
+        [Fact(Timeout = 15000)]
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_with_large_buffer_into_multiple_streams()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/81
+
+            // Arrange
+            const int expectedSize = 1_000_000;
+            const int bufferSize = 100_000; // needs to be >= BufferSizes.Stream to fail
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintRandomBinary)
+                    .Add(expectedSize)
+                    .Add(bufferSize));
+
+            // Act
+
+            // Run without merging to get the expected byte array (random seed is constant)
+            await using var unmergedStream = new MemoryStream();
+            await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
+
+            // Run with merging to check if it's the same
+            await using var mergedStream1 = new MemoryStream();
+            await using var mergedStream2 = new MemoryStream();
+            await (cmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2))).ExecuteAsync();
+
+            // Assert
+            unmergedStream.Length.Should().Be(expectedSize);
+            mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
+            mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
         }
 
         [Fact(Timeout = 15000)]
@@ -418,11 +451,10 @@ namespace CliWrap.Tests
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
-
-            var resultLines = result.StandardOutput.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+            var resultLines = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
             // Assert
-            delegateLines.Should().HaveSameCount(resultLines);
+            delegateLines.Should().Equal(resultLines);
         }
 
         [Fact(Timeout = 15000)]
@@ -522,41 +554,6 @@ namespace CliWrap.Tests
 
             // Act
             await cmd.ExecuteAsync();
-        }
-        
-        [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_with_larger_buffer_into_multiple_streams()
-        {
-            // https://github.com/Tyrrrz/CliWrap/issues/81
-
-            // Arrange
-            const int totalSize = 1_000_000;
-            const int bufferSize = 100_000; // needs to be >= BufferSizes.Stream to fail
-
-            var baseCmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(totalSize)
-                    .Add(bufferSize));
-
-            // run without merging to get the expected byte array
-            await using var unmergedStream = new MemoryStream();
-            var unmergedCmd = baseCmd | PipeTarget.ToStream(unmergedStream);
-            await unmergedCmd.ExecuteAsync();
-            var expectedByteArray = unmergedStream.ToArray();
-
-            // run with merging to check if it's the same
-            await using var mergedStream1 = new MemoryStream();
-            await using var mergedStream2 = new MemoryStream();
-            var mergedCmd = baseCmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2));
-
-            // Act
-            await mergedCmd.ExecuteAsync();
-            var actualByteArray = mergedStream1.ToArray();
-
-            // Assert
-            actualByteArray.Should().Equal(expectedByteArray);
         }
     }
 }
