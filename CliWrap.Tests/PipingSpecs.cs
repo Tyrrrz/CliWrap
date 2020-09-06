@@ -523,5 +523,40 @@ namespace CliWrap.Tests
             // Act
             await cmd.ExecuteAsync();
         }
+        
+        [Fact(Timeout = 15000)]
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_with_larger_buffer_into_multiple_streams()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/81
+
+            // Arrange
+            const int totalSize = 1_000_000;
+            const int bufferSize = 100_000; // needs to be >= BufferSizes.Stream to fail
+
+            var baseCmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintRandomBinary)
+                    .Add(totalSize)
+                    .Add(bufferSize));
+
+            // run without merging to get the expected byte array
+            await using var unmergedStream = new MemoryStream();
+            var unmergedCmd = baseCmd | PipeTarget.ToStream(unmergedStream);
+            await unmergedCmd.ExecuteAsync();
+            var expectedByteArray = unmergedStream.ToArray();
+
+            // run with merging to check if it's the same
+            await using var mergedStream1 = new MemoryStream();
+            await using var mergedStream2 = new MemoryStream();
+            var mergedCmd = baseCmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2));
+
+            // Act
+            await mergedCmd.ExecuteAsync();
+            var actualByteArray = mergedStream1.ToArray();
+
+            // Assert
+            actualByteArray.Should().Equal(expectedByteArray);
+        }
     }
 }
