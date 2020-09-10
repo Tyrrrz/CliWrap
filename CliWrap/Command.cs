@@ -115,8 +115,8 @@ namespace CliWrap
             PipeTarget.Null,
             PipeTarget.Null,
             string.Empty,
-             null!,
-             string.Empty)
+            null!,
+            string.Empty)
         {
         }
 
