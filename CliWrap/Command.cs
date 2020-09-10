@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -39,12 +40,12 @@ namespace CliWrap
         public string UserName { get; }
 
         /// <summary>
-        /// Password of the given user
+        /// Password of the given user. Note: only supported on Windows!
         /// </summary>
         public SecureString Password { get; }
 
         /// <summary>
-        /// Domain name
+        /// Domain name. Note: only supported on Windows!
         /// </summary>
         public string Domain { get; }
 
@@ -274,8 +275,6 @@ namespace CliWrap
             Domain
         );
 
-
-
         /// <summary>
         /// Creates a copy of this command, setting the username to the specified userName.
         /// </summary>
@@ -294,7 +293,7 @@ namespace CliWrap
         );
 
         /// <summary>
-        /// Creates a copy of this command, setting the password to the specified password.
+        /// Creates a copy of this command, setting the password to the specified password. Note: only supported on Windows!
         /// </summary>
         public Command WithPassword(SecureString password) => new Command(
             TargetFilePath,
@@ -311,7 +310,7 @@ namespace CliWrap
         );
 
         /// <summary>
-        /// Creates a copy of this command, setting the domain to the specified domain.
+        /// Creates a copy of this command, setting the domain to the specified domain. Note: only supported on Windows!
         /// </summary>
         public Command WithDomain(string domain) => new Command(
             TargetFilePath,
@@ -341,9 +340,14 @@ namespace CliWrap
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 UserName = UserName,
-                Password = Password,
-                Domain = Domain
             };
+
+            // Password and Domain are only supported on Windows
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                result.Password = Password;
+                result.Domain = Domain;
+            }
 
             foreach (var (key, value) in EnvironmentVariables)
                 result.Environment[key] = value;
