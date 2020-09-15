@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +33,21 @@ namespace CliWrap
         /// Working directory path.
         /// </summary>
         public string WorkingDirPath { get; }
+
+        /// <summary>
+        /// Username
+        /// </summary>
+        public string UserName { get; }
+
+        /// <summary>
+        /// Password of the given user. Note: only supported on Windows!
+        /// </summary>
+        public SecureString Password { get; }
+
+        /// <summary>
+        /// Domain name. Note: only supported on Windows!
+        /// </summary>
+        public string Domain { get; }
 
         /// <summary>
         /// Environment variables set for the underlying process.
@@ -68,7 +85,10 @@ namespace CliWrap
             CommandResultValidation validation,
             PipeSource standardInputPipe,
             PipeTarget standardOutputPipe,
-            PipeTarget standardErrorPipe)
+            PipeTarget standardErrorPipe,
+            string userName,
+            SecureString password,
+            string domain)
         {
             TargetFilePath = targetFilePath;
             Arguments = arguments;
@@ -78,6 +98,9 @@ namespace CliWrap
             StandardInputPipe = standardInputPipe;
             StandardOutputPipe = standardOutputPipe;
             StandardErrorPipe = standardErrorPipe;
+            UserName = userName;
+            Password = password;
+            Domain = domain;
         }
 
         /// <summary>
@@ -85,13 +108,16 @@ namespace CliWrap
         /// </summary>
         public Command(string targetFilePath) : this(
             targetFilePath,
-            "",
+            string.Empty,
             Directory.GetCurrentDirectory(),
             new Dictionary<string, string>(),
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
-            PipeTarget.Null)
+            PipeTarget.Null,
+            string.Empty,
+            null!,
+            string.Empty)
         {
         }
 
@@ -106,7 +132,10 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            UserName,
+            Password,
+            Domain
         );
 
         /// <summary>
@@ -144,7 +173,10 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            UserName,
+            Password,
+            Domain
         );
 
         /// <summary>
@@ -158,7 +190,10 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            UserName,
+            Password,
+            Domain
         );
 
         /// <summary>
@@ -183,7 +218,10 @@ namespace CliWrap
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            UserName,
+            Password,
+            Domain
         );
 
         /// <summary>
@@ -197,7 +235,10 @@ namespace CliWrap
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            UserName,
+            Password,
+            Domain
         );
 
         /// <summary>
@@ -211,7 +252,10 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe
+            StandardErrorPipe,
+            UserName,
+            Password,
+            Domain
         );
 
         /// <summary>
@@ -225,11 +269,66 @@ namespace CliWrap
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            target
+            target,
+            UserName,
+            Password,
+            Domain
+        );
+
+        /// <summary>
+        /// Creates a copy of this command, setting the username to the specified userName.
+        /// </summary>
+        public Command WithUserName(string userName) => new Command(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            userName,
+            Password,
+            Domain
+        );
+
+        /// <summary>
+        /// Creates a copy of this command, setting the password to the specified password. Note: only supported on Windows!
+        /// </summary>
+        public Command WithPassword(SecureString password) => new Command(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            UserName,
+            password,
+            Domain
+        );
+
+        /// <summary>
+        /// Creates a copy of this command, setting the domain to the specified domain. Note: only supported on Windows!
+        /// </summary>
+        public Command WithDomain(string domain) => new Command(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            UserName,
+            Password,
+            domain
         );
 
         private ProcessStartInfo GetStartInfo()
         {
+
             var result = new ProcessStartInfo
             {
                 FileName = TargetFilePath,
@@ -239,8 +338,16 @@ namespace CliWrap
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                UserName = UserName,
             };
+
+            // Password and Domain are only supported on Windows
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                result.Password = Password;
+                result.Domain = Domain;
+            }
 
             foreach (var (key, value) in EnvironmentVariables)
                 result.Environment[key] = value;
