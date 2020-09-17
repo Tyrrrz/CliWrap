@@ -55,6 +55,29 @@ namespace CliWrap.Tests
         }
 
         [Fact]
+        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_credentials()
+        {
+            // Arrange
+            var cmd = Cli.Wrap("foo").WithCredentials(c => c
+                .SetDomain("xxx")
+                .SetUserName("xxx")
+                .SetPassword("xxx")
+            );
+
+            // Act
+            var cmdOther = cmd.WithCredentials(c => c
+                .SetDomain("new")
+                .SetUserName("new")
+                .SetPassword("new")
+            );
+
+            // Assert
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
+            cmd.Credentials.Should().NotBe(cmdOther.Credentials);
+            cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("new", "new", "new"));
+        }
+
+        [Fact]
         public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_environment_variables()
         {
             // Arrange
@@ -66,7 +89,10 @@ namespace CliWrap.Tests
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
             cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string> {["new"] = "new"});
+            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string>
+            {
+                ["new"] = "new"
+            });
         }
 
         [Fact]
@@ -182,6 +208,23 @@ namespace CliWrap.Tests
                 ["foo"] = "bar",
                 ["lo"] = "dash"
             });
+        }
+
+        [Fact]
+        public void I_can_build_credentials_from_individual_properties()
+        {
+            // Arrange
+            var builder = new CredentialsBuilder();
+
+            // Act
+            var credentials = builder
+                .SetDomain("domain")
+                .SetUserName("username")
+                .SetPassword("password")
+                .Build();
+
+            // Assert
+            credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
         }
     }
 }

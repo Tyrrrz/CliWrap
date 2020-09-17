@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Builders;
 using CliWrap.Exceptions;
 using CliWrap.Internal;
+using CliWrap.Internal.Extensions;
 
 namespace CliWrap
 {
@@ -35,19 +34,9 @@ namespace CliWrap
         public string WorkingDirPath { get; }
 
         /// <summary>
-        /// Username
+        /// User credentials set for the underlying process.
         /// </summary>
-        public string UserName { get; }
-
-        /// <summary>
-        /// Password of the given user. Note: only supported on Windows!
-        /// </summary>
-        public SecureString Password { get; }
-
-        /// <summary>
-        /// Domain name. Note: only supported on Windows!
-        /// </summary>
-        public string Domain { get; }
+        public Credentials Credentials { get; }
 
         /// <summary>
         /// Environment variables set for the underlying process.
@@ -81,26 +70,22 @@ namespace CliWrap
             string targetFilePath,
             string arguments,
             string workingDirPath,
+            Credentials credentials,
             IReadOnlyDictionary<string, string> environmentVariables,
             CommandResultValidation validation,
             PipeSource standardInputPipe,
             PipeTarget standardOutputPipe,
-            PipeTarget standardErrorPipe,
-            string userName,
-            SecureString password,
-            string domain)
+            PipeTarget standardErrorPipe)
         {
             TargetFilePath = targetFilePath;
             Arguments = arguments;
             WorkingDirPath = workingDirPath;
+            Credentials = credentials;
             EnvironmentVariables = environmentVariables;
             Validation = validation;
             StandardInputPipe = standardInputPipe;
             StandardOutputPipe = standardOutputPipe;
             StandardErrorPipe = standardErrorPipe;
-            UserName = userName;
-            Password = password;
-            Domain = domain;
         }
 
         /// <summary>
@@ -110,14 +95,12 @@ namespace CliWrap
             targetFilePath,
             string.Empty,
             Directory.GetCurrentDirectory(),
+            Credentials.Default,
             new Dictionary<string, string>(),
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
-            PipeTarget.Null,
-            string.Empty,
-            null!,
-            string.Empty)
+            PipeTarget.Null)
         {
         }
 
@@ -128,14 +111,12 @@ namespace CliWrap
             TargetFilePath,
             arguments,
             WorkingDirPath,
+            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            Domain
+            StandardErrorPipe
         );
 
         /// <summary>
@@ -169,15 +150,39 @@ namespace CliWrap
             TargetFilePath,
             Arguments,
             workingDirPath,
+            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            Domain
+            StandardErrorPipe
         );
+
+        /// <summary>
+        /// Creates a copy of this command, setting the credentials to the specified value.
+        /// </summary>
+        public Command WithCredentials(Credentials credentials) => new Command(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            credentials,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe
+        );
+
+        /// <summary>
+        /// Creates a copy of this command, setting the credentials to the value configured by the specified delegate.
+        /// </summary>
+        public Command WithCredentials(Action<CredentialsBuilder> configure)
+        {
+            var builder = new CredentialsBuilder();
+            configure(builder);
+
+            return WithCredentials(builder.Build());
+        }
 
         /// <summary>
         /// Creates a copy of this command, setting the environment variables to the specified value.
@@ -186,14 +191,12 @@ namespace CliWrap
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            Credentials,
             environmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            Domain
+            StandardErrorPipe
         );
 
         /// <summary>
@@ -214,14 +217,12 @@ namespace CliWrap
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            Credentials,
             EnvironmentVariables,
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            Domain
+            StandardErrorPipe
         );
 
         /// <summary>
@@ -231,14 +232,12 @@ namespace CliWrap
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            Credentials,
             EnvironmentVariables,
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            Domain
+            StandardErrorPipe
         );
 
         /// <summary>
@@ -248,14 +247,12 @@ namespace CliWrap
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            Domain
+            StandardErrorPipe
         );
 
         /// <summary>
@@ -265,89 +262,34 @@ namespace CliWrap
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            target,
-            UserName,
-            Password,
-            Domain
-        );
-
-        /// <summary>
-        /// Creates a copy of this command, setting the username to the specified userName.
-        /// </summary>
-        public Command WithUserName(string userName) => new Command(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe,
-            userName,
-            Password,
-            Domain
-        );
-
-        /// <summary>
-        /// Creates a copy of this command, setting the password to the specified password. Note: only supported on Windows!
-        /// </summary>
-        public Command WithPassword(SecureString password) => new Command(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            password,
-            Domain
-        );
-
-        /// <summary>
-        /// Creates a copy of this command, setting the domain to the specified domain. Note: only supported on Windows!
-        /// </summary>
-        public Command WithDomain(string domain) => new Command(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe,
-            UserName,
-            Password,
-            domain
+            target
         );
 
         private ProcessStartInfo GetStartInfo()
         {
+            // Secure string should not be used for new development:
+            // https://github.com/dotnet/platform-compat/blob/master/docs/DE0001.md
+            var securePassword = Credentials.Password?.ToSecureString();
 
             var result = new ProcessStartInfo
             {
                 FileName = TargetFilePath,
-                WorkingDirectory = WorkingDirPath,
                 Arguments = Arguments,
+                WorkingDirectory = WorkingDirPath,
+                Domain = Credentials.Domain,
+                UserName = Credentials.UserName,
+                Password = securePassword,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                UserName = UserName,
             };
-
-            // Password and Domain are only supported on Windows
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                result.Password = Password;
-                result.Domain = Domain;
-            }
 
             foreach (var (key, value) in EnvironmentVariables)
                 result.Environment[key] = value;
