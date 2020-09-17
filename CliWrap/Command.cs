@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -272,24 +273,34 @@ namespace CliWrap
 
         private ProcessStartInfo GetStartInfo()
         {
-            // Secure string should not be used for new development:
-            // https://github.com/dotnet/platform-compat/blob/master/docs/DE0001.md
-            var securePassword = Credentials.Password?.ToSecureString();
-
             var result = new ProcessStartInfo
             {
                 FileName = TargetFilePath,
                 Arguments = Arguments,
                 WorkingDirectory = WorkingDirPath,
-                Domain = Credentials.Domain,
                 UserName = Credentials.UserName,
-                Password = securePassword,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
+
+            // Domain and password are only supported on Windows
+            if (Credentials.Domain != null && Credentials.Password != null)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    result.Domain = Credentials.Domain;
+                    result.Password = Credentials.Password?.ToSecureString();
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        "Starting a process using a custom domain and password is only supported on Windows."
+                    );
+                }
+            }
 
             foreach (var (key, value) in EnvironmentVariables)
                 result.Environment[key] = value;
