@@ -1,3 +1,7 @@
+### v3.2 (17-Sep-2020)
+
+- Added support for specifying user credentials when you want to run a command as a different user. This can be done by calling `cmd.WithCredentials(...)`. Domain and password options are only supported on Windows, while username can be set on any operating system. (Thanks [@Michi](https://github.com/MD-V))
+
 ### v3.1.1 (06-Sep-2020)
 
 - Fixed an issue where `PipeTarget.Merge(...)` worked incorrectly when processing large stdout written in a single operation (more than 81920 bytes at a time). (Thanks [@Tom Pažourek](https://github.com/tompazourek))

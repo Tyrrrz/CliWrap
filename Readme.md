@@ -148,6 +148,16 @@ var command = Cli.Wrap("git")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
 ```
 
+If you need to run the command as different user, you can specify user credentials too:
+
+```csharp
+var command = Cli.Wrap("git")
+    .WithCredentials(c => c
+       .SetDomain("some_workspace") // only supported on Windows
+       .SetUserName("johndoe") // supported everywhere
+       .SetPassword("securepassword123")); // only supported on Windows
+```
+
 Additionally, you can call `WithValidation()` to configure whether the command will throw an exception in case the execution finishes with a non-zero exit code:
 
 ```csharp
