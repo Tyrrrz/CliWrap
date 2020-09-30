@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -134,19 +133,12 @@ namespace CliWrap
         {
             using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
 
-            var buffer = ArrayPool<char>.Shared.Rent(BufferSizes.StreamReader);
-            try
-            {
-                int charsRead;
+            using var buffer = new PooledSharedBuffer<char>(BufferSizes.StreamReader);
+            int charsRead;
 
-                while ((charsRead = await reader.ReadAsync(buffer, cancellationToken)) > 0)
-                {
-                    _stringBuilder.Append(buffer, 0, charsRead);
-                }
-            }
-            finally
+            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
-                ArrayPool<char>.Shared.Return(buffer);
+                _stringBuilder.Append(buffer.Array, 0, charsRead);
             }
         }
     }
@@ -214,31 +206,24 @@ namespace CliWrap
                 .ToArray();
 
             // Read from master stream and write data to sub-streams
-            var buffer = ArrayPool<byte>.Shared.Rent(BufferSizes.Stream);
-            try
+            using var buffer = new PooledSharedBuffer<byte>(BufferSizes.Stream);
+            int bytesRead;
+            while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
-                int bytesRead;
-                while ((bytesRead = await source.ReadAsync(buffer, cancellationToken)) > 0)
-                {
-                    foreach (var subStream in subStreams)
-                        await subStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
-                }
-
-                // Report that transmission is complete
                 foreach (var subStream in subStreams)
-                    await subStream.ReportCompletionAsync(cancellationToken);
-
-                // Wait until all tasks complete so that it's safe to dispose streams
-                await Task.WhenAll(targetTasks);
-
-                // Cleanup
-                foreach (var subStream in subStreams)
-                    await subStream.DisposeAsync();
+                    await subStream.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+
+            // Report that transmission is complete
+            foreach (var subStream in subStreams)
+                await subStream.ReportCompletionAsync(cancellationToken);
+
+            // Wait until all tasks complete so that it's safe to dispose streams
+            await Task.WhenAll(targetTasks);
+
+            // Cleanup
+            foreach (var subStream in subStreams)
+                await subStream.DisposeAsync();
         }
     }
 }
