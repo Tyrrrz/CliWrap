@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Internal.Extensions;
 
 namespace CliWrap.Internal
 {
@@ -35,8 +35,12 @@ namespace CliWrap.Internal
             await _readLock.WaitAsync(cancellationToken);
 
             // Take a portion of the buffer that the consumer is interested in
-            var copyBuffer = _currentBuffer.Offset(_currentBufferBytesRead).Trim(count);
-            copyBuffer.CopyTo(buffer, offset);
+            var length = Math.Min(Math.Min(
+                count,
+                _currentBuffer.Length - _currentBufferBytesRead),
+                buffer.Length - offset);
+            
+            Array.Copy(_currentBuffer, _currentBufferBytesRead, buffer, offset, length);
 
             // If the consumer finished reading current buffer - release write lock
             if ((_currentBufferBytesRead += count) >= _currentBuffer.Length)
@@ -49,13 +53,13 @@ namespace CliWrap.Internal
                 _readLock.Release();
             }
 
-            return copyBuffer.Length;
+            return length;
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             await _writeLock.WaitAsync(cancellationToken);
-            _currentBuffer = buffer.Offset(offset).Trim(count);
+            _currentBuffer = buffer.Skip(offset).Take(count).ToArray();
             _currentBufferBytesRead = 0;
             _readLock.Release();
         }
