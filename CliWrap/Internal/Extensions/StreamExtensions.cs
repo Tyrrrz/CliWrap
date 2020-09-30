@@ -12,12 +12,12 @@ namespace CliWrap.Internal.Extensions
         public static async Task CopyToAsync(this Stream source, Stream destination, bool autoFlush,
             CancellationToken cancellationToken = default)
         {
-            var buffer = new byte[BufferSizes.Stream];
+            using var buffer = new PooledSharedBuffer<byte>(BufferSizes.Stream);
             int bytesRead;
 
-            while ((bytesRead = await source.ReadAsync(buffer, cancellationToken)) != 0)
+            while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) != 0)
             {
-                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                await destination.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
 
                 if (autoFlush)
                     await destination.FlushAsync(cancellationToken);
@@ -27,24 +27,23 @@ namespace CliWrap.Internal.Extensions
         public static async IAsyncEnumerable<string> ReadAllLinesAsync(this StreamReader reader,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var stringBuilder = new StringBuilder();
-
-            var buffer = new char[BufferSizes.StreamReader];
+            using var buffer = new PooledSharedBuffer<char>(BufferSizes.StreamReader);
             int charsRead;
 
-            while ((charsRead = await reader.ReadAsync(buffer, cancellationToken)) > 0)
+            var stringBuilder = new StringBuilder();
+            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
                 for (var i = 0; i < charsRead; i++)
                 {
-                    if (buffer[i] == '\n')
+                    if (buffer.Array[i] == '\n')
                     {
                         // Trigger on buffered input (even if it's empty)
                         yield return stringBuilder.ToString();
                         stringBuilder.Clear();
                     }
-                    else if (buffer[i] != '\r')
+                    else if (buffer.Array[i] != '\r')
                     {
-                        stringBuilder.Append(buffer[i]);
+                        stringBuilder.Append(buffer.Array[i]);
                     }
                 }
             }

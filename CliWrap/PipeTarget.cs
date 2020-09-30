@@ -133,12 +133,12 @@ namespace CliWrap
         {
             using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
 
-            var buffer = new char[BufferSizes.StreamReader];
+            using var buffer = new PooledSharedBuffer<char>(BufferSizes.StreamReader);
             int charsRead;
 
-            while ((charsRead = await reader.ReadAsync(buffer, cancellationToken)) > 0)
+            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
-                _stringBuilder.Append(buffer, 0, charsRead);
+                _stringBuilder.Append(buffer.Array, 0, charsRead);
             }
         }
     }
@@ -206,12 +206,12 @@ namespace CliWrap
                 .ToArray();
 
             // Read from master stream and write data to sub-streams
-            var buffer = new byte[BufferSizes.Stream];
+            using var buffer = new PooledSharedBuffer<byte>(BufferSizes.Stream);
             int bytesRead;
-            while ((bytesRead = await source.ReadAsync(buffer, cancellationToken)) > 0)
+            while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
                 foreach (var subStream in subStreams)
-                    await subStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                    await subStream.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
             }
 
             // Report that transmission is complete
