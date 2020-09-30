@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +13,7 @@ namespace CliWrap.Internal
 
         private byte[] _currentBuffer = Array.Empty<byte>();
         private int _currentBufferBytesRead;
+        private int _currentBufferBytes;
 
         [ExcludeFromCodeCoverage]
         public override bool CanRead { get; } = true;
@@ -35,15 +35,11 @@ namespace CliWrap.Internal
             await _readLock.WaitAsync(cancellationToken);
 
             // Take a portion of the buffer that the consumer is interested in
-            var length = Math.Min(Math.Min(
-                count,
-                _currentBuffer.Length - _currentBufferBytesRead),
-                buffer.Length - offset);
-            
+            int length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
             Array.Copy(_currentBuffer, _currentBufferBytesRead, buffer, offset, length);
 
             // If the consumer finished reading current buffer - release write lock
-            if ((_currentBufferBytesRead += count) >= _currentBuffer.Length)
+            if ((_currentBufferBytesRead += count) >= _currentBufferBytes)
             {
                 _writeLock.Release();
             }
@@ -59,8 +55,13 @@ namespace CliWrap.Internal
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             await _writeLock.WaitAsync(cancellationToken);
-            _currentBuffer = buffer.Skip(offset).Take(count).ToArray();
+            if (_currentBuffer.Length < count)
+            {
+                _currentBuffer = new byte[count];
+            }
+            Array.Copy(buffer, offset, _currentBuffer, 0, count);
             _currentBufferBytesRead = 0;
+            _currentBufferBytes = count;
             _readLock.Release();
         }
 
@@ -70,6 +71,7 @@ namespace CliWrap.Internal
             await _writeLock.WaitAsync(cancellationToken);
             _currentBuffer = Array.Empty<byte>();
             _currentBufferBytesRead = 0;
+            _currentBufferBytes = 0;
             _readLock.Release();
         }
 
