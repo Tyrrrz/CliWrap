@@ -74,18 +74,43 @@ namespace CliWrap
         public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
             ToDelegate(handleLineAsync, Console.OutputEncoding);
 
+        // This function needs to take output as a parameter because it's recursive
+        private static void FlattenTargets(IEnumerable<PipeTarget> targets, ICollection<PipeTarget> output)
+        {
+            foreach (var target in targets)
+            {
+                if (target is MergedPipeTarget mergedTarget)
+                {
+                    FlattenTargets(mergedTarget.Targets, output);
+                }
+                else
+                {
+                    output.Add(target);
+                }
+            }
+        }
+
         /// <summary>
         /// Merges multiple pipe targets into a single one.
         /// Data pushed to this pipe will be replicated for all inner targets.
         /// </summary>
         public static PipeTarget Merge(IEnumerable<PipeTarget> targets)
         {
-            var actualTargets = targets.Where(t => t != Null).ToArray();
+            // Optimize targets to avoid unnecessary work
+            var actualTargets = new List<PipeTarget>();
 
-            if (actualTargets.Length == 1)
+            // Flatten (unwrap merged targets)
+            FlattenTargets(targets, actualTargets);
+
+            // Filter out no-op targets
+            actualTargets.RemoveAll(t => t == Null);
+
+            // Avoid merging if there's only one target
+            if (actualTargets.Count == 1)
                 return actualTargets.Single();
 
-            if (actualTargets.Length == 0)
+            // Avoid merging if there are no targets
+            if (actualTargets.Count == 0)
                 return Null;
 
             return new MergedPipeTarget(actualTargets);
@@ -188,19 +213,19 @@ namespace CliWrap
 
     internal class MergedPipeTarget : PipeTarget
     {
-        private readonly IReadOnlyList<PipeTarget> _targets;
+        public IReadOnlyList<PipeTarget> Targets { get; }
 
-        public MergedPipeTarget(IReadOnlyList<PipeTarget> targets) => _targets = targets;
+        public MergedPipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
             // Create separate half-duplex sub-streams for each target
-            var subStreams = _targets
+            var subStreams = Targets
                 .Select(_ => new HalfDuplexStream())
                 .ToArray();
 
             // Start piping from those streams
-            var targetTasks = _targets
+            var targetTasks = Targets
                 .Zip(subStreams, async (target, subStream) => await target.CopyFromAsync(subStream, cancellationToken))
                 .ToArray();
 

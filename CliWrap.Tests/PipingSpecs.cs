@@ -458,6 +458,46 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
+        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_hierarchy_of_targets()
+        {
+            // Arrange
+            const int expectedSize = 10_000;
+            await using var stream1 = new MemoryStream();
+            await using var stream2 = new MemoryStream();
+            await using var stream3 = new MemoryStream();
+            await using var stream4 = new MemoryStream();
+
+            var pipeTarget = PipeTarget.Merge(
+                PipeTarget.ToStream(stream1),
+                PipeTarget.Merge(
+                    PipeTarget.ToStream(stream2),
+                    PipeTarget.Merge(
+                        PipeTarget.ToStream(stream3),
+                        PipeTarget.ToStream(stream4)
+                    )
+                )
+            );
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add(Dummy.Program.PrintRandomBinary)
+                    .Add(expectedSize)) | pipeTarget;
+
+            // Act
+            await cmd.ExecuteAsync();
+
+            // Assert
+            stream1.Length.Should().Be(expectedSize);
+            stream2.Length.Should().Be(expectedSize);
+            stream3.Length.Should().Be(expectedSize);
+            stream4.Length.Should().Be(expectedSize);
+            stream1.ToArray().Should().Equal(stream2.ToArray());
+            stream2.ToArray().Should().Equal(stream3.ToArray());
+            stream3.ToArray().Should().Equal(stream4.ToArray());
+        }
+
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
         {
             // Arrange
