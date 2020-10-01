@@ -15,13 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.10.2" />
-    <PackageReference Include="GitHubActionsTestLogger" Version="1.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="coverlet.msbuild" Version="2.8.0" PrivateAssets="all" />
-    <PackageReference Include="System.Reactive" Version="4.3.2" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="GitHubActionsTestLogger" Version="1.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="coverlet.msbuild" Version="2.9.0" PrivateAssets="all" />
+    <PackageReference Include="System.Reactive" Version="4.4.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
