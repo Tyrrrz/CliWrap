@@ -148,7 +148,7 @@ namespace CliWrap.Tests
                     .Add(10_000));
 
             // Act
-            var task = cmd.Observe(cts.Token).ToTask(default); // purposely don't provide token in ToTask()
+            var task = cmd.Observe(cts.Token).ToTask(CancellationToken.None); // purposely don't provide token in ToTask()
 
             // Assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
@@ -167,7 +167,7 @@ namespace CliWrap.Tests
                     .Add(10_000));
 
             // Act
-            var task = cmd.Observe(cts.Token).ToTask(default); // purposely don't provide token in ToTask()
+            var task = cmd.Observe(cts.Token).ToTask(CancellationToken.None); // purposely don't provide token in ToTask()
 
             // Assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);

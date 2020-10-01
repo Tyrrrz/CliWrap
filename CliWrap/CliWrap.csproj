@@ -38,6 +38,8 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.Management" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
