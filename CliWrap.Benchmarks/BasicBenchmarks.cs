@@ -36,7 +36,7 @@ namespace CliWrap.Benchmarks
         [Benchmark(Description = "MedallionShell")]
         public async Task<int> ExecuteWithMedallionShell()
         {
-            var result = await Medallion.Shell.Shell.Default.Run(FilePath, Args).Task;
+            var result = await Medallion.Shell.Command.Run(FilePath, Args).Task;
             return result.ExitCode;
         }
     }

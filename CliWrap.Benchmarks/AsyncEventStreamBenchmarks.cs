@@ -1,5 +1,4 @@
-﻿using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using CliWrap.EventStream;
@@ -8,12 +7,12 @@ using Cysharp.Diagnostics;
 namespace CliWrap.Benchmarks
 {
     [MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    public class EventStreamingBenchmarks
+    public class AsyncEventStreamBenchmarks
     {
         private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} {Tests.Dummy.Program.PrintRandomLines} 100000";
+        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} {Tests.Dummy.Program.PrintRandomLines} 1000";
 
-        [Benchmark(Description = "CliWrap (async stream)", Baseline = true)]
+        [Benchmark(Description = "CliWrap", Baseline = true)]
         public async Task<int> ExecuteWithCliWrap_Async()
         {
             var counter = 0;
@@ -30,27 +29,6 @@ namespace CliWrap.Benchmarks
                         break;
                 }
             }
-
-            return counter;
-        }
-
-        [Benchmark(Description = "CliWrap (observable stream)")]
-        public async Task<int> ExecuteWithCliWrap_Observable()
-        {
-            var counter = 0;
-
-            await Cli.Wrap(FilePath).WithArguments(Args).Observe().ForEachAsync(cmdEvent =>
-            {
-                switch (cmdEvent)
-                {
-                    case StandardOutputCommandEvent _:
-                        counter++;
-                        break;
-                    case StandardErrorCommandEvent _:
-                        counter++;
-                        break;
-                }
-            });
 
             return counter;
         }
