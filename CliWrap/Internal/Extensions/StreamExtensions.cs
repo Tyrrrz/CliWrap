@@ -12,9 +12,9 @@ namespace CliWrap.Internal.Extensions
         public static async Task CopyToAsync(this Stream source, Stream destination, bool autoFlush,
             CancellationToken cancellationToken = default)
         {
-            using var buffer = new PooledSharedBuffer<byte>(BufferSizes.Stream);
-            int bytesRead;
+            using var buffer = new PooledBuffer<byte>(BufferSizes.Stream);
 
+            int bytesRead;
             while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) != 0)
             {
                 await destination.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
@@ -27,10 +27,10 @@ namespace CliWrap.Internal.Extensions
         public static async IAsyncEnumerable<string> ReadAllLinesAsync(this StreamReader reader,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            using var buffer = new PooledSharedBuffer<char>(BufferSizes.StreamReader);
-            int charsRead;
-
             var stringBuilder = new StringBuilder();
+            using var buffer = new PooledBuffer<char>(BufferSizes.StreamReader);
+
+            int charsRead;
             while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
                 for (var i = 0; i < charsRead; i++)

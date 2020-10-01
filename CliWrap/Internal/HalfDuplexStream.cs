@@ -12,8 +12,8 @@ namespace CliWrap.Internal
         private readonly SemaphoreSlim _readLock = new SemaphoreSlim(0, 1);
 
         private byte[] _currentBuffer = Array.Empty<byte>();
-        private int _currentBufferBytesRead;
         private int _currentBufferBytes;
+        private int _currentBufferBytesRead;
 
         [ExcludeFromCodeCoverage]
         public override bool CanRead { get; } = true;
@@ -35,7 +35,7 @@ namespace CliWrap.Internal
             await _readLock.WaitAsync(cancellationToken);
 
             // Take a portion of the buffer that the consumer is interested in
-            int length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
+            var length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
             Array.Copy(_currentBuffer, _currentBufferBytesRead, buffer, offset, length);
 
             // If the consumer finished reading current buffer - release write lock
@@ -55,13 +55,14 @@ namespace CliWrap.Internal
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             await _writeLock.WaitAsync(cancellationToken);
+
+            // Attempt to reuse existing buffer as long as it has enough capacity
             if (_currentBuffer.Length < count)
-            {
                 _currentBuffer = new byte[count];
-            }
+
             Array.Copy(buffer, offset, _currentBuffer, 0, count);
-            _currentBufferBytesRead = 0;
             _currentBufferBytes = count;
+            _currentBufferBytesRead = 0;
             _readLock.Release();
         }
 
@@ -70,8 +71,8 @@ namespace CliWrap.Internal
             // Write empty buffer that will make ReadAsync return 0, which signifies end-of-stream
             await _writeLock.WaitAsync(cancellationToken);
             _currentBuffer = Array.Empty<byte>();
-            _currentBufferBytesRead = 0;
             _currentBufferBytes = 0;
+            _currentBufferBytesRead = 0;
             _readLock.Release();
         }
 

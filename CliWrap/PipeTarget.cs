@@ -132,10 +132,9 @@ namespace CliWrap
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
             using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
+            using var buffer = new PooledBuffer<char>(BufferSizes.StreamReader);
 
-            using var buffer = new PooledSharedBuffer<char>(BufferSizes.StreamReader);
             int charsRead;
-
             while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
                 _stringBuilder.Append(buffer.Array, 0, charsRead);
@@ -206,7 +205,7 @@ namespace CliWrap
                 .ToArray();
 
             // Read from master stream and write data to sub-streams
-            using var buffer = new PooledSharedBuffer<byte>(BufferSizes.Stream);
+            using var buffer = new PooledBuffer<byte>(BufferSizes.Stream);
             int bytesRead;
             while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
