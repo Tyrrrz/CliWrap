@@ -42,6 +42,12 @@ namespace CliWrap
         public TaskAwaiter<TResult> GetAwaiter() => Task.GetAwaiter();
 
         /// <summary>
+        /// Configures an awaiter used to await this task.
+        /// </summary>
+        public ConfiguredTaskAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
+            Task.ConfigureAwait(continueOnCapturedContext);
+
+        /// <summary>
         /// Disposes the inner task.
         /// There is no need to call this manually, unless you are not planning to await the task.
         /// </summary>

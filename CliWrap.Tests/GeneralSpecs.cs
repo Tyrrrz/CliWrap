@@ -43,6 +43,19 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
+        public async Task I_can_execute_a_command_and_configure_awaiter_for_its_task()
+        {
+            // Arrange
+            var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.FilePath);
+
+            // Act
+            var result = await cmd.ExecuteAsync().ConfigureAwait(false);
+
+            // Assert
+            result.ExitCode.Should().Be(0);
+        }
+
+        [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_with_very_large_stdout_and_stderr_and_get_the_result_without_deadlocks()
         {
             // Arrange
