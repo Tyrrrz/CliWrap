@@ -29,10 +29,8 @@ namespace CliWrap.Internal
 
         public DateTimeOffset ExitTime { get; private set; }
 
-        public ProcessEx(ProcessStartInfo startInfo)
-        {
+        public ProcessEx(ProcessStartInfo startInfo) =>
             _nativeProcess = new Process {StartInfo = startInfo};
-        }
 
         public void Start()
         {
@@ -85,13 +83,6 @@ namespace CliWrap.Internal
 
         public async Task WaitUntilExitAsync() => await _exitTcs.Task;
 
-        public void Dispose()
-        {
-            // Kill the process if it's still alive by this point
-            if (!_nativeProcess.HasExited)
-                TryKill();
-
-            _nativeProcess.Dispose();
-        }
+        public void Dispose() => _nativeProcess.Dispose();
     }
 }
