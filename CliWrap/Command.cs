@@ -361,8 +361,8 @@ namespace CliWrap
 
         private async Task<CommandResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
-            // Separate cancellation for pipes in case the process terminates early and doesn't fully exhaust them
-            using var pipeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            // Additional cancellation for stdin in case the process terminates early and doesn't fully exhaust it
+            using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             // Setup and start process
             using var _1 = process;
@@ -372,16 +372,16 @@ namespace CliWrap
             // Start piping in parallel
             var pipingTasks = new[]
             {
-                PipeStandardInputAsync(process, pipeCts.Token),
-                PipeStandardOutputAsync(process, pipeCts.Token),
-                PipeStandardErrorAsync(process, pipeCts.Token)
+                PipeStandardInputAsync(process, stdInCts.Token),
+                PipeStandardOutputAsync(process, cancellationToken),
+                PipeStandardErrorAsync(process, cancellationToken)
             };
 
             // Wait until the process terminates or gets killed
             await process.WaitUntilExitAsync();
 
-            // Cancel pipes if the process terminated early
-            pipeCts.Cancel();
+            // Cancel stdin in case the process terminated early and doesn't need it anymore
+            stdInCts.Cancel();
 
             try
             {
