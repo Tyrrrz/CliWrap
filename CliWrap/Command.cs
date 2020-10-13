@@ -308,107 +308,106 @@ namespace CliWrap
             return result;
         }
 
+        private async Task PipeStandardInputAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Some streams do not support cancellation, so we add a fallback that
+                // drops the task and returns early.
+                // Doing so does leave the original piping task still alive, which is
+                // unfortunate, but still better than having everything freeze up.
+                // This is important with stdin because the process might finish before
+                // the pipe completes, and in case with infinite input stream it would
+                // normally result in a deadlock.
+                await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken)
+                    .WithDangerousCancellation(cancellationToken);
+            }
+            catch (IOException)
+            {
+                // IOException: The pipe has been ended.
+                // This may happen if the process terminated before the pipe could complete.
+                // It's not an exceptional situation because the process may not need
+                // the entire stdin to complete successfully.
+            }
+            finally
+            {
+                await process.StdIn.DisposeAsync();
+            }
+        }
+
+        private async Task PipeStandardOutputAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken);
+            }
+            finally
+            {
+                await process.StdOut.DisposeAsync();
+            }
+        }
+
+        private async Task PipeStandardErrorAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken);
+            }
+            finally
+            {
+                await process.StdErr.DisposeAsync();
+            }
+        }
+
         private async Task<CommandResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
-            using var _ = process;
+            // Separate cancellation for pipes in case the process terminates early and doesn't fully exhaust them
+            using var pipeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            // Setup and start process
+            using var _1 = process;
             process.Start();
+            using var _2 = cancellationToken.Register(() => process.TryKill());
 
-            // Stdin pipe may need to be canceled early if the process terminates before it finishes
-            using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            // Register early process termination
-            using var cancellation = cancellationToken.Register(() => process.TryKill());
-
-            // Stdin must be closed after it finished to avoid deadlock if the process reads the stream to end
-            async Task HandleStdInAsync()
-            {
-                try
-                {
-                    // Some streams don't support cancellation, in which case we need a fallback mechanism to avoid deadlocks.
-                    // For example, WindowsConsoleStream (from Console.OpenStandardInput()) in particular doesn't support cancellation.
-                    // In the following case the operation will terminate but a rogue Task will leak and might cause problems.
-                    // This is a non-issue, however, if the user closes the stream at the earliest opportunity.
-                    // Otherwise we enter an indeterminate state and tell ourselves we did everything we could to avoid it.
-                    await Task.WhenAny(
-                        StandardInputPipe.CopyToAsync(process.StdIn, stdInCts.Token),
-                        Task.Delay(-1, stdInCts.Token)
-                    );
-                }
-                // Ignore cancellation here, will propagate later
-                catch (OperationCanceledException)
-                {
-                }
-                // We want to ignore I/O exceptions that happen when the output stream has already closed.
-                // This can happen when the process reads only a portion of stdin and then exits.
-                // Unfortunately we can't catch a specific exception for this exact event so we have no choice but to catch all of them.
-                catch (IOException)
-                {
-                }
-                finally
-                {
-                    await process.StdIn.DisposeAsync();
-                }
-            }
-
-            // Stdout doesn't need to be closed but we do it for good measure
-            async Task HandleStdOutAsync()
-            {
-                try
-                {
-                    await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken);
-                }
-                // Ignore cancellation here, will propagate later
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
-                    await process.StdOut.DisposeAsync();
-                }
-            }
-
-            // Stderr doesn't need to be closed but we do it for good measure
-            async Task HandleStdErrAsync()
-            {
-                try
-                {
-                    await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken);
-                }
-                // Ignore cancellation here, will propagate later
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
-                    await process.StdErr.DisposeAsync();
-                }
-            }
-
-            // Handle pipes in background and in parallel to avoid deadlocks
+            // Start piping in parallel
             var pipingTasks = new[]
             {
-                HandleStdInAsync(),
-                HandleStdOutAsync(),
-                HandleStdErrAsync()
+                PipeStandardInputAsync(process, pipeCts.Token),
+                PipeStandardOutputAsync(process, pipeCts.Token),
+                PipeStandardErrorAsync(process, pipeCts.Token)
             };
 
             // Wait until the process terminates or gets killed
             await process.WaitUntilExitAsync();
 
-            // Stop piping stdin if the process has already exited (can happen if not all of stdin is read)
-            stdInCts.Cancel();
+            // Cancel pipes if the process terminated early
+            pipeCts.Cancel();
 
-            // Ensure all pipes are finished
-            await Task.WhenAll(pipingTasks);
+            try
+            {
+                // Wait until piping is done and propagate exceptions
+                await Task.WhenAll(pipingTasks);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Don't throw if cancellation came internally and not by user request
+            }
 
-            // Propagate cancellation to the user
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Validate exit code
+            // Validate exit code if required
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
-                throw CommandExecutionException.ExitCodeValidation(TargetFilePath, Arguments, process.ExitCode);
+            {
+                throw CommandExecutionException.ExitCodeValidation(
+                    TargetFilePath,
+                    Arguments,
+                    process.ExitCode
+                );
+            }
 
-            return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
+            return new CommandResult(
+                process.ExitCode,
+                process.StartTime,
+                process.ExitTime
+            );
         }
 
         /// <summary>

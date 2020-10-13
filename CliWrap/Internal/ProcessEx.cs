@@ -36,14 +36,18 @@ namespace CliWrap.Internal
 
         public void Start()
         {
+            Debug.Assert(Id == default, "Attempt to launch a process more than once.");
+
+            // Hook up events
             _nativeProcess.EnableRaisingEvents = true;
             _nativeProcess.Exited += (sender, args) =>
             {
-                ExitTime = DateTimeOffset.Now;
+                ExitTime = _nativeProcess.ExitTime;
                 ExitCode = _nativeProcess.ExitCode;
                 _exitTcs.TrySetResult(null);
             };
 
+            // Start the process
             if (!_nativeProcess.Start())
             {
                 throw new InvalidOperationException(
@@ -52,12 +56,12 @@ namespace CliWrap.Internal
                 );
             }
 
-            StartTime = DateTimeOffset.Now;
-
+            // Copy metadata
             Id = _nativeProcess.Id;
             StdIn = _nativeProcess.StandardInput.BaseStream;
             StdOut = _nativeProcess.StandardOutput.BaseStream;
             StdErr = _nativeProcess.StandardError.BaseStream;
+            StartTime = _nativeProcess.StartTime;
         }
 
         public bool TryKill()

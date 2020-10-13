@@ -44,7 +44,8 @@ namespace CliWrap.Buffered
                         r.StartTime,
                         r.ExitTime,
                         stdOutBuffer.ToString(),
-                        stdErrBuffer.ToString());
+                        stdErrBuffer.ToString()
+                    );
 
                     // We perform validation separately here because we want to include stderr in the exception as well
                     if (result.ExitCode != 0 && command.Validation.IsZeroExitCodeValidationEnabled())
@@ -53,7 +54,8 @@ namespace CliWrap.Buffered
                             command.TargetFilePath,
                             command.Arguments,
                             result.ExitCode,
-                            result.StandardError.Trim());
+                            result.StandardError.Trim()
+                        );
                     }
 
                     return result;

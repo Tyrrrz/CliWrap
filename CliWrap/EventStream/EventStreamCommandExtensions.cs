@@ -28,12 +28,14 @@ namespace CliWrap.EventStream
             var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
                 PipeTarget.ToDelegate(
                     s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellationToken),
-                    standardOutputEncoding));
+                    standardOutputEncoding)
+            );
 
             var stdErrPipe = PipeTarget.Merge(command.StandardErrorPipe,
                 PipeTarget.ToDelegate(
                     s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellationToken),
-                    standardErrorEncoding));
+                    standardErrorEncoding)
+            );
 
             var commandPiped = command
                 .WithStandardOutputPipe(stdOutPipe)
@@ -90,12 +92,14 @@ namespace CliWrap.EventStream
                 var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
                     PipeTarget.ToDelegate(
                         s => observer.OnNext(new StandardOutputCommandEvent(s)),
-                        standardOutputEncoding));
+                        standardOutputEncoding)
+                );
 
                 var stdErrPipe = PipeTarget.Merge(command.StandardErrorPipe,
                     PipeTarget.ToDelegate(
                         s => observer.OnNext(new StandardErrorCommandEvent(s)),
-                        standardErrorEncoding));
+                        standardErrorEncoding)
+                );
 
                 var commandPiped = command
                     .WithStandardOutputPipe(stdOutPipe)
