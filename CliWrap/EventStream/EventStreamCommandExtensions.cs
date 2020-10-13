@@ -25,13 +25,15 @@ namespace CliWrap.EventStream
         {
             using var channel = new Channel<CommandEvent>();
 
-            var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
+            var stdOutPipe = PipeTarget.Merge(
+                command.StandardOutputPipe,
                 PipeTarget.ToDelegate(
                     s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellationToken),
                     standardOutputEncoding)
             );
 
-            var stdErrPipe = PipeTarget.Merge(command.StandardErrorPipe,
+            var stdErrPipe = PipeTarget.Merge(
+                command.StandardErrorPipe,
                 PipeTarget.ToDelegate(
                     s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellationToken),
                     standardErrorEncoding)
@@ -89,13 +91,15 @@ namespace CliWrap.EventStream
             CancellationToken cancellationToken = default) =>
             Observable.Create<CommandEvent>(observer =>
             {
-                var stdOutPipe = PipeTarget.Merge(command.StandardOutputPipe,
+                var stdOutPipe = PipeTarget.Merge(
+                    command.StandardOutputPipe,
                     PipeTarget.ToDelegate(
                         s => observer.OnNext(new StandardOutputCommandEvent(s)),
                         standardOutputEncoding)
                 );
 
-                var stdErrPipe = PipeTarget.Merge(command.StandardErrorPipe,
+                var stdErrPipe = PipeTarget.Merge(
+                    command.StandardErrorPipe,
                     PipeTarget.ToDelegate(
                         s => observer.OnNext(new StandardErrorCommandEvent(s)),
                         standardErrorEncoding)
