@@ -1,3 +1,9 @@
+### v3.2.1 (14-Oct-2020)
+
+- Improved performance and memory usage in all execution models. (Thanks [@Maarten Balliauw](https://github.com/maartenba) and [@Miha Zupan](https://github.com/MihaZupan))
+- Added optimization for `PipeTarget.Merge(...)` that flattens inner targets in case they also represent merged targets.
+- Added `CommandTask.ConfigureAwait(...)` as a shorthand for `CommandTask.Task.ConfigureAwait(...)`.
+
 ### v3.2 (17-Sep-2020)
 
 - Added support for specifying user credentials when you want to run a command as a different user. This can be done by calling `cmd.WithCredentials(...)`. Domain and password options are only supported on Windows, while username can be set on any operating system. (Thanks [@Michi](https://github.com/MD-V))
