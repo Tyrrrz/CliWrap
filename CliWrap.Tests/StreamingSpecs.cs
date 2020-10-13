@@ -3,16 +3,11 @@ using System.Threading.Tasks;
 using CliWrap.EventStream;
 using FluentAssertions;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CliWrap.Tests
 {
     public class StreamingSpecs
     {
-        private readonly ITestOutputHelper _output;
-
-        public StreamingSpecs(ITestOutputHelper output) => _output = output;
-
         [Fact(Timeout = 15000)]
         public async Task I_can_execute_a_command_as_an_async_event_stream()
         {
@@ -35,20 +30,16 @@ namespace CliWrap.Tests
             {
                 switch (cmdEvent)
                 {
-                    case StartedCommandEvent started:
-                        _output.WriteLine($"Process started; ID: {started.ProcessId}");
+                    case StartedCommandEvent _:
                         processHasStarted = true;
                         break;
-                    case StandardOutputCommandEvent stdOut:
-                        _output.WriteLine($"Out> {stdOut.Text}");
+                    case StandardOutputCommandEvent _:
                         stdOutLinesCount++;
                         break;
-                    case StandardErrorCommandEvent stdErr:
-                        _output.WriteLine($"Err> {stdErr.Text}");
+                    case StandardErrorCommandEvent _:
                         stdErrLinesCount++;
                         break;
-                    case ExitedCommandEvent exited:
-                        _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                    case ExitedCommandEvent _:
                         processHasExited = true;
                         break;
                 }
@@ -83,20 +74,16 @@ namespace CliWrap.Tests
             {
                 switch (cmdEvent)
                 {
-                    case StartedCommandEvent started:
-                        _output.WriteLine($"Process started; ID: {started.ProcessId}");
+                    case StartedCommandEvent _:
                         processHasStarted = true;
                         break;
-                    case StandardOutputCommandEvent stdOut:
-                        _output.WriteLine($"Out> {stdOut.Text}");
+                    case StandardOutputCommandEvent _:
                         stdOutLinesCount++;
                         break;
-                    case StandardErrorCommandEvent stdErr:
-                        _output.WriteLine($"Err> {stdErr.Text}");
+                    case StandardErrorCommandEvent _:
                         stdErrLinesCount++;
                         break;
-                    case ExitedCommandEvent exited:
-                        _output.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                    case ExitedCommandEvent _:
                         processHasExited = true;
                         break;
                 }
