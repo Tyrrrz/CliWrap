@@ -73,6 +73,7 @@ namespace CliWrap.Internal
             }
             catch
             {
+                Debug.Fail("Failed to kill process.");
                 return false;
             }
             finally

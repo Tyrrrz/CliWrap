@@ -4,9 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.EventStream;
-using CliWrap.Tests.Internal;
 using CliWrap.Tests.Internal.Extensions;
-using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests
@@ -26,12 +24,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.ExecuteAsync(cts.Token);
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-            ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.ExecuteAsync(cts.Token)
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -46,12 +42,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.ExecuteAsync(cts.Token);
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-            ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.ExecuteAsync(cts.Token)
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -67,12 +61,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.ExecuteBufferedAsync(cts.Token);
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-            ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.ExecuteBufferedAsync(cts.Token)
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -87,12 +79,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.ExecuteBufferedAsync(cts.Token);
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-            ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.ExecuteBufferedAsync(cts.Token)
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -108,11 +98,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.ListenAsync(cts.Token).IterateDiscardAsync();
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.ListenAsync(cts.Token).IterateDiscardAsync()
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -127,11 +116,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.ListenAsync(cts.Token).IterateDiscardAsync();
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.ListenAsync(cts.Token).IterateDiscardAsync()
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -147,11 +135,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.Observe(cts.Token).ToTask(CancellationToken.None); // purposely don't provide token in ToTask()
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.Observe(cts.Token).ToTask(CancellationToken.None)
+            );
         }
 
         [Fact(Timeout = 15000)]
@@ -166,11 +153,10 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.Sleep)
                     .Add(10_000));
 
-            // Act
-            var task = cmd.Observe(cts.Token).ToTask(CancellationToken.None); // purposely don't provide token in ToTask()
-
-            // Assert
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+            // Act & assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await cmd.Observe(cts.Token).ToTask(CancellationToken.None)
+            );
         }
     }
 }
