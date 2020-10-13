@@ -361,6 +361,8 @@ namespace CliWrap
 
         private async Task<CommandResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Additional cancellation for stdin in case the process terminates early and doesn't fully exhaust it
             using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
