@@ -1,3 +1,8 @@
+### v3.2.2 (15-Oct-2020)
+
+- Fixed an issue where `Command.ExecuteAsync(...)` sometimes returned before the process actually exited, in case cancellation was requested. Now, this method only returns when the process has fully terminated or if the termination has failed for whatever reason.
+- Fixed an issue where specifying password without also specifying domain resulted in the password being incorrectly ignored.
+
 ### v3.2.1 (14-Oct-2020)
 
 - Improved performance and memory usage in all execution models. (Thanks [@Maarten Balliauw](https://github.com/maartenba) and [@Miha Zupan](https://github.com/MihaZupan))
