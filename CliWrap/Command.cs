@@ -287,7 +287,7 @@ namespace CliWrap
             };
 
             // Domain and password are only supported on Windows
-            if (Credentials.Domain != null && Credentials.Password != null)
+            if (Credentials.Domain != null || Credentials.Password != null)
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
