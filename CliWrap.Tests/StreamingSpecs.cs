@@ -21,7 +21,6 @@ namespace CliWrap.Tests
                     .Add(expectedLinesCount));
 
             // Act
-            var processHasStarted = false;
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
             var processHasExited = false;
@@ -30,23 +29,25 @@ namespace CliWrap.Tests
             {
                 switch (cmdEvent)
                 {
-                    case StartedCommandEvent _:
-                        processHasStarted = true;
+                    case StartedCommandEvent started:
+                        started.ProcessId.Should().NotBe(0);
                         break;
-                    case StandardOutputCommandEvent _:
+                    case StandardOutputCommandEvent stdOut:
+                        stdOut.Text.Should().NotBeNullOrEmpty();
                         stdOutLinesCount++;
                         break;
-                    case StandardErrorCommandEvent _:
+                    case StandardErrorCommandEvent stdErr:
+                        stdErr.Text.Should().NotBeNullOrEmpty();
                         stdErrLinesCount++;
                         break;
-                    case ExitedCommandEvent _:
+                    case ExitedCommandEvent exited:
+                        exited.ExitCode.Should().Be(0);
                         processHasExited = true;
                         break;
                 }
             }
 
             // Assert
-            processHasStarted.Should().BeTrue();
             stdOutLinesCount.Should().Be(expectedLinesCount);
             stdErrLinesCount.Should().Be(expectedLinesCount);
             processHasExited.Should().BeTrue();
@@ -65,7 +66,6 @@ namespace CliWrap.Tests
                     .Add(expectedLinesCount));
 
             // Act
-            var processHasStarted = false;
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
             var processHasExited = false;
@@ -74,23 +74,25 @@ namespace CliWrap.Tests
             {
                 switch (cmdEvent)
                 {
-                    case StartedCommandEvent _:
-                        processHasStarted = true;
+                    case StartedCommandEvent started:
+                        started.ProcessId.Should().NotBe(0);
                         break;
-                    case StandardOutputCommandEvent _:
+                    case StandardOutputCommandEvent stdOut:
+                        stdOut.Text.Should().NotBeNullOrEmpty();
                         stdOutLinesCount++;
                         break;
-                    case StandardErrorCommandEvent _:
+                    case StandardErrorCommandEvent stdErr:
+                        stdErr.Text.Should().NotBeNullOrEmpty();
                         stdErrLinesCount++;
                         break;
-                    case ExitedCommandEvent _:
+                    case ExitedCommandEvent exited:
+                        exited.ExitCode.Should().Be(0);
                         processHasExited = true;
                         break;
                 }
             });
 
             // Assert
-            processHasStarted.Should().BeTrue();
             stdOutLinesCount.Should().Be(expectedLinesCount);
             stdErrLinesCount.Should().Be(expectedLinesCount);
             processHasExited.Should().BeTrue();
