@@ -12,6 +12,8 @@ namespace CliWrap.Internal
         private readonly TaskCompletionSource<object?> _exitTcs =
             new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        private bool _isKilled;
+
         public int Id { get; private set; }
 
         // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
@@ -42,7 +44,15 @@ namespace CliWrap.Internal
             {
                 ExitTime = _nativeProcess.ExitTime;
                 ExitCode = _nativeProcess.ExitCode;
-                _exitTcs.TrySetResult(null);
+
+                if (!_isKilled)
+                {
+                    _exitTcs.TrySetResult(null);
+                }
+                else
+                {
+                    _exitTcs.TrySetCanceled();
+                }
             };
 
             // Start the process
@@ -62,23 +72,25 @@ namespace CliWrap.Internal
             StartTime = _nativeProcess.StartTime;
         }
 
-        public bool TryKill()
+        public void Kill()
         {
             try
             {
-                _nativeProcess.EnableRaisingEvents = false;
+                _isKilled = true;
                 _nativeProcess.Kill(true);
-
-                return true;
             }
             catch
             {
-                Debug.Fail("Failed to kill process.");
-                return false;
-            }
-            finally
-            {
-                _exitTcs.TrySetCanceled();
+                // All exceptions could indicate that the process has already
+                // exited or is currently getting terminated.
+                // We can't know if the process has actually failed to terminate,
+                // so, as a safeguard, we will cancel the task source after X seconds.
+                // Ideally, WaitUntilExitAsync() should NOT return before the process terminates.
+                _ = Task.Delay(TimeSpan.FromSeconds(3)).ContinueWith(_ =>
+                {
+                    if (_exitTcs.TrySetCanceled())
+                        Debug.Fail("Process termination timed out.");
+                });
             }
         }
 

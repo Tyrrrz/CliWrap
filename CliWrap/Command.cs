@@ -367,7 +367,7 @@ namespace CliWrap
             // Setup and start process
             using var _1 = process;
             process.Start();
-            using var _2 = cancellationToken.Register(() => process.TryKill());
+            using var _2 = cancellationToken.Register(process.Kill);
 
             // Start piping in parallel
             var pipingTasks = new[]
@@ -390,7 +390,7 @@ namespace CliWrap
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                // Don't throw if cancellation came internally and not by user request
+                // Don't throw if cancellation happened internally and not by user request
             }
 
             // Validate exit code if required
