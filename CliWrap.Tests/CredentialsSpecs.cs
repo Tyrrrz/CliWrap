@@ -19,7 +19,7 @@ namespace CliWrap.Tests
 
             // Arrange
             var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a.Add(Dummy.Program.FilePath).Add("test"))
+                .WithArguments(a => a.Add(Dummy.Program.FilePath))
                 .WithCredentials(c => c
                     .SetUserName("user123")
                     .SetPassword("password123"));
@@ -39,7 +39,7 @@ namespace CliWrap.Tests
 
             // Arrange
             var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a.Add(Dummy.Program.FilePath).Add("test"))
+                .WithArguments(a => a.Add(Dummy.Program.FilePath))
                 .WithCredentials(c => c
                     .SetDomain("domain123")
                     .SetUserName("user123")
@@ -54,12 +54,9 @@ namespace CliWrap.Tests
         {
             Skip.If(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
-            // We can't really test the happy path, but at least can verify
-            // that the credentials have been passed correctly.
-
             // Arrange
             var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a.Add(Dummy.Program.FilePath).Add("test"))
+                .WithArguments(a => a.Add(Dummy.Program.FilePath))
                 .WithCredentials(c => c
                     .SetUserName("user123")
                     .SetPassword("password123"));
