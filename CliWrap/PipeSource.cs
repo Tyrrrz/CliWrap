@@ -21,6 +21,11 @@ namespace CliWrap
     public partial class PipeSource
     {
         /// <summary>
+        /// Pipe source that pushes no data.
+        /// </summary>
+        public static PipeSource Null { get; } = FromStream(Stream.Null);
+
+        /// <summary>
         /// Creates a pipe source from a readable stream.
         /// </summary>
         public static PipeSource FromStream(Stream stream, bool autoFlush) => new StreamPipeSource(stream, autoFlush);
@@ -51,11 +56,6 @@ namespace CliWrap
         /// Creates a pipe source from the standard output of a command.
         /// </summary>
         public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
-
-        /// <summary>
-        /// Pipe source that pushes no data.
-        /// </summary>
-        public static PipeSource Null { get; } = FromStream(Stream.Null);
     }
 
     internal class StreamPipeSource : PipeSource
