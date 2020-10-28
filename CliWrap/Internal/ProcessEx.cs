@@ -42,7 +42,9 @@ namespace CliWrap.Internal
             _nativeProcess.EnableRaisingEvents = true;
             _nativeProcess.Exited += (sender, args) =>
             {
-                ExitTime = _nativeProcess.ExitTime;
+                // Don't rely on Process.ExitTime.
+                // See the code for StartTime below for explanation.
+                ExitTime = DateTimeOffset.Now;
                 ExitCode = _nativeProcess.ExitCode;
 
                 if (!_isKilled)
@@ -64,12 +66,19 @@ namespace CliWrap.Internal
                 );
             }
 
+            // We can't access Process.StartTime if the process has already terminated.
+            // It's entirely possible that the process exits so fast that by the time
+            // we try to get the start time, it won't be accessible anymore.
+            // See: https://github.com/Tyrrrz/CliWrap/issues/93
+            // Calculating time ourselves is slightly inaccurate, but at least we can
+            // guarantee it won't fail.
+            StartTime = DateTimeOffset.Now;
+
             // Copy metadata
             Id = _nativeProcess.Id;
             StdIn = _nativeProcess.StandardInput.BaseStream;
             StdOut = _nativeProcess.StandardOutput.BaseStream;
             StdErr = _nativeProcess.StandardError.BaseStream;
-            StartTime = _nativeProcess.StartTime;
         }
 
         public void Kill()
