@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,51 +18,44 @@ namespace CliWrap.Internal
     // - Consumer goes through, claims read lock, reads one message, releases write lock
     // - Process repeats until the channel transmission is terminated
 
-    internal class Channel<T> : IDisposable
+    internal class Channel<T> : IDisposable where T : class
     {
-        // No need for concurrent queue because we have locks
-        private readonly Queue<T> _queue = new Queue<T>(1);
         private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _readLock = new SemaphoreSlim(0, 1);
         private readonly TaskCompletionSource<object?> _closedTcs = new TaskCompletionSource<object?>();
 
-        private bool _isDisposed;
-
-        private void EnsureNotDisposed()
-        {
-            if (_isDisposed)
-                throw new ObjectDisposedException(GetType().Name);
-        }
+        private T? _lastItem;
 
         public async Task PublishAsync(T item, CancellationToken cancellationToken)
         {
-            EnsureNotDisposed();
-
             await _writeLock.WaitAsync(cancellationToken);
-            _queue.Enqueue(item);
+
+            Debug.Assert(_lastItem == null, "Channel overwriting last item.");
+
+            _lastItem = item;
             _readLock.Release();
         }
 
         public async IAsyncEnumerable<T> ReceiveAsync([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            EnsureNotDisposed();
-
-            while (!_isDisposed)
+            while (true)
             {
                 var task = await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task);
 
                 // Task.WhenAny() does not throw if the underlying task was cancelled.
-                // So we check it ourselves and propagate it if it was.
+                // So we check it ourselves and propagate cancellation if it was requested.
                 if (task.IsCanceled)
                     await task;
 
                 // If the first task to complete was the closing signal, then we will need to break loop.
-                // Because WaitAsync() may have completed asynchronously, we try to read from the queue one last time anyway.
+                // However, WaitAsync() may have completely asynchronously at this point, so we try to
+                // read from the queue one last time anyway.
                 var isClosed = task == _closedTcs.Task;
 
-                if (_queue.TryDequeue(out var next))
+                if (_lastItem != null)
                 {
-                    yield return next;
+                    yield return _lastItem;
+                    _lastItem = null;
 
                     if (!isClosed)
                         _writeLock.Release();
@@ -76,10 +70,7 @@ namespace CliWrap.Internal
 
         public void Dispose()
         {
-            if (_isDisposed)
-                return;
-
-            _isDisposed = true;
+            Debug.Assert(_lastItem == null, "Channel disposed with an item in queue.");
 
             Close();
             _writeLock.Dispose();
