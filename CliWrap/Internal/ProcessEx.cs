@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CliWrap.Internal
@@ -11,6 +12,9 @@ namespace CliWrap.Internal
 
         private readonly TaskCompletionSource<object?> _exitTcs =
             new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private CancellationTokenSource? _waitTimeoutCts;
+        private CancellationTokenRegistration? _waitTimeoutRegistration;
 
         private bool _isKilled;
 
@@ -90,21 +94,29 @@ namespace CliWrap.Internal
             }
             catch
             {
-                // All exceptions could indicate that the process has already
-                // exited or is currently getting terminated.
-                // We can't know if the process has actually failed to terminate,
-                // so, as a safeguard, we will cancel the task source after X seconds.
-                // Ideally, WaitUntilExitAsync() should NOT return before the process terminates.
-                _ = Task.Delay(TimeSpan.FromSeconds(3)).ContinueWith(_ =>
+                // Ideally, we want to make sure WaitUntilExitAsync() does NOT return before the process terminates.
+                // Getting an exception here could indicate an actual failure to kill the process, but could also
+                // indicate that the process has already exited (race condition).
+                // The exception itself doesn't carry enough information to differentiate between those cases.
+                // As a workaround, we swallow all exceptions and create a delayed cancellation registration
+                // that will cancel the waiting task after a timeout, preventing a potential deadlock.
+                _waitTimeoutCts = new CancellationTokenSource();
+                _waitTimeoutRegistration = _waitTimeoutCts.Token.Register(() =>
                 {
                     if (_exitTcs.TrySetCanceled())
                         Debug.Fail("Process termination timed out.");
                 });
+                _waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3));
             }
         }
 
         public async Task WaitUntilExitAsync() => await _exitTcs.Task;
 
-        public void Dispose() => _nativeProcess.Dispose();
+        public void Dispose()
+        {
+            _waitTimeoutRegistration?.Dispose();
+            _waitTimeoutCts?.Dispose();
+            _nativeProcess.Dispose();
+        }
     }
 }
