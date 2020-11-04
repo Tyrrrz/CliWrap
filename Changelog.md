@@ -1,3 +1,8 @@
+### v3.2.3 (04-Nov-2020)
+
+- Fixed an issue where `Command.ExecuteAsync(...)` sometimes threw `InvalidOperationException` indicating that the process has already exited. This problem only happened on Linux and macOS when the process exited too quickly.
+- Improved performance and memory usage in async event stream execution model.
+
 ### v3.2.2 (15-Oct-2020)
 
 - Fixed an issue where `Command.ExecuteAsync(...)` sometimes returned before the process actually exited, in case cancellation was requested. Now, this method only returns when the process has fully terminated or if the termination has failed for whatever reason.
