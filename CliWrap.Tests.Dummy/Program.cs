@@ -113,7 +113,7 @@ namespace CliWrap.Tests.Dummy
 
                     while (bytesCopied < size)
                     {
-                        var bytesToRead = (int) Math.Min(buffer.Length, size - bytesCopied);
+                        var bytesToRead = (int)Math.Min(buffer.Length, size - bytesCopied);
 
                         var bytesRead = input.Read(buffer, 0, bytesToRead);
                         if (bytesRead == 0)
@@ -197,7 +197,7 @@ namespace CliWrap.Tests.Dummy
                     {
                         Random.NextBytes(buffer);
 
-                        var bytesToCopy = Math.Min((int) bytesRemaining, buffer.Length);
+                        var bytesToCopy = Math.Min((int)bytesRemaining, buffer.Length);
                         output.Write(buffer, 0, bytesToCopy);
 
                         bytesRemaining -= bytesToCopy;
@@ -221,7 +221,7 @@ namespace CliWrap.Tests.Dummy
             if (args.Length <= 0)
                 return 0;
 
-            var command = args.ElementAtOrDefault(0);
+            var command = args.First();
             var commandArgs = args.Skip(1).ToArray();
 
             return Commands[command](commandArgs);

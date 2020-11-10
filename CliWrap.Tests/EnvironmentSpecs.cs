@@ -15,7 +15,7 @@ namespace CliWrap.Tests
         public async Task I_can_execute_a_command_with_a_custom_working_directory_path()
         {
             // Arrange
-            var workingDirPath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+            var workingDirPath = Directory.GetParent(Directory.GetCurrentDirectory())!.FullName;
 
             var cmd = Cli.Wrap("dotnet")
                 .WithWorkingDirectory(workingDirPath)
