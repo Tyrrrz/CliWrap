@@ -7,7 +7,6 @@
     <IsTestProject>true</IsTestProject>
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
-    <CoverletOutput>bin/$(Configuration)/Coverage.xml</CoverletOutput>
   </PropertyGroup>
 
   <ItemGroup>
