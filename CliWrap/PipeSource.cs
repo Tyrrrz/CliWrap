@@ -90,6 +90,9 @@ namespace CliWrap
         public CommandPipeSource(Command command) => _command = command;
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken);
+            // Removing `.Task` here breaks a few tests in release mode on .NET5.
+            // See: https://github.com/Tyrrrz/CliWrap/issues/97
+            // Likely an issue with ConfigureAwait.Fody, so may potentially get fixed with a future package update.
+            await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken).Task;
     }
 }
