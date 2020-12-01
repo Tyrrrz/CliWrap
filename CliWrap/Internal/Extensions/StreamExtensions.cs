@@ -35,7 +35,8 @@ namespace CliWrap.Internal.Extensions
             // this enables us to convert all of these: "A\r\rB", "A\n\nB" and "A\r\n\r\nB" into 3 lines: "A", "" and "B"
             // if we didn't do this the last example would be converted into 5 lines
             char? lineSeparator = null;
-            
+            bool firstChar = true;
+
             int charsRead;
             while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
@@ -44,8 +45,9 @@ namespace CliWrap.Internal.Extensions
                     char current = buffer.Array[i];
 
                     // if the first char we read is a '\r' we don't return an empty line 
-                    if (current == '\r' && reader.BaseStream.Position == charsRead && i == 0)
+                    if (current == '\r' && firstChar)
                     {
+	                    firstChar = false;
                         continue;
                     }
                     
@@ -65,6 +67,8 @@ namespace CliWrap.Internal.Extensions
                         stringBuilder.Append(current);
                         lineSeparator = null;
                     }
+
+	                firstChar = false;
                 }
             }
 
