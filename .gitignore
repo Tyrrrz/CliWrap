@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # Coverage
 *.opencover.xml
+
+# Rider
+.idea/
