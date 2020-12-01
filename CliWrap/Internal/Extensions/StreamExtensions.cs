@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+[assembly: InternalsVisibleTo("CliWrap.Tests")]
 namespace CliWrap.Internal.Extensions
 {
     internal static class StreamExtensions
@@ -29,21 +30,40 @@ namespace CliWrap.Internal.Extensions
         {
             var stringBuilder = new StringBuilder();
             using var buffer = PooledBuffer.ForStreamReader();
-
+            
+            // contains the first char of the line break string in a series of line breaks
+            // this enables us to convert all of these: "A\r\rB", "A\n\nB" and "A\r\n\r\nB" into 3 lines: "A", "" and "B"
+            // if we didn't do this the last example would be converted into 5 lines
+            char? lineSeparator = null;
+            
             int charsRead;
             while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
                 for (var i = 0; i < charsRead; i++)
                 {
-                    if (buffer.Array[i] == '\n')
+                    char current = buffer.Array[i];
+
+                    // if the first char we read is a '\r' we don't return an empty line 
+                    if (current == '\r' && reader.BaseStream.Position == charsRead && i == 0)
                     {
-                        // Trigger on buffered input (even if it's empty)
-                        yield return stringBuilder.ToString();
-                        stringBuilder.Clear();
+                        continue;
                     }
-                    else if (buffer.Array[i] != '\r')
+                    
+                    if (current == '\n' || current == '\r')
                     {
-                        stringBuilder.Append(buffer.Array[i]);
+                        lineSeparator ??= current;
+                        
+                        if (current == lineSeparator)
+                        {
+                            // Trigger on buffered input (even if it's empty)
+                            yield return stringBuilder.ToString();
+                            stringBuilder.Clear();
+                        }
+                    }
+                    else
+                    {
+                        stringBuilder.Append(current);
+                        lineSeparator = null;
                     }
                 }
             }
