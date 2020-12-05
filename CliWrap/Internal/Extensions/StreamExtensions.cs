@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("CliWrap.Tests")]
 namespace CliWrap.Internal.Extensions
 {
     internal static class StreamExtensions
@@ -30,49 +29,50 @@ namespace CliWrap.Internal.Extensions
         {
             var stringBuilder = new StringBuilder();
             using var buffer = PooledBuffer.ForStreamReader();
-            
-            // contains the first char of the line break string in a series of line breaks
-            // this enables us to convert all of these: "A\r\rB", "A\n\nB" and "A\r\n\r\nB" into 3 lines: "A", "" and "B"
-            // if we didn't do this the last example would be converted into 5 lines
-            char? lineSeparator = null;
-            bool firstChar = true;
+
+            // Following sequences are treated as individual linebreaks:
+            // - \r
+            // - \n
+            // - \r\n
+            // Even though \r and \n are linebreaks on their own, \r\n together
+            // should not yield two lines. To ensure that, we keep track of the
+            // previous char and check if it's part of a sequence.
+            var prevSeqChar = (char?) null;
 
             int charsRead;
             while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
             {
                 for (var i = 0; i < charsRead; i++)
                 {
-                    char current = buffer.Array[i];
+                    var curChar = buffer.Array[i];
 
-                    // if the first char we read is a '\r' we don't return an empty line 
-                    if (current == '\r' && firstChar)
+                    // If current char and last char are part of a line break sequence,
+                    // skip over the current char and move on.
+                    // The buffer was already yielded in the previous iteration, so there's
+                    // nothing left to do.
+                    if (prevSeqChar == '\r' && curChar == '\n')
                     {
-	                    firstChar = false;
+                        prevSeqChar = null;
                         continue;
                     }
-                    
-                    if (current == '\n' || current == '\r')
+
+                    // If current char is \n or \r, yield the buffer (even if it is empty)
+                    if (curChar == '\n' || curChar == '\r')
                     {
-                        lineSeparator ??= current;
-                        
-                        if (current == lineSeparator)
-                        {
-                            // Trigger on buffered input (even if it's empty)
-                            yield return stringBuilder.ToString();
-                            stringBuilder.Clear();
-                        }
+                        yield return stringBuilder.ToString();
+                        stringBuilder.Clear();
                     }
+                    // For any other char, just append it to the buffer
                     else
                     {
-                        stringBuilder.Append(current);
-                        lineSeparator = null;
+                        stringBuilder.Append(curChar);
                     }
 
-	                firstChar = false;
+                    prevSeqChar = curChar;
                 }
             }
 
-            // Yield what's remaining
+            // Yield what's remaining in the buffer
             if (stringBuilder.Length > 0)
                 yield return stringBuilder.ToString();
         }
