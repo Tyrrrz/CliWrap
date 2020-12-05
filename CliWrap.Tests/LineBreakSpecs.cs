@@ -14,15 +14,15 @@ namespace CliWrap.Tests
             // Arrange
             const string content = "Foo\nBar\nBaz";
 
+            var stdOutLines = new List<string>();
+
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
-
-            var stdOutLines = new List<string>();
+                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
 
             // Act
-            await (cmd | stdOutLines.Add).ExecuteAsync();
+            await cmd.ExecuteAsync();
 
             // Assert
             stdOutLines.Should().HaveCount(3);
@@ -34,15 +34,15 @@ namespace CliWrap.Tests
             // Arrange
             const string content = "Foo\rBar\rBaz";
 
+            var stdOutLines = new List<string>();
+
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
-
-            var stdOutLines = new List<string>();
+                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
 
             // Act
-            await (cmd | stdOutLines.Add).ExecuteAsync();
+            await cmd.ExecuteAsync();
 
             // Assert
             stdOutLines.Should().HaveCount(3);
@@ -54,15 +54,15 @@ namespace CliWrap.Tests
             // Arrange
             const string content = "Foo\r\nBar\r\nBaz";
 
+            var stdOutLines = new List<string>();
+
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
-
-            var stdOutLines = new List<string>();
+                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
 
             // Act
-            await (cmd | stdOutLines.Add).ExecuteAsync();
+            await cmd.ExecuteAsync();
 
             // Assert
             stdOutLines.Should().HaveCount(3);
@@ -74,15 +74,15 @@ namespace CliWrap.Tests
             // Arrange
             const string content = "Foo\r\rBar\n\nBaz";
 
+            var stdOutLines = new List<string>();
+
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
-
-            var stdOutLines = new List<string>();
+                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
 
             // Act
-            await (cmd | stdOutLines.Add).ExecuteAsync();
+            await cmd.ExecuteAsync();
 
             // Assert
             stdOutLines.Should().HaveCount(5);
