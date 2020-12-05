@@ -1,3 +1,7 @@
+### v3.2.4 (05-Dec-2020)
+
+- Fixed an issue where `PipeTarget.ToDelegate(...)`, as well as execution models that depend on it (i.e. observable and async streams), didn't treat standalone `\r` character as a valid linebreak. (Thanks [@koryphaee](https://github.com/koryphaee))
+
 ### v3.2.3 (04-Nov-2020)
 
 - Fixed an issue where `Command.ExecuteAsync(...)` sometimes threw `InvalidOperationException` indicating that the process has already exited. This problem only happened on Linux and macOS when the process exited too quickly.
