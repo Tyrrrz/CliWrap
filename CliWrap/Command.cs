@@ -12,6 +12,10 @@ using CliWrap.Exceptions;
 using CliWrap.Internal;
 using CliWrap.Internal.Extensions;
 
+// Using obsolete members to increase coverage surface.
+// TODO: remove this next major version.
+#pragma warning disable 618
+
 namespace CliWrap
 {
     /// <summary>

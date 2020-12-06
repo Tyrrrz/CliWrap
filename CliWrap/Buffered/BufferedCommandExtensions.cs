@@ -24,14 +24,14 @@ namespace CliWrap.Buffered
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
 
-            var stdOutPipe = PipeTarget.Merge(
+            var stdOutPipe = Pipe.Merge(
                 command.StandardOutputPipe,
-                PipeTarget.ToStringBuilder(stdOutBuffer, standardOutputEncoding)
+                Pipe.ToStringBuilder(stdOutBuffer, standardOutputEncoding)
             );
 
-            var stdErrPipe = PipeTarget.Merge(
+            var stdErrPipe = Pipe.Merge(
                 command.StandardErrorPipe,
-                PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
+                Pipe.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
             );
 
             var commandPiped = command
