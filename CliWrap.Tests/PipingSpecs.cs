@@ -10,10 +10,6 @@ using CliWrap.Tests.Internal.Extensions;
 using FluentAssertions;
 using Xunit;
 
-// Using obsolete members to increase coverage surface.
-// TODO: remove this next major version.
-#pragma warning disable 618
-
 namespace CliWrap.Tests
 {
     public class PipingSpecs : IClassFixture<TempOutputFixture>

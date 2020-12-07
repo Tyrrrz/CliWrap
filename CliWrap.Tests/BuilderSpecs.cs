@@ -114,10 +114,10 @@ namespace CliWrap.Tests
         public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_stdin_pipe()
         {
             // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardInputPipe(Pipe.FromNull());
+            var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
 
             // Act
-            var cmdOther = cmd.WithStandardInputPipe(Pipe.FromString("new"));
+            var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
@@ -128,10 +128,10 @@ namespace CliWrap.Tests
         public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_stdout_pipe()
         {
             // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardOutputPipe(Pipe.ToNull());
+            var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
 
             // Act
-            var cmdOther = cmd.WithStandardOutputPipe(Pipe.ToStream(Stream.Null));
+            var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
@@ -142,10 +142,10 @@ namespace CliWrap.Tests
         public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_stderr_pipe()
         {
             // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardErrorPipe(Pipe.ToNull());
+            var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
 
             // Act
-            var cmdOther = cmd.WithStandardErrorPipe(Pipe.ToStream(Stream.Null));
+            var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));
