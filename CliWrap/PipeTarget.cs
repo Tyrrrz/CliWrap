@@ -235,38 +235,40 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
-            // Create separate half-duplex sub-streams for each target
-            var subStreams = Targets
-                .Select(_ => new HalfDuplexStream())
-                .ToArray();
+            // Create a separate half-duplex stream for each target
+            var targetSubStreams = new Dictionary<PipeTarget, HalfDuplexStream>();
+            foreach (var target in Targets)
+                targetSubStreams[target] = new HalfDuplexStream();
 
             try
             {
-                // Start piping from those streams
-                var targetTasks = Targets
-                    .Zip(subStreams, async (target, subStream) => await target.CopyFromAsync(subStream, cancellationToken))
-                    .ToArray();
+                // Start reading from those streams in background
+                var readingTask = Task.WhenAll(
+                    targetSubStreams.Select(async targetSubStream =>
+                    {
+                        var (target, subStream) = targetSubStream;
+                        await target.CopyFromAsync(subStream, cancellationToken);
+                    })
+                );
 
-                // Read from master stream and write data to sub-streams
+                // Read from the master stream and replicate the data to each sub-stream
                 using var buffer = PooledBuffer.ForStream();
                 int bytesRead;
                 while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) > 0)
                 {
-                    foreach (var subStream in subStreams)
+                    foreach (var (_, subStream) in targetSubStreams)
                         await subStream.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
                 }
 
                 // Report that transmission is complete
-                foreach (var subStream in subStreams)
+                foreach (var (_, subStream) in targetSubStreams)
                     await subStream.ReportCompletionAsync(cancellationToken);
 
-                // Wait until all tasks complete so that it's safe to dispose streams
-                await Task.WhenAll(targetTasks);
+                await readingTask;
             }
             finally
             {
-                // Cleanup
-                foreach (var subStream in subStreams)
+                foreach (var (_, subStream) in targetSubStreams)
                     await subStream.DisposeAsync();
             }
         }
