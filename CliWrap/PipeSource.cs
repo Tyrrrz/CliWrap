@@ -24,7 +24,7 @@ namespace CliWrap
         /// Pipe source that does not provide any data.
         /// Logical equivalent to <code>/dev/null</code>.
         /// </summary>
-        public static PipeSource Null { get; } = FromStream(Stream.Null, false);
+        public static PipeSource Null { get; } = new NullPipeSource();
 
         /// <summary>
         /// Creates a pipe source that reads from a stream.
@@ -57,6 +57,14 @@ namespace CliWrap
         /// Creates a pipe source that reads from standard output of a command.
         /// </summary>
         public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
+    }
+
+    internal class NullPipeSource : PipeSource
+    {
+        public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+            !cancellationToken.IsCancellationRequested
+                ? Task.CompletedTask
+                : Task.FromCanceled(cancellationToken);
     }
 
     internal class StreamPipeSource : PipeSource

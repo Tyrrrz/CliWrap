@@ -27,7 +27,7 @@ namespace CliWrap
         /// Pipe target that discards all data.
         /// Logical equivalent to <code>/dev/null</code>.
         /// </summary>
-        public static PipeTarget Null { get; } = ToStream(Stream.Null, false);
+        public static PipeTarget Null { get; } = new NullPipeTarget();
 
         /// <summary>
         /// Creates a pipe target that writes to a stream.
@@ -131,6 +131,17 @@ namespace CliWrap
         /// Creates a pipe target that replicates data over multiple inner targets.
         /// </summary>
         public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>) targets);
+    }
+
+    internal class NullPipeTarget : PipeTarget
+    {
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+        {
+            // We need to actually exhaust the input stream to avoid potential deadlocks.
+            // TODO: none of the tests fail if this is replaced with Task.CompletedTask,
+            // so the above claim may be incorrect. Need to verify.
+            await source.CopyToAsync(Stream.Null, cancellationToken);
+        }
     }
 
     internal class StreamPipeTarget : PipeTarget
