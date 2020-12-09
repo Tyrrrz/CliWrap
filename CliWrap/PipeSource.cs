@@ -21,39 +21,40 @@ namespace CliWrap
     public partial class PipeSource
     {
         /// <summary>
-        /// Pipe source that pushes no data.
+        /// Pipe source that does not provide any data.
+        /// Logical equivalent to <code>/dev/null</code>.
         /// </summary>
-        public static PipeSource Null { get; } = FromStream(Stream.Null);
+        public static PipeSource Null { get; } = FromStream(Stream.Null, false);
 
         /// <summary>
-        /// Creates a pipe source from a readable stream.
+        /// Creates a pipe source that reads from a stream.
         /// </summary>
         public static PipeSource FromStream(Stream stream, bool autoFlush) => new StreamPipeSource(stream, autoFlush);
 
         /// <summary>
-        /// Creates a pipe source from a readable stream.
+        /// Creates a pipe source that reads from a stream.
         /// </summary>
         // TODO: change to optional argument when breaking changes are ok
         public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
 
         /// <summary>
-        /// Creates a pipe source from in-memory data.
+        /// Creates a pipe source that reads from in-memory data.
         /// </summary>
         public static PipeSource FromBytes(byte[] data) => new InMemoryPipeSource(data);
 
         /// <summary>
-        /// Creates a pipe source from a string.
+        /// Creates a pipe source that reads from a string.
         /// </summary>
         public static PipeSource FromString(string str, Encoding encoding) => FromBytes(encoding.GetBytes(str));
 
         /// <summary>
-        /// Creates a pipe source from a string.
+        /// Creates a pipe source that reads from a string.
         /// Uses <see cref="Console.InputEncoding"/> to encode the string into byte stream.
         /// </summary>
         public static PipeSource FromString(string str) => FromString(str, Console.InputEncoding);
 
         /// <summary>
-        /// Creates a pipe source from the standard output of a command.
+        /// Creates a pipe source that reads from standard output of a command.
         /// </summary>
         public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
     }

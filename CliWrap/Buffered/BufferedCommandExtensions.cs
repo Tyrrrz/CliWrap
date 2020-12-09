@@ -6,7 +6,7 @@ using CliWrap.Exceptions;
 namespace CliWrap.Buffered
 {
     /// <summary>
-    /// Convenience extension for executing a command while buffering its streams.
+    /// Extensions for executing a command with buffering.
     /// </summary>
     public static class BufferedCommandExtensions
     {

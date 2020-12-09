@@ -24,55 +24,56 @@ namespace CliWrap
     public partial class PipeTarget
     {
         /// <summary>
-        /// Pipe target that ignores all data.
+        /// Pipe target that discards all data.
+        /// Logical equivalent to <code>/dev/null</code>.
         /// </summary>
-        public static PipeTarget Null { get; } = ToStream(Stream.Null);
+        public static PipeTarget Null { get; } = ToStream(Stream.Null, false);
 
         /// <summary>
-        /// Creates a pipe target from a writeable stream.
+        /// Creates a pipe target that writes to a stream.
         /// </summary>
         public static PipeTarget ToStream(Stream stream, bool autoFlush) => new StreamPipeTarget(stream, autoFlush);
 
         /// <summary>
-        /// Creates a pipe target from a writeable stream.
+        /// Creates a pipe target that writes to a stream.
         /// </summary>
         // TODO: change to optional argument when breaking changes are ok
         public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
         /// <summary>
-        /// Creates a pipe target from a string builder.
+        /// Creates a pipe target that writes to a string builder.
         /// </summary>
         public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding) =>
             new StringBuilderPipeTarget(stringBuilder, encoding);
 
         /// <summary>
-        /// Creates a pipe target from a string builder.
+        /// Creates a pipe target that writes to a string builder.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
         public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
             ToStringBuilder(stringBuilder, Console.OutputEncoding);
 
         /// <summary>
-        /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
+        /// Creates a pipe target that triggers a delegate on every line written.
         /// </summary>
         public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding) =>
             new DelegatePipeTarget(handleLine, encoding);
 
         /// <summary>
-        /// Creates a pipe target from a delegate that handles the content on a line-by-line basis.
+        /// Creates a pipe target that triggers a delegate on every line written.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
         public static PipeTarget ToDelegate(Action<string> handleLine) =>
             ToDelegate(handleLine, Console.OutputEncoding);
 
         /// <summary>
-        /// Creates a pipe target from a delegate that asynchronously handles the content on a line-by-line basis.
+        /// Creates a pipe target that triggers an asynchronous delegate on every line written.
         /// </summary>
         public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
             new AsyncDelegatePipeTarget(handleLineAsync, encoding);
 
         /// <summary>
-        /// Creates a pipe target from a delegate that asynchronously handles the content on a line-by-line basis.
+        /// Creates a pipe target that triggers an asynchronous delegate on every line written.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
         /// </summary>
         public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
@@ -108,8 +109,7 @@ namespace CliWrap
         }
 
         /// <summary>
-        /// Merges multiple pipe targets into a single one.
-        /// Data pushed to this pipe will be replicated for all inner targets.
+        /// Creates a pipe target that replicates data over multiple inner targets.
         /// </summary>
         public static PipeTarget Merge(IEnumerable<PipeTarget> targets)
         {
@@ -128,8 +128,7 @@ namespace CliWrap
         }
 
         /// <summary>
-        /// Merges multiple pipe targets into a single one.
-        /// Data pushed to this pipe will be replicated for all inner targets.
+        /// Creates a pipe target that replicates data over multiple inner targets.
         /// </summary>
         public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>) targets);
     }

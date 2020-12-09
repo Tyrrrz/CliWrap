@@ -10,15 +10,15 @@ namespace CliWrap.Exceptions
         /// <summary>
         /// Initializes an instance of <see cref="CommandExecutionException"/>.
         /// </summary>
-        public CommandExecutionException(string message)
-            : base(message)
-        {
-        }
+        public CommandExecutionException(string message) : base(message) {}
     }
 
     public partial class CommandExecutionException
     {
-        internal static CommandExecutionException ExitCodeValidation(string filePath, string arguments, int exitCode)
+        internal static CommandExecutionException ExitCodeValidation(
+            string filePath,
+            string arguments,
+            int exitCode)
         {
             var message = @$"
 Underlying process reported a non-zero exit code ({exitCode}).
@@ -31,7 +31,11 @@ You can suppress this validation by calling `WithValidation(CommandResultValidat
             return new CommandExecutionException(message);
         }
 
-        internal static CommandExecutionException ExitCodeValidation(string filePath, string arguments, int exitCode, string standardError)
+        internal static CommandExecutionException ExitCodeValidation(
+            string filePath,
+            string arguments,
+            int exitCode,
+            string standardError)
         {
             var message = @$"
 Underlying process reported a non-zero exit code ({exitCode}).

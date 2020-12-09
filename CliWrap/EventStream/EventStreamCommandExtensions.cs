@@ -9,7 +9,7 @@ using CliWrap.Internal;
 namespace CliWrap.EventStream
 {
     /// <summary>
-    /// Convenience extension for executing a command as an event stream.
+    /// Extensions for executing a command as an event stream.
     /// </summary>
     public static class EventStreamCommandExtensions
     {

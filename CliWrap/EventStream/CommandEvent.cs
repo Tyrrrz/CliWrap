@@ -5,13 +5,13 @@ namespace CliWrap.EventStream
     /// <summary>
     /// Represents an abstract event produced by a command.
     /// Use pattern matching to handle specific instances of this type.
-    /// Can be one of the following:
+    /// Can be either one of the following:
     /// <see cref="StartedCommandEvent"/>,
     /// <see cref="StandardOutputCommandEvent"/>,
     /// <see cref="StandardErrorCommandEvent"/>,
     /// <see cref="ExitedCommandEvent"/>.
     /// </summary>
-    public abstract class CommandEvent { }
+    public abstract class CommandEvent {}
 
     /// <summary>
     /// Represents an event that is triggered when the command starts executing.
