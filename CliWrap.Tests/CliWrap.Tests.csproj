@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../CliWrap.props" />
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -16,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="GitHubActionsTestLogger" Version="1.1.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="coverlet.msbuild" Version="2.9.0" PrivateAssets="all" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -33,7 +32,7 @@
     <None Include="../CliWrap.Tests.Dummy/bin/$(Configuration)/$(TargetFramework)/CliWrap.Tests.Dummy.runtimeconfig.json">
       <Link>CliWrap.Tests.Dummy.runtimeconfig.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>False</Visible>
+      <Visible>false</Visible>
     </None>
   </ItemGroup>
 
