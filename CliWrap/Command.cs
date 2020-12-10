@@ -370,12 +370,11 @@ namespace CliWrap
             using var _2 = cancellationToken.Register(process.Kill);
 
             // Start piping in parallel
-            var pipingTasks = new[]
-            {
+            var pipingTask = Task.WhenAll(
                 PipeStandardInputAsync(process, stdInCts.Token),
                 PipeStandardOutputAsync(process, cancellationToken),
                 PipeStandardErrorAsync(process, cancellationToken)
-            };
+            );
 
             // Wait until the process terminates or gets killed
             await process.WaitUntilExitAsync();
@@ -386,7 +385,7 @@ namespace CliWrap
             try
             {
                 // Wait until piping is done and propagate exceptions
-                await Task.WhenAll(pipingTasks);
+                await pipingTask;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
