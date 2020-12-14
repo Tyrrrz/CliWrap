@@ -38,6 +38,6 @@
         /// <summary>
         /// Empty credentials.
         /// </summary>
-        public static Credentials Default { get; } = new Credentials();
+        public static Credentials Default { get; } = new();
     }
 }

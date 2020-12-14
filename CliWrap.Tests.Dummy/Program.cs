@@ -46,7 +46,7 @@ namespace CliWrap.Tests.Dummy
     // Implementation
     public static partial class Program
     {
-        private static readonly Random Random = new Random(1234567);
+        private static readonly Random Random = new(1234567);
 
         private static readonly IReadOnlyDictionary<string, Func<string[], int>> Commands =
             new Dictionary<string, Func<string[], int>>(StringComparer.OrdinalIgnoreCase)

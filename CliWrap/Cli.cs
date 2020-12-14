@@ -11,6 +11,6 @@
         /// <summary>
         /// Creates a new command that targets the specified command line executable.
         /// </summary>
-        public static Command Wrap(string targetFilePath) => new Command(targetFilePath);
+        public static Command Wrap(string targetFilePath) => new(targetFilePath);
     }
 }

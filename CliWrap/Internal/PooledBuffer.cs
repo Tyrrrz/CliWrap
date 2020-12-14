@@ -16,8 +16,8 @@ namespace CliWrap.Internal
 
     internal static class PooledBuffer
     {
-        public static PooledBuffer<byte> ForStream() => new PooledBuffer<byte>(BufferSizes.Stream);
+        public static PooledBuffer<byte> ForStream() => new(BufferSizes.Stream);
 
-        public static PooledBuffer<char> ForStreamReader() => new PooledBuffer<char>(BufferSizes.StreamReader);
+        public static PooledBuffer<char> ForStreamReader() => new(BufferSizes.StreamReader);
     }
 }

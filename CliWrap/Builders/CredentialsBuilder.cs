@@ -41,7 +41,7 @@
         /// <summary>
         /// Builds the resulting credentials.
         /// </summary>
-        public Credentials Build() => new Credentials(
+        public Credentials Build() => new(
             _domain,
             _userName,
             _password

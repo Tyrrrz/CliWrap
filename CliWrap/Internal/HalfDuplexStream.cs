@@ -8,8 +8,8 @@ namespace CliWrap.Internal
 {
     internal class HalfDuplexStream : Stream
     {
-        private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _readLock = new SemaphoreSlim(0, 1);
+        private readonly SemaphoreSlim _writeLock = new(1, 1);
+        private readonly SemaphoreSlim _readLock = new(0, 1);
 
         private byte[] _currentBuffer = Array.Empty<byte>();
         private int _currentBufferBytes;

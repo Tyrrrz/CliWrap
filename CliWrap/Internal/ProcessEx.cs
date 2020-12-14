@@ -11,7 +11,7 @@ namespace CliWrap.Internal
         private readonly Process _nativeProcess;
 
         private readonly TaskCompletionSource<object?> _exitTcs =
-            new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private CancellationTokenSource? _waitTimeoutCts;
         private CancellationTokenRegistration? _waitTimeoutRegistration;

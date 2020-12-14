@@ -108,7 +108,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the arguments to the specified value.
         /// </summary>
-        public Command WithArguments(string arguments) => new Command(
+        public Command WithArguments(string arguments) => new(
             TargetFilePath,
             arguments,
             WorkingDirPath,
@@ -147,7 +147,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, settings the working directory path to the specified value.
         /// </summary>
-        public Command WithWorkingDirectory(string workingDirPath) => new Command(
+        public Command WithWorkingDirectory(string workingDirPath) => new(
             TargetFilePath,
             Arguments,
             workingDirPath,
@@ -162,7 +162,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the credentials to the specified value.
         /// </summary>
-        public Command WithCredentials(Credentials credentials) => new Command(
+        public Command WithCredentials(Credentials credentials) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -188,7 +188,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the environment variables to the specified value.
         /// </summary>
-        public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string> environmentVariables) => new Command(
+        public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string> environmentVariables) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -214,7 +214,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the validation options to the specified value.
         /// </summary>
-        public Command WithValidation(CommandResultValidation validation) => new Command(
+        public Command WithValidation(CommandResultValidation validation) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -229,7 +229,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the standard input pipe to the specified source.
         /// </summary>
-        public Command WithStandardInputPipe(PipeSource source) => new Command(
+        public Command WithStandardInputPipe(PipeSource source) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -244,7 +244,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the standard output pipe to the specified target.
         /// </summary>
-        public Command WithStandardOutputPipe(PipeTarget target) => new Command(
+        public Command WithStandardOutputPipe(PipeTarget target) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -259,7 +259,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the standard error pipe to the specified target.
         /// </summary>
-        public Command WithStandardErrorPipe(PipeTarget target) => new Command(
+        public Command WithStandardErrorPipe(PipeTarget target) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,

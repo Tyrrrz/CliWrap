@@ -13,7 +13,7 @@ namespace CliWrap.Builders
     {
         private static readonly CultureInfo DefaultCulture = CultureInfo.InvariantCulture;
 
-        private readonly StringBuilder _buffer = new StringBuilder();
+        private readonly StringBuilder _buffer = new();
 
         /// <summary>
         /// Adds the specified value to the list of arguments.

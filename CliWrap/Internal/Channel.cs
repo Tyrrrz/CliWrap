@@ -20,9 +20,9 @@ namespace CliWrap.Internal
 
     internal class Channel<T> : IDisposable where T : class
     {
-        private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _readLock = new SemaphoreSlim(0, 1);
-        private readonly TaskCompletionSource<object?> _closedTcs = new TaskCompletionSource<object?>();
+        private readonly SemaphoreSlim _writeLock = new(1, 1);
+        private readonly SemaphoreSlim _readLock = new(0, 1);
+        private readonly TaskCompletionSource<object?> _closedTcs = new();
 
         private T? _lastItem;
 
