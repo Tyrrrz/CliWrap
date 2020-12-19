@@ -9,7 +9,7 @@ namespace CliWrap.Benchmarks
     public class PipeToStreamBenchmarks
     {
         private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} {Tests.Dummy.Program.PrintRandomBinary} 1000";
+        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-binary";
 
         [Benchmark(Description = "CliWrap", Baseline = true)]
         public async Task<Stream> ExecuteWithCliWrap_PipeToStream()

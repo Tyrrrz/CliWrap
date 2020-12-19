@@ -1,0 +1,16 @@
+﻿using System.IO;
+using System.Threading.Tasks;
+using CliFx;
+using CliFx.Attributes;
+
+namespace CliWrap.Tests.Dummy.Commands
+{
+    [Command("print-working-dir")]
+    public class PrintWorkingDirCommand : ICommand
+    {
+        public async ValueTask ExecuteAsync(IConsole console)
+        {
+            await console.Output.WriteAsync(Directory.GetCurrentDirectory());
+        }
+    }
+}

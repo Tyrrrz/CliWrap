@@ -20,113 +20,115 @@ namespace CliWrap.Tests
             _tempOutputFixture = tempOutputFixture;
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_stdin_from_a_stream()
+        public async Task Stdin_can_be_piped_from_a_stream()
         {
             // Arrange
-            await using var stream = new MemoryStream(new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+            await using var stream = new MemoryStream(new byte[]
+            {
+                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
+            });
 
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintStdInLength));
+                    .Add("echo-stdin"));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be("10");
+            result.StandardOutput.Should().Be("Hello world!");
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_stdin_from_a_file()
+        public async Task Stdin_can_be_piped_from_a_file()
         {
             // Arrange
-            const string expectedContent = "Hello world!";
+            const string expectedOutput = "Hello world!";
 
             var file = new FileInfo(_tempOutputFixture.GetTempFilePath());
-            await file.WriteAllTextAsync(expectedContent);
+            await file.WriteAllTextAsync(expectedOutput);
 
-            var fileStream = file.OpenRead();
+            await using var fileStream = file.OpenRead();
 
             var cmd = fileStream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
+                    .Add("echo-stdin"));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
-            await fileStream.DisposeAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be(expectedContent);
+            result.StandardOutput.Should().Be(expectedOutput);
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_stdin_from_a_string()
+        public async Task Stdin_can_be_piped_from_a_string()
         {
             // Arrange
-            const string str = "Hello world";
+            const string expectedOutput = "Hello world!";
 
-            var cmd = str | Cli.Wrap("dotnet")
+            var cmd = expectedOutput | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
+                    .Add("echo-stdin"));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.Should().Be(str);
+            result.StandardOutput.Should().Be(expectedOutput);
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdin_from_stdout_of_another_command()
+        public async Task Stdin_can_be_piped_from_stdout_of_another_command()
         {
             // Arrange
-            const int expectedSize = 1_000_000;
+            const int expectedLength = 1_000_000;
 
             var cmd =
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(expectedSize)) |
+                    .Add("generate-binary")
+                    .Add("--length").Add(expectedLength)) |
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintStdInLength));
+                    .Add("print-stdin-length"));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be("1000000");
+            result.StandardOutput.Should().Be("1000000");
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_represents_a_pipeline_of_multiple_commands()
+        public async Task Stdin_can_be_piped_from_stdout_of_another_command_in_a_chain()
         {
             // Arrange
             var cmd =
                 "Hello world" |
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut)) |
+                    .Add("echo-stdin")) |
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoPartStdInToStdOut)
-                    .Add(5)) |
+                    .Add("echo-stdin")
+                    .Add("--length").Add(5)) |
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintStdInLength));
+                    .Add("print-stdin-length"));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.TrimEnd().Should().Be("5");
+            result.StandardOutput.Should().Be("5");
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream()
+        public async Task Stdout_can_be_piped_into_a_stream()
         {
             // Arrange
             const int expectedSize = 1_000_000;
@@ -135,8 +137,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(expectedSize)) | stream;
+                    .Add("generate-binary")
+                    .Add("--length").Add(expectedSize)) | stream;
 
             // Act
             await cmd.ExecuteAsync();
@@ -146,7 +148,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_file()
+        public async Task Stdout_can_be_piped_into_a_file()
         {
             // Arrange
             const int expectedSize = 1_000_000;
@@ -157,8 +159,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(expectedSize)) | fileStream;
+                    .Add("generate-binary")
+                    .Add("--length").Add(expectedSize)) | fileStream;
 
             // Act
             await cmd.ExecuteAsync();
@@ -170,7 +172,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_string_builder()
+        public async Task Stdout_can_be_piped_into_a_string_builder()
         {
             // Arrange
             const string expectedOutput = "Hello world!";
@@ -179,18 +181,18 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoArgsToStdOut)
+                    .Add("echo")
                     .Add(expectedOutput)) | buffer;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            buffer.ToString().TrimEnd().Should().Be(expectedOutput);
+            buffer.ToString().Should().Be(expectedOutput);
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_delegate()
+        public async Task Stdout_can_be_piped_into_a_delegate()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -202,8 +204,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount)) | HandleStdOut;
+                    .Add("generate-text-lines")
+                    .Add("--count").Add(expectedLinesCount)) | HandleStdOut;
 
             // Act
             await cmd.ExecuteAsync();
@@ -213,7 +215,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_an_async_delegate()
+        public async Task Stdout_can_be_piped_into_an_async_delegate()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -229,8 +231,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount)) | HandleStdOutAsync;
+                    .Add("generate-text-lines")
+                    .Add("--count").Add(expectedLinesCount)) | HandleStdOutAsync;
 
             // Act
             await cmd.ExecuteAsync();
@@ -240,28 +242,31 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_streams()
+        public async Task Stdout_and_stderr_can_be_piped_into_separate_streams()
         {
             // Arrange
+            const int expectedLength = 1_000_000;
+
             await using var stdOut = new MemoryStream();
             await using var stdErr = new MemoryStream();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(100)) | (stdOut, stdErr);
+                    .Add("generate-binary")
+                    .Add("--target").Add("all")
+                    .Add("--length").Add(expectedLength)) | (stdOut, stdErr);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOut.Length.Should().NotBe(0);
-            stdErr.Length.Should().NotBe(0);
+            stdOut.Length.Should().Be(expectedLength);
+            stdErr.Length.Should().Be(expectedLength);
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_string_builders()
+        public async Task Stdout_and_stderr_can_be_piped_into_separate_string_builders()
         {
             // Arrange
             const string expectedOutput = "Hello world!";
@@ -272,19 +277,19 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoArgsToStdOutAndStdErr)
-                    .Add(expectedOutput)) | (stdOutBuffer, stdErrBuffer);
+                    .Add("echo").Add(expectedOutput)
+                    .Add("--target").Add("all")) | (stdOutBuffer, stdErrBuffer);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutBuffer.ToString().TrimEnd().Should().Be(expectedOutput);
-            stdErrBuffer.ToString().TrimEnd().Should().Be(expectedOutput);
+            stdOutBuffer.ToString().Should().Be(expectedOutput);
+            stdErrBuffer.ToString().Should().Be(expectedOutput);
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_delegates()
+        public async Task Stdout_and_stderr_can_be_piped_into_separate_delegates()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -298,8 +303,9 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount)) | (HandleStdOut, HandleStdErr);
+                    .Add("generate-text-lines")
+                    .Add("--target").Add("all")
+                    .Add("--count").Add(expectedLinesCount)) | (HandleStdOut, HandleStdErr);
 
             // Act
             await cmd.ExecuteAsync();
@@ -310,7 +316,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_and_stderr_into_separate_async_delegates()
+        public async Task Stdout_and_stderr_can_be_piped_into_separate_async_delegates()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -333,8 +339,9 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount)) | (HandleStdOutAsync, HandleStdErrAsync);
+                    .Add("generate-text-lines")
+                    .Add("--target").Add("all")
+                    .Add("--count").Add(expectedLinesCount)) | (HandleStdOutAsync, HandleStdErrAsync);
 
             // Act
             await cmd.ExecuteAsync();
@@ -345,7 +352,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_multiple_streams()
+        public async Task Stdout_can_be_piped_into_a_merged_target()
         {
             // Arrange
             const int expectedSize = 100_000;
@@ -362,8 +369,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(expectedSize)) | pipeTarget;
+                    .Add("generate-binary")
+                    .Add("--length").Add(expectedSize)) | pipeTarget;
 
             // Act
             await cmd.ExecuteAsync();
@@ -377,91 +384,10 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_with_large_buffer_into_multiple_streams()
-        {
-            // https://github.com/Tyrrrz/CliWrap/issues/81
-
-            // Arrange
-            const int expectedSize = 1_000_000;
-            const int bufferSize = 100_000; // needs to be >= BufferSizes.Stream to fail
-
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(expectedSize)
-                    .Add(bufferSize));
-
-            // Act
-
-            // Run without merging to get the expected byte array (random seed is constant)
-            await using var unmergedStream = new MemoryStream();
-            await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
-
-            // Run with merging to check if it's the same
-            await using var mergedStream1 = new MemoryStream();
-            await using var mergedStream2 = new MemoryStream();
-            await (cmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2))).ExecuteAsync();
-
-            // Assert
-            unmergedStream.Length.Should().Be(expectedSize);
-            mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
-            mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
-        }
-
-        [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_stream_while_also_buffering()
+        public async Task Stdout_can_be_piped_into_a_hierarchy_of_merged_targets()
         {
             // Arrange
-            await using var stream = new MemoryStream();
-
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomText)
-                    .Add(100_000)) | stream;
-
-            // Act
-            var result = await cmd.ExecuteBufferedAsync();
-
-            stream.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(stream);
-            var streamContent = await streamReader.ReadToEndAsync();
-
-            // Assert
-            result.StandardOutput.Should().Be(streamContent);
-        }
-
-        [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_delegate_while_also_buffering()
-        {
-            // https://github.com/Tyrrrz/CliWrap/issues/75
-
-            // Arrange
-            const int expectedLinesCount = 100;
-
-            var delegateLines = new List<string>();
-            void HandleStdOut(string s) => delegateLines.Add(s);
-
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount)) | HandleStdOut;
-
-            // Act
-            var result = await cmd.ExecuteBufferedAsync();
-            var resultLines = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-
-            // Assert
-            delegateLines.Should().Equal(resultLines);
-        }
-
-        [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_its_stdout_into_a_hierarchy_of_targets()
-        {
-            // Arrange
-            const int expectedSize = 10_000;
+            const int expectedLength = 10_000;
             await using var stream1 = new MemoryStream();
             await using var stream2 = new MemoryStream();
             await using var stream3 = new MemoryStream();
@@ -481,37 +407,118 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomBinary)
-                    .Add(expectedSize)) | pipeTarget;
+                    .Add("generate-binary")
+                    .Add("--length").Add(expectedLength)) | pipeTarget;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stream1.Length.Should().Be(expectedSize);
-            stream2.Length.Should().Be(expectedSize);
-            stream3.Length.Should().Be(expectedSize);
-            stream4.Length.Should().Be(expectedSize);
+            stream1.Length.Should().Be(expectedLength);
+            stream2.Length.Should().Be(expectedLength);
+            stream3.Length.Should().Be(expectedLength);
+            stream4.Length.Should().Be(expectedLength);
             stream1.ToArray().Should().Equal(stream2.ToArray());
             stream2.ToArray().Should().Equal(stream3.ToArray());
             stream3.ToArray().Should().Equal(stream4.ToArray());
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_nothing_and_it_will_not_deadlock()
+        public async Task Stdout_can_be_piped_into_multiple_streams_simultaneously_with_large_buffer()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/81
+
+            // Arrange
+            const int expectedSize = 1_000_000;
+            const int bufferSize = 100_000; // needs to be >= BufferSizes.Stream to fail
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add("generate-binary")
+                    .Add("--length").Add(expectedSize)
+                    .Add("--buffer").Add(bufferSize));
+
+            // Act
+
+            // Run without merging to get the expected byte array (random seed is constant)
+            await using var unmergedStream = new MemoryStream();
+            await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
+
+            // Run with merging to check if it's the same
+            await using var mergedStream1 = new MemoryStream();
+            await using var mergedStream2 = new MemoryStream();
+            await (cmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2))).ExecuteAsync();
+
+            // Assert
+            unmergedStream.Length.Should().Be(expectedSize);
+            mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
+            mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
+        }
+
+        [Fact(Timeout = 15000)]
+        public async Task Stdout_can_be_piped_into_a_stream_while_also_buffering()
+        {
+            // Arrange
+            await using var stream = new MemoryStream();
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add("generate-text")
+                    .Add("--length").Add(100_000)) | stream;
+
+            // Act
+            var result = await cmd.ExecuteBufferedAsync();
+
+            stream.Seek(0, SeekOrigin.Begin);
+            using var streamReader = new StreamReader(stream);
+            var streamContent = await streamReader.ReadToEndAsync();
+
+            // Assert
+            result.StandardOutput.Should().Be(streamContent);
+        }
+
+        [Fact(Timeout = 15000)]
+        public async Task Stdout_can_be_piped_into_into_a_delegate_while_also_buffering()
+        {
+            // https://github.com/Tyrrrz/CliWrap/issues/75
+
+            // Arrange
+            const int expectedLinesCount = 100;
+
+            var delegateLines = new List<string>();
+            void HandleStdOut(string s) => delegateLines.Add(s);
+
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add("generate-text-lines")
+                    .Add("--count").Add(expectedLinesCount)) | HandleStdOut;
+
+            // Act
+            var result = await cmd.ExecuteBufferedAsync();
+            var resultLines = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+            // Assert
+            delegateLines.Should().Equal(resultLines);
+        }
+
+        [Fact(Timeout = 15000)]
+        public async Task Not_piping_stdin_into_a_command_that_expects_it_does_not_deadlock()
         {
             // Arrange
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintStdInLength));
+                    .Add("echo-stdin"));
 
             // Act
             await cmd.ExecuteAsync();
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_expects_stdin_but_pipe_an_empty_stream_and_it_will_not_deadlock()
+        public async Task Piping_empty_stdin_into_a_command_that_expects_it_does_not_deadlock()
         {
             // Arrange
             await using var stream = new MemoryStream();
@@ -519,14 +526,14 @@ namespace CliWrap.Tests
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintStdInLength));
+                    .Add("echo-stdin"));
 
             // Act
             await cmd.ExecuteAsync();
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_and_pipe_a_really_large_stdin_while_it_also_writes_stdout_and_it_will_not_deadlock()
+        public async Task Piping_large_stdin_into_a_command_that_simultaneously_writes_stdout_and_stderr_does_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/61
 
@@ -536,14 +543,14 @@ namespace CliWrap.Tests
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut));
+                    .Add("echo-stdin"));
 
             // Act
             await cmd.ExecuteAsync();
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_stdin_from_an_infinite_stream_which_is_not_read_fully_and_it_will_not_deadlock()
+        public async Task Piping_infinite_stdin_into_a_command_that_only_reads_it_partially_does_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -553,15 +560,15 @@ namespace CliWrap.Tests
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoPartStdInToStdOut)
-                    .Add(10_000_000));
+                    .Add("echo-stdin")
+                    .Add("--length").Add(10_000_000));
 
             // Act
             await cmd.ExecuteAsync();
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_stdin_from_an_unresolvable_stream_which_is_ignored_and_it_will_not_deadlock()
+        public async Task Piping_unresolvable_stdin_into_a_command_that_does_not_read_it_does_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -571,15 +578,15 @@ namespace CliWrap.Tests
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoPartStdInToStdOut)
-                    .Add(0));
+                    .Add("echo-stdin")
+                    .Add("--length").Add(0));
 
             // Act
             await cmd.ExecuteAsync();
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_that_pipes_stdin_from_an_non_cancellable_unresolvable_stream_which_is_ignored_and_it_will_not_deadlock()
+        public async Task Piping_unresolvable_and_uncancellable_stdin_into_a_command_that_does_not_read_it_does_not_deadlock()
         {
             // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -589,8 +596,8 @@ namespace CliWrap.Tests
             var cmd = stream | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoPartStdInToStdOut)
-                    .Add(0));
+                    .Add("echo-stdin")
+                    .Add("--length").Add(0));
 
             // Act
             await cmd.ExecuteAsync();

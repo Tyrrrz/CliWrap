@@ -14,7 +14,7 @@ namespace CliWrap.Tests
     public class CancellationSpecs
     {
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_and_cancel_it_immediately()
+        public async Task Command_execution_can_be_canceled_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -23,8 +23,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act
             var task = cmd.ExecuteAsync(cts.Token);
@@ -35,7 +35,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_and_cancel_it_while_it_is_in_progress()
+        public async Task Command_execution_can_be_canceled_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -43,8 +43,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act
             var task = cmd.ExecuteAsync(cts.Token);
@@ -55,7 +55,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_with_buffering_and_cancel_it_immediately()
+        public async Task Buffered_command_execution_can_be_canceled_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -64,8 +64,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act
             var task = cmd.ExecuteBufferedAsync(cts.Token);
@@ -76,7 +76,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_with_buffering_and_cancel_it_while_it_is_in_progress()
+        public async Task Buffered_command_execution_can_be_canceled_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -84,8 +84,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act
             var task = cmd.ExecuteBufferedAsync(cts.Token);
@@ -96,7 +96,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_it_immediately()
+        public async Task Pull_event_stream_command_execution_can_be_canceled_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -105,8 +105,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act & assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -115,7 +115,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_as_an_async_event_stream_and_cancel_it_while_it_is_in_progress()
+        public async Task Pull_event_stream_command_execution_can_be_canceled_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -123,8 +123,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act & assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -133,7 +133,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_it_immediately()
+        public async Task Push_event_stream_command_execution_can_be_canceled_immediately()
         {
             // Arrange
             using var cts = new CancellationTokenSource();
@@ -142,8 +142,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act & assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -152,7 +152,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_as_an_observable_event_stream_and_cancel_it_while_it_is_in_progress()
+        public async Task Push_event_stream_command_execution_can_be_canceled_while_it_is_in_progress()
         {
             // Arrange
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
@@ -160,8 +160,8 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.Sleep)
-                    .Add(10_000));
+                    .Add("sleep")
+                    .Add("--duration").Add("00:00:10"));
 
             // Act & assert
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>

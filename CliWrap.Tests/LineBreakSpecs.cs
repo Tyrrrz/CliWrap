@@ -19,7 +19,7 @@ namespace CliWrap.Tests
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
+                    .Add("echo-stdin")) | stdOutLines.Add;
 
             // Act
             await cmd.ExecuteAsync();
@@ -39,7 +39,7 @@ namespace CliWrap.Tests
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
+                    .Add("echo-stdin")) | stdOutLines.Add;
 
             // Act
             await cmd.ExecuteAsync();
@@ -59,7 +59,7 @@ namespace CliWrap.Tests
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
+                    .Add("echo-stdin")) | stdOutLines.Add;
 
             // Act
             await cmd.ExecuteAsync();
@@ -69,7 +69,7 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public async Task Multiple_consecutive_line_breaks_result_in_empty_lines()
+        public async Task Multiple_consecutive_line_breaks_are_treated_as_separate_line_breaks()
         {
             // Arrange
             const string content = "Foo\r\rBar\n\nBaz";
@@ -79,7 +79,7 @@ namespace CliWrap.Tests
             var cmd = content | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.EchoStdInToStdOut)) | stdOutLines.Add;
+                    .Add("echo-stdin")) | stdOutLines.Add;
 
             // Act
             await cmd.ExecuteAsync();

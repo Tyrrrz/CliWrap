@@ -70,7 +70,7 @@ namespace CliWrap.Internal
 
         public void Dispose()
         {
-            Debug.Assert(_lastItem == null, "Channel disposed with an item in queue.");
+            // Can dispose with an item in queue, in case of exception
 
             Close();
             _writeLock.Dispose();

@@ -10,7 +10,7 @@ namespace CliWrap.Tests
     public class BuilderSpecs
     {
         [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_arguments()
+        public void Command_line_arguments_can_be_set()
         {
             // Arrange
             var cmd = Cli.Wrap("foo").WithArguments("xxx");
@@ -25,7 +25,7 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_arguments_list()
+        public void Command_line_arguments_can_be_set_from_a_list()
         {
             // Arrange
             var cmd = Cli.Wrap("foo").WithArguments("xxx");
@@ -40,7 +40,28 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_working_directory()
+        public void Command_line_arguments_can_be_set_with_a_builder()
+        {
+            // Arrange
+            var builder = new ArgumentsBuilder();
+
+            // Act
+            var arguments = builder
+                .Add("hello world")
+                .Add("foo")
+                .Add(1234)
+                .Add(3.14)
+                .Add(TimeSpan.FromMinutes(1))
+                .Add(new IFormattable[] {-5, 89.13, 100.50M})
+                .Add("bar")
+                .Build();
+
+            // Assert
+            arguments.Should().Be("\"hello world\" foo 1234 3.14 00:01:00 -5 89.13 100.50 bar");
+        }
+
+        [Fact]
+        public void Working_directory_can_be_set()
         {
             // Arrange
             var cmd = Cli.Wrap("foo").WithWorkingDirectory("xxx");
@@ -55,7 +76,7 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_credentials()
+        public void Credentials_can_be_set()
         {
             // Arrange
             var cmd = Cli.Wrap("foo").WithCredentials(c => c
@@ -78,7 +99,24 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_environment_variables()
+        public void Credentials_can_be_set_with_a_builder()
+        {
+            // Arrange
+            var builder = new CredentialsBuilder();
+
+            // Act
+            var credentials = builder
+                .SetDomain("domain")
+                .SetUserName("username")
+                .SetPassword("password")
+                .Build();
+
+            // Assert
+            credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+        }
+
+        [Fact]
+        public void Environment_variables_can_be_set()
         {
             // Arrange
             var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
@@ -96,102 +134,7 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_validation()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithValidation(CommandResultValidation.ZeroExitCode);
-
-            // Act
-            var cmdOther = cmd.WithValidation(CommandResultValidation.None);
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Validation));
-            cmd.Validation.Should().NotBe(cmdOther.Validation);
-            cmdOther.Validation.Should().Be(CommandResultValidation.None);
-        }
-
-        [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_stdin_pipe()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
-
-            // Act
-            var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
-            cmd.StandardInputPipe.Should().NotBeSameAs(cmdOther.StandardInputPipe);
-        }
-
-        [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_stdout_pipe()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
-
-            // Act
-            var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
-            cmd.StandardOutputPipe.Should().NotBeSameAs(cmdOther.StandardOutputPipe);
-        }
-
-        [Fact]
-        public void I_can_create_a_new_command_from_an_existing_one_by_specifying_different_stderr_pipe()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
-
-            // Act
-            var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));
-            cmd.StandardErrorPipe.Should().NotBeSameAs(cmdOther.StandardErrorPipe);
-        }
-
-        [Fact]
-        public void I_can_build_an_argument_string_from_multiple_strings()
-        {
-            // Arrange
-            var builder = new ArgumentsBuilder();
-
-            // Act
-            var arguments = builder
-                .Add("foo")
-                .Add("bar")
-                .Add("two words")
-                .Add(new[] {"array", "of", "many"})
-                .Build();
-
-            // Assert
-            arguments.Should().Be("foo bar \"two words\" array of many");
-        }
-
-        [Fact]
-        public void I_can_build_an_argument_string_from_multiple_formattable_values()
-        {
-            // Arrange
-            var builder = new ArgumentsBuilder();
-
-            // Act
-            var arguments = builder
-                .Add("foo")
-                .Add(1234)
-                .Add(3.14)
-                .Add(TimeSpan.FromMinutes(1))
-                .Add(new IFormattable[] {-5, 89.13, 100.50M})
-                .Add("bar")
-                .Build();
-
-            // Assert
-            arguments.Should().Be("foo 1234 3.14 00:01:00 -5 89.13 100.50 bar");
-        }
-
-        [Fact]
-        public void I_can_build_environment_variables_from_multiple_individual_variables()
+        public void Environment_variables_can_be_set_with_a_builder()
         {
             // Arrange
             var builder = new EnvironmentVariablesBuilder();
@@ -211,20 +154,60 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void I_can_build_credentials_from_individual_properties()
+        public void Result_validation_can_be_set()
         {
             // Arrange
-            var builder = new CredentialsBuilder();
+            var cmd = Cli.Wrap("foo").WithValidation(CommandResultValidation.ZeroExitCode);
 
             // Act
-            var credentials = builder
-                .SetDomain("domain")
-                .SetUserName("username")
-                .SetPassword("password")
-                .Build();
+            var cmdOther = cmd.WithValidation(CommandResultValidation.None);
 
             // Assert
-            credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Validation));
+            cmd.Validation.Should().NotBe(cmdOther.Validation);
+            cmdOther.Validation.Should().Be(CommandResultValidation.None);
+        }
+
+        [Fact]
+        public void Stdin_pipe_can_be_set()
+        {
+            // Arrange
+            var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
+
+            // Act
+            var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
+
+            // Assert
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
+            cmd.StandardInputPipe.Should().NotBeSameAs(cmdOther.StandardInputPipe);
+        }
+
+        [Fact]
+        public void Stdout_pipe_can_be_set()
+        {
+            // Arrange
+            var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
+
+            // Act
+            var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
+
+            // Assert
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
+            cmd.StandardOutputPipe.Should().NotBeSameAs(cmdOther.StandardOutputPipe);
+        }
+
+        [Fact]
+        public void Stderr_pipe_can_be_set()
+        {
+            // Arrange
+            var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
+
+            // Act
+            var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
+
+            // Assert
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));
+            cmd.StandardErrorPipe.Should().NotBeSameAs(cmdOther.StandardErrorPipe);
         }
     }
 }

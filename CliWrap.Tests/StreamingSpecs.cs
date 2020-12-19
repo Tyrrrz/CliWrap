@@ -9,7 +9,7 @@ namespace CliWrap.Tests
     public class StreamingSpecs
     {
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_as_an_async_event_stream()
+        public async Task Command_can_be_executed_as_a_pull_event_stream()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -17,8 +17,9 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount));
+                    .Add("generate-text-lines")
+                    .Add("--target").Add("all")
+                    .Add("--count").Add(expectedLinesCount));
 
             // Act
             var stdOutLinesCount = 0;
@@ -54,7 +55,7 @@ namespace CliWrap.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public async Task I_can_execute_a_command_as_an_observable_event_stream()
+        public async Task Command_can_be_executed_as_a_push_event_stream()
         {
             // Arrange
             const int expectedLinesCount = 100;
@@ -62,8 +63,9 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add(Dummy.Program.PrintRandomLines)
-                    .Add(expectedLinesCount));
+                    .Add("generate-text-lines")
+                    .Add("--target").Add("all")
+                    .Add("--count").Add(expectedLinesCount));
 
             // Act
             var stdOutLinesCount = 0;
