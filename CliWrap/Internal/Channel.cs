@@ -30,7 +30,7 @@ namespace CliWrap.Internal
         {
             await _writeLock.WaitAsync(cancellationToken);
 
-            Debug.Assert(_lastItem == null, "Channel overwriting last item.");
+            Debug.Assert(_lastItem is null, "Channel overwriting last item.");
 
             _lastItem = item;
             _readLock.Release();
@@ -52,7 +52,7 @@ namespace CliWrap.Internal
                 // read from the queue one last time anyway.
                 var isClosed = task == _closedTcs.Task;
 
-                if (_lastItem != null)
+                if (_lastItem is not null)
                 {
                     yield return _lastItem;
                     _lastItem = null;

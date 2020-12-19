@@ -108,7 +108,7 @@ namespace CliWrap
             FlattenTargets(targets, result);
 
             // Filter out no-op
-            result.RemoveAll(t => t == Null);
+            result.RemoveAll(t => t is NullPipeTarget);
 
             return result;
         }

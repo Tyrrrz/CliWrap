@@ -123,7 +123,7 @@ namespace CliWrap.EventStream
                         {
                             observer.OnError(new OperationCanceledException("Command execution has been canceled."));
                         }
-                        else if (t.Exception == null)
+                        else if (t.Exception is null)
                         {
                             observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
                             observer.OnCompleted();
