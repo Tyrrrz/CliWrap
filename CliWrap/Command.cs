@@ -145,7 +145,7 @@ namespace CliWrap
             WithArguments(arguments, true);
 
         /// <summary>
-        /// Creates a copy of this command, settings the working directory path to the specified value.
+        /// Creates a copy of this command, setting the working directory path to the specified value.
         /// </summary>
         public Command WithWorkingDirectory(string workingDirPath) => new(
             TargetFilePath,
