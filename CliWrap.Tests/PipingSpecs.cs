@@ -46,12 +46,10 @@ namespace CliWrap.Tests
             // Arrange
             const string expectedOutput = "Hello world!";
 
-            var file = new FileInfo(_tempOutputFixture.GetTempFilePath());
-            await file.WriteAllTextAsync(expectedOutput);
+            var filePath = _tempOutputFixture.GetTempFilePath();
+            await File.WriteAllTextAsync(filePath, expectedOutput);
 
-            await using var fileStream = file.OpenRead();
-
-            var cmd = fileStream | Cli.Wrap("dotnet")
+            var cmd = PipeSource.FromFile(filePath) | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("echo-stdin"));
@@ -131,44 +129,42 @@ namespace CliWrap.Tests
         public async Task Stdout_can_be_piped_into_a_stream()
         {
             // Arrange
-            const int expectedSize = 1_000_000;
+            const int expectedLength = 1_000_000;
             await using var stream = new MemoryStream();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedSize)) | stream;
+                    .Add("--length").Add(expectedLength)) | stream;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stream.Length.Should().Be(expectedSize);
+            stream.Length.Should().Be(expectedLength);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_can_be_piped_into_a_file()
         {
             // Arrange
-            const int expectedSize = 1_000_000;
+            const int expectedLength = 1_000_000;
 
-            var file = new FileInfo(_tempOutputFixture.GetTempFilePath());
-            var fileStream = file.Create();
+            var filePath = _tempOutputFixture.GetTempFilePath();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedSize)) | fileStream;
+                    .Add("--length").Add(expectedLength)) | PipeTarget.ToFile(filePath);
 
             // Act
             await cmd.ExecuteAsync();
-            await fileStream.DisposeAsync();
 
             // Assert
-            file.Exists.Should().Be(true);
-            file.Length.Should().Be(expectedSize);
+            File.Exists(filePath).Should().BeTrue();
+            new FileInfo(filePath).Length.Should().Be(expectedLength);
         }
 
         [Fact(Timeout = 15000)]
@@ -355,7 +351,7 @@ namespace CliWrap.Tests
         public async Task Stdout_can_be_piped_into_a_merged_target()
         {
             // Arrange
-            const int expectedSize = 100_000;
+            const int expectedLength = 100_000;
             await using var stream1 = new MemoryStream();
             await using var stream2 = new MemoryStream();
             await using var stream3 = new MemoryStream();
@@ -370,15 +366,15 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedSize)) | pipeTarget;
+                    .Add("--length").Add(expectedLength)) | pipeTarget;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stream1.Length.Should().Be(expectedSize);
-            stream2.Length.Should().Be(expectedSize);
-            stream3.Length.Should().Be(expectedSize);
+            stream1.Length.Should().Be(expectedLength);
+            stream2.Length.Should().Be(expectedLength);
+            stream3.Length.Should().Be(expectedLength);
             stream1.ToArray().Should().Equal(stream2.ToArray());
             stream2.ToArray().Should().Equal(stream3.ToArray());
         }
@@ -429,15 +425,15 @@ namespace CliWrap.Tests
             // https://github.com/Tyrrrz/CliWrap/issues/81
 
             // Arrange
-            const int expectedSize = 1_000_000;
-            const int bufferSize = 100_000; // needs to be >= BufferSizes.Stream to fail
+            const int expectedLength = 1_000_000;
+            const int bufferLength = 100_000; // needs to be >= BufferSizes.Stream to fail
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedSize)
-                    .Add("--buffer").Add(bufferSize));
+                    .Add("--length").Add(expectedLength)
+                    .Add("--buffer").Add(bufferLength));
 
             // Act
 
@@ -451,7 +447,7 @@ namespace CliWrap.Tests
             await (cmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2))).ExecuteAsync();
 
             // Assert
-            unmergedStream.Length.Should().Be(expectedSize);
+            unmergedStream.Length.Should().Be(expectedLength);
             mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
             mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
         }

@@ -41,6 +41,11 @@ namespace CliWrap
         public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
         /// <summary>
+        /// Creates a pipe target that writes to a file.
+        /// </summary>
+        public static PipeTarget ToFile(string filePath) => new FilePipeTarget(filePath);
+
+        /// <summary>
         /// Creates a pipe target that writes to a string builder.
         /// </summary>
         public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding) =>
@@ -157,6 +162,19 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
             await source.CopyToAsync(_stream, _autoFlush, cancellationToken);
+    }
+
+    internal class FilePipeTarget : PipeTarget
+    {
+        private readonly string _filePath;
+
+        public FilePipeTarget(string filePath) => _filePath = filePath;
+
+        public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+        {
+            using var stream = File.Create(_filePath);
+            await source.CopyToAsync(stream, cancellationToken);
+        }
     }
 
     internal class StringBuilderPipeTarget : PipeTarget

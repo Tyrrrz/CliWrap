@@ -38,6 +38,11 @@ namespace CliWrap
         public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
 
         /// <summary>
+        /// Creates a pipe source that reads from a file.
+        /// </summary>
+        public static PipeSource FromFile(string filePath) => new FilePipeSource(filePath);
+
+        /// <summary>
         /// Creates a pipe source that reads from in-memory data.
         /// </summary>
         public static PipeSource FromBytes(byte[] data) => new InMemoryPipeSource(data);
@@ -80,6 +85,19 @@ namespace CliWrap
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
             await _stream.CopyToAsync(destination, _autoFlush, cancellationToken);
+    }
+
+    internal class FilePipeSource : PipeSource
+    {
+        private readonly string _filePath;
+
+        public FilePipeSource(string filePath) => _filePath = filePath;
+
+        public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
+        {
+            using var stream = File.OpenRead(_filePath);
+            await stream.CopyToAsync(destination, cancellationToken);
+        }
     }
 
     internal class InMemoryPipeSource : PipeSource
