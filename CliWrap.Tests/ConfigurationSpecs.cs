@@ -7,7 +7,7 @@ using Xunit;
 
 namespace CliWrap.Tests
 {
-    public class BuilderSpecs
+    public class ConfigurationSpecs
     {
         [Fact]
         public void Command_line_arguments_can_be_set()
