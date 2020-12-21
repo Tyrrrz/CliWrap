@@ -11,7 +11,7 @@ namespace CliWrap.Builders
     /// </summary>
     public partial class ArgumentsBuilder
     {
-        private static readonly CultureInfo DefaultCulture = CultureInfo.InvariantCulture;
+        private static readonly IFormatProvider DefaultFormatProvider = CultureInfo.InvariantCulture;
 
         private readonly StringBuilder _buffer = new();
 
@@ -35,8 +35,7 @@ namespace CliWrap.Builders
         /// Adds the specified value to the list of arguments.
         /// </summary>
         // TODO: replace with optional argument when breaking changes are ok
-        public ArgumentsBuilder Add(string value) =>
-            Add(value, true);
+        public ArgumentsBuilder Add(string value) => Add(value, true);
 
         /// <summary>
         /// Adds the specified values to the list of arguments.
@@ -59,22 +58,22 @@ namespace CliWrap.Builders
         /// <summary>
         /// Adds the specified value to the list of arguments.
         /// </summary>
-        public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, bool escape) =>
-            Add(value.ToString(null, cultureInfo), escape);
+        public ArgumentsBuilder Add(IFormattable value, IFormatProvider formatProvider, bool escape) =>
+            Add(value.ToString(null, formatProvider), escape);
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
         /// </summary>
         // TODO: replace with optional argument when breaking changes are ok
-        public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
-            Add(value, cultureInfo, true);
+        public ArgumentsBuilder Add(IFormattable value, IFormatProvider formatProvider) =>
+            Add(value, formatProvider, true);
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
         /// The value is converted to string using invariant culture.
         /// </summary>
         public ArgumentsBuilder Add(IFormattable value, bool escape) =>
-            Add(value, DefaultCulture, escape);
+            Add(value, DefaultFormatProvider, escape);
 
         /// <summary>
         /// Adds the specified value to the list of arguments.
@@ -87,10 +86,10 @@ namespace CliWrap.Builders
         /// <summary>
         /// Adds the specified values to the list of arguments.
         /// </summary>
-        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo, bool escape)
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, IFormatProvider formatProvider, bool escape)
         {
             foreach (var value in values)
-                Add(value, cultureInfo, escape);
+                Add(value, formatProvider, escape);
 
             return this;
         }
@@ -99,15 +98,15 @@ namespace CliWrap.Builders
         /// Adds the specified values to the list of arguments.
         /// </summary>
         // TODO: replace with optional argument when breaking changes are ok
-        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo) =>
-            Add(values, cultureInfo, true);
+        public ArgumentsBuilder Add(IEnumerable<IFormattable> values, IFormatProvider formatProvider) =>
+            Add(values, formatProvider, true);
 
         /// <summary>
         /// Adds the specified values to the list of arguments.
         /// The values are converted to string using invariant culture.
         /// </summary>
         public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape) =>
-            Add(values, DefaultCulture, escape);
+            Add(values, DefaultFormatProvider, escape);
 
         /// <summary>
         /// Adds the specified values to the list of arguments.
