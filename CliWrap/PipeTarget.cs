@@ -145,7 +145,7 @@ namespace CliWrap
             // We need to actually exhaust the input stream to avoid potential deadlocks.
             // TODO: none of the tests fail if this is replaced with Task.CompletedTask,
             // so the above claim may be incorrect. Need to verify.
-            await source.CopyToAsync(Stream.Null, cancellationToken);
+            await source.CopyToAsync(Stream.Null, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -161,7 +161,7 @@ namespace CliWrap
         }
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
-            await source.CopyToAsync(_stream, _autoFlush, cancellationToken);
+            await source.CopyToAsync(_stream, _autoFlush, cancellationToken).ConfigureAwait(false);
     }
 
     internal class FilePipeTarget : PipeTarget
@@ -173,7 +173,7 @@ namespace CliWrap
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
             using var stream = File.Create(_filePath);
-            await source.CopyToAsync(stream, cancellationToken);
+            await source.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -194,7 +194,7 @@ namespace CliWrap
             using var buffer = PooledBuffer.ForStreamReader();
 
             int charsRead;
-            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
+            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) > 0)
             {
                 _stringBuilder.Append(buffer.Array, 0, charsRead);
             }
@@ -216,7 +216,7 @@ namespace CliWrap
         {
             using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
 
-            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken))
+            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false))
             {
                 _handle(line);
             }
@@ -238,9 +238,9 @@ namespace CliWrap
         {
             using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
 
-            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken))
+            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false))
             {
-                await _handleAsync(line);
+                await _handleAsync(line).ConfigureAwait(false);
             }
         }
     }
@@ -265,29 +265,29 @@ namespace CliWrap
                     targetSubStreams.Select(async targetSubStream =>
                     {
                         var (target, subStream) = targetSubStream;
-                        await target.CopyFromAsync(subStream, cancellationToken);
+                        await target.CopyFromAsync(subStream, cancellationToken).ConfigureAwait(false);
                     })
                 );
 
                 // Read from the master stream and replicate the data to each sub-stream
                 using var buffer = PooledBuffer.ForStream();
                 int bytesRead;
-                while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) > 0)
+                while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) > 0)
                 {
                     foreach (var (_, subStream) in targetSubStreams)
-                        await subStream.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
+                        await subStream.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Report that transmission is complete
                 foreach (var (_, subStream) in targetSubStreams)
-                    await subStream.ReportCompletionAsync(cancellationToken);
+                    await subStream.ReportCompletionAsync(cancellationToken).ConfigureAwait(false);
 
-                await readingTask;
+                await readingTask.ConfigureAwait(false);
             }
             finally
             {
                 foreach (var (_, subStream) in targetSubStreams)
-                    await subStream.DisposeAsync();
+                    await subStream.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

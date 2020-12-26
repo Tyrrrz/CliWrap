@@ -84,7 +84,7 @@ namespace CliWrap
         }
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await _stream.CopyToAsync(destination, _autoFlush, cancellationToken);
+            await _stream.CopyToAsync(destination, _autoFlush, cancellationToken).ConfigureAwait(false);
     }
 
     internal class FilePipeSource : PipeSource
@@ -96,7 +96,7 @@ namespace CliWrap
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
         {
             using var stream = File.OpenRead(_filePath);
-            await stream.CopyToAsync(destination, cancellationToken);
+            await stream.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -107,7 +107,7 @@ namespace CliWrap
         public InMemoryPipeSource(byte[] data) => _data = data;
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await destination.WriteAsync(_data, cancellationToken);
+            await destination.WriteAsync(_data, cancellationToken).ConfigureAwait(false);
     }
 
     internal class CommandPipeSource : PipeSource
@@ -117,9 +117,7 @@ namespace CliWrap
         public CommandPipeSource(Command command) => _command = command;
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            // Removing `.Task` here breaks a few tests in release mode on .NET5.
-            // See: https://github.com/Tyrrrz/CliWrap/issues/97
-            // Likely an issue with ConfigureAwait.Fody, so may potentially get fixed with a future package update.
-            await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken).Task;
+            await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken)
+                .ConfigureAwait(false);
     }
 }

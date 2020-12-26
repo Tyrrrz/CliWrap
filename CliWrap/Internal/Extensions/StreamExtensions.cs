@@ -15,12 +15,12 @@ namespace CliWrap.Internal.Extensions
             using var buffer = PooledBuffer.ForStream();
 
             int bytesRead;
-            while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken)) != 0)
+            while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) != 0)
             {
-                await destination.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken);
+                await destination.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken).ConfigureAwait(false);
 
                 if (autoFlush)
-                    await destination.FlushAsync(cancellationToken);
+                    await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -40,7 +40,7 @@ namespace CliWrap.Internal.Extensions
             var prevSeqChar = (char?) null;
 
             int charsRead;
-            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken)) > 0)
+            while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) > 0)
             {
                 for (var i = 0; i < charsRead; i++)
                 {

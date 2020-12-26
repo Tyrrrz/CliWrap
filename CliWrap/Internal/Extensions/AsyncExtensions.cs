@@ -10,7 +10,7 @@ namespace CliWrap.Internal.Extensions
             this Task<TSource> task,
             Func<TSource, TDestination> transform)
         {
-            var result = await task;
+            var result = await task.ConfigureAwait(false);
             return transform(result);
         }
 
@@ -21,10 +21,10 @@ namespace CliWrap.Internal.Extensions
             var cancellationTask = Task.Delay(-1, cancellationToken);
 
             // Note: Task.WhenAny() doesn't throw
-            var finishedTask = await Task.WhenAny(task, cancellationTask);
+            var finishedTask = await Task.WhenAny(task, cancellationTask).ConfigureAwait(false);
 
             // Finalize and propagate exceptions
-            await finishedTask;
+            await finishedTask.ConfigureAwait(false);
         }
     }
 }

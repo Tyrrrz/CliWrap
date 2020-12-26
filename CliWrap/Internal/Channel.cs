@@ -28,7 +28,7 @@ namespace CliWrap.Internal
 
         public async Task PublishAsync(T item, CancellationToken cancellationToken)
         {
-            await _writeLock.WaitAsync(cancellationToken);
+            await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(_lastItem is null, "Channel overwriting last item.");
 
@@ -40,12 +40,13 @@ namespace CliWrap.Internal
         {
             while (true)
             {
-                var task = await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task);
+                var task = await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task)
+                    .ConfigureAwait(false);
 
                 // Task.WhenAny() does not throw if the underlying task was cancelled.
                 // So we check it ourselves and propagate cancellation if it was requested.
                 if (task.IsCanceled)
-                    await task;
+                    await task.ConfigureAwait(false);
 
                 // If the first task to complete was the closing signal, then we will need to break loop.
                 // However, WaitAsync() may have completely asynchronously at this point, so we try to

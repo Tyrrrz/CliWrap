@@ -22,7 +22,7 @@ internal static partial class PolyfillExtensions
         this Stream stream,
         byte[] buffer,
         CancellationToken cancellationToken) =>
-        await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+        await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
 
     public static async ValueTask<int> ReadAsync(
         this StreamReader reader,
@@ -32,20 +32,20 @@ internal static partial class PolyfillExtensions
         // StreamReader doesn't accept cancellation token anywhere (pre-netstd2.1)
 
         cancellationToken.ThrowIfCancellationRequested();
-        return await reader.ReadAsync(buffer, 0, buffer.Length);
+        return await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
     }
 
     public static async ValueTask WriteAsync(
         this Stream stream,
         byte[] buffer,
         CancellationToken cancellationToken) =>
-        await stream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+        await stream.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
 
     public static async ValueTask CopyToAsync(
         this Stream stream,
         Stream destination,
         CancellationToken cancellationToken) =>
-        await stream.CopyToAsync(destination, 81920, cancellationToken);
+        await stream.CopyToAsync(destination, 81920, cancellationToken).ConfigureAwait(false);
 
     public static ValueTask DisposeAsync(this Stream stream)
     {

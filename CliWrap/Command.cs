@@ -320,7 +320,8 @@ namespace CliWrap
                 // the pipe completes, and in case with infinite input stream it would
                 // normally result in a deadlock.
                 await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken)
-                    .WithDangerousCancellation(cancellationToken);
+                    .WithDangerousCancellation(cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (IOException)
             {
@@ -331,7 +332,7 @@ namespace CliWrap
             }
             finally
             {
-                await process.StdIn.DisposeAsync();
+                await process.StdIn.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -339,11 +340,12 @@ namespace CliWrap
         {
             try
             {
-                await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken);
+                await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
-                await process.StdOut.DisposeAsync();
+                await process.StdOut.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -351,11 +353,12 @@ namespace CliWrap
         {
             try
             {
-                await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken);
+                await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
-                await process.StdErr.DisposeAsync();
+                await process.StdErr.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -377,7 +380,7 @@ namespace CliWrap
             );
 
             // Wait until the process terminates or gets killed
-            await process.WaitUntilExitAsync();
+            await process.WaitUntilExitAsync().ConfigureAwait(false);
 
             // Cancel stdin in case the process terminated early and doesn't need it anymore
             stdInCts.Cancel();
@@ -385,7 +388,7 @@ namespace CliWrap
             try
             {
                 // Wait until piping is done and propagate exceptions
-                await pipingTask;
+                await pipingTask.ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {

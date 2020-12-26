@@ -110,7 +110,7 @@ namespace CliWrap.Internal
             }
         }
 
-        public async Task WaitUntilExitAsync() => await _exitTcs.Task;
+        public async Task WaitUntilExitAsync() => await _exitTcs.Task.ConfigureAwait(false);
 
         public void Dispose()
         {

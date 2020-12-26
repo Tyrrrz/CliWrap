@@ -32,7 +32,7 @@ namespace CliWrap.Internal
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await _readLock.WaitAsync(cancellationToken);
+            await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             // Take a portion of the buffer that the consumer is interested in
             var length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
@@ -54,7 +54,7 @@ namespace CliWrap.Internal
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await _writeLock.WaitAsync(cancellationToken);
+            await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             // Attempt to reuse existing buffer as long as it has enough capacity
             if (_currentBuffer.Length < count)
@@ -69,7 +69,7 @@ namespace CliWrap.Internal
         public async Task ReportCompletionAsync(CancellationToken cancellationToken = default)
         {
             // Write empty buffer that will make ReadAsync return 0, which signifies end-of-stream
-            await _writeLock.WaitAsync(cancellationToken);
+            await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             _currentBuffer = Array.Empty<byte>();
             _currentBufferBytes = 0;
             _currentBufferBytesRead = 0;
