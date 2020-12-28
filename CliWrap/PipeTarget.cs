@@ -37,7 +37,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a pipe target that writes to a stream.
         /// </summary>
-        // TODO: change to optional argument when breaking changes are ok
+        // TODO: (breaking change) remove in favor of optional parameter
         public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
         /// <summary>

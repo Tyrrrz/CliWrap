@@ -34,7 +34,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a pipe source that reads from a stream.
         /// </summary>
-        // TODO: change to optional argument when breaking changes are ok
+        // TODO: (breaking change) remove in favor of optional parameter
         public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
 
         /// <summary>

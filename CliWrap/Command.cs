@@ -140,7 +140,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
         /// </summary>
-        // TODO: replace with optional argument when breaking changes are ok
+        // TODO: (breaking change) remove in favor of optional parameter
         public Command WithArguments(IEnumerable<string> arguments) =>
             WithArguments(arguments, true);
 
