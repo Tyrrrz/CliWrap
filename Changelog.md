@@ -1,3 +1,12 @@
+### v3.3 (29-Dec-2020)
+
+- Added `PipeSource.FromFile(...)` and `PipeTarget.ToFile(...)` as convenience shorthands for creating pipes that work with `FileStream` instances.
+- Added overloads for `ArgumentsBuilder.Add(...)` that take `IFormatProvider` instead of `CultureInfo`. In a future major version, the overloads that take `CultureInfo` will be removed.
+- Improved performance of `PipeSource.Null` and `PipeTarget.Null`.
+- Signed assembly. (Thanks [@lazyboy1](https://github.com/lazyboy1))
+
+Known incompatibility issue: Using CliWrap together with [ConfigureAwait.Fody](https://github.com/Fody/ConfigureAwait), in code compiled with .NET 5.0 SDK or higher, results in a `NullReferenceException` at run time. The recommended workaround is to call `ConfigureAwait(...)` on `CliWrap.CommandTask<T>` manually or to disable `ConfigureAwait.Fody` altogether.
+
 ### v3.2.4 (05-Dec-2020)
 
 - Fixed an issue where `PipeTarget.ToDelegate(...)`, as well as execution models that depend on it (i.e. observable and async streams), didn't treat standalone `\r` character as a valid linebreak. (Thanks [@koryphaee](https://github.com/koryphaee))
