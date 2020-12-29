@@ -291,11 +291,13 @@ Besides raw streams, `PipeSource` and `PipeTarget` both have factory methods tha
 
 - `PipeSource.Null` -- represents an empty pipe source.
 - `PipeSource.FromStream()` -- pipes data from any readable stream.
+- `PipeSource.FromFile()` -- pipes data from a file.
 - `PipeSource.FromBytes()` -- pipes data from a byte array.
 - `PipeSource.FromString()` -- pipes from a text string (supports custom encoding).
 - `PipeSource.FromCommand()` -- pipes data from standard output of another command.
 - `PipeTarget.Null` -- represents a pipe target that discards all data.
 - `PipeTarget.ToStream()` -- pipes data into any writeable stream.
+- `PipeTarget.ToFile()` -- pipes data into a file.
 - `PipeTarget.ToStringBuilder()` -- pipes data as text into `StringBuilder` (supports custom encoding).
 - `PipeTarget.ToDelegate()` -- pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>` (supports custom encoding).
 - `PipeTarget.Merge()` -- merges multiple outbound pipes into one.
@@ -355,11 +357,10 @@ await cmd.ExecuteAsync();
 Pipe stdout into a file and stderr into a `StringBuilder`:
 
 ```csharp
-await using var file = File.Create("output.txt");
 var buffer = new StringBuilder();
 
 var cmd = Cli.Wrap("foo") |
-    (PipeTarget.ToStream(file), PipeTarget.ToStringBuilder(buffer));
+    (PipeTarget.ToFile("output.txt"), PipeTarget.ToStringBuilder(buffer));
 
 await cmd.ExecuteAsync();
 ```
@@ -367,14 +368,10 @@ await cmd.ExecuteAsync();
 Pipe stdout into multiple files simultaneously:
 
 ```csharp
-await using var file1 = File.Create("file1.txt");
-await using var file2 = File.Create("file2.txt");
-await using var file3 = File.Create("file3.txt");
-
 var target = PipeTarget.Merge(
-    PipeTarget.ToStream(file1),
-    PipeTarget.ToStream(file2),
-    PipeTarget.ToStream(file3)
+    PipeTarget.ToFile("file1.txt"),
+    PipeTarget.ToFile("file2.txt"),
+    PipeTarget.ToFile("file3.txt")
 );
 
 var cmd = Cli.Wrap("foo") | target;
@@ -398,10 +395,10 @@ Of course, if you're not comfortable using pipe operators, you can do everything
 The different execution models which we saw earlier, `ExecuteBufferedAsync()`, `ListenAsync()` and `Observe()` are all based on the concept of piping, but these approaches are not mutually exclusive. For example, you can just as easily create a piped command and start it as an event stream:
 
 ```csharp
-await using var input = File.OpenRead("input.txt");
-await using var output = File.Create("output.txt");
-
-var cmd = input | Cli.Wrap("foo") | output;
+var cmd =
+    PipeSource.FromFile("input.txt") |
+    Cli.Wrap("foo") |
+    PipeSource.ToFile("output.txt");
 
 await foreach (var cmdEvent in cmd.ListenAsync())
 {
