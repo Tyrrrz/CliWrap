@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CliWrap.Tests.Internal
+namespace CliWrap.Tests.Utils
 {
     internal class UnresolvableEmptyStream : Stream
     {

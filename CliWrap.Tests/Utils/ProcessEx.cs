@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace CliWrap.Tests.Internal
+namespace CliWrap.Tests.Utils
 {
     internal static class ProcessEx
     {

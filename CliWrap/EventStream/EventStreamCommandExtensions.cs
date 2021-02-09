@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Internal;
+using CliWrap.Utils;
 
 namespace CliWrap.EventStream
 {

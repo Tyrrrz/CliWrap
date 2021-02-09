@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 
-namespace CliWrap.Internal
+namespace CliWrap.Utils
 {
     internal readonly struct PooledBuffer<T> : IDisposable
     {

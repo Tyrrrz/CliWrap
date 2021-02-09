@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CliWrap.Internal
+namespace CliWrap.Utils
 {
     internal class Observable<T> : IObservable<T>
     {

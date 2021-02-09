@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CliWrap.Tests.Internal.Extensions
+namespace CliWrap.Tests.Utils.Extensions
 {
     internal static class AsyncExtensions
     {

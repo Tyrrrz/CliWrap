@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CliWrap.Internal
+namespace CliWrap.Utils
 {
     // This is a very simple channel implementation used to convert push-based streams into pull-based.
     // Back-pressure is performed using a write lock. Only one publisher may write at a time.

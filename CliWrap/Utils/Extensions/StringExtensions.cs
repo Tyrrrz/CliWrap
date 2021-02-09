@@ -1,6 +1,6 @@
 ﻿using System.Security;
 
-namespace CliWrap.Internal.Extensions
+namespace CliWrap.Utils.Extensions
 {
     internal static class StringExtensions
     {

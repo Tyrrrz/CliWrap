@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.EventStream;
-using CliWrap.Tests.Internal;
-using CliWrap.Tests.Internal.Extensions;
+using CliWrap.Tests.Utils;
+using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
 using Xunit;
 

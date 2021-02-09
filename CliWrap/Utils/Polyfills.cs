@@ -1,7 +1,5 @@
-﻿// ReSharper disable CheckNamespace (global namespace to ensure the extensions are always accessible)
-
-// Polyfills to bridge the missing APIs in older versions of the framework/standard.
-// In some cases, these just proxy calls to existing methods but also provide a signature that matches .netstd2.1
+﻿// ReSharper disable RedundantUsingDirective
+// ReSharper disable CheckNamespace
 
 using System;
 using System.Collections.Generic;
@@ -111,9 +109,12 @@ internal static partial class PolyfillExtensions
 #endif
 
 #if NETSTANDARD2_0 || NETSTANDARD2_1
-internal static partial class PolyfillExtensions
+namespace CliWrap.Utils
 {
-    // Can't kill children in .NET Standard :(
-    public static void Kill(this Process process, bool entireProcessTree) => process.Kill();
+    internal static partial class PolyfillExtensions
+    {
+        // Can't kill children in .NET Standard :(
+        public static void Kill(this Process process, bool entireProcessTree) => process.Kill();
+    }
 }
 #endif

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace CliWrap.Tests.Internal
+namespace CliWrap.Tests.Utils
 {
     internal class RandomStream : Stream
     {

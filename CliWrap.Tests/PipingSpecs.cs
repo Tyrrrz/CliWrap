@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Fixtures;
-using CliWrap.Tests.Internal;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 

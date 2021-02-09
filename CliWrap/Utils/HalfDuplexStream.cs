@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CliWrap.Internal
+namespace CliWrap.Utils
 {
     internal class HalfDuplexStream : Stream
     {

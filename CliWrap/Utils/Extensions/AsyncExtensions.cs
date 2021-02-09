@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CliWrap.Internal.Extensions
+namespace CliWrap.Utils.Extensions
 {
     internal static class AsyncExtensions
     {
