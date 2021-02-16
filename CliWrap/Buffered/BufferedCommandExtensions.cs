@@ -56,8 +56,7 @@ namespace CliWrap.Buffered
                     if (result.ExitCode != 0 && command.Validation.IsZeroExitCodeValidationEnabled())
                     {
                         throw CommandExecutionException.ExitCodeValidation(
-                            command.TargetFilePath,
-                            command.Arguments,
+                            command,
                             result.ExitCode,
                             result.StandardError.Trim()
                         );

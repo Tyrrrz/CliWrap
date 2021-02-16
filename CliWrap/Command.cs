@@ -17,7 +17,7 @@ namespace CliWrap
     /// <summary>
     /// Represents a shell command.
     /// </summary>
-    public partial class Command
+    public partial class Command : ICommandConfiguration
     {
         /// <summary>
         /// File path of the executable, batch file, or script, that this command runs on.
@@ -399,8 +399,7 @@ namespace CliWrap
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
             {
                 throw CommandExecutionException.ExitCodeValidation(
-                    TargetFilePath,
-                    Arguments,
+                    this,
                     process.ExitCode
                 );
             }

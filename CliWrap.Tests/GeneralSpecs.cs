@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
+using CliWrap.Buffered;
 using CliWrap.Exceptions;
 using FluentAssertions;
 using Xunit;
@@ -68,7 +70,8 @@ namespace CliWrap.Tests
         public async Task Command_with_non_zero_exit_code_yields_exit_code_in_exception()
         {
             // Arrange
-            var cmd = Cli.Wrap("dotnet").WithArguments("fail");
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments("fail");
 
             // Act
             var task = cmd.ExecuteAsync();
