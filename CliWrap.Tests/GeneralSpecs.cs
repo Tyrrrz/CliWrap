@@ -70,8 +70,11 @@ namespace CliWrap.Tests
         public async Task Command_with_non_zero_exit_code_yields_exit_code_in_exception()
         {
             // Arrange
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments("fail");
+          var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add("exit-with")
+                    .Add("--code").Add(1));
 
             // Act
             var task = cmd.ExecuteAsync();

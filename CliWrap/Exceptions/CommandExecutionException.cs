@@ -7,7 +7,13 @@ namespace CliWrap.Exceptions
     /// </summary>
     public partial class CommandExecutionException : Exception
     {
+        /// <summary>
+        /// Command that triggered the exception.
+        /// </summary>
         public ICommandConfiguration Command { get; }
+        /// <summary>
+        /// Exit code returned by the process.
+        /// </summary>
         public int ExitCode { get; }
         public string? StandardError { get; }
 

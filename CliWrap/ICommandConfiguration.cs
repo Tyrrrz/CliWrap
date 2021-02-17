@@ -4,6 +4,9 @@ using System.Text;
 
 namespace CliWrap
 {
+    /// <summary>
+    /// Configuration of a command.
+    /// </summary>
     public interface ICommandConfiguration
     {
         /// <summary>
