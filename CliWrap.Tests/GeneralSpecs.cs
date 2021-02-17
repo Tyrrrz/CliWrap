@@ -65,23 +65,5 @@ namespace CliWrap.Tests
             // Act
             await cmd.ExecuteAsync();
         }
-
-        [Fact(Timeout = 15000)]
-        public async Task Command_with_non_zero_exit_code_yields_exit_code_in_exception()
-        {
-            // Arrange
-          var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("exit-with")
-                    .Add("--code").Add(1));
-
-            // Act
-            var task = cmd.ExecuteAsync();
-
-            // Assert
-            var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await task);
-            ex.ExitCode.Should().Be(1);
-        }
     }
 }

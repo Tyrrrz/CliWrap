@@ -11,41 +11,19 @@ namespace CliWrap.Exceptions
         /// Command that triggered the exception.
         /// </summary>
         public ICommandConfiguration Command { get; }
+
         /// <summary>
         /// Exit code returned by the process.
         /// </summary>
         public int ExitCode { get; }
-        public string? StandardError { get; }
 
         /// <summary>
         /// Initializes an instance of <see cref="CommandExecutionException"/>.
         /// </summary>
-        public CommandExecutionException(ICommandConfiguration command, int exitCode, string? standardError = null)
-            : base(BuildMessage(command, exitCode, standardError))
+        public CommandExecutionException(ICommandConfiguration command, int exitCode, string message) : base(message)
         {
             Command = command;
             ExitCode = exitCode;
-            StandardError = standardError;
-        }
-
-        private static string BuildMessage(ICommandConfiguration command, int exitCode, string? standardError)
-        {
-            var message = @$"
-Underlying process reported a non-zero exit code ({exitCode}).
-
-Command:
-  {command.TargetFilePath} {command.Arguments}
-";
-
-            if (standardError != null)
-                message += @$"
-Standard error:
-  {standardError}
-";
-
-            message += Environment.NewLine + "You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.";
-
-            return message.Trim();
         }
     }
 
@@ -55,7 +33,15 @@ Standard error:
             ICommandConfiguration command,
             int exitCode)
         {
-            return new CommandExecutionException(command, exitCode);
+            var message = @$"
+Underlying process reported a non-zero exit code ({exitCode}).
+
+Command:
+  {command.TargetFilePath} {command.Arguments}
+
+You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
+
+            return new CommandExecutionException(command, exitCode, message);
         }
 
         internal static CommandExecutionException ExitCodeValidation(
@@ -63,7 +49,18 @@ Standard error:
             int exitCode,
             string standardError)
         {
-            return new CommandExecutionException(command, exitCode, standardError);
+            var message = @$"
+Underlying process reported a non-zero exit code ({exitCode}).
+
+Command:
+  {command.TargetFilePath} {command.Arguments}
+
+Standard error:
+  {standardError}
+
+You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
+
+            return new CommandExecutionException(command, exitCode, message);
         }
     }
 }
