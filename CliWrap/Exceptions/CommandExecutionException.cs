@@ -8,32 +8,44 @@ namespace CliWrap.Exceptions
     public partial class CommandExecutionException : Exception
     {
         /// <summary>
+        /// Command that triggered the exception.
+        /// </summary>
+        public ICommandConfiguration Command { get; }
+
+        /// <summary>
+        /// Exit code returned by the process.
+        /// </summary>
+        public int ExitCode { get; }
+
+        /// <summary>
         /// Initializes an instance of <see cref="CommandExecutionException"/>.
         /// </summary>
-        public CommandExecutionException(string message) : base(message) {}
+        public CommandExecutionException(ICommandConfiguration command, int exitCode, string message) : base(message)
+        {
+            Command = command;
+            ExitCode = exitCode;
+        }
     }
 
     public partial class CommandExecutionException
     {
         internal static CommandExecutionException ExitCodeValidation(
-            string filePath,
-            string arguments,
+            ICommandConfiguration command,
             int exitCode)
         {
             var message = @$"
 Underlying process reported a non-zero exit code ({exitCode}).
 
 Command:
-  {filePath} {arguments}
+  {command.TargetFilePath} {command.Arguments}
 
 You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
 
-            return new CommandExecutionException(message);
+            return new CommandExecutionException(command, exitCode, message);
         }
 
         internal static CommandExecutionException ExitCodeValidation(
-            string filePath,
-            string arguments,
+            ICommandConfiguration command,
             int exitCode,
             string standardError)
         {
@@ -41,14 +53,14 @@ You can suppress this validation by calling `WithValidation(CommandResultValidat
 Underlying process reported a non-zero exit code ({exitCode}).
 
 Command:
-  {filePath} {arguments}
+  {command.TargetFilePath} {command.Arguments}
 
 Standard error:
   {standardError}
 
 You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
 
-            return new CommandExecutionException(message);
+            return new CommandExecutionException(command, exitCode, message);
         }
     }
 }

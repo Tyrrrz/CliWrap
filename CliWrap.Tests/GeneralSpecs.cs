@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
+using CliWrap.Buffered;
+using CliWrap.Exceptions;
 using FluentAssertions;
 using Xunit;
 
