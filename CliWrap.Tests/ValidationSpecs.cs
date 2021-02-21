@@ -21,11 +21,11 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("exit-with")
-                    .Add("--code").Add(-1));
+                    .Add("--code").Add(1));
 
             // Act & assert
             var ex = await Assert.ThrowsAsync<CommandExecutionException>(() => cmd.ExecuteAsync());
-            ex.ExitCode.Should().Be(-1);
+            ex.ExitCode.Should().Be(1);
             ex.Command.Should().Be(cmd);
 
             _output.WriteLine(ex.Message);
@@ -39,12 +39,12 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("exit-with")
-                    .Add("--code").Add(-1));
+                    .Add("--code").Add(1));
 
             // Act & assert
             var ex = await Assert.ThrowsAsync<CommandExecutionException>(() => cmd.ExecuteBufferedAsync());
             ex.Message.Should().Contain("Standard error");
-            ex.ExitCode.Should().Be(-1);
+            ex.ExitCode.Should().Be(1);
             ex.Command.Should().Be(cmd);
 
             _output.WriteLine(ex.Message);
@@ -58,11 +58,14 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("exit-with")
-                    .Add("--code").Add(-1))
+                    .Add("--code").Add(1))
                 .WithValidation(CommandResultValidation.None);
 
-            // Act & assert
-            await cmd.ExecuteAsync();
+            // Act
+            var result = await cmd.ExecuteAsync();
+
+            // Assert
+            result.ExitCode.Should().Be(1);
         }
     }
 }
