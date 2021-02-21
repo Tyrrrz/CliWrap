@@ -31,7 +31,7 @@ It provides a convenient model for launching processes, redirecting input and ou
 
 ### Quick overview
 
-Similar to a shell, CliWrap's base unit of execution is the **command** -- an object that encodes instructions for running a process.
+Similar to a shell, CliWrap's base unit of execution is a **command** -- an object that encodes instructions for running a process.
 To build a command, start by calling `Cli.Wrap(...)` with the executable path, and then use the provided fluent interface to configure arguments, working directory, and other options:
 
 ```csharp
@@ -84,7 +84,7 @@ var stdErr = stdErrBuffer.ToString();
 ```
 
 In this case, instead of being ignored, the data written to standard output and error streams is decoded as text and stored in-memory.
-You can inspect the contents of the buffers to see what the process has printed to the console during its execution. 
+You can then inspect the contents of the `StringBuilder` buffers to see what the process has printed to the console during its execution. 
 
 Handling command output is a very common scenario, so CliWrap provides a few higher level [execution models](#execution-models) to make things simpler.
 In particular, the same thing shown in the example above can be achieved more succinctly by using the `ExecuteBufferedAsync()` extension method:
@@ -116,13 +116,10 @@ Similarly to `ExecuteAsync()`, this method returns a result object containing ru
 Additionally, the size of the data may make it inefficient to store in-memory.
 For more complex scenarios, CliWrap also provides other piping options, which are covered in the [Piping](#piping) section.
 
-> Note that `ExecuteBufferredAsync()` is just one of high level execution models available in CliWrap.
-Read the [Execution models](#execution-models) section to learn more.
-
 ### Command configuration
 
 The fluent interface provided by the command object allows you to configure various options related to its execution.
-Below you can find all of them:
+Below list covers all available configuration methods and their usage:
 
 - #### `WithArguments(...)`
 
@@ -151,8 +148,6 @@ var cmd = Cli.Wrap("git")
         .Add("--depth")
         .Add(20)); // <- formatted to a string
 ```
-
-ℹ️ It's recommended to use the last two overloads wherever possible as they take care of escaping special characters for you automatically.
 
 - #### `WithWorkingDirectory(...)`
 
@@ -220,7 +215,7 @@ var cmd = Cli.Wrap("git")
 ```
 
 > Note that specifying domain and password is only supported on Windows and will result in an exception on other operating systems.
-Username, on the other hand, is supported across all platforms.
+Specifying username, on the other hand, is supported across all platforms.
 
 - #### `WithValidation(...)`
 
@@ -251,7 +246,7 @@ Sets the pipe source that will be used for the standard _input_ stream of the pr
 
 Default: `PipeSource.Null`.
 
-Read more about piping in the [next section](#piping).
+_Read more about this method in the [Piping](#piping) section._
 
 - #### `WithStandardOutputPipe(...)`
 
@@ -259,7 +254,7 @@ Sets the pipe target that will be used for the standard _output_ stream of the p
 
 Default: `PipeTarget.Null`.
 
-Read more about piping in the [next section](#piping).
+_Read more about this method in the [Piping](#piping) section._
 
 - #### `WithStandardErrorPipe(...)`
 
@@ -267,15 +262,15 @@ Sets the pipe target that will be used for the standard _error_ stream of the pr
 
 Default: `PipeTarget.Null`.
 
-Read more about piping in the [next section](#piping).
+_Read more about this method in the [Piping](#piping) section._
 
-> Note that `Command` is an immutable object, so all configuration methods (i.e. those prefixed by `With...`) return a new instance instead of modifying an existing one.
-This means that you can reuse commands safely without worrying about potential side-effects.
+> Note that `Command` is an immutable object, so all configuration methods (i.e. those prefixed by `With...`) return a new instance instead of modifying the existing one.
+This means that you can safely reuse commands without worrying about potential side-effects.
 
 ### Piping
 
-CliWrap offers a very powerful and flexible piping model that allows you to redirect process's streams, transform their data, or even chain them together with minimal effort.
-At its core, it's based on two abstractions: `PipeSource` which provides data for a standard input stream, and `PipeTarget` which reads and processes data coming from a standard output or error stream.
+CliWrap offers a very powerful and flexible piping model that allows you to redirect process's streams, transform input and output data, and even chain multiple commands together with minimal effort.
+At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads and processes data coming from standard output or standard error stream.
 
 By default, command's input pipe is configured to `PipeSource.Null` and the output and error pipes are configured to `PipeTarget.Null`.
 These objects effectively represent no-op stubs that provide empty input and discard all output respectively.
@@ -408,13 +403,13 @@ It's not only used for convenience, but also to improve memory efficiency when d
 
 ### Execution models
 
-CliWrap provides a few high level execution models, which are essentially extension methods that allow you to reason about command execution in different ways.
-Their primary purpose is to simplify configuration for common use cases.
+CliWrap provides a few high level execution models, which are essentially extensions that allow you to reason about command execution in different ways.
+Their primary purpose is to simplify configuration in commonly used scenarios.
 
 #### Buffered execution
 
 This execution model lets you run a process while buffering its standard output and error streams in-memory.
-The data is processed as text and can subsequently be accessed once the command finishes executing.
+The data is processed as text and can be accessed once the command finishes executing.
 
 ```csharp
 using CliWrap;
@@ -486,9 +481,18 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate over using the `await foreach` construct introduced in C# 8.
 In this scenario, back pressure is performed by locking the pipes between each iteration of the loop, which means that the underlying process may suspend execution until the event is fully processed.
 
+Just like with `ExecuteBufferedAsync()`, you can also override the encoding used to decode text by using one of the provided overloads:
+
+```csharp
+await foreach (var cmdEvent in cmd.ListenAsync(Encoding.UTF8))
+{
+    // ...
+}
+```
+
 #### Push-based event stream
 
-Similarly to the pull-based stream, you can also execute a command as an observable _push-based_ event stream instead:
+Similarly to the pull-based stream, you can also execute a command as a _push-based_ event stream instead:
 
 ```csharp
 using CliWrap;
@@ -518,7 +522,7 @@ await cmd.Observe().ForEachAsync(cmdEvent =>
 In this case, `Observe()` returns a cold `IObservable<CommandEvent>` that represents an observable stream of events.
 You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet/reactive) to transform, filter, throttle, or otherwise manipulate the stream.
 
-Unlike with the pull-based approach, this scenario does not involve any back pressure so the data is pushed to the observers at the rate it becomes available.
+Unlike with the pull-based event stream, this approach does not involve any back pressure so the data is pushed to the observer at the rate it becomes available.
 
 #### Combining execution models with custom pipes
 
@@ -537,12 +541,12 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 }
 ```
 
-In this scenario, the pipes configured previously are not overriden when calling `ListenAsync()`.
-This is facilitated by relying `PipeTarget.Merge()` internally to combine new pipes with those configured earlier.
+In the code above, the pipes configured previously are not overriden when calling `ListenAsync()`, despite the fact that the latter relies on its own piping configuration.
+This is facilitated by using `PipeTarget.Merge()` internally to combine new pipes with those configured earlier.
 
 ### Timeout and cancellation
 
-Command execution is asynchronous by nature as it involves a completely separate process.
+Command execution is asynchronous in nature as it involves a completely separate process.
 In many cases, it may be useful to implement an abortion mechanism to stop the execution before it finishes, either through a manual trigger or a timeout.
 
 To do that, just pass the corresponding `CancellationToken` when calling `ExecuteAsync()`:
