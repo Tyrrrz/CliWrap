@@ -1,3 +1,7 @@
+### v3.3.1 (21-Feb-2021)
+
+- Added `ExitCode` and `Command` properties to `CommandExecutionException`. These properties can be inspected to retrieve the exit code returned by the process and the command that triggered the exception. (Thanks [@Philip](https://github.com/pchinery))
+
 ### v3.3 (29-Dec-2020)
 
 - Added `PipeSource.FromFile(...)` and `PipeTarget.ToFile(...)` as convenience shorthands for creating pipes that work with `FileStream` instances.
