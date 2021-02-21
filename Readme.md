@@ -270,9 +270,9 @@ This means that you can safely reuse commands without worrying about potential s
 ### Piping
 
 CliWrap offers a very powerful and flexible piping model that allows you to redirect process's streams, transform input and output data, and even chain multiple commands together with minimal effort.
-At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads and processes data coming from standard output or standard error stream.
+At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads data coming from standard output or standard error stream.
 
-By default, command's input pipe is configured to `PipeSource.Null` and the output and error pipes are configured to `PipeTarget.Null`.
+By default, command's input pipe is set to `PipeSource.Null` and the output and error pipes are set to `PipeTarget.Null`.
 These objects effectively represent no-op stubs that provide empty input and discard all output respectively.
 
 You can specify your own `PipeSource` and `PipeTarget` instances by calling the corresponding configuration methods on the command:
@@ -312,7 +312,7 @@ Besides raw streams, `PipeSource` and `PipeTarget` both have factory methods tha
 - `PipeTarget.Merge()` -- merges multiple outbound pipes into one.
 
 The pipe operator also has overloads for most of these.
-Below you can see some examples of what you can achieve with the piping feature that CliWrap provides.
+Below you can see some examples of what you can achieve with the help of CliWrap's piping feature.
 
 Pipe a string into stdin:
 
@@ -411,6 +411,8 @@ Their primary purpose is to simplify configuration in commonly used scenarios.
 This execution model lets you run a process while buffering its standard output and error streams in-memory.
 The data is processed as text and can be accessed once the command finishes executing.
 
+To execute a command with buffering, call `ExecuteBufferedAsync()`:
+
 ```csharp
 using CliWrap;
 using CliWrap.Buffered;
@@ -478,10 +480,10 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 }
 ```
 
-The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate over using the `await foreach` construct introduced in C# 8.
+The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct introduced in C# 8.
 In this scenario, back pressure is performed by locking the pipes between each iteration of the loop, which means that the underlying process may suspend execution until the event is fully processed.
 
-Just like with `ExecuteBufferedAsync()`, you can also override the encoding used to decode text by using one of the provided overloads:
+Just like with `ExecuteBufferedAsync()`, you can also override the encoding used to decode the stream by using one of the provided overloads:
 
 ```csharp
 await foreach (var cmdEvent in cmd.ListenAsync(Encoding.UTF8))
