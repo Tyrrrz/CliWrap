@@ -84,10 +84,10 @@ var stdErr = stdErrBuffer.ToString();
 ```
 
 In this case, instead of being ignored, the data written to standard output and error streams is decoded as text and buffered in-memory.
-After the command has finished executing, you can inspect the contents of the buffers to see what the process has printed to the console during its run time.
+After the command has finished executing, you can inspect the contents of the buffers to see what the process has printed to the console during its runtime.
 
 Handling command output is a very common use case, so CliWrap offers a few high-level [execution models](#execution-models) to make things simpler.
-In particular, the same thing shown in the above example can be achieved more succinctly by using the `ExecuteBufferedAsync()` extension method:
+In particular, the same thing shown in the above example can also be achieved more succinctly by using the `ExecuteBufferedAsync()` extension method:
 
 ```csharp
 using CliWrap;
@@ -414,7 +414,7 @@ Under the hood, they are all built by leveraging the [piping feature](#piping) s
 #### Buffered execution
 
 This execution model lets you run a process while buffering its standard output and error streams in-memory.
-The buffered data can then be accessed after the command has finished executing.
+The buffered data can then be accessed after the command finishes executing.
 
 In order to execute a command with buffering, call the `ExecuteBufferedAsync()` extension method:
 
@@ -449,7 +449,7 @@ var result = await Cli.Wrap("path/to/exe")
 #### Pull-based event stream
 
 Besides executing a command as a task, CliWrap also supports an alternative model, in which the execution is represented as an event stream.
-This lets you start a command and react to the events it produces in real time.
+This lets you start a command and react to the events it produces in real-time.
 
 Those events are:
 
@@ -487,9 +487,9 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 ```
 
 The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct introduced in C# 8.
-When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop.
+When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop, preventing unnecessary buffering of data in-memory.
 
-If you need to specify custom encoding, you can use one of the available overloads:
+If you also need to specify custom encoding, you can use one of the available overloads:
 
 ```csharp
 await foreach (var cmdEvent in cmd.ListenAsync(Encoding.UTF8))
@@ -537,7 +537,7 @@ You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet
 
 Unlike with the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate it becomes available.
 
-Likewise, if you need to specify custom encoding, you can use one of the available overloads:
+Likewise, if you also need to specify custom encoding, you can use one of the available overloads:
 
 ```csharp
 var cmdEvents = cmd.Observe(Encoding.UTF8);
@@ -552,7 +552,7 @@ var cmdEvents = cmd.Observe(Encoding.ASCII, Encoding.UTF8);
 #### Combining execution models with custom pipes
 
 The different execution models shown above are based on the piping model, but those two concepts are not mutually exclusive.
-Internally, they all rely on `PipeTarget.Merge()`, which allows them to wire new pipes while preserving those configured earlier.
+That's because internally they all rely on `PipeTarget.Merge()`, which allows them to wire new pipes while still preserving those configured earlier.
 
 This means that, for example, you can create a piped command and also execute it as an event stream:
 
@@ -563,6 +563,7 @@ var cmd =
     PipeSource.ToFile("output.txt");
 
 // Iterate as an event stream and pipe to file at the same time
+// (pipes are combined, not overriden)
 await foreach (var cmdEvent in cmd.ListenAsync())
 {
     // ...
@@ -592,7 +593,7 @@ Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBuffere
 
 ```csharp
 // Cancellation with buffered execution
-await Cli.Wrap("path/to/exe").ExecuteBufferedAsync(cts.Token);
+var result = await Cli.Wrap("path/to/exe").ExecuteBufferedAsync(cts.Token);
 
 // Cancellation with pull-based event stream
 await foreach (Cli.Wrap("path/to/exe").ListenAsync(cts.Token))
