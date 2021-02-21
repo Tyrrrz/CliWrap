@@ -6,15 +6,15 @@ using CliWrap.Exceptions;
 namespace CliWrap.Buffered
 {
     /// <summary>
-    /// Extensions for executing a command with buffering.
+    /// Buffered execution model.
     /// </summary>
     public static class BufferedCommandExtensions
     {
         /// <summary>
         /// Executes the command asynchronously.
         /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
-        /// This method can be awaited.
         /// </summary>
+        /// <remarks>This method can be awaited.</remarks>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             this Command command,
             Encoding standardOutputEncoding,
@@ -69,8 +69,8 @@ namespace CliWrap.Buffered
         /// <summary>
         /// Executes the command asynchronously.
         /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
-        /// This method can be awaited.
         /// </summary>
+        /// <remarks>This method can be awaited.</remarks>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             this Command command,
             Encoding encoding,
@@ -81,8 +81,8 @@ namespace CliWrap.Buffered
         /// Executes the command asynchronously.
         /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
-        /// This method can be awaited.
         /// </summary>
+        /// <remarks>This method can be awaited.</remarks>
         public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             this Command command,
             CancellationToken cancellationToken = default) =>

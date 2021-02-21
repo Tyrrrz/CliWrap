@@ -9,12 +9,12 @@ using CliWrap.Utils;
 namespace CliWrap.EventStream
 {
     /// <summary>
-    /// Extensions for executing a command as an event stream.
+    /// Event stream execution model.
     /// </summary>
     public static class EventStreamCommandExtensions
     {
         /// <summary>
-        /// Executes the command as an asynchronous event stream.
+        /// Executes the command as an asynchronous (pull-based) event stream.
         /// Use <code>await foreach</code> to listen to the stream and handle command events.
         /// </summary>
         public static async IAsyncEnumerable<CommandEvent> ListenAsync(
@@ -62,7 +62,7 @@ namespace CliWrap.EventStream
         }
 
         /// <summary>
-        /// Executes the command as an asynchronous event stream.
+        /// Executes the command as an asynchronous (pull-based) event stream.
         /// Use <code>await foreach</code> to listen to the stream and handle command events.
         /// </summary>
         public static IAsyncEnumerable<CommandEvent> ListenAsync(
@@ -72,7 +72,7 @@ namespace CliWrap.EventStream
             command.ListenAsync(encoding, encoding, cancellationToken);
 
         /// <summary>
-        /// Executes the command as an asynchronous event stream.
+        /// Executes the command as an asynchronous (pull-based) event stream.
         /// Use <code>await foreach</code> to listen to the stream and handle command events.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
@@ -82,7 +82,7 @@ namespace CliWrap.EventStream
             command.ListenAsync(Console.OutputEncoding, cancellationToken);
 
         /// <summary>
-        /// Executes the command as an observable event stream.
+        /// Executes the command as an observable (push-based) event stream.
         /// </summary>
         public static IObservable<CommandEvent> Observe(
             this Command command,
@@ -138,7 +138,7 @@ namespace CliWrap.EventStream
             });
 
         /// <summary>
-        /// Executes the command as an observable event stream.
+        /// Executes the command as an observable (push-based) event stream.
         /// </summary>
         public static IObservable<CommandEvent> Observe(
             this Command command,
@@ -147,7 +147,7 @@ namespace CliWrap.EventStream
             command.Observe(encoding, encoding, cancellationToken);
 
         /// <summary>
-        /// Executes the command as an observable event stream.
+        /// Executes the command as an observable (push-based) event stream.
         /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
         /// </summary>
         public static IObservable<CommandEvent> Observe(

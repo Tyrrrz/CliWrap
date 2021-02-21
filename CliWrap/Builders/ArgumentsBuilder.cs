@@ -7,7 +7,7 @@ using System.Text;
 namespace CliWrap.Builders
 {
     /// <summary>
-    /// Builder that helps generate a well-formed arguments string.
+    /// Builder that helps generate well-formed arguments string.
     /// </summary>
     public partial class ArgumentsBuilder
     {

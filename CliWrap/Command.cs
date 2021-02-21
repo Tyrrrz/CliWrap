@@ -15,53 +15,35 @@ using CliWrap.Utils.Extensions;
 namespace CliWrap
 {
     /// <summary>
-    /// Represents a shell command.
+    /// Represents an object that contains instructions for running a process.
     /// </summary>
     public partial class Command : ICommandConfiguration
     {
-        /// <summary>
-        /// File path of the executable, batch file, or script, that this command runs on.
-        /// </summary>
+        /// <inheritdoc />
         public string TargetFilePath { get; }
 
-        /// <summary>
-        /// Arguments passed on the command line.
-        /// </summary>
+        /// <inheritdoc />
         public string Arguments { get; }
 
-        /// <summary>
-        /// Working directory path.
-        /// </summary>
+        /// <inheritdoc />
         public string WorkingDirPath { get; }
 
-        /// <summary>
-        /// User credentials set for the underlying process.
-        /// </summary>
+        /// <inheritdoc />
         public Credentials Credentials { get; }
 
-        /// <summary>
-        /// Environment variables set for the underlying process.
-        /// </summary>
+        /// <inheritdoc />
         public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
-        /// <summary>
-        /// Configured result validation options.
-        /// </summary>
+        /// <inheritdoc />
         public CommandResultValidation Validation { get; }
 
-        /// <summary>
-        /// Configured standard input pipe source.
-        /// </summary>
+        /// <inheritdoc />
         public PipeSource StandardInputPipe { get; }
 
-        /// <summary>
-        /// Configured standard output pipe target.
-        /// </summary>
+        /// <inheritdoc />
         public PipeTarget StandardOutputPipe { get; }
 
-        /// <summary>
-        /// Configured standard error pipe target.
-        /// </summary>
+        /// <inheritdoc />
         public PipeTarget StandardErrorPipe { get; }
 
         /// <summary>
@@ -283,7 +265,7 @@ namespace CliWrap
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true,
+                CreateNoWindow = true
             };
 
             // Domain and password are only supported on Windows
@@ -308,7 +290,9 @@ namespace CliWrap
             return result;
         }
 
-        private async Task PipeStandardInputAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        private async Task PipeStandardInputAsync(
+            ProcessEx process,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -336,7 +320,9 @@ namespace CliWrap
             }
         }
 
-        private async Task PipeStandardOutputAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        private async Task PipeStandardOutputAsync(
+            ProcessEx process,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -349,7 +335,9 @@ namespace CliWrap
             }
         }
 
-        private async Task PipeStandardErrorAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        private async Task PipeStandardErrorAsync(
+            ProcessEx process,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -362,7 +350,9 @@ namespace CliWrap
             }
         }
 
-        private async Task<CommandResult> ExecuteAsync(ProcessEx process, CancellationToken cancellationToken = default)
+        private async Task<CommandResult> ExecuteAsync(
+            ProcessEx process,
+            CancellationToken cancellationToken = default)
         {
             // Additional cancellation for stdin in case the process terminates early and doesn't fully exhaust it
             using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -413,8 +403,8 @@ namespace CliWrap
 
         /// <summary>
         /// Executes the command asynchronously.
-        /// This method can be awaited.
         /// </summary>
+        /// <remarks>This method can be awaited.</remarks>
         public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
             var process = new ProcessEx(GetStartInfo());

@@ -1,7 +1,7 @@
 ﻿namespace CliWrap
 {
     /// <summary>
-    /// User credentials associated with a process.
+    /// User credentials used for running a process.
     /// </summary>
     public partial class Credentials
     {

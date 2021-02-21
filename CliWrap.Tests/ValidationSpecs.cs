@@ -25,6 +25,9 @@ namespace CliWrap.Tests
 
             // Act & assert
             var ex = await Assert.ThrowsAsync<CommandExecutionException>(() => cmd.ExecuteAsync());
+            ex.ExitCode.Should().Be(-1);
+            ex.Command.Should().Be(cmd);
+
             _output.WriteLine(ex.Message);
         }
 
@@ -40,11 +43,15 @@ namespace CliWrap.Tests
 
             // Act & assert
             var ex = await Assert.ThrowsAsync<CommandExecutionException>(() => cmd.ExecuteBufferedAsync());
+            ex.Message.Should().Contain("Standard error");
+            ex.ExitCode.Should().Be(-1);
+            ex.Command.Should().Be(cmd);
+
             _output.WriteLine(ex.Message);
         }
 
         [Fact(Timeout = 15000)]
-        public async Task Exit_code_validation_can_be_disabled()
+        public async Task Command_result_validation_can_be_disabled()
         {
             // Arrange
             var cmd = Cli.Wrap("dotnet")
@@ -56,24 +63,6 @@ namespace CliWrap.Tests
 
             // Act & assert
             await cmd.ExecuteAsync();
-        }
-
-        [Fact(Timeout = 15000)]
-        public async Task Command_with_non_zero_exit_code_yields_exit_code_in_exception()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("exit-with")
-                    .Add("--code").Add(1));
-
-            // Act
-            var task = cmd.ExecuteAsync();
-
-            // Assert
-            var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await task);
-            ex.ExitCode.Should().Be(1);
         }
     }
 }

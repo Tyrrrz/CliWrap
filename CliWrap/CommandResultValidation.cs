@@ -3,13 +3,13 @@
 namespace CliWrap
 {
     /// <summary>
-    /// Specifies enabled validations that run on the result of command execution.
+    /// Specifies validation strategy to use on the result of a command execution.
     /// </summary>
     [Flags]
     public enum CommandResultValidation
     {
         /// <summary>
-        /// No validations.
+        /// No validation.
         /// </summary>
         None = 0b0,
 
