@@ -121,7 +121,7 @@ For more complex scenarios, CliWrap also provides other piping options, which ar
 The fluent interface provided by the command object allows you to configure various options related to its execution.
 Below list covers all available configuration methods and their usage:
 
-- #### `WithArguments(...)`
+#### `WithArguments(...)`
 
 Sets the command line arguments that will be passed to the child process.
 
@@ -152,7 +152,7 @@ var cmd = Cli.Wrap("git")
         .Add(20)); // <- formatted to a string
 ```
 
-- #### `WithWorkingDirectory(...)`
+#### `WithWorkingDirectory(...)`
 
 Sets the working directory of the child process.
 
@@ -163,7 +163,7 @@ var cmd = Cli.Wrap("git")
     .WithWorkingDirectory("c:/projects/my project/");
 ```
 
-- #### `WithEnvironmentVariables(...)`
+#### `WithEnvironmentVariables(...)`
 
 Sets additional environment variables that will be exposed to the child process.
 
@@ -192,7 +192,7 @@ var cmd = Cli.Wrap("git")
 > Note that these environment variables are set on top of the default environment variables inherited from the parent process.
 If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
 
-- #### `WithCredentials(...)`
+#### `WithCredentials(...)`
 
 Sets domain, name and password of the user, under whom the child process will be started.
 
@@ -222,7 +222,7 @@ var cmd = Cli.Wrap("git")
 > Note that specifying domain and password is only supported on Windows and will result in an exception on other operating systems.
 Specifying username, on the other hand, is supported across all platforms.
 
-- #### `WithValidation(...)`
+#### `WithValidation(...)`
 
 Sets the strategy for validating the result of an execution.
 
@@ -248,7 +248,7 @@ var cmd = Cli.Wrap("git")
     .WithValidation(CommandResultValidation.ZeroExitCode);
 ```
 
-- #### `WithStandardInputPipe(...)`
+#### `WithStandardInputPipe(...)`
 
 Sets the pipe source that will be used for the standard _input_ stream of the process.
 
@@ -256,7 +256,7 @@ Default: `PipeSource.Null`.
 
 _Read more about this method in the [Piping](#piping) section._
 
-- #### `WithStandardOutputPipe(...)`
+#### `WithStandardOutputPipe(...)`
 
 Sets the pipe target that will be used for the standard _output_ stream of the process.
 
@@ -264,7 +264,7 @@ Default: `PipeTarget.Null`.
 
 _Read more about this method in the [Piping](#piping) section._
 
-- #### `WithStandardErrorPipe(...)`
+#### `WithStandardErrorPipe(...)`
 
 Sets the pipe target that will be used for the standard _error_ stream of the process.
 
