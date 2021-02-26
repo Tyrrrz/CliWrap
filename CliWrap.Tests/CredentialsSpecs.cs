@@ -50,7 +50,7 @@ namespace CliWrap.Tests
         }
 
         [SkippableFact(Timeout = 15000)]
-        public async Task Command_can_be_executed_as_another_user_only_on_Windows()
+        public async Task Command_cannot_be_executed_as_another_user_on_unsupported_OS()
         {
             Skip.If(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 

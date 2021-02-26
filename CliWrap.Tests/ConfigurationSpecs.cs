@@ -16,12 +16,12 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("foo").WithArguments("xxx");
 
             // Act
-            var cmdOther = cmd.WithArguments("new");
+            var cmdOther = cmd.WithArguments("qqq ppp");
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
             cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-            cmdOther.Arguments.Should().Be("new");
+            cmdOther.Arguments.Should().Be("qqq ppp");
         }
 
         [Fact]
@@ -40,24 +40,25 @@ namespace CliWrap.Tests
         }
 
         [Fact]
-        public void Command_line_arguments_can_be_set_with_a_builder()
+        public void Command_line_arguments_can_be_set_using_a_builder()
         {
             // Arrange
-            var builder = new ArgumentsBuilder();
+            var cmd = Cli.Wrap("foo").WithArguments("xxx");
 
             // Act
-            var arguments = builder
+            var cmdOther = cmd.WithArguments(b => b
                 .Add("hello world")
                 .Add("foo")
                 .Add(1234)
                 .Add(3.14)
                 .Add(TimeSpan.FromMinutes(1))
                 .Add(new IFormattable[] {-5, 89.13, 100.50M})
-                .Add("bar")
-                .Build();
+                .Add("bar"));
 
             // Assert
-            arguments.Should().Be("\"hello world\" foo 1234 3.14 00:01:00 -5 89.13 100.50 bar");
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+            cmd.Arguments.Should().NotBe(cmdOther.Arguments);
+            cmdOther.Arguments.Should().Be("\"hello world\" foo 1234 3.14 00:01:00 -5 89.13 100.50 bar");
         }
 
         [Fact]

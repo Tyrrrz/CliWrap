@@ -25,7 +25,11 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLines.Should().HaveCount(3);
+            stdOutLines.Should().Equal(
+                "Foo",
+                "Bar",
+                "Baz"
+            );
         }
 
         [Fact]
@@ -45,7 +49,11 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLines.Should().HaveCount(3);
+            stdOutLines.Should().Equal(
+                "Foo",
+                "Bar",
+                "Baz"
+            );
         }
 
         [Fact]
@@ -65,7 +73,11 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLines.Should().HaveCount(3);
+            stdOutLines.Should().Equal(
+                "Foo",
+                "Bar",
+                "Baz"
+            );
         }
 
         [Fact]
@@ -85,8 +97,13 @@ namespace CliWrap.Tests
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLines.Should().HaveCount(5);
-            stdOutLines.Where(string.IsNullOrEmpty).Should().HaveCount(2);
+            stdOutLines.Should().Equal(
+                "Foo",
+                "",
+                "Bar",
+                "",
+                "Baz"
+            );
         }
     }
 }
