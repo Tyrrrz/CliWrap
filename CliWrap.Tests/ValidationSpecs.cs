@@ -27,7 +27,7 @@ namespace CliWrap.Tests
             var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteAsync());
 
             ex.ExitCode.Should().Be(1);
-            ex.Command.Should().Be(cmd);
+            ex.Command.Should().BeEquivalentTo(cmd);
 
             _output.WriteLine(ex.Message);
         }
@@ -47,7 +47,7 @@ namespace CliWrap.Tests
 
             ex.Message.Should().Contain("Standard error");
             ex.ExitCode.Should().Be(1);
-            ex.Command.Should().Be(cmd);
+            ex.Command.Should().BeEquivalentTo(cmd);
 
             _output.WriteLine(ex.Message);
         }

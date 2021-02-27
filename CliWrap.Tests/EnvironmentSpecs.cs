@@ -41,8 +41,6 @@ namespace CliWrap.Tests
                 ["Path"] = "there"
             };
 
-            var expectedOutputLines = env.Select(kvp => $"[{kvp.Key}] = {kvp.Value}").ToArray();
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
@@ -54,7 +52,12 @@ namespace CliWrap.Tests
             var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
 
             // Assert
-            stdOutLines.Should().Contain(expectedOutputLines);
+            stdOutLines.Should().Contain(new[]
+            {
+                "[foo] = bar",
+                "[hello] = world",
+                "[Path] = there"
+            });
         }
     }
 }

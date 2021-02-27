@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using CliWrap.Builders;
 using FluentAssertions;
 using Xunit;
 
@@ -47,18 +46,17 @@ namespace CliWrap.Tests
 
             // Act
             var cmdOther = cmd.WithArguments(b => b
-                .Add("hello world")
-                .Add("foo")
-                .Add(1234)
+                .Add("-a")
+                .Add("foo bar")
                 .Add(3.14)
-                .Add(TimeSpan.FromMinutes(1))
-                .Add(new IFormattable[] {-5, 89.13, 100.50M})
-                .Add("bar"));
+                .Add(new[] {"foo", "bar"})
+                .Add(new IFormattable[] {-5, 89.13})
+            );
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
             cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-            cmdOther.Arguments.Should().Be("\"hello world\" foo 1234 3.14 00:01:00 -5 89.13 100.50 bar");
+            cmdOther.Arguments.Should().Be("-a \"foo bar\" 3.14 foo bar -5 89.13");
         }
 
         [Fact]
@@ -80,40 +78,34 @@ namespace CliWrap.Tests
         public void Credentials_can_be_set()
         {
             // Arrange
-            var cmd = Cli.Wrap("foo").WithCredentials(c => c
-                .SetDomain("xxx")
-                .SetUserName("xxx")
-                .SetPassword("xxx")
-            );
+            var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
             // Act
-            var cmdOther = cmd.WithCredentials(c => c
-                .SetDomain("new")
-                .SetUserName("new")
-                .SetPassword("new")
-            );
+            var cmdOther = cmd.WithCredentials(new Credentials("domain", "username", "password"));
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
             cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-            cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("new", "new", "new"));
+            cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
         }
 
         [Fact]
         public void Credentials_can_be_set_with_a_builder()
         {
             // Arrange
-            var builder = new CredentialsBuilder();
+            var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
             // Act
-            var credentials = builder
+            var cmdOther = cmd.WithCredentials(c => c
                 .SetDomain("domain")
                 .SetUserName("username")
                 .SetPassword("password")
-                .Build();
+            );
 
             // Assert
-            credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
+            cmd.Credentials.Should().NotBe(cmdOther.Credentials);
+            cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
         }
 
         [Fact]
@@ -123,14 +115,19 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
             // Act
-            var cmdOther = cmd.WithEnvironmentVariables(e => e.Set("new", "new"));
+            var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, string>
+            {
+                ["name"] = "value",
+                ["key"] = "door"
+            });
 
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
             cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
             cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string>
             {
-                ["new"] = "new"
+                ["name"] = "value",
+                ["key"] = "door"
             });
         }
 
@@ -138,19 +135,21 @@ namespace CliWrap.Tests
         public void Environment_variables_can_be_set_with_a_builder()
         {
             // Arrange
-            var builder = new EnvironmentVariablesBuilder();
+            var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
             // Act
-            var envVars = builder
-                .Set("foo", "bar")
-                .Set("lo", "dash")
-                .Build();
+            var cmdOther = cmd.WithEnvironmentVariables(b => b
+                .Set("name", "value")
+                .Set("key", "door")
+            );
 
             // Assert
-            envVars.Should().BeEquivalentTo(new Dictionary<string, string>
+            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
+            cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
+            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string>
             {
-                ["foo"] = "bar",
-                ["lo"] = "dash"
+                ["name"] = "value",
+                ["key"] = "door"
             });
         }
 

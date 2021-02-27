@@ -43,10 +43,8 @@ namespace CliWrap.Tests
         public async Task Stdin_can_be_piped_from_a_file()
         {
             // Arrange
-            const string expectedOutput = "Hello world!";
-
             var filePath = _tempOutputFixture.GetTempFilePath();
-            await File.WriteAllTextAsync(filePath, expectedOutput);
+            await File.WriteAllTextAsync(filePath, "Hello world!");
 
             var cmd = PipeSource.FromFile(filePath) | Cli.Wrap("dotnet")
                 .WithArguments(a => a
@@ -57,16 +55,14 @@ namespace CliWrap.Tests
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.Should().Be(expectedOutput);
+            result.StandardOutput.Should().Be("Hello world!");
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdin_can_be_piped_from_a_string()
         {
             // Arrange
-            const string expectedOutput = "Hello world!";
-
-            var cmd = expectedOutput | Cli.Wrap("dotnet")
+            var cmd = "Hello world!" | Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("echo-stdin"));
@@ -75,20 +71,18 @@ namespace CliWrap.Tests
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.Should().Be(expectedOutput);
+            result.StandardOutput.Should().Be("Hello world!");
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdin_can_be_piped_from_stdout_of_another_command()
         {
             // Arrange
-            const int expectedLength = 1_000_000;
-
             var cmd =
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedLength)) |
+                    .Add("--length").Add(1_000_000)) |
                 Cli.Wrap("dotnet").WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("print-stdin-length"));
@@ -128,70 +122,64 @@ namespace CliWrap.Tests
         public async Task Stdout_can_be_piped_into_a_stream()
         {
             // Arrange
-            const int expectedLength = 1_000_000;
             await using var stream = new MemoryStream();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedLength)) | stream;
+                    .Add("--length").Add(1_000_000)) | stream;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stream.Length.Should().Be(expectedLength);
+            stream.Length.Should().Be(1_000_000);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_can_be_piped_into_a_file()
         {
             // Arrange
-            const int expectedLength = 1_000_000;
-
             var filePath = _tempOutputFixture.GetTempFilePath();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedLength)) | PipeTarget.ToFile(filePath);
+                    .Add("--length").Add(1_000_000)) | PipeTarget.ToFile(filePath);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
             File.Exists(filePath).Should().BeTrue();
-            new FileInfo(filePath).Length.Should().Be(expectedLength);
+            new FileInfo(filePath).Length.Should().Be(1_000_000);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_can_be_piped_into_a_string_builder()
         {
             // Arrange
-            const string expectedOutput = "Hello world!";
             var buffer = new StringBuilder();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("echo")
-                    .Add(expectedOutput)) | buffer;
+                    .Add("Hello world!")) | buffer;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            buffer.ToString().Should().Be(expectedOutput);
+            buffer.ToString().Should().Be("Hello world!");
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_can_be_piped_into_a_delegate()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             var stdOutLinesCount = 0;
 
             void HandleStdOut(string s) => stdOutLinesCount++;
@@ -200,21 +188,19 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
-                    .Add("--count").Add(expectedLinesCount)) | HandleStdOut;
+                    .Add("--count").Add(100)) | HandleStdOut;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLinesCount.Should().Be(expectedLinesCount);
+            stdOutLinesCount.Should().Be(100);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_can_be_piped_into_an_async_delegate()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             var stdOutLinesCount = 0;
 
             async Task HandleStdOutAsync(string s)
@@ -227,21 +213,19 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
-                    .Add("--count").Add(expectedLinesCount)) | HandleStdOutAsync;
+                    .Add("--count").Add(100)) | HandleStdOutAsync;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLinesCount.Should().Be(expectedLinesCount);
+            stdOutLinesCount.Should().Be(100);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_and_stderr_can_be_piped_into_separate_streams()
         {
             // Arrange
-            const int expectedLength = 1_000_000;
-
             await using var stdOut = new MemoryStream();
             await using var stdErr = new MemoryStream();
 
@@ -250,45 +234,41 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
                     .Add("--target").Add("all")
-                    .Add("--length").Add(expectedLength)) | (stdOut, stdErr);
+                    .Add("--length").Add(1_000_000)) | (stdOut, stdErr);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOut.Length.Should().Be(expectedLength);
-            stdErr.Length.Should().Be(expectedLength);
+            stdOut.Length.Should().Be(1_000_000);
+            stdErr.Length.Should().Be(1_000_000);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_and_stderr_can_be_piped_into_separate_string_builders()
         {
             // Arrange
-            const string expectedOutput = "Hello world!";
-
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
 
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add("echo").Add(expectedOutput)
+                    .Add("echo").Add("Hello world!")
                     .Add("--target").Add("all")) | (stdOutBuffer, stdErrBuffer);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutBuffer.ToString().Should().Be(expectedOutput);
-            stdErrBuffer.ToString().Should().Be(expectedOutput);
+            stdOutBuffer.ToString().Should().Be("Hello world!");
+            stdErrBuffer.ToString().Should().Be("Hello world!");
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_and_stderr_can_be_piped_into_separate_delegates()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
 
@@ -300,22 +280,20 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
                     .Add("--target").Add("all")
-                    .Add("--count").Add(expectedLinesCount)) | (HandleStdOut, HandleStdErr);
+                    .Add("--count").Add(100)) | (HandleStdOut, HandleStdErr);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLinesCount.Should().Be(expectedLinesCount);
-            stdErrLinesCount.Should().Be(expectedLinesCount);
+            stdOutLinesCount.Should().Be(100);
+            stdErrLinesCount.Should().Be(100);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_and_stderr_can_be_piped_into_separate_async_delegates()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             var stdOutLinesCount = 0;
             var stdErrLinesCount = 0;
 
@@ -336,21 +314,20 @@ namespace CliWrap.Tests
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
                     .Add("--target").Add("all")
-                    .Add("--count").Add(expectedLinesCount)) | (HandleStdOutAsync, HandleStdErrAsync);
+                    .Add("--count").Add(100)) | (HandleStdOutAsync, HandleStdErrAsync);
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stdOutLinesCount.Should().Be(expectedLinesCount);
-            stdErrLinesCount.Should().Be(expectedLinesCount);
+            stdOutLinesCount.Should().Be(100);
+            stdErrLinesCount.Should().Be(100);
         }
 
         [Fact(Timeout = 15000)]
         public async Task Stdout_can_be_piped_into_a_merged_target()
         {
             // Arrange
-            const int expectedLength = 100_000;
             await using var stream1 = new MemoryStream();
             await using var stream2 = new MemoryStream();
             await using var stream3 = new MemoryStream();
@@ -365,15 +342,15 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedLength)) | pipeTarget;
+                    .Add("--length").Add(100_000)) | pipeTarget;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stream1.Length.Should().Be(expectedLength);
-            stream2.Length.Should().Be(expectedLength);
-            stream3.Length.Should().Be(expectedLength);
+            stream1.Length.Should().Be(100_000);
+            stream2.Length.Should().Be(100_000);
+            stream3.Length.Should().Be(100_000);
             stream1.ToArray().Should().Equal(stream2.ToArray());
             stream2.ToArray().Should().Equal(stream3.ToArray());
         }
@@ -382,7 +359,6 @@ namespace CliWrap.Tests
         public async Task Stdout_can_be_piped_into_a_hierarchy_of_merged_targets()
         {
             // Arrange
-            const int expectedLength = 10_000;
             await using var stream1 = new MemoryStream();
             await using var stream2 = new MemoryStream();
             await using var stream3 = new MemoryStream();
@@ -403,16 +379,16 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedLength)) | pipeTarget;
+                    .Add("--length").Add(10_000)) | pipeTarget;
 
             // Act
             await cmd.ExecuteAsync();
 
             // Assert
-            stream1.Length.Should().Be(expectedLength);
-            stream2.Length.Should().Be(expectedLength);
-            stream3.Length.Should().Be(expectedLength);
-            stream4.Length.Should().Be(expectedLength);
+            stream1.Length.Should().Be(10_000);
+            stream2.Length.Should().Be(10_000);
+            stream3.Length.Should().Be(10_000);
+            stream4.Length.Should().Be(10_000);
             stream1.ToArray().Should().Equal(stream2.ToArray());
             stream2.ToArray().Should().Equal(stream3.ToArray());
             stream3.ToArray().Should().Equal(stream4.ToArray());
@@ -424,15 +400,12 @@ namespace CliWrap.Tests
             // https://github.com/Tyrrrz/CliWrap/issues/81
 
             // Arrange
-            const int expectedLength = 1_000_000;
-            const int bufferLength = 100_000; // needs to be >= BufferSizes.Stream to fail
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-binary")
-                    .Add("--length").Add(expectedLength)
-                    .Add("--buffer").Add(bufferLength));
+                    .Add("--length").Add(1_000_000)
+                    .Add("--buffer").Add(100_000)); // needs to be >= BufferSizes.Stream to fail
 
             // Act
 
@@ -446,7 +419,7 @@ namespace CliWrap.Tests
             await (cmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2))).ExecuteAsync();
 
             // Assert
-            unmergedStream.Length.Should().Be(expectedLength);
+            unmergedStream.Length.Should().Be(1_000_000);
             mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
             mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
         }
@@ -480,8 +453,6 @@ namespace CliWrap.Tests
             // https://github.com/Tyrrrz/CliWrap/issues/75
 
             // Arrange
-            const int expectedLinesCount = 100;
-
             var delegateLines = new List<string>();
             void HandleStdOut(string s) => delegateLines.Add(s);
 
@@ -489,7 +460,7 @@ namespace CliWrap.Tests
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
-                    .Add("--count").Add(expectedLinesCount)) | HandleStdOut;
+                    .Add("--count").Add(100)) | HandleStdOut;
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();

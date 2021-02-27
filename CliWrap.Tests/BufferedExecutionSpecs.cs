@@ -14,13 +14,11 @@ namespace CliWrap.Tests
         public async Task Command_can_be_executed_with_buffering_which_yields_a_result_containing_stdout()
         {
             // Arrange
-            const string expectedOutput = "Hello stdout";
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("echo")
-                    .Add(expectedOutput)
+                    .Add("Hello stdout")
                     .Add("--target").Add("stdout"));
 
             // Act
@@ -29,7 +27,7 @@ namespace CliWrap.Tests
             // Assert
             result.ExitCode.Should().Be(0);
             result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
-            result.StandardOutput.Should().Be(expectedOutput);
+            result.StandardOutput.Should().Be("Hello stdout");
             result.StandardError.Should().BeEmpty();
         }
 
@@ -37,13 +35,11 @@ namespace CliWrap.Tests
         public async Task Command_can_be_executed_with_buffering_which_yields_a_result_containing_stderr()
         {
             // Arrange
-            const string expectedOutput = "Hello stderr";
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("echo")
-                    .Add(expectedOutput)
+                    .Add("Hello stderr")
                     .Add("--target").Add("stderr"));
 
             // Act
@@ -53,20 +49,18 @@ namespace CliWrap.Tests
             result.ExitCode.Should().Be(0);
             result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
             result.StandardOutput.Should().BeEmpty();
-            result.StandardError.Should().Be(expectedOutput);
+            result.StandardError.Should().Be("Hello stderr");
         }
 
         [Fact(Timeout = 15000)]
         public async Task Command_can_be_executed_with_buffering_which_yields_a_result_containing_stdout_and_stderr()
         {
             // Arrange
-            const string expectedOutput = "Hello stdout";
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("echo")
-                    .Add(expectedOutput)
+                    .Add("Hello stdout")
                     .Add("--target").Add("all"));
 
             // Act
@@ -75,8 +69,8 @@ namespace CliWrap.Tests
             // Assert
             result.ExitCode.Should().Be(0);
             result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
-            result.StandardOutput.Should().Be(expectedOutput);
-            result.StandardError.Should().Be(expectedOutput);
+            result.StandardOutput.Should().Be("Hello stdout");
+            result.StandardError.Should().Be("Hello stdout");
         }
 
         [Fact(Timeout = 15000)]

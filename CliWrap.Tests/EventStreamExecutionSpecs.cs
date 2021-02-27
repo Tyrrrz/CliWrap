@@ -16,14 +16,12 @@ namespace CliWrap.Tests
         public async Task Command_can_be_executed_as_a_pull_event_stream()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
                     .Add("--target").Add("all")
-                    .Add("--count").Add(expectedLinesCount));
+                    .Add("--count").Add(100));
 
             // Act
             var stdOutLinesCount = 0;
@@ -53,8 +51,8 @@ namespace CliWrap.Tests
             }
 
             // Assert
-            stdOutLinesCount.Should().Be(expectedLinesCount);
-            stdErrLinesCount.Should().Be(expectedLinesCount);
+            stdOutLinesCount.Should().Be(100);
+            stdErrLinesCount.Should().Be(100);
             processHasExited.Should().BeTrue();
         }
 
@@ -62,14 +60,12 @@ namespace CliWrap.Tests
         public async Task Command_can_be_executed_as_a_push_event_stream()
         {
             // Arrange
-            const int expectedLinesCount = 100;
-
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
                     .Add("generate-text-lines")
                     .Add("--target").Add("all")
-                    .Add("--count").Add(expectedLinesCount));
+                    .Add("--count").Add(100));
 
             // Act
             var stdOutLinesCount = 0;
@@ -99,8 +95,8 @@ namespace CliWrap.Tests
             });
 
             // Assert
-            stdOutLinesCount.Should().Be(expectedLinesCount);
-            stdErrLinesCount.Should().Be(expectedLinesCount);
+            stdOutLinesCount.Should().Be(100);
+            stdErrLinesCount.Should().Be(100);
             processHasExited.Should().BeTrue();
         }
 

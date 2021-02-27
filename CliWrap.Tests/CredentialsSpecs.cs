@@ -15,7 +15,7 @@ namespace CliWrap.Tests
             Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
             // We can't really test the happy path, but at least can verify
-            // that the credentials have been passed correctly.
+            // that the credentials have been passed.
 
             // Arrange
             var cmd = Cli.Wrap("dotnet")
@@ -35,7 +35,7 @@ namespace CliWrap.Tests
             Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
             // We can't really test the happy path, but at least can verify
-            // that the credentials have been passed correctly.
+            // that the credentials have been passed.
 
             // Arrange
             var cmd = Cli.Wrap("dotnet")
