@@ -20,7 +20,9 @@ jobs:
           dotnet-version: 5.0.x
 
       - name: Build & test
-        run: dotnet test --configuration Release --logger "GitHubActions;report-warnings=false"
+        run: |
+          dotnet nuget locals all --clear
+          dotnet test --configuration Release --logger "GitHubActions;report-warnings=false"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v1.0.5
