@@ -75,7 +75,7 @@ var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .WithWorkingDirectory("work/dir/path")
     .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderrBuffer))
+    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
     .ExecuteAsync();
     
 // Contains stdOut/stdErr buffered in-memory as string
