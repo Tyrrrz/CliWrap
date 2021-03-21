@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace CliWrap.Exceptions
+﻿namespace CliWrap.Exceptions
 {
     /// <summary>
     /// Exception thrown when the command fails to execute correctly.
     /// </summary>
-    public partial class CommandExecutionException : Exception
+    public partial class CommandExecutionException : CliWrapException
     {
         /// <summary>
         /// Command that triggered the exception.
@@ -20,7 +18,8 @@ namespace CliWrap.Exceptions
         /// <summary>
         /// Initializes an instance of <see cref="CommandExecutionException"/>.
         /// </summary>
-        public CommandExecutionException(ICommandConfiguration command, int exitCode, string message) : base(message)
+        public CommandExecutionException(ICommandConfiguration command, int exitCode, string message)
+            : base(message)
         {
             Command = command;
             ExitCode = exitCode;
@@ -29,7 +28,7 @@ namespace CliWrap.Exceptions
 
     public partial class CommandExecutionException
     {
-        internal static CommandExecutionException ExitCodeValidation(
+        internal static CommandExecutionException ValidationError(
             ICommandConfiguration command,
             int exitCode)
         {
@@ -44,7 +43,7 @@ You can suppress this validation by calling `WithValidation(CommandResultValidat
             return new CommandExecutionException(command, exitCode, message);
         }
 
-        internal static CommandExecutionException ExitCodeValidation(
+        internal static CommandExecutionException ValidationError(
             ICommandConfiguration command,
             int exitCode,
             string standardError)

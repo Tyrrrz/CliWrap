@@ -388,7 +388,7 @@ namespace CliWrap
             // Validate exit code if required
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
             {
-                throw CommandExecutionException.ExitCodeValidation(
+                throw CommandExecutionException.ValidationError(
                     this,
                     process.ExitCode
                 );

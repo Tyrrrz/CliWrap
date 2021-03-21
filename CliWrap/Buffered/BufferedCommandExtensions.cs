@@ -55,7 +55,7 @@ namespace CliWrap.Buffered
                     // We perform validation separately here because we want to include stderr in the exception as well
                     if (result.ExitCode != 0 && command.Validation.IsZeroExitCodeValidationEnabled())
                     {
-                        throw CommandExecutionException.ExitCodeValidation(
+                        throw CommandExecutionException.ValidationError(
                             command,
                             result.ExitCode,
                             result.StandardError.Trim()
