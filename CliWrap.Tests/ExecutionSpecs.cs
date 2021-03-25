@@ -34,6 +34,7 @@ namespace CliWrap.Tests
 
             // Assert
             task.ProcessId.Should().NotBe(0);
+
             await task;
         }
 

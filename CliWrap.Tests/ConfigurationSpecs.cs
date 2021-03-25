@@ -9,6 +9,24 @@ namespace CliWrap.Tests
     public class ConfigurationSpecs
     {
         [Fact]
+        public void Command_is_created_with_default_configuration()
+        {
+            // Act
+            var cmd = Cli.Wrap("foo");
+
+            // Assert
+            cmd.TargetFilePath.Should().Be("foo");
+            cmd.Arguments.Should().BeEmpty();
+            cmd.WorkingDirPath.Should().Be(Directory.GetCurrentDirectory());
+            cmd.Credentials.Should().BeEquivalentTo(Credentials.Default);
+            cmd.EnvironmentVariables.Should().BeEmpty();
+            cmd.Validation.Should().Be(CommandResultValidation.ZeroExitCode);
+            cmd.StandardInputPipe.Should().Be(PipeSource.Null);
+            cmd.StandardOutputPipe.Should().Be(PipeTarget.Null);
+            cmd.StandardErrorPipe.Should().Be(PipeTarget.Null);
+        }
+
+        [Fact]
         public void Command_line_arguments_can_be_set()
         {
             // Arrange
