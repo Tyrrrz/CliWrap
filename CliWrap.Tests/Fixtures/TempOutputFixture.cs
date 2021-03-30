@@ -5,7 +5,10 @@ namespace CliWrap.Tests.Fixtures
 {
     public class TempOutputFixture : IDisposable
     {
-        public string DirPath => Path.Combine(Path.GetDirectoryName(typeof(TempOutputFixture).Assembly.Location)!, "Temp");
+        public string DirPath => Path.Combine(
+            Path.GetDirectoryName(typeof(TempOutputFixture).Assembly.Location) ?? Directory.GetCurrentDirectory(),
+            "Temp"
+        );
 
         public TempOutputFixture() => Directory.CreateDirectory(DirPath);
 
