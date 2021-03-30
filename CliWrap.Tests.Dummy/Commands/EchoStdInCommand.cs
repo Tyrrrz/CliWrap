@@ -2,6 +2,7 @@
 using CliFx;
 using CliFx.Attributes;
 using System;
+using CliFx.Infrastructure;
 using CliWrap.Tests.Dummy.Commands.Shared;
 
 namespace CliWrap.Tests.Dummy.Commands
