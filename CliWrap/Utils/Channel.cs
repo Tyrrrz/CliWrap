@@ -49,7 +49,7 @@ namespace CliWrap.Utils
                     await task.ConfigureAwait(false);
 
                 // If the first task to complete was the closing signal, then we will need to break loop.
-                // However, WaitAsync() may have completely asynchronously at this point, so we try to
+                // However, WaitAsync() may have completed asynchronously at this point, so we try to
                 // read from the queue one last time anyway.
                 var isClosed = task == _closedTcs.Task;
 
