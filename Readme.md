@@ -191,6 +191,7 @@ var cmd = Cli.Wrap("git")
 
 > Note that these environment variables are set on top of the default environment variables inherited from the parent process.
 If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
+Additionally, you can also remove an inherited variable by setting its value to `null`.
 
 #### `WithCredentials(...)`
 
