@@ -173,7 +173,7 @@ Set environment variables from a dictionary:
 
 ```csharp
 var cmd = Cli.Wrap("git")
-    .WithEnvironmentVariables(new Dictionary<string, string>
+    .WithEnvironmentVariables(new Dictionary<string, string?>
     {
         ["GIT_AUTHOR_NAME"] = "John",
         ["GIT_AUTHOR_EMAIL"] = "john@email.com"
