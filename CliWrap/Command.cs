@@ -32,7 +32,7 @@ namespace CliWrap
         public Credentials Credentials { get; }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+        public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }
 
         /// <inheritdoc />
         public CommandResultValidation Validation { get; }
@@ -54,7 +54,7 @@ namespace CliWrap
             string arguments,
             string workingDirPath,
             Credentials credentials,
-            IReadOnlyDictionary<string, string> environmentVariables,
+            IReadOnlyDictionary<string, string?> environmentVariables,
             CommandResultValidation validation,
             PipeSource standardInputPipe,
             PipeTarget standardOutputPipe,
@@ -79,7 +79,7 @@ namespace CliWrap
             string.Empty,
             Directory.GetCurrentDirectory(),
             Credentials.Default,
-            new Dictionary<string, string>(),
+            new Dictionary<string, string?>(),
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
@@ -170,7 +170,7 @@ namespace CliWrap
         /// <summary>
         /// Creates a copy of this command, setting the environment variables to the specified value.
         /// </summary>
-        public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string> environmentVariables) => new(
+        public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string?> environmentVariables) => new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
@@ -285,7 +285,17 @@ namespace CliWrap
             }
 
             foreach (var (key, value) in EnvironmentVariables)
-                result.Environment[key] = value;
+            {
+                // Workaround for https://github.com/dotnet/runtime/issues/34446
+                if (value is null)
+                {
+                    result.Environment.Remove(key);
+                }
+                else
+                {
+                    result.Environment[key] = value;
+                }
+            }
 
             return result;
         }

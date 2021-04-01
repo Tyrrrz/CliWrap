@@ -30,7 +30,7 @@ namespace CliWrap
         /// <summary>
         /// Environment variables set for the underlying process.
         /// </summary>
-        IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+        IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }
 
         /// <summary>
         /// Configured result validation strategy.
