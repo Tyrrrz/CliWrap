@@ -1,3 +1,7 @@
+### v3.3.2 (01-Apr-2021)
+
+- Added the ability to remove an inherited environment variable by setting its value to `null`. (Thanks [@Ville Penttinen](https://github.com/vipentti)) 
+
 ### v3.3.1 (21-Feb-2021)
 
 - Added `ExitCode` and `Command` properties to `CommandExecutionException`. These properties can be inspected to retrieve the exit code returned by the process and the command that triggered the exception. (Thanks [@Philip](https://github.com/pchinery))
