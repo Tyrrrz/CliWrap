@@ -9,9 +9,9 @@ namespace CliWrap.Tests
 {
     public class ValidationSpecs
     {
-        private readonly ITestOutputHelper _output;
+        private readonly ITestOutputHelper _testOutput;
 
-        public ValidationSpecs(ITestOutputHelper output) => _output = output;
+        public ValidationSpecs(ITestOutputHelper testOutput) => _testOutput = testOutput;
 
         [Fact(Timeout = 15000)]
         public async Task Command_execution_throws_if_the_process_exits_with_a_non_zero_exit_code()
@@ -29,7 +29,7 @@ namespace CliWrap.Tests
             ex.ExitCode.Should().Be(1);
             ex.Command.Should().BeEquivalentTo(cmd);
 
-            _output.WriteLine(ex.Message);
+            _testOutput.WriteLine(ex.Message);
         }
 
         [Fact(Timeout = 15000)]
@@ -49,7 +49,7 @@ namespace CliWrap.Tests
             ex.ExitCode.Should().Be(1);
             ex.Command.Should().BeEquivalentTo(cmd);
 
-            _output.WriteLine(ex.Message);
+            _testOutput.WriteLine(ex.Message);
         }
 
         [Fact(Timeout = 15000)]

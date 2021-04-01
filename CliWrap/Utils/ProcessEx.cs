@@ -44,7 +44,7 @@ namespace CliWrap.Utils
 
             // Hook up events
             _nativeProcess.EnableRaisingEvents = true;
-            _nativeProcess.Exited += (sender, args) =>
+            _nativeProcess.Exited += (_, _) =>
             {
                 // Don't rely on Process.ExitTime.
                 // See the code for StartTime below for explanation.
