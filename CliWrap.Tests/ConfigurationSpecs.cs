@@ -133,7 +133,7 @@ namespace CliWrap.Tests
             var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
             // Act
-            var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, string>
+            var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, string?>
             {
                 ["name"] = "value",
                 ["key"] = "door"
@@ -142,7 +142,7 @@ namespace CliWrap.Tests
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
             cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string>
+            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
             {
                 ["name"] = "value",
                 ["key"] = "door"
@@ -164,7 +164,7 @@ namespace CliWrap.Tests
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
             cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string>
+            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
             {
                 ["name"] = "value",
                 ["key"] = "door"
