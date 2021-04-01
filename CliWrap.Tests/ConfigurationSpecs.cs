@@ -66,6 +66,7 @@ namespace CliWrap.Tests
             var cmdOther = cmd.WithArguments(b => b
                 .Add("-a")
                 .Add("foo bar")
+                .Add("\"foo\\\\bar\"")
                 .Add(3.14)
                 .Add(new[] {"foo", "bar"})
                 .Add(new IFormattable[] {-5, 89.13})
@@ -74,7 +75,7 @@ namespace CliWrap.Tests
             // Assert
             cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
             cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-            cmdOther.Arguments.Should().Be("-a \"foo bar\" 3.14 foo bar -5 89.13");
+            cmdOther.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
         }
 
         [Fact]
