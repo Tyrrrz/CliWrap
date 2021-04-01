@@ -24,14 +24,9 @@ namespace CliWrap.Tests.Dummy.Commands
                 length += bytesRead;
             }
 
-            if (Target.HasFlag(OutputTarget.StdOut))
+            foreach (var writer in console.GetWriters(Target))
             {
-                await console.Output.WriteAsync(length.ToString(CultureInfo.InvariantCulture));
-            }
-
-            if (Target.HasFlag(OutputTarget.StdErr))
-            {
-                await console.Error.WriteAsync(length.ToString(CultureInfo.InvariantCulture));
+                await writer.WriteAsync(length.ToString(CultureInfo.InvariantCulture));
             }
         }
     }

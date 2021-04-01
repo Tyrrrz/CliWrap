@@ -33,14 +33,9 @@ namespace CliWrap.Tests.Dummy.Commands
 
                 var bytesToWrite = Math.Min((int) bytesRemaining, buffer.Length);
 
-                if (Target.HasFlag(OutputTarget.StdOut))
+                foreach (var writer in console.GetWriters(Target))
                 {
-                    await console.Output.BaseStream.WriteAsync(buffer.AsMemory(0, bytesToWrite));
-                }
-
-                if (Target.HasFlag(OutputTarget.StdErr))
-                {
-                    await console.Error.BaseStream.WriteAsync(buffer.AsMemory(0, bytesToWrite));
+                    await writer.BaseStream.WriteAsync(buffer.AsMemory(0, bytesToWrite));
                 }
 
                 bytesRemaining -= bytesToWrite;

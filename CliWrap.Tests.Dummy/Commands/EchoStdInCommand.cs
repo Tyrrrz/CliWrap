@@ -14,31 +14,24 @@ namespace CliWrap.Tests.Dummy.Commands
         public OutputTarget Target { get; init; } = OutputTarget.StdOut;
 
         [CommandOption("length")]
-        public long? Length { get; init; }
+        public long Length { get; init; } = long.MaxValue;
 
         public async ValueTask ExecuteAsync(IConsole console)
         {
             var buffer = new byte[81920];
             var bytesCopied = 0L;
 
-            while (Length is null || bytesCopied < Length)
+            while (bytesCopied < Length)
             {
-                var bytesToRead = Length is { } length
-                    ? (int) Math.Min(buffer.Length, length - bytesCopied)
-                    : buffer.Length;
+                var bytesToRead = (int) Math.Min(buffer.Length, Length - bytesCopied);
 
                 var bytesRead = await console.Input.BaseStream.ReadAsync(buffer.AsMemory(0, bytesToRead));
                 if (bytesRead <= 0)
                     break;
 
-                if (Target.HasFlag(OutputTarget.StdOut))
+                foreach (var writer in console.GetWriters(Target))
                 {
-                    await console.Output.BaseStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-                }
-
-                if (Target.HasFlag(OutputTarget.StdErr))
-                {
-                    await console.Error.BaseStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                    await writer.BaseStream.WriteAsync(buffer.AsMemory(0, bytesRead));
                 }
 
                 bytesCopied += bytesRead;

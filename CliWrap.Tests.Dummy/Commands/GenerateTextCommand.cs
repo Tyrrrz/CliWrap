@@ -34,14 +34,9 @@ namespace CliWrap.Tests.Dummy.Commands
 
             var text = buffer.ToString();
 
-            if (Target.HasFlag(OutputTarget.StdOut))
+            foreach (var writer in console.GetWriters(Target))
             {
-                await console.Output.WriteAsync(text);
-            }
-
-            if (Target.HasFlag(OutputTarget.StdErr))
-            {
-                await console.Error.WriteAsync(text);
+                await writer.WriteAsync(text);
             }
         }
     }
