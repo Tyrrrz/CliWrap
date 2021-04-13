@@ -19,9 +19,7 @@ jobs:
           dotnet-version: 5.0.x
 
       - name: Pack
-        run: |
-          dotnet nuget locals all --clear
-          dotnet pack CliWrap --configuration Release
+        run: dotnet pack CliWrap --configuration Release
 
       - name: Deploy
         run: dotnet nuget push CliWrap/bin/Release/*.nupkg -s nuget.org -k ${{ secrets.NUGET_TOKEN }}
