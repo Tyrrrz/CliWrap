@@ -6,7 +6,7 @@ using CliWrap.Utils.Extensions;
 namespace CliWrap
 {
     /// <summary>
-    /// Promise that represents an asynchronous execution of a command.
+    /// Represents an asynchronous execution of a command.
     /// </summary>
     public partial class CommandTask<TResult> : IDisposable
     {

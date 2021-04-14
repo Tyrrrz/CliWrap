@@ -16,13 +16,13 @@ namespace CliWrap.Utils
         private int _currentBufferBytesRead;
 
         [ExcludeFromCodeCoverage]
-        public override bool CanRead { get; } = true;
+        public override bool CanRead => true;
 
         [ExcludeFromCodeCoverage]
-        public override bool CanSeek { get; } = false;
+        public override bool CanSeek => false;
 
         [ExcludeFromCodeCoverage]
-        public override bool CanWrite { get; } = true;
+        public override bool CanWrite => true;
 
         [ExcludeFromCodeCoverage]
         public override long Position { get; set; }
@@ -30,7 +30,11 @@ namespace CliWrap.Utils
         [ExcludeFromCodeCoverage]
         public override long Length => throw new NotSupportedException();
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
         {
             await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -43,7 +47,7 @@ namespace CliWrap.Utils
             {
                 _writeLock.Release();
             }
-            // Otherwise - release read lock so that they can finish reading
+            // Otherwise - release read lock again so that they can continue reading
             else
             {
                 _readLock.Release();
@@ -52,7 +56,11 @@ namespace CliWrap.Utils
             return length;
         }
 
-        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task WriteAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
         {
             await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 

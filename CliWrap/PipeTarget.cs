@@ -53,7 +53,7 @@ namespace CliWrap
 
         /// <summary>
         /// Creates a pipe target that writes to a string builder.
-        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
         /// </summary>
         public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
             ToStringBuilder(stringBuilder, Console.OutputEncoding);
@@ -66,7 +66,7 @@ namespace CliWrap
 
         /// <summary>
         /// Creates a pipe target that triggers a delegate on every line written.
-        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
         /// </summary>
         public static PipeTarget ToDelegate(Action<string> handleLine) =>
             ToDelegate(handleLine, Console.OutputEncoding);
@@ -79,7 +79,7 @@ namespace CliWrap
 
         /// <summary>
         /// Creates a pipe target that triggers an asynchronous delegate on every line written.
-        /// Uses <see cref="Console.OutputEncoding"/> to decode the string from byte stream.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
         /// </summary>
         public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
             ToDelegate(handleLineAsync, Console.OutputEncoding);

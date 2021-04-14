@@ -3,19 +3,25 @@
 namespace CliWrap.EventStream
 {
     /// <summary>
-    /// Represents an abstract event produced by a command.
-    /// Use pattern matching to handle specific instances of this type.
-    /// Can be either one of the following:
-    /// <see cref="StartedCommandEvent"/>,
-    /// <see cref="StandardOutputCommandEvent"/>,
-    /// <see cref="StandardErrorCommandEvent"/>,
-    /// <see cref="ExitedCommandEvent"/>.
+    /// <p>
+    ///     Abstract event produced by a command.
+    ///     Use pattern matching to handle specific instances of this type.
+    /// </p>
+    /// <p>
+    ///     Can be either one of the following:
+    ///     <list type="bullet">
+    ///         <item><see cref="StartedCommandEvent"/></item>
+    ///         <item><see cref="StandardOutputCommandEvent"/></item>
+    ///         <item><see cref="StandardErrorCommandEvent"/></item>
+    ///         <item><see cref="ExitedCommandEvent"/></item>
+    ///     </list>
+    /// </p>
     /// </summary>
     public abstract class CommandEvent {}
 
     /// <summary>
-    /// Represents an event that is triggered when the command starts executing.
-    /// This event may only appear once in the event stream.
+    /// Event triggered when the command starts executing.
+    /// May only appear once in an event stream.
     /// </summary>
     public class StartedCommandEvent : CommandEvent
     {
@@ -35,7 +41,7 @@ namespace CliWrap.EventStream
     }
 
     /// <summary>
-    /// Represents an event that is triggered when the underlying process prints a line of text to the standard output stream.
+    /// Event triggered when the underlying process prints a line of text to the standard output stream.
     /// </summary>
     public class StandardOutputCommandEvent : CommandEvent
     {
@@ -55,7 +61,7 @@ namespace CliWrap.EventStream
     }
 
     /// <summary>
-    /// Represents an event that is triggered when the underlying process prints a line of text to the standard error stream.
+    /// Event triggered when the underlying process prints a line of text to the standard error stream.
     /// </summary>
     public class StandardErrorCommandEvent : CommandEvent
     {
@@ -75,8 +81,8 @@ namespace CliWrap.EventStream
     }
 
     /// <summary>
-    /// Represents an event that is triggered when the command finishes executing.
-    /// This event may only appear once in the event stream.
+    /// Event triggered when the command finishes executing.
+    /// May only appear once in an event stream.
     /// </summary>
     public class ExitedCommandEvent : CommandEvent
     {

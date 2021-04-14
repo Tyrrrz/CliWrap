@@ -14,7 +14,7 @@ namespace CliWrap.Utils.Extensions
             return transform(result);
         }
 
-        public static async Task WithDangerousCancellation(
+        public static async Task WithUncooperativeCancellation(
             this Task task,
             CancellationToken cancellationToken)
         {

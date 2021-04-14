@@ -15,8 +15,10 @@ namespace CliWrap.EventStream
     {
         /// <summary>
         /// Executes the command as an asynchronous (pull-based) event stream.
-        /// Use <code>await foreach</code> to listen to the stream and handle command events.
         /// </summary>
+        /// <remarks>
+        /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+        /// </remarks>
         public static async IAsyncEnumerable<CommandEvent> ListenAsync(
             this Command command,
             Encoding standardOutputEncoding,
@@ -63,8 +65,10 @@ namespace CliWrap.EventStream
 
         /// <summary>
         /// Executes the command as an asynchronous (pull-based) event stream.
-        /// Use <code>await foreach</code> to listen to the stream and handle command events.
         /// </summary>
+        /// <remarks>
+        /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+        /// </remarks>
         public static IAsyncEnumerable<CommandEvent> ListenAsync(
             this Command command,
             Encoding encoding,
@@ -73,9 +77,11 @@ namespace CliWrap.EventStream
 
         /// <summary>
         /// Executes the command as an asynchronous (pull-based) event stream.
-        /// Use <code>await foreach</code> to listen to the stream and handle command events.
-        /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
         /// </summary>
+        /// <remarks>
+        /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+        /// </remarks>
         public static IAsyncEnumerable<CommandEvent> ListenAsync(
             this Command command,
             CancellationToken cancellationToken = default) =>
@@ -84,6 +90,9 @@ namespace CliWrap.EventStream
         /// <summary>
         /// Executes the command as an observable (push-based) event stream.
         /// </summary>
+        /// <remarks>
+        /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+        /// </remarks>
         public static IObservable<CommandEvent> Observe(
             this Command command,
             Encoding standardOutputEncoding,
@@ -140,6 +149,9 @@ namespace CliWrap.EventStream
         /// <summary>
         /// Executes the command as an observable (push-based) event stream.
         /// </summary>
+        /// <remarks>
+        /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+        /// </remarks>
         public static IObservable<CommandEvent> Observe(
             this Command command,
             Encoding encoding,
@@ -148,8 +160,11 @@ namespace CliWrap.EventStream
 
         /// <summary>
         /// Executes the command as an observable (push-based) event stream.
-        /// Uses <see cref="Console.OutputEncoding"/> to decode the strings from byte streams.
+        /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
         /// </summary>
+        /// <remarks>
+        /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+        /// </remarks>
         public static IObservable<CommandEvent> Observe(
             this Command command,
             CancellationToken cancellationToken = default) =>

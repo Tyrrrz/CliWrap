@@ -3,7 +3,7 @@
 namespace CliWrap.Exceptions
 {
     /// <summary>
-    /// Parent class for domain exceptions thrown by <see cref="CliWrap"/>.
+    /// Parent class for exceptions thrown by <see cref="CliWrap"/>.
     /// </summary>
     public abstract class CliWrapException : Exception
     {
@@ -11,8 +11,7 @@ namespace CliWrap.Exceptions
         /// Initializes an instance of <see cref="CliWrapException"/>.
         /// </summary>
         /// <param name="message"></param>
-        protected CliWrapException(string message)
-            : base(message)
+        protected CliWrapException(string message) : base(message)
         {
         }
     }

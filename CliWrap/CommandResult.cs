@@ -3,7 +3,7 @@
 namespace CliWrap
 {
     /// <summary>
-    /// Represents the result of a command execution.
+    /// Result of command execution.
     /// </summary>
     public class CommandResult
     {
@@ -13,17 +13,17 @@ namespace CliWrap
         public int ExitCode { get; }
 
         /// <summary>
-        /// When the command was started.
+        /// Point in time at which the command has started executing.
         /// </summary>
         public DateTimeOffset StartTime { get; }
 
         /// <summary>
-        /// When the command finished executing.
+        /// Point in time at which the command has finished executing.
         /// </summary>
         public DateTimeOffset ExitTime { get; }
 
         /// <summary>
-        /// Total duration of the command execution.
+        /// Total duration of the execution.
         /// </summary>
         public TimeSpan RunTime => ExitTime - StartTime;
 

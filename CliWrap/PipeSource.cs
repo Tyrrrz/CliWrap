@@ -54,7 +54,7 @@ namespace CliWrap
 
         /// <summary>
         /// Creates a pipe source that reads from a string.
-        /// Uses <see cref="Console.InputEncoding"/> to encode the string into byte stream.
+        /// Uses <see cref="Console.InputEncoding"/> to encode the string.
         /// </summary>
         public static PipeSource FromString(string str) => FromString(str, Console.InputEncoding);
 
@@ -117,7 +117,9 @@ namespace CliWrap
         public CommandPipeSource(Command command) => _command = command;
 
         public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-            await _command.WithStandardOutputPipe(PipeTarget.ToStream(destination)).ExecuteAsync(cancellationToken)
+            await _command
+                .WithStandardOutputPipe(PipeTarget.ToStream(destination))
+                .ExecuteAsync(cancellationToken)
                 .ConfigureAwait(false);
     }
 }

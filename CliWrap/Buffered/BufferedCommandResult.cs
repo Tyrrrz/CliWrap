@@ -3,17 +3,17 @@
 namespace CliWrap.Buffered
 {
     /// <summary>
-    /// Represents the result of a command execution, with buffered data from standard output and standard error streams.
+    /// Result of command execution, with buffered data from standard output and standard error streams.
     /// </summary>
     public class BufferedCommandResult : CommandResult
     {
         /// <summary>
-        /// Standard output data produced by the command.
+        /// Standard output data produced by the underlying process.
         /// </summary>
         public string StandardOutput { get; }
 
         /// <summary>
-        /// Standard error data produced by the command.
+        /// Standard error data produced by the underlying process.
         /// </summary>
         public string StandardError { get; }
 

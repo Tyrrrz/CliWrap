@@ -24,7 +24,8 @@ namespace CliWrap.Utils.Extensions
             }
         }
 
-        public static async IAsyncEnumerable<string> ReadAllLinesAsync(this StreamReader reader,
+        public static async IAsyncEnumerable<string> ReadAllLinesAsync(
+            this StreamReader reader,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var stringBuilder = new StringBuilder();
