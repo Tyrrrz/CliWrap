@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
     <PackageReference Include="ProcessX" Version="1.3.0" />
     <PackageReference Include="Sheller" Version="6.0.1" />
     <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
