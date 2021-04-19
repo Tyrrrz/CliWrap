@@ -416,7 +416,10 @@ namespace CliWrap.Tests
             // Run with merging to check if it's the same
             await using var mergedStream1 = new MemoryStream();
             await using var mergedStream2 = new MemoryStream();
-            await (cmd | PipeTarget.Merge(PipeTarget.ToStream(mergedStream1), PipeTarget.ToStream(mergedStream2))).ExecuteAsync();
+            await (cmd | PipeTarget.Merge(
+                    PipeTarget.ToStream(mergedStream1),
+                    PipeTarget.ToStream(mergedStream2))
+                ).ExecuteAsync();
 
             // Assert
             unmergedStream.Length.Should().Be(1_000_000);

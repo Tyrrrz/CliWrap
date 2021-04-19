@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -64,15 +64,14 @@ namespace CliWrap.Tests
         public async Task Command_can_be_executed_with_some_inherited_environment_variables_overwritten()
         {
             // Arrange
-            var variableToKeep = $"CLIWRAP_TEST_KEEP_{Guid.NewGuid()}";
-            var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{Guid.NewGuid()}";
-            var variableToUnset = $"CLIWRAP_TEST_DELETE_{Guid.NewGuid()}";
+            var salt = Guid.NewGuid();
+            var variableToKeep = $"CLIWRAP_TEST_KEEP_{salt}";
+            var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{salt}";
+            var variableToUnset = $"CLIWRAP_TEST_UNSET_{salt}";
 
-            Environment.SetEnvironmentVariable(variableToKeep, "foo"); // will be kept
-            Environment.SetEnvironmentVariable(variableToOverwrite, "bar"); // will be overwritten
-            Environment.SetEnvironmentVariable(variableToUnset, "baz"); // will be unset
-
-            try
+            using (EnvironmentVariable.Set(variableToKeep, "foo")) // will be left unchanged
+            using (EnvironmentVariable.Set(variableToOverwrite, "bar")) // will be overwritten
+            using (EnvironmentVariable.Set(variableToUnset, "baz")) // will be unset
             {
                 var cmd = Cli.Wrap("dotnet")
                     .WithArguments(a => a
@@ -98,11 +97,6 @@ namespace CliWrap.Tests
                     $"[{variableToOverwrite}] = bar",
                     $"[{variableToUnset}] = baz"
                 });
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable(variableToUnset, null);
-                Environment.SetEnvironmentVariable(variableToKeep, null);
             }
         }
     }
