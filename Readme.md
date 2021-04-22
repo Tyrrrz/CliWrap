@@ -31,22 +31,22 @@ It provides a convenient model for launching processes, redirecting input and ou
 
 ### Quick overview
 
-Similar to a shell, CliWrap's base unit of execution is a **command** -- an object that encodes instructions for running a process.
+Similarly to a shell, CliWrap's base unit of work is a **command** -- an object that encodes instructions for running a process.
 To build a command, start by calling `Cli.Wrap(...)` with the executable path, and then use the provided fluent interface to configure arguments, working directory, and other options:
 
 ```csharp
 using CliWrap;
 
-// Create a command
 var cmd = Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .WithWorkingDirectory("work/dir/path");
 ```
 
-Once the command has been created, you can run it by using the `ExecuteAsync()` method:
+Once the command is configured, you can run it by using the `ExecuteAsync()` method:
 
 ```csharp
-// Execute the command
+// ...
+
 var result = await cmd.ExecuteAsync();
 
 // Result contains:
@@ -59,13 +59,11 @@ var result = await cmd.ExecuteAsync();
 The code above spawns a child process with the configured command line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves a `CommandResult` object that contains the process exit code and other related information.
 
-> Note that `ExecuteAsync()` will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
+> Note that CliWrap will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 You can [override this behavior](#command-configuration) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
-By default, the process's standard input, output and error streams are routed to CliWrap's equivalent of [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
-This can be changed by calling `WithStandardInputPipe(...)`, `WithStandardOutputPipe(...)`, or `WithStandardErrorPipe(...)` to configure pipes for the corresponding streams.
-
-For example, here's the same command from earlier, with its output and error streams redirected into separate `StringBuilder` instances:
+By default, the process's standard input, output and error streams are routed to CliWrap's equivalent of the [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
+You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutputPipe(...)`, or `WithStandardErrorPipe(...)` to configure pipes for the corresponding streams:
 
 ```csharp
 var stdOutBuffer = new StringBuilder();
@@ -83,11 +81,11 @@ var stdOut = stdOutBuffer.ToString();
 var stdErr = stdErrBuffer.ToString();
 ```
 
-In this case, instead of being ignored, the data written to standard output and error streams is decoded as text and buffered in-memory.
-After the command has finished executing, you can inspect the contents of the buffers to see what the process has printed to the console during its runtime.
+In this example, the data written to standard output and error streams is decoded as text and written to separate `StringBuilder` buffers.
+After the command has finished executing, you can inspect the contents of these buffers to see what the process has printed to the console during its runtime.
 
-Handling command output is a very common use case, so CliWrap offers a few high-level [execution models](#execution-models) to make things simpler.
-In particular, the same thing shown in the above example can also be achieved more succinctly by using the `ExecuteBufferedAsync()` extension method:
+Handling command output is a very common use case, so CliWrap offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
+In particular, the same thing shown above can also be achieved more succinctly with the `ExecuteBufferedAsync()` extension method:
 
 ```csharp
 using CliWrap;
@@ -109,9 +107,6 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-Here, calling `ExecuteBufferedAsync()` starts the process and implicitly wires its output and error streams to in-memory buffers.
-Similarly to `ExecuteAsync()`, this method returns a result object containing runtime information, with the addition of `StandardOutput` and `StandardError` properties.
-
 > Note that standard streams are not limited to text and can contain raw binary data.
 Additionally, the size of the data may make it inefficient to store in-memory.
 For more complex scenarios, CliWrap also provides other piping options, which are covered in the [Piping](#piping) section.
@@ -119,7 +114,9 @@ For more complex scenarios, CliWrap also provides other piping options, which ar
 ### Command configuration
 
 The fluent interface provided by the command object allows you to configure various options related to its execution.
-Below list covers all available configuration methods and their usage:
+Below list covers all available configuration methods and their usage.
+
+> Note that `Command` is an immutable object, meaning that all configuration methods listed here return a new instance instead of modifying the existing one.
 
 #### `WithArguments(...)`
 
@@ -273,13 +270,10 @@ Default: `PipeTarget.Null`.
 
 _Read more about this method in the [Piping](#piping) section._
 
-> Note that `Command` is an immutable object, so all configuration methods (i.e. those prefixed by `With...`) return a new instance instead of modifying existing one.
-This means that you can safely reuse commands without worrying about potential side-effects.
-
 ### Piping
 
 CliWrap provides a very powerful and flexible piping model that allows you to redirect process's streams, transform input and output data, and even chain multiple commands together with minimal effort.
-At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads data coming from standard output stream or standard error stream.
+At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads data coming from standard output or standard error streams.
 
 By default, command's input pipe is set to `PipeSource.Null` and the output and error pipes are set to `PipeTarget.Null`.
 These objects effectively represent no-op stubs that provide empty input and discard all output respectively.
@@ -305,32 +299,33 @@ await using var output = File.Create("output.txt");
 await (input | Cli.Wrap("foo") | output).ExecuteAsync();
 ```
 
-Both `PipeSource` and `PipeTarget` have many factory methods that let you create pipe implementations to fit different use cases:
+Both `PipeSource` and `PipeTarget` have many factory methods that let you create pipe implementations for different scenarios:
 
-- `PipeSource.Null` -- represents an empty pipe source
-- `PipeSource.FromStream()` -- pipes data from any readable stream
-- `PipeSource.FromFile()` -- pipes data from a file
-- `PipeSource.FromBytes()` -- pipes data from a byte array
-- `PipeSource.FromString()` -- pipes from a text string (supports custom encoding)
-- `PipeSource.FromCommand()` -- pipes data from standard output of another command
-- `PipeTarget.Null` -- represents a pipe target that discards all data
-- `PipeTarget.ToStream()` -- pipes data into any writeable stream
-- `PipeTarget.ToFile()` -- pipes data into a file
-- `PipeTarget.ToStringBuilder()` -- pipes data as text into `StringBuilder` (supports custom encoding)
-- `PipeTarget.ToDelegate()` -- pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>` (supports custom encoding)
-- `PipeTarget.Merge()` -- merges multiple outbound pipes by replicating the same data across all of them
+- `PipeSource`:
+  - `PipeSource.Null` -- represents an empty pipe source
+  - `PipeSource.FromStream(...)` -- pipes data from any readable stream
+  - `PipeSource.FromFile(...)` -- pipes data from a file
+  - `PipeSource.FromBytes(...)` -- pipes data from a byte array
+  - `PipeSource.FromString(...)` -- pipes from a text string
+  - `PipeSource.FromCommand(...)` -- pipes data from standard output of another command
+- `PipeTarget`:
+  - `PipeTarget.Null` -- represents a pipe target that discards all data
+  - `PipeTarget.ToStream(...)` -- pipes data into any writeable stream
+  - `PipeTarget.ToFile(...)` -- pipes data into a file
+  - `PipeTarget.ToStringBuilder(...)` -- pipes data as text into `StringBuilder`
+  - `PipeTarget.ToDelegate(...)` -- pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
+  - `PipeTarget.Merge(...)` -- merges multiple outbound pipes by replicating the same data across all of them
 
-The pipe operator also has overloads for most of these as well.
 Below you can see some examples of what you can achieve with the help of CliWrap's piping feature.
 
-Pipe a string into stdin:
+#### Pipe a string into stdin
 
 ```csharp
 var cmd = "Hello world" | Cli.Wrap("foo");
 await cmd.ExecuteAsync();
 ```
 
-Pipe stdout as text into a `StringBuilder`:
+#### Pipe stdout as text into a `StringBuilder`
 
 ```csharp
 var stdOutBuffer = new StringBuilder();
@@ -339,7 +334,7 @@ var cmd = Cli.Wrap("foo") | stdOutBuffer;
 await cmd.ExecuteAsync();
 ```
 
-Pipe a binary HTTP stream into stdin:
+#### Pipe a binary HTTP stream into stdin
 
 ```csharp
 using var httpClient = new HttpClient();
@@ -349,14 +344,14 @@ var cmd = input | Cli.Wrap("foo");
 await cmd.ExecuteAsync();
 ```
 
-Pipe stdout of one command into stdin of another:
+#### Pipe stdout of one command into stdin of another
 
 ```csharp
 var cmd = Cli.Wrap("foo") | Cli.Wrap("bar") | Cli.Wrap("baz");
 await cmd.ExecuteAsync();
 ```
 
-Pipe stdout and stderr into those of parent process:
+#### Pipe stdout and stderr into parent process
 
 ```csharp
 await using var stdOut = Console.OpenStandardOutput();
@@ -366,14 +361,14 @@ var cmd = Cli.Wrap("foo") | (stdOut, stdErr);
 await cmd.ExecuteAsync();
 ```
 
-Pipe stdout to a delegate:
+#### Pipe stdout to a delegate
 
 ```csharp
 var cmd = Cli.Wrap("foo") | Debug.WriteLine;
 await cmd.ExecuteAsync();
 ```
 
-Pipe stdout into a file and stderr into a `StringBuilder`:
+#### Pipe stdout into a file and stderr into a `StringBuilder`
 
 ```csharp
 var buffer = new StringBuilder();
@@ -384,7 +379,7 @@ var cmd = Cli.Wrap("foo") |
 await cmd.ExecuteAsync();
 ```
 
-Pipe stdout into multiple files simultaneously:
+#### Pipe stdout into multiple files simultaneously
 
 ```csharp
 var target = PipeTarget.Merge(
@@ -397,7 +392,7 @@ var cmd = Cli.Wrap("foo") | target;
 await cmd.ExecuteAsync();
 ```
 
-Pipe a string into a command, that command into another command, and then into parent's stdout and stderr:
+#### Pipe a chain of commands
 
 ```csharp
 var cmd = "Hello world" | Cli.Wrap("foo")
