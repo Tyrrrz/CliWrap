@@ -32,23 +32,17 @@ It provides a convenient model for launching processes, redirecting input and ou
 ### Quick overview
 
 Similarly to a shell, CliWrap's base unit of work is a **command** -- an object that encodes instructions for running a process.
-To build a command, start by calling `Cli.Wrap(...)` with the executable path, and then use the provided fluent interface to configure arguments, working directory, and other options:
+To build a command, start by calling `Cli.Wrap(...)` with the executable path, and then use the provided fluent interface to configure arguments, working directory, or other options.
+Once the command is configured, you can run it by calling `ExecuteAsync()`:
 
 ```csharp
 using CliWrap;
 
-var cmd = Cli.Wrap("path/to/exe")
+var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
-    .WithWorkingDirectory("work/dir/path");
-```
-
-Once the command is configured, you can run it by using the `ExecuteAsync()` method:
-
-```csharp
-// ...
-
-var result = await cmd.ExecuteAsync();
-
+    .WithWorkingDirectory("work/dir/path")
+    .ExecuteAsync();
+    
 // Result contains:
 // -- result.ExitCode        (int)
 // -- result.StartTime       (DateTimeOffset)
