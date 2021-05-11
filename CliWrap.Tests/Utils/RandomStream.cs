@@ -7,9 +7,9 @@ namespace CliWrap.Tests.Utils
     {
         private readonly Random _random;
 
-        public override bool CanRead { get; } = true;
-        public override bool CanSeek { get; } = false;
-        public override bool CanWrite { get; } = false;
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
 
         public override long Length { get; }
         public override long Position { get; set; }
