@@ -75,7 +75,7 @@ var stdOut = stdOutBuffer.ToString();
 var stdErr = stdErrBuffer.ToString();
 ```
 
-In this example, the data written to standard output and error streams is decoded as text and written to separate `StringBuilder` buffers.
+In this example, the data pushed to standard output and error streams is decoded as text and written to separate `StringBuilder` buffers.
 After the command has finished executing, you can inspect the contents of these buffers to see what the process has printed to the console during its runtime.
 
 Handling command output is a very common use case, so CliWrap offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
