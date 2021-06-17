@@ -102,17 +102,6 @@ namespace CliWrap
         );
 
         /// <summary>
-        /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
-        /// </summary>
-        public Command WithArguments(Action<ArgumentsBuilder> configure)
-        {
-            var builder = new ArgumentsBuilder();
-            configure(builder);
-
-            return WithArguments(builder.Build());
-        }
-
-        /// <summary>
         /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
         /// </summary>
         public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
@@ -124,6 +113,17 @@ namespace CliWrap
         // TODO: (breaking change) remove in favor of optional parameter
         public Command WithArguments(IEnumerable<string> arguments) =>
             WithArguments(arguments, true);
+
+        /// <summary>
+        /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
+        /// </summary>
+        public Command WithArguments(Action<ArgumentsBuilder> configure)
+        {
+            var builder = new ArgumentsBuilder();
+            configure(builder);
+
+            return WithArguments(builder.Build());
+        }
 
         /// <summary>
         /// Creates a copy of this command, setting the working directory path to the specified value.

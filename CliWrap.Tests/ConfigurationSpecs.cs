@@ -160,6 +160,11 @@ namespace CliWrap.Tests
             var cmdOther = cmd.WithEnvironmentVariables(b => b
                 .Set("name", "value")
                 .Set("key", "door")
+                .Set(new Dictionary<string, string?>
+                {
+                    ["zzz"] = "yyy",
+                    ["aaa"] = "bbb"
+                })
             );
 
             // Assert
@@ -168,7 +173,9 @@ namespace CliWrap.Tests
             cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
             {
                 ["name"] = "value",
-                ["key"] = "door"
+                ["key"] = "door",
+                ["zzz"] = "yyy",
+                ["aaa"] = "bbb"
             });
         }
 
