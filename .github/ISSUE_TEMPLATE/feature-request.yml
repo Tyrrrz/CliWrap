@@ -1,16 +1,22 @@
-name: "\U00002728 Feature request"
+name: ✨ Feature request
 description: Request a new feature.
 labels: [enhancement]
+
 body:
 - type: markdown
   attributes:
     value: |
-      - Please check existing issues (both opened and closed) to ensure that this feature hasn't been requested before.
-      - If you want to ask a question instead of requesting a feature, use [**discussions**](https://github.com/Tyrrrz/CliWrap/discussions/new) instead.
+      🧐 **Guidelines:**
+
+      - Search through [existing issues](https://github.com/Tyrrrz/CliWrap/issues?q=is%3Aissue) first to ensure that this feature has not been requested before.
+      - Write a descriptive title for your issue. Avoid generic or vague titles such as "Some suggestions" or "Ideas for improvement".
+      - Keep your issue focused on one single problem. If you have multiple feature requests, please create separate issues for each of them.
+      - Provide as much context as possible in the details section. Include screenshots, screen recordings, links, references, or anything else you may consider relevant.
+      - If you want to ask a question instead of requesting a feature, please use [discussions](https://github.com/Tyrrrz/CliWrap/discussions/new) instead.
 
 - type: textarea
   attributes:
     label: Details
-    description: "Clear and thorough explanation of the feature you have in mind."
+    description: Clear and thorough explanation of the feature you have in mind.
   validations:
     required: true
