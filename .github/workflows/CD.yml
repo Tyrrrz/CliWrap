@@ -23,3 +23,9 @@ jobs:
 
       - name: Deploy
         run: dotnet nuget push CliWrap/bin/Release/*.nupkg -s nuget.org -k ${{ secrets.NUGET_TOKEN }}
+
+      - name: Notify Discord
+        run: |
+          curl '${{ secrets.DISCORD_WEBHOOK }}' \
+            --data-raw '{"content":"[**CliWrap** ver. ${{ github.ref }} released](https://github.com/Tyrrrz/CliWrap/releases/latest)"}' \
+            -H 'content-type: application/json'
