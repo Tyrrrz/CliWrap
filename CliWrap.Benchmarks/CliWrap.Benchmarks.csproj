@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-    <PackageReference Include="ProcessX" Version="1.3.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+    <PackageReference Include="ProcessX" Version="1.5.0" />
     <PackageReference Include="Sheller" Version="6.0.1" />
     <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
@@ -25,6 +25,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="BenchmarkDotNet.Artifacts" />
   </ItemGroup>
 
 </Project>
