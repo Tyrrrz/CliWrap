@@ -56,7 +56,7 @@ var result = await Cli.Wrap("path/to/exe")
 The code above spawns a child process with the configured command line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves a `CommandResult` object that contains the process exit code and other related information.
 
-> Note that CliWrap will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
+> ⚠️ Note that CliWrap will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 You can [override this behavior](#command-configuration) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
 By default, the process's standard input, output and error streams are routed to CliWrap's equivalent of the [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
@@ -104,7 +104,7 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-> Note that standard streams are not limited to text and can contain raw binary data.
+> ⚠️ Note that standard streams are not limited to text and can contain raw binary data.
 Additionally, the size of the data may make it inefficient to store in-memory.
 For more complex scenarios, CliWrap also provides other piping options, which are covered in the [Piping](#piping) section.
 
@@ -113,7 +113,7 @@ For more complex scenarios, CliWrap also provides other piping options, which ar
 The fluent interface provided by the command object allows you to configure various options related to its execution.
 Below list covers all available configuration methods and their usage.
 
-> Note that `Command` is an immutable object, meaning that all configuration methods listed here return a new instance instead of modifying the existing one.
+> ⚠️ Note that `Command` is an immutable object, meaning that all configuration methods listed here return a new instance instead of modifying the existing one.
 
 #### `WithArguments(...)`
 
@@ -183,7 +183,7 @@ var cmd = Cli.Wrap("git")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
 ```
 
-> Note that these environment variables are set on top of the default environment variables inherited from the parent process.
+> ⚠️ Note that these environment variables are set on top of the default environment variables inherited from the parent process.
 If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
 Additionally, you can also remove an inherited variable by setting its value to `null`.
 
@@ -214,7 +214,7 @@ var cmd = Cli.Wrap("git")
        .SetPassword("securepassword123"));
 ```
 
-> Note that specifying domain and password is only supported on Windows and will result in an exception on other operating systems.
+> ⚠️ Note that specifying domain and password is only supported on Windows and will result in an exception on other operating systems.
 Specifying username, on the other hand, is supported across all platforms.
 
 #### `WithValidation(...)`
