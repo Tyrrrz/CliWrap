@@ -43,7 +43,7 @@ namespace CliWrap
         public static PipeSource FromFile(string filePath) => new FilePipeSource(filePath);
 
         /// <summary>
-        /// Creates a pipe source that reads from in-memory data.
+        /// Creates a pipe source that reads from a byte array.
         /// </summary>
         public static PipeSource FromBytes(byte[] data) => new InMemoryPipeSource(data);
 

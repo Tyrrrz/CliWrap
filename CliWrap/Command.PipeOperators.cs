@@ -88,6 +88,12 @@ namespace CliWrap
             PipeSource.FromStream(source) | target;
 
         /// <summary>
+        /// Creates a new command that pipes its standard input from the specified byte array.
+        /// </summary>
+        public static Command operator |(byte[] source, Command target) =>
+            PipeSource.FromBytes(source) | target;
+
+        /// <summary>
         /// Creates a new command that pipes its standard input from the specified string.
         /// Uses <see cref="Console.InputEncoding"/> to encode the string.
         /// </summary>
