@@ -1,3 +1,8 @@
+### v3.3.3 (31-Aug-2021)
+
+- Added an overload of `EnvironmentVariablesBuilder.Set(...)` that takes a dictionary parameter. This lets you set multiple environment variables at once by passing a dictionary when calling `Cli.Wrap("foo").WithEnvironmentVariables(env => ...)`.
+- Added an overload of pipe operator for configuring a byte array as a pipe source.
+
 ### v3.3.2 (01-Apr-2021)
 
 - Added the ability to remove an inherited environment variable by setting its value to `null`. (Thanks [@Ville Penttinen](https://github.com/vipentti)) 
