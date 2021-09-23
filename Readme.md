@@ -32,6 +32,12 @@ It provides a convenient model for launching processes, redirecting input and ou
 
 ## Usage
 
+### Video guide
+
+📺 **Watch [Intro to CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) webinar on YouTube for a deep look into the library and its features!**
+
+[![Intro to CliWrap](.screenshots/webinar-yt-thumb.png)](https://youtube.com/watch?v=3_Ucw3Fflmo)
+
 ### Quick overview
 
 Similarly to a shell, CliWrap's base unit of work is a **command** -- an object that encodes instructions for running a process.
