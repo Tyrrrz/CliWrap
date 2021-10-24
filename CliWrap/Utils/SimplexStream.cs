@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CliWrap.Utils
 {
-    internal class HalfDuplexStream : Stream
+    internal class SimplexStream : Stream
     {
         private readonly SemaphoreSlim _writeLock = new(1, 1);
         private readonly SemaphoreSlim _readLock = new(0, 1);

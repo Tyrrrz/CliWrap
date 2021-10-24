@@ -253,10 +253,10 @@ namespace CliWrap
 
         public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
         {
-            // Create a separate half-duplex stream for each target
-            var targetSubStreams = new Dictionary<PipeTarget, HalfDuplexStream>();
+            // Create a separate sub-stream for each target
+            var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
             foreach (var target in Targets)
-                targetSubStreams[target] = new HalfDuplexStream();
+                targetSubStreams[target] = new SimplexStream();
 
             try
             {
