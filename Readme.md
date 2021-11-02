@@ -430,7 +430,7 @@ var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .ExecuteBufferedAsync();
 
-var exitCode = result.ExitCode;    
+var exitCode = result.ExitCode;
 var stdOut = result.StandardOutput;
 var stdErr = result.StandardError;
 ```
