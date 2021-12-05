@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-    <PackageReference Include="ProcessX" Version="1.5.0" />
+    <PackageReference Include="ProcessX" Version="1.5.3" />
     <PackageReference Include="Sheller" Version="6.0.1" />
     <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
