@@ -1,9 +1,8 @@
 ﻿using BenchmarkDotNet.Running;
 
-namespace CliWrap.Benchmarks
+namespace CliWrap.Benchmarks;
+
+public static class Program
 {
-    public static class Program
-    {
-        public static void Main() => BenchmarkRunner.Run(typeof(Program).Assembly);
-    }
+    public static void Main() => BenchmarkRunner.Run(typeof(Program).Assembly);
 }

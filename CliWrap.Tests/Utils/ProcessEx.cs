@@ -1,20 +1,19 @@
 ﻿using System.Diagnostics;
 
-namespace CliWrap.Tests.Utils
+namespace CliWrap.Tests.Utils;
+
+internal static class ProcessEx
 {
-    internal static class ProcessEx
+    public static bool IsRunning(int processId)
     {
-        public static bool IsRunning(int processId)
+        try
         {
-            try
-            {
-                using var process = Process.GetProcessById(processId);
-                return !process.HasExited;
-            }
-            catch
-            {
-                return false;
-            }
+            using var process = Process.GetProcessById(processId);
+            return !process.HasExited;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

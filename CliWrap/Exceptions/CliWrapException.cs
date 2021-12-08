@@ -1,18 +1,17 @@
 ﻿using System;
 
-namespace CliWrap.Exceptions
+namespace CliWrap.Exceptions;
+
+/// <summary>
+/// Parent class for exceptions thrown by <see cref="CliWrap"/>.
+/// </summary>
+public abstract class CliWrapException : Exception
 {
     /// <summary>
-    /// Parent class for exceptions thrown by <see cref="CliWrap"/>.
+    /// Initializes an instance of <see cref="CliWrapException"/>.
     /// </summary>
-    public abstract class CliWrapException : Exception
+    /// <param name="message"></param>
+    protected CliWrapException(string message) : base(message)
     {
-        /// <summary>
-        /// Initializes an instance of <see cref="CliWrapException"/>.
-        /// </summary>
-        /// <param name="message"></param>
-        protected CliWrapException(string message) : base(message)
-        {
-        }
     }
 }

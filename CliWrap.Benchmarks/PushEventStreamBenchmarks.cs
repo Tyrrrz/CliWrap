@@ -4,33 +4,32 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using CliWrap.EventStream;
 
-namespace CliWrap.Benchmarks
+namespace CliWrap.Benchmarks;
+
+[MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
+public class PushEventStreamBenchmarks
 {
-    [MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    public class PushEventStreamBenchmarks
+    private const string FilePath = "dotnet";
+    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-text-lines";
+
+    [Benchmark(Description = "CliWrap", Baseline = true)]
+    public async Task<int> ExecuteWithCliWrap_Observable()
     {
-        private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-text-lines";
+        var counter = 0;
 
-        [Benchmark(Description = "CliWrap", Baseline = true)]
-        public async Task<int> ExecuteWithCliWrap_Observable()
+        await Cli.Wrap(FilePath).WithArguments(Args).Observe().ForEachAsync(cmdEvent =>
         {
-            var counter = 0;
-
-            await Cli.Wrap(FilePath).WithArguments(Args).Observe().ForEachAsync(cmdEvent =>
+            switch (cmdEvent)
             {
-                switch (cmdEvent)
-                {
-                    case StandardOutputCommandEvent _:
-                        counter++;
-                        break;
-                    case StandardErrorCommandEvent _:
-                        counter++;
-                        break;
-                }
-            });
+                case StandardOutputCommandEvent _:
+                    counter++;
+                    break;
+                case StandardErrorCommandEvent _:
+                    counter++;
+                    break;
+            }
+        });
 
-            return counter;
-        }
+        return counter;
     }
 }

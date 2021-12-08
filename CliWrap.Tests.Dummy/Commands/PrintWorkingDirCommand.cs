@@ -4,14 +4,13 @@ using CliFx;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 
-namespace CliWrap.Tests.Dummy.Commands
+namespace CliWrap.Tests.Dummy.Commands;
+
+[Command("print-working-dir")]
+public class PrintWorkingDirCommand : ICommand
 {
-    [Command("print-working-dir")]
-    public class PrintWorkingDirCommand : ICommand
+    public async ValueTask ExecuteAsync(IConsole console)
     {
-        public async ValueTask ExecuteAsync(IConsole console)
-        {
-            await console.Output.WriteAsync(Directory.GetCurrentDirectory());
-        }
+        await console.Output.WriteAsync(Directory.GetCurrentDirectory());
     }
 }

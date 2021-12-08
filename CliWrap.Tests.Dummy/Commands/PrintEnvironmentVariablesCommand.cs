@@ -6,17 +6,16 @@ using CliFx;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 
-namespace CliWrap.Tests.Dummy.Commands
+namespace CliWrap.Tests.Dummy.Commands;
+
+[Command("print-environment-variables")]
+public class PrintEnvironmentVariablesCommand : ICommand
 {
-    [Command("print-environment-variables")]
-    public class PrintEnvironmentVariablesCommand : ICommand
+    public async ValueTask ExecuteAsync(IConsole console)
     {
-        public async ValueTask ExecuteAsync(IConsole console)
+        foreach (var (name, value) in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
         {
-            foreach (var (name, value) in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
-            {
-                await console.Output.WriteLineAsync($"[{name}] = {value}");
-            }
+            await console.Output.WriteLineAsync($"[{name}] = {value}");
         }
     }
 }

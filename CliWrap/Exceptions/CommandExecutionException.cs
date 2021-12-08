@@ -1,38 +1,38 @@
-﻿namespace CliWrap.Exceptions
+﻿namespace CliWrap.Exceptions;
+
+/// <summary>
+/// Exception thrown when the command fails to execute correctly.
+/// </summary>
+public partial class CommandExecutionException : CliWrapException
 {
     /// <summary>
-    /// Exception thrown when the command fails to execute correctly.
+    /// Command that triggered the exception.
     /// </summary>
-    public partial class CommandExecutionException : CliWrapException
+    public ICommandConfiguration Command { get; }
+
+    /// <summary>
+    /// Exit code returned by the process.
+    /// </summary>
+    public int ExitCode { get; }
+
+    /// <summary>
+    /// Initializes an instance of <see cref="CommandExecutionException"/>.
+    /// </summary>
+    public CommandExecutionException(ICommandConfiguration command, int exitCode, string message)
+        : base(message)
     {
-        /// <summary>
-        /// Command that triggered the exception.
-        /// </summary>
-        public ICommandConfiguration Command { get; }
-
-        /// <summary>
-        /// Exit code returned by the process.
-        /// </summary>
-        public int ExitCode { get; }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="CommandExecutionException"/>.
-        /// </summary>
-        public CommandExecutionException(ICommandConfiguration command, int exitCode, string message)
-            : base(message)
-        {
-            Command = command;
-            ExitCode = exitCode;
-        }
+        Command = command;
+        ExitCode = exitCode;
     }
+}
 
-    public partial class CommandExecutionException
+public partial class CommandExecutionException
+{
+    internal static CommandExecutionException ValidationError(
+        ICommandConfiguration command,
+        int exitCode)
     {
-        internal static CommandExecutionException ValidationError(
-            ICommandConfiguration command,
-            int exitCode)
-        {
-            var message = @$"
+        var message = @$"
 Underlying process reported a non-zero exit code ({exitCode}).
 
 Command:
@@ -40,15 +40,15 @@ Command:
 
 You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
 
-            return new CommandExecutionException(command, exitCode, message);
-        }
+        return new CommandExecutionException(command, exitCode, message);
+    }
 
-        internal static CommandExecutionException ValidationError(
-            ICommandConfiguration command,
-            int exitCode,
-            string standardError)
-        {
-            var message = @$"
+    internal static CommandExecutionException ValidationError(
+        ICommandConfiguration command,
+        int exitCode,
+        string standardError)
+    {
+        var message = @$"
 Underlying process reported a non-zero exit code ({exitCode}).
 
 Command:
@@ -59,7 +59,6 @@ Standard error:
 
 You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
 
-            return new CommandExecutionException(command, exitCode, message);
-        }
+        return new CommandExecutionException(command, exitCode, message);
     }
 }

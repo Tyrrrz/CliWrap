@@ -5,29 +5,28 @@ using CliFx.Attributes;
 using CliFx.Infrastructure;
 using CliWrap.Tests.Dummy.Commands.Shared;
 
-namespace CliWrap.Tests.Dummy.Commands
+namespace CliWrap.Tests.Dummy.Commands;
+
+[Command("print-stdin-length")]
+public class PrintStdInLengthCommand : ICommand
 {
-    [Command("print-stdin-length")]
-    public class PrintStdInLengthCommand : ICommand
+    [CommandOption("target")]
+    public OutputTarget Target { get; init; } = OutputTarget.StdOut;
+
+    public async ValueTask ExecuteAsync(IConsole console)
     {
-        [CommandOption("target")]
-        public OutputTarget Target { get; init; } = OutputTarget.StdOut;
+        var length = 0L;
+        var buffer = new byte[81920];
 
-        public async ValueTask ExecuteAsync(IConsole console)
+        int bytesRead;
+        while ((bytesRead = await console.Input.BaseStream.ReadAsync(buffer)) > 0)
         {
-            var length = 0L;
-            var buffer = new byte[81920];
+            length += bytesRead;
+        }
 
-            int bytesRead;
-            while ((bytesRead = await console.Input.BaseStream.ReadAsync(buffer)) > 0)
-            {
-                length += bytesRead;
-            }
-
-            foreach (var writer in console.GetWriters(Target))
-            {
-                await writer.WriteAsync(length.ToString(CultureInfo.InvariantCulture));
-            }
+        foreach (var writer in console.GetWriters(Target))
+        {
+            await writer.WriteAsync(length.ToString(CultureInfo.InvariantCulture));
         }
     }
 }

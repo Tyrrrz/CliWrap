@@ -4,236 +4,235 @@ using System.IO;
 using FluentAssertions;
 using Xunit;
 
-namespace CliWrap.Tests
+namespace CliWrap.Tests;
+
+public class ConfigurationSpecs
 {
-    public class ConfigurationSpecs
+    [Fact]
+    public void Command_is_created_with_default_configuration()
     {
-        [Fact]
-        public void Command_is_created_with_default_configuration()
+        // Act
+        var cmd = Cli.Wrap("foo");
+
+        // Assert
+        cmd.TargetFilePath.Should().Be("foo");
+        cmd.Arguments.Should().BeEmpty();
+        cmd.WorkingDirPath.Should().Be(Directory.GetCurrentDirectory());
+        cmd.Credentials.Should().BeEquivalentTo(Credentials.Default);
+        cmd.EnvironmentVariables.Should().BeEmpty();
+        cmd.Validation.Should().Be(CommandResultValidation.ZeroExitCode);
+        cmd.StandardInputPipe.Should().Be(PipeSource.Null);
+        cmd.StandardOutputPipe.Should().Be(PipeTarget.Null);
+        cmd.StandardErrorPipe.Should().Be(PipeTarget.Null);
+    }
+
+    [Fact]
+    public void Command_line_arguments_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithArguments("xxx");
+
+        // Act
+        var cmdOther = cmd.WithArguments("qqq ppp");
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
+        cmdOther.Arguments.Should().Be("qqq ppp");
+    }
+
+    [Fact]
+    public void Command_line_arguments_can_be_set_from_a_list()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithArguments("xxx");
+
+        // Act
+        var cmdOther = cmd.WithArguments(new[] {"-a", "foo bar"});
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
+        cmdOther.Arguments.Should().Be("-a \"foo bar\"");
+    }
+
+    [Fact]
+    public void Command_line_arguments_can_be_set_using_a_builder()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithArguments("xxx");
+
+        // Act
+        var cmdOther = cmd.WithArguments(b => b
+            .Add("-a")
+            .Add("foo bar")
+            .Add("\"foo\\\\bar\"")
+            .Add(3.14)
+            .Add(new[] {"foo", "bar"})
+            .Add(new IFormattable[] {-5, 89.13})
+        );
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
+        cmdOther.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
+    }
+
+    [Fact]
+    public void Working_directory_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithWorkingDirectory("xxx");
+
+        // Act
+        var cmdOther = cmd.WithWorkingDirectory("new");
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.WorkingDirPath));
+        cmd.WorkingDirPath.Should().NotBe(cmdOther.WorkingDirPath);
+        cmdOther.WorkingDirPath.Should().Be("new");
+    }
+
+    [Fact]
+    public void Credentials_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
+
+        // Act
+        var cmdOther = cmd.WithCredentials(new Credentials("domain", "username", "password"));
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
+        cmd.Credentials.Should().NotBe(cmdOther.Credentials);
+        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+    }
+
+    [Fact]
+    public void Credentials_can_be_set_with_a_builder()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
+
+        // Act
+        var cmdOther = cmd.WithCredentials(c => c
+            .SetDomain("domain")
+            .SetUserName("username")
+            .SetPassword("password")
+        );
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
+        cmd.Credentials.Should().NotBe(cmdOther.Credentials);
+        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+    }
+
+    [Fact]
+    public void Environment_variables_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
+
+        // Act
+        var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, string?>
         {
-            // Act
-            var cmd = Cli.Wrap("foo");
+            ["name"] = "value",
+            ["key"] = "door"
+        });
 
-            // Assert
-            cmd.TargetFilePath.Should().Be("foo");
-            cmd.Arguments.Should().BeEmpty();
-            cmd.WorkingDirPath.Should().Be(Directory.GetCurrentDirectory());
-            cmd.Credentials.Should().BeEquivalentTo(Credentials.Default);
-            cmd.EnvironmentVariables.Should().BeEmpty();
-            cmd.Validation.Should().Be(CommandResultValidation.ZeroExitCode);
-            cmd.StandardInputPipe.Should().Be(PipeSource.Null);
-            cmd.StandardOutputPipe.Should().Be(PipeTarget.Null);
-            cmd.StandardErrorPipe.Should().Be(PipeTarget.Null);
-        }
-
-        [Fact]
-        public void Command_line_arguments_can_be_set()
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
+        cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
+        cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
         {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithArguments("xxx");
+            ["name"] = "value",
+            ["key"] = "door"
+        });
+    }
 
-            // Act
-            var cmdOther = cmd.WithArguments("qqq ppp");
+    [Fact]
+    public void Environment_variables_can_be_set_with_a_builder()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-            cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-            cmdOther.Arguments.Should().Be("qqq ppp");
-        }
-
-        [Fact]
-        public void Command_line_arguments_can_be_set_from_a_list()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithArguments("xxx");
-
-            // Act
-            var cmdOther = cmd.WithArguments(new[] {"-a", "foo bar"});
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-            cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-            cmdOther.Arguments.Should().Be("-a \"foo bar\"");
-        }
-
-        [Fact]
-        public void Command_line_arguments_can_be_set_using_a_builder()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithArguments("xxx");
-
-            // Act
-            var cmdOther = cmd.WithArguments(b => b
-                .Add("-a")
-                .Add("foo bar")
-                .Add("\"foo\\\\bar\"")
-                .Add(3.14)
-                .Add(new[] {"foo", "bar"})
-                .Add(new IFormattable[] {-5, 89.13})
-            );
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-            cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-            cmdOther.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
-        }
-
-        [Fact]
-        public void Working_directory_can_be_set()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithWorkingDirectory("xxx");
-
-            // Act
-            var cmdOther = cmd.WithWorkingDirectory("new");
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.WorkingDirPath));
-            cmd.WorkingDirPath.Should().NotBe(cmdOther.WorkingDirPath);
-            cmdOther.WorkingDirPath.Should().Be("new");
-        }
-
-        [Fact]
-        public void Credentials_can_be_set()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
-
-            // Act
-            var cmdOther = cmd.WithCredentials(new Credentials("domain", "username", "password"));
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
-            cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-            cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
-        }
-
-        [Fact]
-        public void Credentials_can_be_set_with_a_builder()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
-
-            // Act
-            var cmdOther = cmd.WithCredentials(c => c
-                .SetDomain("domain")
-                .SetUserName("username")
-                .SetPassword("password")
-            );
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
-            cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-            cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
-        }
-
-        [Fact]
-        public void Environment_variables_can_be_set()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
-
-            // Act
-            var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, string?>
+        // Act
+        var cmdOther = cmd.WithEnvironmentVariables(b => b
+            .Set("name", "value")
+            .Set("key", "door")
+            .Set(new Dictionary<string, string?>
             {
-                ["name"] = "value",
-                ["key"] = "door"
-            });
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
-            cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
-            {
-                ["name"] = "value",
-                ["key"] = "door"
-            });
-        }
-
-        [Fact]
-        public void Environment_variables_can_be_set_with_a_builder()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
-
-            // Act
-            var cmdOther = cmd.WithEnvironmentVariables(b => b
-                .Set("name", "value")
-                .Set("key", "door")
-                .Set(new Dictionary<string, string?>
-                {
-                    ["zzz"] = "yyy",
-                    ["aaa"] = "bbb"
-                })
-            );
-
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
-            cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-            cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
-            {
-                ["name"] = "value",
-                ["key"] = "door",
                 ["zzz"] = "yyy",
                 ["aaa"] = "bbb"
-            });
-        }
+            })
+        );
 
-        [Fact]
-        public void Result_validation_can_be_set()
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
+        cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
+        cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
         {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithValidation(CommandResultValidation.ZeroExitCode);
+            ["name"] = "value",
+            ["key"] = "door",
+            ["zzz"] = "yyy",
+            ["aaa"] = "bbb"
+        });
+    }
 
-            // Act
-            var cmdOther = cmd.WithValidation(CommandResultValidation.None);
+    [Fact]
+    public void Result_validation_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithValidation(CommandResultValidation.ZeroExitCode);
 
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Validation));
-            cmd.Validation.Should().NotBe(cmdOther.Validation);
-            cmdOther.Validation.Should().Be(CommandResultValidation.None);
-        }
+        // Act
+        var cmdOther = cmd.WithValidation(CommandResultValidation.None);
 
-        [Fact]
-        public void Stdin_pipe_can_be_set()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Validation));
+        cmd.Validation.Should().NotBe(cmdOther.Validation);
+        cmdOther.Validation.Should().Be(CommandResultValidation.None);
+    }
 
-            // Act
-            var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
+    [Fact]
+    public void Stdin_pipe_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
 
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
-            cmd.StandardInputPipe.Should().NotBeSameAs(cmdOther.StandardInputPipe);
-        }
+        // Act
+        var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
 
-        [Fact]
-        public void Stdout_pipe_can_be_set()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
+        cmd.StandardInputPipe.Should().NotBeSameAs(cmdOther.StandardInputPipe);
+    }
 
-            // Act
-            var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
+    [Fact]
+    public void Stdout_pipe_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
 
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
-            cmd.StandardOutputPipe.Should().NotBeSameAs(cmdOther.StandardOutputPipe);
-        }
+        // Act
+        var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
 
-        [Fact]
-        public void Stderr_pipe_can_be_set()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
+        cmd.StandardOutputPipe.Should().NotBeSameAs(cmdOther.StandardOutputPipe);
+    }
 
-            // Act
-            var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
+    [Fact]
+    public void Stderr_pipe_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
 
-            // Assert
-            cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));
-            cmd.StandardErrorPipe.Should().NotBeSameAs(cmdOther.StandardErrorPipe);
-        }
+        // Act
+        var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));
+        cmd.StandardErrorPipe.Should().NotBeSameAs(cmdOther.StandardErrorPipe);
     }
 }

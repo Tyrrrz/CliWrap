@@ -6,28 +6,27 @@ using CliFx.Attributes;
 using CliFx.Infrastructure;
 using CliWrap.Tests.Dummy.Commands.Shared;
 
-namespace CliWrap.Tests.Dummy.Commands
+namespace CliWrap.Tests.Dummy.Commands;
+
+[Command("echo")]
+public class EchoCommand : ICommand
 {
-    [Command("echo")]
-    public class EchoCommand : ICommand
+    [CommandParameter(0)]
+    public IReadOnlyList<string> Items { get; init; } = Array.Empty<string>();
+
+    [CommandOption("target")]
+    public OutputTarget Target { get; init; } = OutputTarget.StdOut;
+
+    [CommandOption("separator")]
+    public string Separator { get; init; } = " ";
+
+    public async ValueTask ExecuteAsync(IConsole console)
     {
-        [CommandParameter(0)]
-        public IReadOnlyList<string> Items { get; init; } = Array.Empty<string>();
+        var joined = string.Join(Separator, Items);
 
-        [CommandOption("target")]
-        public OutputTarget Target { get; init; } = OutputTarget.StdOut;
-
-        [CommandOption("separator")]
-        public string Separator { get; init; } = " ";
-
-        public async ValueTask ExecuteAsync(IConsole console)
+        foreach (var writer in console.GetWriters(Target))
         {
-            var joined = string.Join(Separator, Items);
-
-            foreach (var writer in console.GetWriters(Target))
-            {
-                await writer.WriteAsync(joined);
-            }
+            await writer.WriteAsync(joined);
         }
     }
 }

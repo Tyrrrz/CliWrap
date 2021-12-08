@@ -3,29 +3,28 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 
-namespace CliWrap.Benchmarks
+namespace CliWrap.Benchmarks;
+
+[MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
+public class PipeToMultipleStreamsBenchmark
 {
-    [MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    public class PipeToMultipleStreamsBenchmark
+    private const string FilePath = "dotnet";
+    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-binary";
+
+    [Benchmark(Description = "CliWrap", Baseline = true)]
+    public async Task<(Stream, Stream)> ExecuteWithCliWrap_PipeToMultipleStreams()
     {
-        private const string FilePath = "dotnet";
-        private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-binary";
+        await using var stream1 = new MemoryStream();
+        await using var stream2 = new MemoryStream();
 
-        [Benchmark(Description = "CliWrap", Baseline = true)]
-        public async Task<(Stream, Stream)> ExecuteWithCliWrap_PipeToMultipleStreams()
-        {
-            await using var stream1 = new MemoryStream();
-            await using var stream2 = new MemoryStream();
+        var target = PipeTarget.Merge(
+            PipeTarget.ToStream(stream1),
+            PipeTarget.ToStream(stream2)
+        );
 
-            var target = PipeTarget.Merge(
-                PipeTarget.ToStream(stream1),
-                PipeTarget.ToStream(stream2)
-            );
+        var command = Cli.Wrap(FilePath).WithArguments(Args) | target;
+        await command.ExecuteAsync();
 
-            var command = Cli.Wrap(FilePath).WithArguments(Args) | target;
-            await command.ExecuteAsync();
-
-            return (stream1, stream2);
-        }
+        return (stream1, stream2);
     }
 }

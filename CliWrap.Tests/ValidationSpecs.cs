@@ -5,69 +5,68 @@ using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CliWrap.Tests
+namespace CliWrap.Tests;
+
+public class ValidationSpecs
 {
-    public class ValidationSpecs
+    private readonly ITestOutputHelper _testOutput;
+
+    public ValidationSpecs(ITestOutputHelper testOutput) => _testOutput = testOutput;
+
+    [Fact(Timeout = 15000)]
+    public async Task Command_execution_throws_if_the_process_exits_with_a_non_zero_exit_code()
     {
-        private readonly ITestOutputHelper _testOutput;
+        // Arrange
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("exit-with")
+                .Add("--code").Add(1));
 
-        public ValidationSpecs(ITestOutputHelper testOutput) => _testOutput = testOutput;
+        // Act & assert
+        var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteAsync());
 
-        [Fact(Timeout = 15000)]
-        public async Task Command_execution_throws_if_the_process_exits_with_a_non_zero_exit_code()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("exit-with")
-                    .Add("--code").Add(1));
+        ex.ExitCode.Should().Be(1);
+        ex.Command.Should().BeEquivalentTo(cmd);
 
-            // Act & assert
-            var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteAsync());
+        _testOutput.WriteLine(ex.Message);
+    }
 
-            ex.ExitCode.Should().Be(1);
-            ex.Command.Should().BeEquivalentTo(cmd);
+    [Fact(Timeout = 15000)]
+    public async Task Buffered_command_execution_throws_a_detailed_error_if_the_process_exits_with_a_non_zero_exit_code()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("exit-with")
+                .Add("--code").Add(1));
 
-            _testOutput.WriteLine(ex.Message);
-        }
+        // Act & assert
+        var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteBufferedAsync());
 
-        [Fact(Timeout = 15000)]
-        public async Task Buffered_command_execution_throws_a_detailed_error_if_the_process_exits_with_a_non_zero_exit_code()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("exit-with")
-                    .Add("--code").Add(1));
+        ex.Message.Should().Contain("Standard error");
+        ex.ExitCode.Should().Be(1);
+        ex.Command.Should().BeEquivalentTo(cmd);
 
-            // Act & assert
-            var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteBufferedAsync());
+        _testOutput.WriteLine(ex.Message);
+    }
 
-            ex.Message.Should().Contain("Standard error");
-            ex.ExitCode.Should().Be(1);
-            ex.Command.Should().BeEquivalentTo(cmd);
+    [Fact(Timeout = 15000)]
+    public async Task Command_result_validation_can_be_disabled()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("exit-with")
+                .Add("--code").Add(1))
+            .WithValidation(CommandResultValidation.None);
 
-            _testOutput.WriteLine(ex.Message);
-        }
+        // Act
+        var result = await cmd.ExecuteAsync();
 
-        [Fact(Timeout = 15000)]
-        public async Task Command_result_validation_can_be_disabled()
-        {
-            // Arrange
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("exit-with")
-                    .Add("--code").Add(1))
-                .WithValidation(CommandResultValidation.None);
-
-            // Act
-            var result = await cmd.ExecuteAsync();
-
-            // Assert
-            result.ExitCode.Should().Be(1);
-        }
+        // Assert
+        result.ExitCode.Should().Be(1);
     }
 }

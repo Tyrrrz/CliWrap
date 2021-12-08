@@ -4,17 +4,16 @@ using CliFx.Attributes;
 using CliFx.Exceptions;
 using CliFx.Infrastructure;
 
-namespace CliWrap.Tests.Dummy.Commands
-{
-    [Command("exit-with")]
-    public class ExitWithCommand : ICommand
-    {
-        [CommandOption("code")]
-        public int ExitCode { get; init; }
+namespace CliWrap.Tests.Dummy.Commands;
 
-        public ValueTask ExecuteAsync(IConsole console)
-        {
-            throw new CommandException($"Exit code set to {ExitCode}", ExitCode);
-        }
+[Command("exit-with")]
+public class ExitWithCommand : ICommand
+{
+    [CommandOption("code")]
+    public int ExitCode { get; init; }
+
+    public ValueTask ExecuteAsync(IConsole console)
+    {
+        throw new CommandException($"Exit code set to {ExitCode}", ExitCode);
     }
 }
