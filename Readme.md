@@ -72,6 +72,8 @@ You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutput
 var stdOutBuffer = new StringBuilder();
 var stdErrBuffer = new StringBuilder();
 
+// This particular example can also be simplified with ExecuteBufferedAsync()
+// Continue reading below!
 var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .WithWorkingDirectory("work/dir/path")
