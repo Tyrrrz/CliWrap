@@ -1,6 +1,6 @@
 # CliWrap
 
-[![Build](https://github.com/Tyrrrz/CliWrap/workflows/CI/badge.svg?branch=master)](https://github.com/Tyrrrz/CliWrap/actions)
+[![Build](https://github.com/Tyrrrz/CliWrap/workflows/main/badge.svg?branch=master)](https://github.com/Tyrrrz/CliWrap/actions)
 [![Coverage](https://codecov.io/gh/Tyrrrz/CliWrap/branch/master/graph/badge.svg)](https://codecov.io/gh/Tyrrrz/CliWrap)
 [![Version](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Downloads](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)

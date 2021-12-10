@@ -1,0 +1,11 @@
+name: main
+
+on: [push, pull_request]
+
+jobs:
+  main:
+    uses: tyrrrz/shared/.github/workflows/NuGet.yml@master
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
