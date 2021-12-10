@@ -7,7 +7,7 @@
 [![Discord](https://img.shields.io/discord/869237470565392384?label=discord)](https://discord.gg/2SUWKFnHSm)
 [![Donate](https://img.shields.io/badge/donate-$$$-purple.svg)](https://tyrrrz.me/donate)
 
-✅ **Project status: active**. [What does it mean?](https://github.com/Tyrrrz/shared/blob/master/docs/project-status.md)
+✅ **Project status: active**. [What does it mean?](https://github.com/Tyrrrz/.github/blob/master/docs/project-status.md)
 
 **CliWrap** is a library for interacting with external command line interfaces.
 It provides a convenient model for launching processes, redirecting input and output streams, awaiting completion, handling cancellation, and more.
