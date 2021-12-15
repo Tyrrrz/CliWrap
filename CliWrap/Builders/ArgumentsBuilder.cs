@@ -9,15 +9,13 @@ namespace CliWrap.Builders;
 /// <summary>
 /// Builder that helps generate well-formed arguments string.
 /// </summary>
-public partial class ArgumentsBuilder
+public partial class ArgumentsBuilder : IArgumentsConfigurator
 {
     private static readonly IFormatProvider DefaultFormatProvider = CultureInfo.InvariantCulture;
 
     private readonly StringBuilder _buffer = new();
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
+    /// <inheritdoc />
     public ArgumentsBuilder Add(string value, bool escape = true)
     {
         if (_buffer.Length > 0)
@@ -31,9 +29,7 @@ public partial class ArgumentsBuilder
         return this;
     }
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
+    /// <inheritdoc />
     public ArgumentsBuilder Add(IEnumerable<string> values, bool escape = true)
     {
         foreach (var value in values)
@@ -42,22 +38,15 @@ public partial class ArgumentsBuilder
         return this;
     }
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
+    /// <inheritdoc />
     public ArgumentsBuilder Add(IFormattable value, IFormatProvider formatProvider, bool escape = true) =>
         Add(value.ToString(null, formatProvider), escape);
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// The value is converted to string using invariant culture.
-    /// </summary>
+    /// <inheritdoc />
     public ArgumentsBuilder Add(IFormattable value, bool escape = true) =>
         Add(value, DefaultFormatProvider, escape);
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
+    /// <inheritdoc />
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, IFormatProvider formatProvider, bool escape = true)
     {
         foreach (var value in values)
@@ -66,10 +55,7 @@ public partial class ArgumentsBuilder
         return this;
     }
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// The values are converted to string using invariant culture.
-    /// </summary>
+    /// <inheritdoc />
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape = true) =>
         Add(values, DefaultFormatProvider, escape);
 
