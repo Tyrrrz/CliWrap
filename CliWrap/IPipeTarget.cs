@@ -12,5 +12,5 @@ public interface IPipeTarget
     /// <summary>
     /// Copies the binary content from the stream and pushes it into the pipe.
     /// </summary>
-    public Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default);
+    Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default);
 }
