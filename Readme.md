@@ -566,7 +566,7 @@ This means that, for example, you can create a piped command and also execute it
 var cmd =
     PipeSource.FromFile("input.txt") |
     Cli.Wrap("foo") |
-    PipeSource.ToFile("output.txt");
+    PipeTarget.ToFile("output.txt");
 
 // Iterate as an event stream and pipe to file at the same time
 // (pipes are combined, not overriden)
