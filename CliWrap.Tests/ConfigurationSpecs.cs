@@ -21,9 +21,9 @@ public class ConfigurationSpecs
         cmd.Credentials.Should().BeEquivalentTo(Credentials.Default);
         cmd.EnvironmentVariables.Should().BeEmpty();
         cmd.Validation.Should().Be(CommandResultValidation.ZeroExitCode);
-        cmd.StandardInputPipe.Should().Be(PipeSource.Null);
-        cmd.StandardOutputPipe.Should().Be(PipeTarget.Null);
-        cmd.StandardErrorPipe.Should().Be(PipeTarget.Null);
+        cmd.StandardInputPipe.Should().Be(Pipe.FromNull());
+        cmd.StandardOutputPipe.Should().Be(Pipe.ToNull());
+        cmd.StandardErrorPipe.Should().Be(Pipe.ToNull());
     }
 
     [Fact]
@@ -198,10 +198,10 @@ public class ConfigurationSpecs
     public void Stdin_pipe_can_be_set()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
+        var cmd = Cli.Wrap("foo").WithStandardInputPipe(Pipe.FromNull());
 
         // Act
-        var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
+        var cmdOther = cmd.WithStandardInputPipe(Pipe.FromString("new"));
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
@@ -212,10 +212,10 @@ public class ConfigurationSpecs
     public void Stdout_pipe_can_be_set()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
+        var cmd = Cli.Wrap("foo").WithStandardOutputPipe(Pipe.ToNull());
 
         // Act
-        var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
+        var cmdOther = cmd.WithStandardOutputPipe(Pipe.ToStream(Stream.Null));
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
@@ -226,10 +226,10 @@ public class ConfigurationSpecs
     public void Stderr_pipe_can_be_set()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
+        var cmd = Cli.Wrap("foo").WithStandardErrorPipe(Pipe.ToNull());
 
         // Act
-        var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
+        var cmdOther = cmd.WithStandardErrorPipe(Pipe.ToStream(Stream.Null));
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));

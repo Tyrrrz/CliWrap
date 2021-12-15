@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;net461;netcoreapp3.0</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
     <Authors>$(Company)</Authors>
     <Description>Library for interacting with external command line interfaces</Description>
     <PackageTags>shell pipe command line executable interface wrapper standard input output error arguments net core</PackageTags>

@@ -18,7 +18,7 @@ public partial class ArgumentsBuilder
     /// <summary>
     /// Adds the specified value to the list of arguments.
     /// </summary>
-    public ArgumentsBuilder Add(string value, bool escape)
+    public ArgumentsBuilder Add(string value, bool escape = true)
     {
         if (_buffer.Length > 0)
             _buffer.Append(' ');
@@ -32,28 +32,15 @@ public partial class ArgumentsBuilder
     }
 
     /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of optional parameter
-    public ArgumentsBuilder Add(string value) => Add(value, true);
-
-    /// <summary>
     /// Adds the specified values to the list of arguments.
     /// </summary>
-    public ArgumentsBuilder Add(IEnumerable<string> values, bool escape)
+    public ArgumentsBuilder Add(IEnumerable<string> values, bool escape = true)
     {
         foreach (var value in values)
             Add(value, escape);
 
         return this;
     }
-
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of optional parameter
-    public ArgumentsBuilder Add(IEnumerable<string> values) =>
-        Add(values, true);
 
     /// <summary>
     /// Adds the specified value to the list of arguments.
@@ -63,32 +50,10 @@ public partial class ArgumentsBuilder
 
     /// <summary>
     /// Adds the specified value to the list of arguments.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
-    public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, bool escape) =>
-        Add(value, (IFormatProvider) cultureInfo, escape);
-
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
-    public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
-        Add(value, cultureInfo, true);
-
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
     /// The value is converted to string using invariant culture.
     /// </summary>
-    public ArgumentsBuilder Add(IFormattable value, bool escape) =>
+    public ArgumentsBuilder Add(IFormattable value, bool escape = true) =>
         Add(value, DefaultFormatProvider, escape);
-
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// The value is converted to string using invariant culture.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of optional parameter
-    public ArgumentsBuilder Add(IFormattable value) =>
-        Add(value, true);
 
     /// <summary>
     /// Adds the specified values to the list of arguments.
@@ -103,32 +68,10 @@ public partial class ArgumentsBuilder
 
     /// <summary>
     /// Adds the specified values to the list of arguments.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
-    public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo, bool escape) =>
-        Add(values, (IFormatProvider) cultureInfo, escape);
-
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
-    public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo) =>
-        Add(values, cultureInfo, true);
-
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
     /// The values are converted to string using invariant culture.
     /// </summary>
-    public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape) =>
+    public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape = true) =>
         Add(values, DefaultFormatProvider, escape);
-
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// The values are converted to string using invariant culture.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of optional parameter
-    public ArgumentsBuilder Add(IEnumerable<IFormattable> values) =>
-        Add(values, true);
 
     /// <summary>
     /// Builds the resulting arguments string.

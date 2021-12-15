@@ -17,9 +17,9 @@ public class PipeToMultipleStreamsBenchmark
         await using var stream1 = new MemoryStream();
         await using var stream2 = new MemoryStream();
 
-        var target = PipeTarget.Merge(
-            PipeTarget.ToStream(stream1),
-            PipeTarget.ToStream(stream2)
+        var target = Pipe.ToMany(
+            Pipe.ToStream(stream1),
+            Pipe.ToStream(stream2)
         );
 
         var command = Cli.Wrap(FilePath).WithArguments(Args) | target;

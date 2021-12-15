@@ -27,16 +27,16 @@ public static class EventStreamCommandExtensions
     {
         using var channel = new Channel<CommandEvent>();
 
-        var stdOutPipe = PipeTarget.Merge(
+        var stdOutPipe = Pipe.ToMany(
             command.StandardOutputPipe,
-            PipeTarget.ToDelegate(
+            Pipe.ToDelegate(
                 s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellationToken),
                 standardOutputEncoding)
         );
 
-        var stdErrPipe = PipeTarget.Merge(
+        var stdErrPipe = Pipe.ToMany(
             command.StandardErrorPipe,
-            PipeTarget.ToDelegate(
+            Pipe.ToDelegate(
                 s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellationToken),
                 standardErrorEncoding)
         );
@@ -100,16 +100,16 @@ public static class EventStreamCommandExtensions
         CancellationToken cancellationToken = default) =>
         Observable.Create<CommandEvent>(observer =>
         {
-            var stdOutPipe = PipeTarget.Merge(
+            var stdOutPipe = Pipe.ToMany(
                 command.StandardOutputPipe,
-                PipeTarget.ToDelegate(
+                Pipe.ToDelegate(
                     s => observer.OnNext(new StandardOutputCommandEvent(s)),
                     standardOutputEncoding)
             );
 
-            var stdErrPipe = PipeTarget.Merge(
+            var stdErrPipe = Pipe.ToMany(
                 command.StandardErrorPipe,
-                PipeTarget.ToDelegate(
+                Pipe.ToDelegate(
                     s => observer.OnNext(new StandardErrorCommandEvent(s)),
                     standardErrorEncoding)
             );

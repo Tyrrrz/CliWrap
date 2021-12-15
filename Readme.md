@@ -77,8 +77,8 @@ var stdErrBuffer = new StringBuilder();
 var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .WithWorkingDirectory("work/dir/path")
-    .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+    .WithStandardOutputPipe(Pipe.ToStringBuilder(stdOutBuffer))
+    .WithStandardErrorPipe(Pipe.ToStringBuilder(stdErrBuffer))
     .ExecuteAsync();
     
 // Contains stdOut/stdErr buffered in-memory as string
@@ -258,7 +258,7 @@ var cmd = Cli.Wrap("git")
 
 Sets the pipe source that will be used for the standard _input_ stream of the process.
 
-Default: `PipeSource.Null`.
+Default: `Pipe.FromNull()`.
 
 _Read more about this method in the [Piping](#piping) section._
 
@@ -266,7 +266,7 @@ _Read more about this method in the [Piping](#piping) section._
 
 Sets the pipe target that will be used for the standard _output_ stream of the process.
 
-Default: `PipeTarget.Null`.
+Default: `Pipe.ToNull()`.
 
 _Read more about this method in the [Piping](#piping) section._
 
@@ -274,27 +274,27 @@ _Read more about this method in the [Piping](#piping) section._
 
 Sets the pipe target that will be used for the standard _error_ stream of the process.
 
-Default: `PipeTarget.Null`.
+Default: `Pipe.ToNull()`.
 
 _Read more about this method in the [Piping](#piping) section._
 
 ### Piping
 
 **CliWrap** provides a very powerful and flexible piping model that allows you to redirect process's streams, transform input and output data, and even chain multiple commands together with minimal effort.
-At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads data coming from standard output or standard error streams.
+At its core, it's based on two abstractions: `IPipeSource` which provides data for standard input stream, and `IPipeTarget` which reads data coming from standard output or standard error streams.
 
-By default, command's input pipe is set to `PipeSource.Null` and the output and error pipes are set to `PipeTarget.Null`.
+By default, command's input pipe is set to `Pipe.FromNull()` and the output and error pipes are set to `Pipe.ToNull()`.
 These objects effectively represent no-op stubs that provide empty input and discard all output respectively.
 
-You can specify your own `PipeSource` and `PipeTarget` instances by calling the corresponding configuration methods on the command:
+You can specify your own `IPipeSource` and `IPipeTarget` instances by calling the corresponding configuration methods on the command:
 
 ```csharp
 await using var input = File.OpenRead("input.txt");
 await using var output = File.Create("output.txt");
 
 await Cli.Wrap("foo")
-    .WithStandardInputPipe(PipeSource.FromStream(input))
-    .WithStandardOutputPipe(PipeTarget.ToStream(output))
+    .WithStandardInputPipe(Pipe.FromStream(input))
+    .WithStandardOutputPipe(Pipe.ToStream(output))
     .ExecuteAsync();
 ```
 
@@ -307,22 +307,22 @@ await using var output = File.Create("output.txt");
 await (input | Cli.Wrap("foo") | output).ExecuteAsync();
 ```
 
-Both `PipeSource` and `PipeTarget` have many factory methods that let you create pipe implementations for different scenarios:
+Both `IPipeSource` and `IPipeTarget` have many factory methods that let you create pipe implementations for different scenarios:
 
-- `PipeSource`:
-  - `PipeSource.Null` -- represents an empty pipe source
-  - `PipeSource.FromStream(...)` -- pipes data from any readable stream
-  - `PipeSource.FromFile(...)` -- pipes data from a file
-  - `PipeSource.FromBytes(...)` -- pipes data from a byte array
-  - `PipeSource.FromString(...)` -- pipes from a text string
-  - `PipeSource.FromCommand(...)` -- pipes data from standard output of another command
-- `PipeTarget`:
-  - `PipeTarget.Null` -- represents a pipe target that discards all data
-  - `PipeTarget.ToStream(...)` -- pipes data into any writeable stream
-  - `PipeTarget.ToFile(...)` -- pipes data into a file
-  - `PipeTarget.ToStringBuilder(...)` -- pipes data as text into `StringBuilder`
-  - `PipeTarget.ToDelegate(...)` -- pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
-  - `PipeTarget.Merge(...)` -- merges multiple outbound pipes by replicating the same data across all of them
+- `IPipeSource`:
+  - `Pipe.FromNull()` -- represents an empty pipe source
+  - `Pipe.FromStream(...)` -- pipes data from any readable stream
+  - `Pipe.FromFile(...)` -- pipes data from a file
+  - `Pipe.FromBytes(...)` -- pipes data from a byte array
+  - `Pipe.FromString(...)` -- pipes from a text string
+  - `Pipe.FromCommand(...)` -- pipes data from standard output of another command
+- `IPipeTarget`:
+  - `Pipe.ToNull()` -- represents a pipe target that discards all data
+  - `Pipe.ToStream(...)` -- pipes data into any writeable stream
+  - `Pipe.ToFile(...)` -- pipes data into a file
+  - `Pipe.ToStringBuilder(...)` -- pipes data as text into `StringBuilder`
+  - `Pipe.ToDelegate(...)` -- pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
+  - `Pipe.ToMany(...)` -- merges multiple outbound pipes by replicating the same data across all of them
 
 Below you can see some examples of what you can achieve with the help of **CliWrap**'s piping feature.
 
@@ -382,7 +382,7 @@ await cmd.ExecuteAsync();
 var buffer = new StringBuilder();
 
 var cmd = Cli.Wrap("foo") |
-    (PipeTarget.ToFile("output.txt"), PipeTarget.ToStringBuilder(buffer));
+    (Pipe.ToFile("output.txt"), Pipe.ToStringBuilder(buffer));
 
 await cmd.ExecuteAsync();
 ```
@@ -390,10 +390,10 @@ await cmd.ExecuteAsync();
 #### Pipe stdout into multiple files simultaneously
 
 ```csharp
-var target = PipeTarget.Merge(
-    PipeTarget.ToFile("file1.txt"),
-    PipeTarget.ToFile("file2.txt"),
-    PipeTarget.ToFile("file3.txt")
+var target = Pipe.ToMany(
+    Pipe.ToFile("file1.txt"),
+    Pipe.ToFile("file2.txt"),
+    Pipe.ToFile("file3.txt")
 );
 
 var cmd = Cli.Wrap("foo") | target;
@@ -558,15 +558,15 @@ var cmdEvents = cmd.Observe(Encoding.ASCII, Encoding.UTF8);
 #### Combining execution models with custom pipes
 
 The different execution models shown above are based on the piping model, but those two concepts are not mutually exclusive.
-That's because internally they all rely on `PipeTarget.Merge()`, which allows them to wire new pipes while still preserving those configured earlier.
+That's because internally they all rely on `Pipe.ToMany()`, which allows them to wire new pipes while still preserving those configured earlier.
 
 This means that, for example, you can create a piped command and also execute it as an event stream:
 
 ```csharp
 var cmd =
-    PipeSource.FromFile("input.txt") |
+    Pipe.FromFile("input.txt") |
     Cli.Wrap("foo") |
-    PipeSource.ToFile("output.txt");
+    Pipe.ToFile("output.txt");
 
 // Iterate as an event stream and pipe to file at the same time
 // (pipes are combined, not overriden)

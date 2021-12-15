@@ -37,13 +37,13 @@ public partial class Command : ICommandConfiguration
     public CommandResultValidation Validation { get; }
 
     /// <inheritdoc />
-    public PipeSource StandardInputPipe { get; }
+    public IPipeSource StandardInputPipe { get; }
 
     /// <inheritdoc />
-    public PipeTarget StandardOutputPipe { get; }
+    public IPipeTarget StandardOutputPipe { get; }
 
     /// <inheritdoc />
-    public PipeTarget StandardErrorPipe { get; }
+    public IPipeTarget StandardErrorPipe { get; }
 
     /// <summary>
     /// Initializes an instance of <see cref="Command"/>.
@@ -55,9 +55,9 @@ public partial class Command : ICommandConfiguration
         Credentials credentials,
         IReadOnlyDictionary<string, string?> environmentVariables,
         CommandResultValidation validation,
-        PipeSource standardInputPipe,
-        PipeTarget standardOutputPipe,
-        PipeTarget standardErrorPipe)
+        IPipeSource standardInputPipe,
+        IPipeTarget standardOutputPipe,
+        IPipeTarget standardErrorPipe)
     {
         TargetFilePath = targetFilePath;
         Arguments = arguments;
@@ -80,9 +80,9 @@ public partial class Command : ICommandConfiguration
         Credentials.Default,
         new Dictionary<string, string?>(),
         CommandResultValidation.ZeroExitCode,
-        PipeSource.Null,
-        PipeTarget.Null,
-        PipeTarget.Null)
+        Pipe.FromNull(),
+        Pipe.ToNull(),
+        Pipe.ToNull())
     {
     }
 
@@ -104,15 +104,8 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
     /// </summary>
-    public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
+    public Command WithArguments(IEnumerable<string> arguments, bool escape = true) =>
         WithArguments(args => args.Add(arguments, escape));
-
-    /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of optional parameter
-    public Command WithArguments(IEnumerable<string> arguments) =>
-        WithArguments(arguments, true);
 
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
@@ -210,7 +203,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the standard input pipe to the specified source.
     /// </summary>
-    public Command WithStandardInputPipe(PipeSource source) => new(
+    public Command WithStandardInputPipe(IPipeSource source) => new(
         TargetFilePath,
         Arguments,
         WorkingDirPath,
@@ -225,7 +218,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the standard output pipe to the specified target.
     /// </summary>
-    public Command WithStandardOutputPipe(PipeTarget target) => new(
+    public Command WithStandardOutputPipe(IPipeTarget target) => new(
         TargetFilePath,
         Arguments,
         WorkingDirPath,
@@ -240,7 +233,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the standard error pipe to the specified target.
     /// </summary>
-    public Command WithStandardErrorPipe(PipeTarget target) => new(
+    public Command WithStandardErrorPipe(IPipeTarget target) => new(
         TargetFilePath,
         Arguments,
         WorkingDirPath,
@@ -259,7 +252,7 @@ public partial class Command : ICommandConfiguration
             FileName = TargetFilePath,
             Arguments = Arguments,
             WorkingDirectory = WorkingDirPath,
-            UserName = Credentials.UserName,
+            UserName = Credentials.UserName ?? "",
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -272,7 +265,7 @@ public partial class Command : ICommandConfiguration
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                result.Domain = Credentials.Domain;
+                result.Domain = Credentials.Domain ?? "";
                 result.Password = Credentials.Password?.ToSecureString();
             }
             else
@@ -367,7 +360,7 @@ public partial class Command : ICommandConfiguration
         // Setup and start process
         using var _1 = process;
         process.Start();
-        using var _2 = cancellationToken.Register(process.Kill);
+        await using var _2 = cancellationToken.Register(process.Kill);
 
         // Start piping in parallel
         var pipingTask = Task.WhenAll(
