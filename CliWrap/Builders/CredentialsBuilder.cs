@@ -3,35 +3,27 @@
 /// <summary>
 /// Builder that helps configure user credentials.
 /// </summary>
-public class CredentialsBuilder
+public class CredentialsBuilder : ICredentialsConfigurator
 {
     private string? _domain;
     private string? _userName;
     private string? _password;
 
-    /// <summary>
-    /// Sets the active directory domain to the specified value.
-    /// </summary>
-    /// <remarks>Supported only on Windows.</remarks>
+    /// <inheritdoc />
     public CredentialsBuilder SetDomain(string? domain)
     {
         _domain = domain;
         return this;
     }
 
-    /// <summary>
-    /// Sets the user name to the specified value.
-    /// </summary>
+    /// <inheritdoc />
     public CredentialsBuilder SetUserName(string? userName)
     {
         _userName = userName;
         return this;
     }
 
-    /// <summary>
-    /// Sets the user password to the specified value.
-    /// </summary>
-    /// <remarks>Supported only on Windows.</remarks>
+    /// <inheritdoc />
     public CredentialsBuilder SetPassword(string? password)
     {
         _password = password;

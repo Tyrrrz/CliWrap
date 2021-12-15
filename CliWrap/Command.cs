@@ -111,7 +111,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
     /// </summary>
-    public Command WithArguments(Action<ArgumentsBuilder> configure)
+    public Command WithArguments(Action<IArgumentsConfigurator> configure)
     {
         var builder = new ArgumentsBuilder();
         configure(builder);
@@ -152,7 +152,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the credentials to the value configured by the specified delegate.
     /// </summary>
-    public Command WithCredentials(Action<CredentialsBuilder> configure)
+    public Command WithCredentials(Action<ICredentialsConfigurator> configure)
     {
         var builder = new CredentialsBuilder();
         configure(builder);
@@ -178,7 +178,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the environment variables to the value configured by the specified delegate.
     /// </summary>
-    public Command WithEnvironmentVariables(Action<EnvironmentVariablesBuilder> configure)
+    public Command WithEnvironmentVariables(Action<IEnvironmentVariablesConfigurator> configure)
     {
         var builder = new EnvironmentVariablesBuilder();
         configure(builder);
