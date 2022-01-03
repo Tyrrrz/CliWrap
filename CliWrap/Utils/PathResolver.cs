@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace CliWrap.Utils;
 
@@ -9,7 +11,7 @@ internal static class PathResolver
         // Update target path if necessary
         // We should use 'Path.IsPathFullyQualified', but its not available in .NET Standard 2.0
         // https://github.com/dotnet/runtime/issues/22796
-        if (!PathResolver || Path.IsPathRooted(TargetFilePath)) return fileName;
+        if (Path.IsPathRooted(fileName)) return fileName;
         
         if (File.Exists(fileName))
             return Path.GetFullPath(fileName);
