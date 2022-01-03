@@ -256,7 +256,7 @@ public partial class Command : ICommandConfiguration
     {
         var result = new ProcessStartInfo
         {
-            FileName = TargetFilePath,
+            FileName = PathResolver.ResolvePath(TargetFilePath),
             Arguments = Arguments,
             WorkingDirectory = WorkingDirPath,
             UserName = Credentials.UserName,
