@@ -19,7 +19,7 @@ public static partial class Pipe
     private static readonly NullPipeTarget NullTarget = new();
 
     /// <summary>
-    /// Pipe source that does not provide any data.
+    /// Creates a pipe source that does not provide any data.
     /// Logical equivalent to <code>/dev/null</code>.
     /// </summary>
     public static IPipeSource FromNull() => NullSource;
@@ -57,7 +57,7 @@ public static partial class Pipe
     public static IPipeSource FromCommand(Command command) => new CommandPipeSource(command);
 
     /// <summary>
-    /// Pipe target that discards all data.
+    /// Creates a pipe target that discards all data.
     /// Logical equivalent to <code>/dev/null</code>.
     /// </summary>
     public static IPipeTarget ToNull() => NullTarget;
