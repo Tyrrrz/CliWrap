@@ -34,9 +34,12 @@ internal class ProcessEx : IDisposable
     public DateTimeOffset StartTime { get; private set; }
 
     public DateTimeOffset ExitTime { get; private set; }
-
-    public ProcessEx(ProcessStartInfo startInfo) =>
-        _nativeProcess = new Process {StartInfo = startInfo};
+    private readonly string _fileName;
+    public ProcessEx(ProcessStartInfo startInfo)
+    {
+        _fileName = startInfo.FileName;
+        _nativeProcess = new Process { StartInfo = startInfo };
+    }
 
     public void Start()
     {
@@ -62,12 +65,17 @@ internal class ProcessEx : IDisposable
         };
 
         // Start the process
-        if (!_nativeProcess.Start())
+        try
         {
-            throw new InvalidOperationException(
-                "Failed to obtain the handle when starting a process. " +
-                "This could mean that the target executable doesn't exist or that execute permission is missing."
-            );
+            _nativeProcess.Start();
+        }
+        catch (Exception ex)
+        {             
+            var message = $"Fail to execute '{_fileName}'.\n";
+            if (ex is System.ComponentModel.Win32Exception w && w.NativeErrorCode == 2)
+                message += "This could mean that the target executable doesn't exist or that execute permission is missing.\n";
+            message += "-----The original thrown Exception-----\n" + ex.ToString();
+            throw new InvalidOperationException(message);
         }
 
         // We can't access Process.StartTime if the process has already terminated.

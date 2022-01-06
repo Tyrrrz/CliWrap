@@ -106,4 +106,18 @@ public class ExecutionSpecs
         // Act
         await cmd.ExecuteAsync();
     }
+
+    [Fact(Timeout = 15000)]
+    public async Task Command_execution_with_file_not_exist_fire_InvalidOperationException()
+    {
+        // Arrange        
+        var cmd = Cli.Wrap("app_not_exist.exe");
+
+        // Act         
+        var act = async () => await cmd.ExecuteAsync();
+        //Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+           .Where(e => e.Message.Contains("This could mean that the target executable doesn't exist or that execute permission is missing"));
+
+    }
 }
