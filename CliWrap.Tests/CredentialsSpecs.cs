@@ -25,7 +25,7 @@ public class CredentialsSpecs
                 .SetPassword("password123"));
 
         // Act & assert
-        await Assert.ThrowsAsync<Win32Exception>(() => cmd.ExecuteAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cmd.ExecuteAsync());
     }
 
     [SkippableFact(Timeout = 15000)]
@@ -46,7 +46,7 @@ public class CredentialsSpecs
                 .SetPassword("password123"));
 
         // Act & assert
-        await Assert.ThrowsAsync<Win32Exception>(() => cmd.ExecuteAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cmd.ExecuteAsync());
     }
 
     [SkippableFact(Timeout = 15000)]
