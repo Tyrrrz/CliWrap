@@ -278,7 +278,11 @@ public partial class Command : ICommandConfiguration
 
         // ... executable directory
         if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
-            parentPaths.Add(EnvironmentEx.ProcessPath);
+        {
+            var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
+            if (!string.IsNullOrWhiteSpace(processDirPath))
+                parentPaths.Add(processDirPath);
+        }
 
         // ... working directory
         parentPaths.Add(Directory.GetCurrentDirectory());
