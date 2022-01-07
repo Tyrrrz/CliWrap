@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -252,11 +253,60 @@ public partial class Command : ICommandConfiguration
         target
     );
 
+    // System.Diagnostics.Process already resolves full paths from PATH environment variable,
+    // but it only seems to do that for executable files if the extension is omitted.
+    // For instance, `Process.Start("dotnet")` works because it can find the "dotnet.exe" file on PATH.
+    // On the other hand, `Process.Start("npm")` doesn't work because it needs to find "npm.cmd" instead.
+    // However, if we supply the extension too ("npm.cmd" in the sample above), it works correctly.
+    // We need to do a bit of extra work to make sure that full paths to script files are also resolved.
+    private string ResolveOptimallyQualifiedTargetFilePath()
+    {
+        // Implementation reference:
+        // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L686-L728
+
+        // Currently we only need this workaround for script files on Windows,
+        // so short-circuit if we are on a different operating system.
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return TargetFilePath;
+
+        // Don't do anything for fully qualified paths or paths that already have an extension specified
+        if (Path.IsPathRooted(TargetFilePath) || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath)))
+            return TargetFilePath;
+
+        // Potential directories to look for the file in (ordered by priority)
+        var parentPaths = new List<string>();
+
+        // ... executable directory
+        if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
+            parentPaths.Add(EnvironmentEx.ProcessPath);
+
+        // ... working directory
+        parentPaths.Add(Directory.GetCurrentDirectory());
+
+        // ... directories specified in PATH
+        parentPaths.AddRange(
+            Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ??
+            Array.Empty<string>()
+        );
+
+        var potentialFilePaths =
+            from parentPath in parentPaths
+            select Path.Combine(parentPath, TargetFilePath)
+            into filePathBase
+            from extension in new[] { "exe", "cmd", "bat" }
+            select filePathBase + '.' + extension;
+
+        // Return first existing file or fall back to the original path
+        return
+            potentialFilePaths.FirstOrDefault(File.Exists) ??
+            TargetFilePath;
+    }
+
     private ProcessStartInfo GetStartInfo()
     {
         var result = new ProcessStartInfo
         {
-            FileName = PathResolver.ResolvePath(TargetFilePath),
+            FileName = ResolveOptimallyQualifiedTargetFilePath(),
             Arguments = Arguments,
             WorkingDirectory = WorkingDirPath,
             UserName = Credentials.UserName,
@@ -278,7 +328,8 @@ public partial class Command : ICommandConfiguration
             else
             {
                 throw new NotSupportedException(
-                    "Starting a process using a custom domain and password is only supported on Windows."
+                    "Cannot start a process using custom domain and/or password on this platform. " +
+                    "This feature is only supported on Windows."
                 );
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -34,7 +35,9 @@ internal class ProcessEx : IDisposable
     public DateTimeOffset StartTime { get; private set; }
 
     public DateTimeOffset ExitTime { get; private set; }
-    public ProcessEx(ProcessStartInfo startInfo) => _nativeProcess = new Process { StartInfo = startInfo };
+
+    public ProcessEx(ProcessStartInfo startInfo) =>
+        _nativeProcess = new Process { StartInfo = startInfo };
 
     public void Start()
     {
@@ -64,12 +67,15 @@ internal class ProcessEx : IDisposable
         {
             _nativeProcess.Start();
         }
-        catch (Exception ex)
-        {             
-            var message = $"Failed to execute '{_nativeProcess.StartInfo.FileName}'.\n";
-            if (ex is System.ComponentModel.Win32Exception w && w.NativeErrorCode == 2)
-                message += "This could mean that the target executable doesn't exist or that execute permission is missing.\n";           
-            throw new InvalidOperationException(message,ex);
+        catch (Win32Exception ex)
+        {
+            throw new InvalidOperationException($@"
+Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. Possible reasons include:
+- Target file does not exist.
+- Target file is not executable.
+- Target file is missing execute permissions.
+- Provided credentials are incorrect.
+".Trim(), ex);
         }
 
         // We can't access Process.StartTime if the process has already terminated.

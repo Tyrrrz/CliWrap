@@ -30,25 +30,18 @@ public partial class CommandExecutionException
 {
     internal static CommandExecutionException ValidationError(
         ICommandConfiguration command,
-        int exitCode)
-    {
-        var message = @$"
+        int exitCode) => new(command, exitCode, @$"
 Underlying process reported a non-zero exit code ({exitCode}).
 
 Command:
   {command.TargetFilePath} {command.Arguments}
 
-You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
-
-        return new CommandExecutionException(command, exitCode, message);
-    }
+You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim());
 
     internal static CommandExecutionException ValidationError(
         ICommandConfiguration command,
         int exitCode,
-        string standardError)
-    {
-        var message = @$"
+        string standardError) => new(command, exitCode, @$"
 Underlying process reported a non-zero exit code ({exitCode}).
 
 Command:
@@ -57,8 +50,5 @@ Command:
 Standard error:
   {standardError}
 
-You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim();
-
-        return new CommandExecutionException(command, exitCode, message);
-    }
+You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim());
 }
