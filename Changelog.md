@@ -1,7 +1,7 @@
 ### v3.4 (07-Jan-2022)
 
 - Added automatic resolving of script files on Windows (i.e. `.bat` and `.cmd` files). Previously, if you did `Cli.Wrap("foo")`, the underlying implementation of `System.Diagnostic.Process` would try to find `foo` in several locations, including directories listed in the PATH environment variable. On Windows, however, this only worked for `.exe` files, meaning that it wouldn't find `foo.cmd` or `foo.bat` even if they existed on the PATH. This was an issue with `Cli.Wrap("npm")` and `Cli.Wrap("az")` because those CLI tools are implemented as `.cmd` scripts on Windows. CliWrap now attempts to resolves those paths itself. (Thanks [@AliReZa Sabouri](https://github.com/alirezanet))
-- Improved exception thrown when the underlying process fails to start. It now contains the target file path, which can be helpful to identify which exact command that failed. (Thanks [@Mohamed Hassan](https://github.com/moh-hassan))
+- Improved exception thrown when the underlying process fails to start. It now contains the target file path, which can be helpful to identify the exact command that failed. (Thanks [@Mohamed Hassan](https://github.com/moh-hassan))
 
 ⚠ Warning: the next major version of CliWrap (4.0) will drop support for legacy .NET Framework, .NET Standard, and .NET Core (prior to rebranding). Going forward, the library will only target .NET 5 and higher. If you have any questions, please comment on [this issue](https://github.com/Tyrrrz/CliWrap/issues/131).
 
