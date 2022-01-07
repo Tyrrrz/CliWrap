@@ -263,7 +263,7 @@ public partial class Command : ICommandConfiguration
             return TargetFilePath;
 
         // Don't do anything for fully qualified paths or paths that already have an extension specified
-        if (Path.IsPathRooted(TargetFilePath) || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath)))
+        if (Path.IsPathFullyQualified(TargetFilePath) || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath)))
             return TargetFilePath;
 
         // Potential directories to look for the file in (ordered by priority)
