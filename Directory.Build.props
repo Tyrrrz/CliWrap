@@ -1,12 +1,13 @@
 <Project>
 
   <PropertyGroup>
-    <Version>3.3.3</Version>
+    <Version>3.4</Version>
     <Company>Tyrrrz</Company>
     <Copyright>Copyright (C) Alexey Golub</Copyright>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>nullable</WarningsAsErrors>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <!-- Disable nullability warnings on older frameworks because there is no nullability info for BCL -->
