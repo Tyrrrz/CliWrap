@@ -65,17 +65,21 @@ internal class ProcessEx : IDisposable
         // Start the process
         try
         {
-            _nativeProcess.Start();
+            if (!_nativeProcess.Start())
+            {
+                throw new InvalidOperationException(
+                    $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. " +
+                    "Target file is not an executable or lacks execute permissions."
+                );
+            }
         }
         catch (Win32Exception ex)
         {
-            throw new InvalidOperationException($@"
-Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. Possible reasons include:
-- Target file does not exist.
-- Target file is not executable.
-- Target file is missing execute permissions.
-- Provided credentials are incorrect.
-".Trim(), ex);
+            throw new Win32Exception(
+                $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. " +
+                "Target file doesn't exist or the provided credentials are invalid.",
+                ex
+            );
         }
 
         // We can't access Process.StartTime if the process has already terminated.
