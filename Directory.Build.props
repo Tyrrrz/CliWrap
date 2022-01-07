@@ -10,9 +10,4 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- Disable nullability warnings on older frameworks because there is no nullability info for BCL -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
-    <Nullable>annotations</Nullable>
-  </PropertyGroup>
-
 </Project>
