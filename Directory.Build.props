@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Version>3.4</Version>
     <Company>Tyrrrz</Company>
-    <Copyright>Copyright (C) Alexey Golub</Copyright>
+    <Copyright>Copyright (C) Oleksii Holub</Copyright>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>nullable</WarningsAsErrors>
