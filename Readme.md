@@ -60,7 +60,7 @@ var result = await Cli.Wrap("path/to/exe")
 ```
 
 The code above spawns a child process with the configured command line arguments and working directory, and then asynchronously waits for it to exit.
-After the task has completed, it resolves a `CommandResult` object that contains the process exit code and other related information.
+After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other related information.
 
 > ⚠️ **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 You can [override this behavior](#command-configuration) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
@@ -86,8 +86,8 @@ var stdOut = stdOutBuffer.ToString();
 var stdErr = stdErrBuffer.ToString();
 ```
 
-In this example, the data pushed to standard output and error streams is decoded as text and written to separate `StringBuilder` buffers.
-After the command has finished executing, you can inspect the contents of these buffers to see what the process has printed to the console during its runtime.
+This example command is configured to decode the data written to standard output and error streams as text, and append it to the corresponding `StringBuilder` buffers.
+After the execution has completed, these buffers can be inspected to see what the process has printed to the console.
 
 Handling command output is a very common use case, so **CliWrap** offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
 In particular, the same thing shown above can also be achieved more succinctly with the `ExecuteBufferedAsync()` extension method:
