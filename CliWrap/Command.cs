@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Builders;
-using CliWrap.Exceptions;
 using CliWrap.Utils;
 using CliWrap.Utils.Extensions;
 

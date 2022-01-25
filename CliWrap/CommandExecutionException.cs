@@ -1,4 +1,4 @@
-﻿namespace CliWrap.Exceptions;
+﻿namespace CliWrap;
 
 /// <summary>
 /// Exception thrown when the command fails to execute correctly.

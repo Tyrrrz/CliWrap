@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CliWrap.Exceptions;
+namespace CliWrap;
 
 /// <summary>
 /// Parent class for exceptions thrown by <see cref="CliWrap"/>.
