@@ -46,7 +46,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var filePath = _tempOutputFixture.GetTempFilePath();
         await File.WriteAllTextAsync(filePath, "Hello world!");
 
-        var cmd = PipeSource.FromFile(filePath) | Cli.Wrap("dotnet")
+        var cmd = Pipe.FromFile(filePath) | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo-stdin"));
@@ -168,7 +168,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate-binary")
-                .Add("--length").Add(1_000_000)) | PipeTarget.ToFile(filePath);
+                .Add("--length").Add(1_000_000)) | Pipe.ToFile(filePath);
 
         // Act
         await cmd.ExecuteAsync();
@@ -353,10 +353,10 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         await using var stream2 = new MemoryStream();
         await using var stream3 = new MemoryStream();
 
-        var pipeTarget = PipeTarget.Merge(
-            PipeTarget.ToStream(stream1),
-            PipeTarget.ToStream(stream2),
-            PipeTarget.ToStream(stream3)
+        var pipeTarget = Pipe.ToMany(
+            Pipe.ToStream(stream1),
+            Pipe.ToStream(stream2),
+            Pipe.ToStream(stream3)
         );
 
         var cmd = Cli.Wrap("dotnet")
@@ -385,13 +385,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         await using var stream3 = new MemoryStream();
         await using var stream4 = new MemoryStream();
 
-        var pipeTarget = PipeTarget.Merge(
-            PipeTarget.ToStream(stream1),
-            PipeTarget.Merge(
-                PipeTarget.ToStream(stream2),
-                PipeTarget.Merge(
-                    PipeTarget.ToStream(stream3),
-                    PipeTarget.ToStream(stream4)
+        var pipeTarget = Pipe.ToMany(
+            Pipe.ToStream(stream1),
+            Pipe.ToMany(
+                Pipe.ToStream(stream2),
+                Pipe.ToMany(
+                    Pipe.ToStream(stream3),
+                    Pipe.ToStream(stream4)
                 )
             )
         );
@@ -432,14 +432,14 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
 
         // Run without merging to get the expected byte array (random seed is constant)
         await using var unmergedStream = new MemoryStream();
-        await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
+        await (cmd | Pipe.ToStream(unmergedStream)).ExecuteAsync();
 
         // Run with merging to check if it's the same
         await using var mergedStream1 = new MemoryStream();
         await using var mergedStream2 = new MemoryStream();
-        await (cmd | PipeTarget.Merge(
-                PipeTarget.ToStream(mergedStream1),
-                PipeTarget.ToStream(mergedStream2))
+        await (cmd | Pipe.ToMany(
+                Pipe.ToStream(mergedStream1),
+                Pipe.ToStream(mergedStream2))
             ).ExecuteAsync();
 
         // Assert

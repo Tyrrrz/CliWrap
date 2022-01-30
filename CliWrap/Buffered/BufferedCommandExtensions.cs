@@ -26,14 +26,14 @@ public static class BufferedCommandExtensions
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
 
-        var stdOutPipe = PipeTarget.Merge(
+        var stdOutPipe = Pipe.ToMany(
             command.StandardOutputPipe,
-            PipeTarget.ToStringBuilder(stdOutBuffer, standardOutputEncoding)
+            Pipe.ToStringBuilder(stdOutBuffer, standardOutputEncoding)
         );
 
-        var stdErrPipe = PipeTarget.Merge(
+        var stdErrPipe = Pipe.ToMany(
             command.StandardErrorPipe,
-            PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
+            Pipe.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
         );
 
         var commandPiped = command

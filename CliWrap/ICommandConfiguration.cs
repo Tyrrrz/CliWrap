@@ -40,15 +40,15 @@ public interface ICommandConfiguration
     /// <summary>
     /// Configured standard input pipe source.
     /// </summary>
-    PipeSource StandardInputPipe { get; }
+    IPipeSource StandardInputPipe { get; }
 
     /// <summary>
     /// Configured standard output pipe target.
     /// </summary>
-    PipeTarget StandardOutputPipe { get; }
+    IPipeTarget StandardOutputPipe { get; }
 
     /// <summary>
     /// Configured standard error pipe target.
     /// </summary>
-    PipeTarget StandardErrorPipe { get; }
+    IPipeTarget StandardErrorPipe { get; }
 }
