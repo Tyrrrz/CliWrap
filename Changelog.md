@@ -1,3 +1,7 @@
+### v3.4.1 (30-Jan-2022)
+
+- Fixed an issue where calling `Cli.Wrap("non-existing-target").ExecuteAsync()` on a target that doesn't exist resulted in an invalid `CommandTask`, due to the fact that the associated exception was thrown in an asynchronous context that was not observed prior to that point. This had a few consequences, such as the fact that the returned `CommandTask` had invalid `ProcessId` of `0`. It also caused event stream execution models (`Observe()` and `ListenAsync()`) to incorrectly yield `StartedCommandEvent` even if the process was not able to actually start.
+
 ### v3.4 (07-Jan-2022)
 
 - Added automatic resolving of script files on Windows (i.e. `.bat` and `.cmd` files). Previously, if you did `Cli.Wrap("foo")`, the underlying implementation of `System.Diagnostic.Process` would try to find `foo` in several locations, including directories listed in the PATH environment variable. On Windows, however, this only worked for `.exe` files, meaning that it wouldn't find `foo.cmd` or `foo.bat` even if they existed on the PATH. This was an issue with `Cli.Wrap("npm")` and `Cli.Wrap("az")` because those CLI tools are implemented as `.cmd` scripts on Windows. CliWrap now attempts to resolves those paths itself. (Thanks [@AliReZa Sabouri](https://github.com/alirezanet))
