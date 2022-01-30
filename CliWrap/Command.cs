@@ -308,7 +308,7 @@ public partial class Command : ICommandConfiguration
 
     private ProcessStartInfo GetStartInfo()
     {
-        var result = new ProcessStartInfo
+        var startInfo = new ProcessStartInfo
         {
             FileName = ResolveOptimallyQualifiedTargetFilePath(),
             Arguments = Arguments,
@@ -326,8 +326,8 @@ public partial class Command : ICommandConfiguration
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                result.Domain = Credentials.Domain;
-                result.Password = Credentials.Password?.ToSecureString();
+                startInfo.Domain = Credentials.Domain;
+                startInfo.Password = Credentials.Password?.ToSecureString();
             }
             else
             {
@@ -343,15 +343,15 @@ public partial class Command : ICommandConfiguration
             // Workaround for https://github.com/dotnet/runtime/issues/34446
             if (value is null)
             {
-                result.Environment.Remove(key);
+                startInfo.Environment.Remove(key);
             }
             else
             {
-                result.Environment[key] = value;
+                startInfo.Environment[key] = value;
             }
         }
 
-        return result;
+        return startInfo;
     }
 
     private async Task PipeStandardInputAsync(
@@ -412,29 +412,30 @@ public partial class Command : ICommandConfiguration
         }
     }
 
-    private async Task<CommandResult> ExecuteAsync(
+    private async Task<CommandResult> AttachAsync(
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
         // Additional cancellation for stdin in case the process terminates early and doesn't fully exhaust it
         using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        // Setup and start process
         using var _1 = process;
-        process.Start();
         using var _2 = cancellationToken.Register(process.Kill);
 
-        // Start piping in parallel
+        // Start piping streams in the background
         var pipingTask = Task.WhenAll(
             PipeStandardInputAsync(process, stdInCts.Token),
             PipeStandardOutputAsync(process, cancellationToken),
             PipeStandardErrorAsync(process, cancellationToken)
         );
 
-        // Wait until the process terminates or gets killed
+        // Wait until the process is terminated or killed
         await process.WaitUntilExitAsync().ConfigureAwait(false);
 
-        // Cancel stdin in case the process terminated early and doesn't need it anymore
+        // Send the cancellation signal to the stdin pipe since the process has exited
+        // and won't need it anymore.
+        // If the pipe has already been exhausted (most likely), this will do nothing.
+        // If the pipe is still trying to transfer data, this will cause it to abort.
         stdInCts.Cancel();
 
         try
@@ -472,9 +473,18 @@ public partial class Command : ICommandConfiguration
     public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var process = new ProcessEx(GetStartInfo());
-        var task = ExecuteAsync(process, cancellationToken);
 
-        return new CommandTask<CommandResult>(task, process.Id);
+        // Process must be started in a synchronous context, in order
+        // to ensure that, if the process fails to start, the exception
+        // will be thrown synchronously and CommandTask won't be created.
+        // Otherwise we may end up with a CommandTask that has invalid state.
+        // https://github.com/Tyrrrz/CliWrap/issues/139
+        process.Start();
+
+        return new CommandTask<CommandResult>(
+            AttachAsync(process, cancellationToken),
+            process.Id
+        );
     }
 
     /// <inheritdoc />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Tests.Utils;
@@ -105,5 +106,18 @@ public class ExecutionSpecs
 
         // Act
         await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public void Command_execution_throws_if_the_target_file_does_not_exist()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/139
+
+        // Arrange
+        var cmd = Cli.Wrap("non-existing-target");
+
+        // Act & assert
+        // Should throw synchronously!
+        Assert.ThrowsAny<Win32Exception>(() => cmd.ExecuteAsync());
     }
 }
