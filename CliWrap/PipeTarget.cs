@@ -60,65 +60,65 @@ public partial class PipeTarget
         ToStringBuilder(stringBuilder, Console.OutputEncoding);
 
     /// <summary>
-    /// Creates a pipe target that triggers a delegate on every line written.
+    /// Creates a pipe target that invokes a delegate on every line written.
     /// </summary>
     public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding) =>
         new DelegatePipeTarget(handleLine, encoding);
 
     /// <summary>
-    /// Creates a pipe target that triggers a delegate on every line written.
+    /// Creates a pipe target that invokes a delegate on every line written.
     /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
     /// </summary>
     public static PipeTarget ToDelegate(Action<string> handleLine) =>
         ToDelegate(handleLine, Console.OutputEncoding);
 
     /// <summary>
-    /// Creates a pipe target that triggers an asynchronous delegate on every line written.
+    /// Creates a pipe target that invokes an asynchronous delegate on every line written.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
         new AsyncDelegatePipeTarget(handleLineAsync, encoding);
 
     /// <summary>
-    /// Creates a pipe target that triggers an asynchronous delegate on every line written.
+    /// Creates a pipe target that invokes an asynchronous delegate on every line written.
     /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
         ToDelegate(handleLineAsync, Console.OutputEncoding);
-
-    // This function needs to take output as a parameter because it's recursive
-    private static void FlattenTargets(IEnumerable<PipeTarget> targets, ICollection<PipeTarget> output)
-    {
-        foreach (var target in targets)
-        {
-            if (target is MergedPipeTarget mergedTarget)
-            {
-                FlattenTargets(mergedTarget.Targets, output);
-            }
-            else
-            {
-                output.Add(target);
-            }
-        }
-    }
-
-    private static IReadOnlyList<PipeTarget> OptimizeTargets(IEnumerable<PipeTarget> targets)
-    {
-        var result = new List<PipeTarget>();
-
-        // Unwrap merged targets
-        FlattenTargets(targets, result);
-
-        // Filter out no-op
-        result.RemoveAll(t => t is NullPipeTarget);
-
-        return result;
-    }
 
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
     /// </summary>
     public static PipeTarget Merge(IEnumerable<PipeTarget> targets)
     {
+        // This function needs to take output as a parameter because it's recursive
+        static void FlattenTargets(IEnumerable<PipeTarget> targets, ICollection<PipeTarget> output)
+        {
+            foreach (var target in targets)
+            {
+                if (target is MergedPipeTarget mergedTarget)
+                {
+                    FlattenTargets(mergedTarget.Targets, output);
+                }
+                else
+                {
+                    output.Add(target);
+                }
+            }
+        }
+
+        static IReadOnlyList<PipeTarget> OptimizeTargets(IEnumerable<PipeTarget> targets)
+        {
+            var result = new List<PipeTarget>();
+
+            // Unwrap merged targets
+            FlattenTargets(targets, result);
+
+            // Filter out no-op
+            result.RemoveAll(t => t is NullPipeTarget);
+
+            return result;
+        }
+
         // Optimize targets to avoid unnecessary work
         var optimizedTargets = OptimizeTargets(targets);
 
@@ -141,13 +141,10 @@ public partial class PipeTarget
 
 internal class NullPipeTarget : PipeTarget
 {
-    public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
-    {
-        // We need to actually exhaust the input stream to avoid potential deadlocks.
-        // TODO: none of the tests fail if this is replaced with Task.CompletedTask,
-        // so the above claim may be incorrect. Need to verify.
-        await source.CopyToAsync(Stream.Null, cancellationToken).ConfigureAwait(false);
-    }
+    public override Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
+        !cancellationToken.IsCancellationRequested
+            ? Task.CompletedTask
+            : Task.FromCanceled(cancellationToken);
 }
 
 internal class StreamPipeTarget : PipeTarget
