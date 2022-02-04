@@ -38,17 +38,6 @@ internal class UnresolvableEmptyStream : Stream
         return await tcs.Task;
     }
 
-    public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-    {
-        var tcs = new TaskCompletionSource<int>();
-
-        await using var cancellation = _isCancellable
-            ? cancellationToken.Register(() => tcs.TrySetCanceled())
-            : default;
-
-        return await tcs.Task;
-    }
-
     public override void Flush() => throw new NotSupportedException();
 
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();

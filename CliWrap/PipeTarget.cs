@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -195,12 +196,12 @@ internal class StringBuilderPipeTarget : PipeTarget
     public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
     {
         using var reader = new StreamReader(source, _encoding, false, BufferSizes.StreamReader, true);
-        using var buffer = PooledBuffer.ForStreamReader();
+        using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
 
         int charsRead;
-        while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) > 0)
+        while ((charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
         {
-            _stringBuilder.Append(buffer.Array, 0, charsRead);
+            _stringBuilder.Append(buffer.Memory[..charsRead]);
         }
     }
 }
@@ -274,12 +275,15 @@ internal class MergedPipeTarget : PipeTarget
             );
 
             // Read from the master stream and replicate the data to each sub-stream
-            using var buffer = PooledBuffer.ForStream();
+            using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
             int bytesRead;
-            while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) > 0)
+            while ((bytesRead = await source.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
             {
                 foreach (var (_, subStream) in targetSubStreams)
-                    await subStream.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+                {
+                    await subStream.WriteAsync(buffer.Memory[..bytesRead], cancellationToken)
+                        .ConfigureAwait(false);
+                }
             }
 
             // Report that transmission is complete

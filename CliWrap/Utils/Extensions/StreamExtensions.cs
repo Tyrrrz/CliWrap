@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -12,12 +13,12 @@ internal static class StreamExtensions
     public static async Task CopyToAsync(this Stream source, Stream destination, bool autoFlush,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = PooledBuffer.ForStream();
+        using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
 
         int bytesRead;
-        while ((bytesRead = await source.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) != 0)
+        while ((bytesRead = await source.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) != 0)
         {
-            await destination.WriteAsync(buffer.Array, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+            await destination.WriteAsync(buffer.Memory[..bytesRead], cancellationToken).ConfigureAwait(false);
 
             if (autoFlush)
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -29,7 +30,7 @@ internal static class StreamExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var stringBuilder = new StringBuilder();
-        using var buffer = PooledBuffer.ForStreamReader();
+        using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
 
         // Following sequences are treated as individual linebreaks:
         // - \r
@@ -41,11 +42,11 @@ internal static class StreamExtensions
         var prevSeqChar = (char?) null;
 
         int charsRead;
-        while ((charsRead = await reader.ReadAsync(buffer.Array, cancellationToken).ConfigureAwait(false)) > 0)
+        while ((charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
         {
             for (var i = 0; i < charsRead; i++)
             {
-                var curChar = buffer.Array[i];
+                var curChar = buffer.Memory.Span[i];
 
                 // If current char and last char are part of a line break sequence,
                 // skip over the current char and move on.

@@ -59,6 +59,27 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_memory()
+    {
+        // Arrange
+        var data = new ReadOnlyMemory<byte>(new byte[]
+        {
+            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
+        });
+
+        var cmd = data | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo-stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task Stdin_can_be_piped_from_a_byte_array()
     {
         // Arrange

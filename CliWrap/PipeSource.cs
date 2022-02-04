@@ -43,9 +43,14 @@ public partial class PipeSource
     public static PipeSource FromFile(string filePath) => new FilePipeSource(filePath);
 
     /// <summary>
+    /// Creates a pipe source that reads from memory.
+    /// </summary>
+    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => new MemoryPipeSource(data);
+
+    /// <summary>
     /// Creates a pipe source that reads from a byte array.
     /// </summary>
-    public static PipeSource FromBytes(byte[] data) => new InMemoryPipeSource(data);
+    public static PipeSource FromBytes(byte[] data) => FromMemory(data);
 
     /// <summary>
     /// Creates a pipe source that reads from a string.
@@ -59,7 +64,7 @@ public partial class PipeSource
     public static PipeSource FromString(string str) => FromString(str, Console.InputEncoding);
 
     /// <summary>
-    /// Creates a pipe source that reads from standard output of a command.
+    /// Creates a pipe source that reads from the standard output of a command.
     /// </summary>
     public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
 }
@@ -95,16 +100,20 @@ internal class FilePipeSource : PipeSource
 
     public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        using var stream = File.OpenRead(_filePath);
-        await stream.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+        var stream = File.OpenRead(_filePath);
+
+        await using (stream.WithAsyncDisposableAdapter())
+        {
+            await stream.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 
-internal class InMemoryPipeSource : PipeSource
+internal class MemoryPipeSource : PipeSource
 {
-    private readonly byte[] _data;
+    private readonly ReadOnlyMemory<byte> _data;
 
-    public InMemoryPipeSource(byte[] data) => _data = data;
+    public MemoryPipeSource(ReadOnlyMemory<byte> data) => _data = data;
 
     public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
         await destination.WriteAsync(_data, cancellationToken).ConfigureAwait(false);
