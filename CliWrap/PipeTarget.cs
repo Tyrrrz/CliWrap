@@ -172,8 +172,12 @@ internal class FilePipeTarget : PipeTarget
 
     public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
     {
-        using var stream = File.Create(_filePath);
-        await source.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        var stream = File.Create(_filePath);
+
+        await using (stream.WithAsyncDisposableAdapter())
+        {
+            await source.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 
@@ -287,7 +291,7 @@ internal class MergedPipeTarget : PipeTarget
         finally
         {
             foreach (var (_, subStream) in targetSubStreams)
-                await subStream.DisposeAsync().ConfigureAwait(false);
+                await subStream.WithAsyncDisposableAdapter().DisposeAsync().ConfigureAwait(false);
         }
     }
 }

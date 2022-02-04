@@ -58,7 +58,7 @@ internal static class StreamExtensions
                 }
 
                 // If current char is \n or \r, yield the buffer (even if it is empty)
-                if (curChar == '\n' || curChar == '\r')
+                if (curChar is '\n' or '\r')
                 {
                     yield return stringBuilder.ToString();
                     stringBuilder.Clear();

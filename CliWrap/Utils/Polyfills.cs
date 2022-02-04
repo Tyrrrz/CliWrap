@@ -44,12 +44,6 @@ internal static partial class PolyfillExtensions
         Stream destination,
         CancellationToken cancellationToken) =>
         await stream.CopyToAsync(destination, 81920, cancellationToken).ConfigureAwait(false);
-
-    public static ValueTask DisposeAsync(this Stream stream)
-    {
-        stream.Dispose();
-        return default;
-    }
 }
 #endif
 

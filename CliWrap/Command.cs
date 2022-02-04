@@ -372,27 +372,26 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        try
+        await using (process.StdIn.WithAsyncDisposableAdapter())
         {
-            // Some streams do not support cancellation, so we add a fallback that
-            // drops the task and returns early.
-            // This is important with stdin because the process might finish before
-            // the pipe completes, and in case with infinite input stream it would
-            // normally result in a deadlock.
-            await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken)
-                .WithUncooperativeCancellation(cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (IOException)
-        {
-            // IOException: The pipe has been ended.
-            // This may happen if the process terminated before the pipe could complete.
-            // It's not an exceptional situation because the process may not need
-            // the entire stdin to complete successfully.
-        }
-        finally
-        {
-            await process.StdIn.DisposeAsync().ConfigureAwait(false);
+            try
+            {
+                // Some streams do not support cancellation, so we add a fallback that
+                // drops the task and returns early.
+                // This is important with stdin because the process might finish before
+                // the pipe completes, and in case with infinite input stream it would
+                // normally result in a deadlock.
+                await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken)
+                    .WithUncooperativeCancellation(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (IOException)
+            {
+                // IOException: The pipe has been ended.
+                // This may happen if the process terminated before the pipe could complete.
+                // It's not an exceptional situation because the process may not need
+                // the entire stdin to complete successfully.
+            }
         }
     }
 
@@ -400,14 +399,10 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        try
+        await using (process.StdOut.WithAsyncDisposableAdapter())
         {
             await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken)
                 .ConfigureAwait(false);
-        }
-        finally
-        {
-            await process.StdOut.DisposeAsync().ConfigureAwait(false);
         }
     }
 
@@ -415,14 +410,10 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        try
+        await using (process.StdErr.WithAsyncDisposableAdapter())
         {
             await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken)
                 .ConfigureAwait(false);
-        }
-        finally
-        {
-            await process.StdErr.DisposeAsync().ConfigureAwait(false);
         }
     }
 
@@ -430,52 +421,52 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
+        using (process)
         // Additional cancellation for stdin in case the process terminates early and doesn't fully exhaust it
-        using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-        using var _1 = process;
-        using var _2 = cancellationToken.Register(process.Kill);
-
-        // Start piping streams in the background
-        var pipingTask = Task.WhenAll(
-            PipeStandardInputAsync(process, stdInCts.Token),
-            PipeStandardOutputAsync(process, cancellationToken),
-            PipeStandardErrorAsync(process, cancellationToken)
-        );
-
-        // Wait until the process is terminated or killed
-        await process.WaitUntilExitAsync().ConfigureAwait(false);
-
-        // Send the cancellation signal to the stdin pipe since the process has exited
-        // and won't need it anymore.
-        // If the pipe has already been exhausted (most likely), this will do nothing.
-        // If the pipe is still trying to transfer data, this will cause it to abort.
-        stdInCts.Cancel();
-
-        try
+        using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        await using (cancellationToken.Register(process.Kill).WithAsyncDisposableAdapter())
         {
-            // Wait until piping is done and propagate exceptions
-            await pipingTask.ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            // Don't throw if cancellation happened internally and not by user request
-        }
+            // Start piping streams in the background
+            var pipingTask = Task.WhenAll(
+                PipeStandardInputAsync(process, stdInCts.Token),
+                PipeStandardOutputAsync(process, cancellationToken),
+                PipeStandardErrorAsync(process, cancellationToken)
+            );
 
-        // Validate exit code if required
-        if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
-        {
-            throw CommandExecutionException.ValidationError(
-                this,
-                process.ExitCode
+            // Wait until the process is terminated or killed
+            await process.WaitUntilExitAsync().ConfigureAwait(false);
+
+            // Send the cancellation signal to the stdin pipe since the process has exited
+            // and won't need it anymore.
+            // If the pipe has already been exhausted (most likely), this will do nothing.
+            // If the pipe is still trying to transfer data, this will cause it to abort.
+            stdInCts.Cancel();
+
+            try
+            {
+                // Wait until piping is done and propagate exceptions
+                await pipingTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Don't throw if cancellation happened internally and not by user request
+            }
+
+            // Validate exit code if required
+            if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
+            {
+                throw CommandExecutionException.ValidationError(
+                    this,
+                    process.ExitCode
+                );
+            }
+
+            return new CommandResult(
+                process.ExitCode,
+                process.StartTime,
+                process.ExitTime
             );
         }
-
-        return new CommandResult(
-            process.ExitCode,
-            process.StartTime,
-            process.ExitTime
-        );
     }
 
     /// <summary>
