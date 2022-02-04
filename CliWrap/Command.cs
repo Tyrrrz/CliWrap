@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -90,6 +91,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the specified value.
     /// </summary>
+    [Pure]
     public Command WithArguments(string arguments) => new(
         TargetFilePath,
         arguments,
@@ -105,6 +107,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
     /// </summary>
+    [Pure]
     public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
         WithArguments(args => args.Add(arguments, escape));
 
@@ -112,12 +115,14 @@ public partial class Command : ICommandConfiguration
     /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
     /// </summary>
     // TODO: (breaking change) remove in favor of optional parameter
+    [Pure]
     public Command WithArguments(IEnumerable<string> arguments) =>
         WithArguments(arguments, true);
 
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
     /// </summary>
+    [Pure]
     public Command WithArguments(Action<ArgumentsBuilder> configure)
     {
         var builder = new ArgumentsBuilder();
@@ -129,6 +134,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the working directory path to the specified value.
     /// </summary>
+    [Pure]
     public Command WithWorkingDirectory(string workingDirPath) => new(
         TargetFilePath,
         Arguments,
@@ -144,6 +150,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the credentials to the specified value.
     /// </summary>
+    [Pure]
     public Command WithCredentials(Credentials credentials) => new(
         TargetFilePath,
         Arguments,
@@ -159,6 +166,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the credentials to the value configured by the specified delegate.
     /// </summary>
+    [Pure]
     public Command WithCredentials(Action<CredentialsBuilder> configure)
     {
         var builder = new CredentialsBuilder();
@@ -170,6 +178,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the environment variables to the specified value.
     /// </summary>
+    [Pure]
     public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string?> environmentVariables) => new(
         TargetFilePath,
         Arguments,
@@ -185,6 +194,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the environment variables to the value configured by the specified delegate.
     /// </summary>
+    [Pure]
     public Command WithEnvironmentVariables(Action<EnvironmentVariablesBuilder> configure)
     {
         var builder = new EnvironmentVariablesBuilder();
@@ -196,6 +206,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the validation options to the specified value.
     /// </summary>
+    [Pure]
     public Command WithValidation(CommandResultValidation validation) => new(
         TargetFilePath,
         Arguments,
@@ -211,6 +222,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the standard input pipe to the specified source.
     /// </summary>
+    [Pure]
     public Command WithStandardInputPipe(PipeSource source) => new(
         TargetFilePath,
         Arguments,
@@ -226,6 +238,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the standard output pipe to the specified target.
     /// </summary>
+    [Pure]
     public Command WithStandardOutputPipe(PipeTarget target) => new(
         TargetFilePath,
         Arguments,
@@ -241,6 +254,7 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the standard error pipe to the specified target.
     /// </summary>
+    [Pure]
     public Command WithStandardErrorPipe(PipeTarget target) => new(
         TargetFilePath,
         Arguments,
