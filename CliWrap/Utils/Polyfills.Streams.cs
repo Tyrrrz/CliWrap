@@ -14,7 +14,7 @@ internal static partial class PolyfillExtensions
         Memory<byte> buffer,
         CancellationToken cancellationToken)
     {
-        if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>) buffer, out var segment))
+        if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)buffer, out var segment))
             segment = new ArraySegment<byte>(buffer.ToArray());
 
         return await stream.ReadAsync(segment.Array!, segment.Offset, segment.Count, cancellationToken)
