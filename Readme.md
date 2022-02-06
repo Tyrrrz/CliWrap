@@ -414,7 +414,7 @@ await cmd.ExecuteAsync();
 
 ### Execution models
 
-**CliWrap** provides a few high-level execution models, which are essentially just extension methods that offer alternative ways to reason about command execution.
+**CliWrap** provides a few high-level execution models, which are essentially just extension methods that offer alternative ways to reason about commands.
 Under the hood, they are all built by leveraging the [piping feature](#piping) shown earlier.
 
 #### Buffered execution
@@ -557,10 +557,10 @@ var cmdEvents = cmd.Observe(Encoding.ASCII, Encoding.UTF8);
 
 #### Combining execution models with custom pipes
 
-The different execution models shown above are based on the piping model, but those two concepts are not mutually exclusive.
-That's because internally they all rely on `PipeTarget.Merge()`, which allows them to wire new pipes while still preserving those configured earlier.
+The different execution models shown above are based on the piping model, but these two concepts are not mutually exclusive.
+When running a command this way, existing pipe configurations are preserved and extended using `PipeTarget.Merge()`.
 
-This means that, for example, you can create a piped command and also execute it as an event stream:
+This means that you can, for example, pipe a command to a file and also execute it as an event stream without any issues:
 
 ```csharp
 var cmd =
@@ -568,7 +568,7 @@ var cmd =
     Cli.Wrap("foo") |
     PipeTarget.ToFile("output.txt");
 
-// Iterate as an event stream and pipe to file at the same time
+// Iterate as an event stream and pipe to a file at the same time
 // (pipes are combined, not overriden)
 await foreach (var cmdEvent in cmd.ListenAsync())
 {
@@ -614,7 +614,7 @@ var cmdEvents = Cli.Wrap("path/to/exe").Observe(cts.Token);
 ### Retrieving process ID
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is in fact not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a special awaitable object that contains additional information related to a command which is currently executing.
+This is a special awaitable object that contains additional information related to the currently executing command.
 
 You can inspect the task while it's running to get the ID of the process that was started by the associated command:
 
