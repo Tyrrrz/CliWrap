@@ -495,19 +495,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct introduced in C# 8.
 When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop, preventing unnecessary buffering of data in-memory.
 
-If you also need to specify custom encoding, you can use one of the available overloads:
-
-```csharp
-await foreach (var cmdEvent in cmd.ListenAsync(Encoding.UTF8))
-{
-    // ...
-}
-
-await foreach (var cmdEvent in cmd.ListenAsync(Encoding.ASCII, Encoding.UTF8))
-{
-    // ...
-}
-```
+> 💡 Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
 #### Push-based event stream
 
@@ -543,17 +531,7 @@ You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet
 
 Unlike with the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate it becomes available.
 
-Likewise, if you also need to specify custom encoding, you can use one of the available overloads:
-
-```csharp
-var cmdEvents = cmd.Observe(Encoding.UTF8);
-
-// ...
-
-var cmdEvents = cmd.Observe(Encoding.ASCII, Encoding.UTF8);
-
-// ...
-```
+> 💡 Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
 
 #### Combining execution models with custom pipes
 
