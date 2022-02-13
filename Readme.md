@@ -573,21 +573,7 @@ var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 In the event that the cancellation is requested, the underlying process will get killed and the `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
 You will need to catch this exception in your code to recover from cancellation.
 
-Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`:
-
-```csharp
-// Cancellation with buffered execution
-var result = await Cli.Wrap("path/to/exe").ExecuteBufferedAsync(cts.Token);
-
-// Cancellation with pull-based event stream
-await foreach (Cli.Wrap("path/to/exe").ListenAsync(cts.Token))
-{
-    // ...
-}
-
-// Cancellation with push-based event stream
-var cmdEvents = Cli.Wrap("path/to/exe").Observe(cts.Token);
-```
+> 💡 Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
 ### Retrieving process ID
 
