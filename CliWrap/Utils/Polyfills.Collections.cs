@@ -1,5 +1,4 @@
-﻿// ReSharper disable RedundantUsingDirective
-// ReSharper disable CheckNamespace
+﻿// ReSharper disable CheckNamespace
 
 #if NET461 || NETSTANDARD2_0
 using System.Collections.Generic;
