@@ -1,6 +1,6 @@
 ### v3.4.1 (30-Jan-2022)
 
-- Fixed an issue where calling `Cli.Wrap("non-existing-target").ExecuteAsync()` on a target that doesn't exist resulted in an invalid `CommandTask`, due to the fact that the associated exception was thrown in an asynchronous context that was not observed prior to that point. This had a few consequences, such as the fact that the returned `CommandTask` had invalid `ProcessId` of `0`. It also caused event stream execution models (`Observe()` and `ListenAsync()`) to incorrectly yield `StartedCommandEvent` even if the process was not able to actually start.
+- Fixed an issue where calling `Cli.Wrap(...).ExecuteAsync()` returned an invalid `CommandTask` (with `ProcessId` equal to `0`) when the process failed to start. It happened because the associated exception was thrown in an asynchronous context instead of getting propagated immediately. This issue caused event stream execution models (`Observe()` and `ListenAsync()`) to incorrectly yield `StartedCommandEvent` even if the process has not actually been able to start.
 
 ### v3.4 (07-Jan-2022)
 
