@@ -3,7 +3,7 @@
 #if NET461 || NETSTANDARD2_0
 using System.Collections.Generic;
 
-internal static partial class PolyfillExtensions
+internal static class CollectionPolyfills
 {
     public static void Deconstruct<TKey, TValue>(
         this KeyValuePair<TKey, TValue> pair,

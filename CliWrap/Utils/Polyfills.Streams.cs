@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal static partial class PolyfillExtensions
+internal static class StreamPolyfills
 {
     public static async ValueTask<int> ReadAsync(
         this Stream stream,

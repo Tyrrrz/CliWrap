@@ -7,7 +7,7 @@ using System;
 using System.Management;
 using System.Linq;
 
-internal static partial class PolyfillExtensions
+internal static class ProcessPolyfills
 {
     private static void KillProcessTree(int processId)
     {
@@ -48,7 +48,7 @@ internal static partial class PolyfillExtensions
 #endif
 
 #if NETSTANDARD2_0 || NETSTANDARD2_1
-internal static partial class PolyfillExtensions
+internal static class ProcessPolyfills
 {
     // Can't kill children in .NET Standard :(
     public static void Kill(this Process process, bool entireProcessTree) => process.Kill();
