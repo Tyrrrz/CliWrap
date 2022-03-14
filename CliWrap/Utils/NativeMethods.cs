@@ -3,9 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace CliWrap.Utils
 {
-    /// <summary>
-    /// DLL imports for windows-specific APIs.
-    /// </summary>
     internal static class NativeMethods
     {
         /// <summary>
