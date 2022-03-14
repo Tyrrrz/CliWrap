@@ -1,3 +1,9 @@
+### v3.4.2 (14-Mar-2022)
+
+- Improved process execution performance by not setting `CreateNoWindow` to `false` when running inside a console application. This change reduces performance overhead by up to 60% in some cases. (Thanks [@Retik](https://github.com/Retik))
+- Improved overall performance by making use of `IAsyncDisposable` on streams where it is available.
+- Marked configuration methods on `Command` with the `Pure` attribute. The compiler will now produce a warning if you call any of these methods without using the returned value.
+
 ### v3.4.1 (30-Jan-2022)
 
 - Fixed an issue where calling `Cli.Wrap(...).ExecuteAsync()` returned an invalid `CommandTask` (with `ProcessId` equal to `0`) when the process failed to start. It happened because the associated exception was thrown in an asynchronous context instead of getting propagated immediately. This issue caused event stream execution models (`Observe()` and `ListenAsync()`) to incorrectly yield `StartedCommandEvent` even if the process has not actually been able to start.
@@ -70,7 +76,7 @@ Known incompatibility issue: Using CliWrap together with [ConfigureAwait.Fody](h
 
 ### v3.0.3 (22-Jun-2020)
 
-- Added error handling for when the internal call to `Process.Start()` returns `false`. This will now throw a more descriptive exception than it did previously. 
+- Added error handling for when the internal call to `Process.Start()` returns `false`. This will now throw a more descriptive exception than it did previously.
 
 ### v3.0.2 (28-Apr-2020)
 
@@ -87,7 +93,7 @@ Known incompatibility issue: Using CliWrap together with [ConfigureAwait.Fody](h
 - Added extensive support for piping.
 - Multitude of improvements and breaking changes.
 
-Refer to the [migration guide](https://github.com/Tyrrrz/CliWrap/wiki/Migration-guide-(from-v2.5-to-v3.0)) to see how you can update your old code to work with CliWrap v3.0.
+Refer to the [migration guide](<https://github.com/Tyrrrz/CliWrap/wiki/Migration-guide-(from-v2.5-to-v3.0)>) to see how you can update your old code to work with CliWrap v3.0.
 
 Check out the new readme to see the whole list of new features.
 
@@ -142,7 +148,7 @@ Check out the new readme to see the whole list of new features.
 
 ### v2.0 (12-Sep-2018)
 
-- Re-designed the API so that it follows the builder pattern. Execution parameters are now supplied using chainable methods on the `Cli` instead of via `ExecutionInput`. Things like `BufferHandler` and `CancellationToken` are now also configured in the same manner. *Refer to the readme to see updated usage examples.*
+- Re-designed the API so that it follows the builder pattern. Execution parameters are now supplied using chainable methods on the `Cli` instead of via `ExecutionInput`. Things like `BufferHandler` and `CancellationToken` are now also configured in the same manner. _Refer to the readme to see updated usage examples._
 - It is now also possible to pipe a raw stream to standard input, instead of just a text string.
 - Removed `ExecutionInput`, `CliSettings`, `BufferHandler`, `EncodingSettings`.
 - Renamed `ExecutionOutput` to `ExecutionResult`.
