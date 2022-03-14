@@ -20,9 +20,6 @@ namespace CliWrap;
 /// </summary>
 public partial class Command : ICommandConfiguration
 {
-    [DllImport("kernel32.dll")]
-    private static extern IntPtr GetConsoleWindow();
-
     /// <inheritdoc />
     public string TargetFilePath { get; }
 
@@ -340,7 +337,7 @@ public partial class Command : ICommandConfiguration
         // Setting CreateNoWindow has a 30ms overhead added to execution time of the process.
         // A window won't be created for console applications even when CreateNoWindow = false,
         // so it's only necessary to set it if there is no console.
-        if (GetConsoleWindow() == IntPtr.Zero)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && NativeMethods.GetConsoleWindow() == IntPtr.Zero)
             startInfo.CreateNoWindow = true;
 
         // Domain and password are only supported on Windows
