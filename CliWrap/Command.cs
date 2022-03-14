@@ -331,9 +331,16 @@ public partial class Command : ICommandConfiguration
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
+            UseShellExecute = false
         };
+
+        // Setting CreateNoWindow has a 30ms overhead added to execution time of the process.
+        // A window won't be created for console applications even when CreateNoWindow = false,
+        // so it's only necessary to set it if there is no console.
+        // This check is only necessary on Windows platforms because CreateNoWindow does not work on MacOS or Linux.
+        // https://github.com/Tyrrrz/CliWrap/pull/142
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && NativeMethods.GetConsoleWindow() == IntPtr.Zero)
+            startInfo.CreateNoWindow = true;
 
         // Domain and password are only supported on Windows
         if (Credentials.Domain is not null || Credentials.Password is not null)
