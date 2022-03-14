@@ -330,9 +330,7 @@ public partial class Command : ICommandConfiguration
             UserName = Credentials.UserName,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
+            RedirectStandardError = true
         };
 
         // Domain and password are only supported on Windows
