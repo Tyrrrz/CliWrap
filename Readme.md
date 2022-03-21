@@ -1,12 +1,13 @@
 # CliWrap
 
-[![Build](https://github.com/Tyrrrz/CliWrap/workflows/main/badge.svg?branch=master)](https://github.com/Tyrrrz/CliWrap/actions)
-[![Coverage](https://codecov.io/gh/Tyrrrz/CliWrap/branch/master/graph/badge.svg)](https://codecov.io/gh/Tyrrrz/CliWrap)
+[![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://vshymanskyy.github.io/StandWithUkraine)
+[![Build](https://img.shields.io/github/workflow/status/Tyrrrz/CliWrap/CI/master)](https://github.com/Tyrrrz/CliWrap/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/Tyrrrz/CliWrap/master)](https://codecov.io/gh/Tyrrrz/CliWrap)
 [![Version](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Downloads](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Discord](https://img.shields.io/discord/869237470565392384?label=discord)](https://discord.gg/2SUWKFnHSm)
-[![Donate](https://img.shields.io/badge/donate-$$$-purple.svg)](https://tyrrrz.me/donate)
-[![Fuck Russia](https://img.shields.io/badge/fuck-russia-black.svg)](https://twitter.com/Tyrrrz/status/1495972128977571848)
+[![Donate](https://img.shields.io/badge/donate-$$$-8a2be2.svg)](https://tyrrrz.me/donate)
+[![Fuck Russia](https://img.shields.io/badge/fuck-russia-e4181c.svg?labelColor=000000)](https://twitter.com/tyrrrz/status/1495972128977571848)
 
 ✅ **Project status: active**<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/project-status.md)</sup>
 
@@ -24,9 +25,9 @@ By using this project or its source code, for any purpose and in any shape or fo
 
 To learn more about the war and how you can help, [click here](https://tyrrrz.me). Glory to Ukraine! 🇺🇦
 
-## Download
+## Install
 
-📦 [NuGet](https://nuget.org/packages/CliWrap): `dotnet add package CliWrap`
+- 📦 [NuGet](https://nuget.org/packages/CliWrap): `dotnet add package CliWrap`
 
 ## Features
 
@@ -50,7 +51,7 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 
 ### Quick overview
 
-Similarly to a shell, **CliWrap**'s base unit of work is a **command** -- an object that encodes instructions for running a process.
+Similarly to a shell, **CliWrap**'s base unit of work is a **command** — an object that encodes instructions for running a process.
 To build a command, start by calling `Cli.Wrap(...)` with the executable path, and then use the provided fluent interface to configure arguments, working directory, or other options.
 Once the command is configured, you can run it by calling `ExecuteAsync()`:
 
@@ -244,8 +245,8 @@ Sets the strategy for validating the result of an execution.
 
 The following modes are available:
 
-- `CommandResultValidation.None` -- no validation
-- `CommandResultValidation.ZeroExitCode` -- ensures zero exit code when the process exits
+- `CommandResultValidation.None` — no validation
+- `CommandResultValidation.ZeroExitCode` — ensures zero exit code when the process exits
 
 Default: `CommandResultValidation.ZeroExitCode`.
 
@@ -320,19 +321,19 @@ await (input | Cli.Wrap("foo") | output).ExecuteAsync();
 Both `PipeSource` and `PipeTarget` have many factory methods that let you create pipe implementations for different scenarios:
 
 - `PipeSource`:
-  - `PipeSource.Null` -- represents an empty pipe source
-  - `PipeSource.FromStream(...)` -- pipes data from any readable stream
-  - `PipeSource.FromFile(...)` -- pipes data from a file
-  - `PipeSource.FromBytes(...)` -- pipes data from a byte array
-  - `PipeSource.FromString(...)` -- pipes from a text string
-  - `PipeSource.FromCommand(...)` -- pipes data from standard output of another command
+  - `PipeSource.Null` — represents an empty pipe source
+  - `PipeSource.FromStream(...)` — pipes data from any readable stream
+  - `PipeSource.FromFile(...)` — pipes data from a file
+  - `PipeSource.FromBytes(...)` — pipes data from a byte array
+  - `PipeSource.FromString(...)` — pipes from a text string
+  - `PipeSource.FromCommand(...)` — pipes data from standard output of another command
 - `PipeTarget`:
-  - `PipeTarget.Null` -- represents a pipe target that discards all data
-  - `PipeTarget.ToStream(...)` -- pipes data into any writeable stream
-  - `PipeTarget.ToFile(...)` -- pipes data into a file
-  - `PipeTarget.ToStringBuilder(...)` -- pipes data as text into `StringBuilder`
-  - `PipeTarget.ToDelegate(...)` -- pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
-  - `PipeTarget.Merge(...)` -- merges multiple outbound pipes by replicating the same data across all of them
+  - `PipeTarget.Null` — represents a pipe target that discards all data
+  - `PipeTarget.ToStream(...)` — pipes data into any writeable stream
+  - `PipeTarget.ToFile(...)` — pipes data into a file
+  - `PipeTarget.ToStringBuilder(...)` — pipes data as text into `StringBuilder`
+  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
+  - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
 
 Below you can see some examples of what you can achieve with the help of **CliWrap**'s piping feature.
 
@@ -469,10 +470,10 @@ This lets you start a command and react to the events it produces in real-time.
 
 Those events are:
 
-- `StartedCommandEvent` -- received just once, when the command starts executing (contains process ID)
-- `StandardOutputCommandEvent` -- received every time the underlying process writes a new line to the output stream (contains the text as string)
-- `StandardErrorCommandEvent` -- received every time the underlying process writes a new line to the error stream (contains the text as string)
-- `ExitedCommandEvent` -- received just once, when the command finishes executing (contains exit code)
+- `StartedCommandEvent` — received just once, when the command starts executing (contains process ID)
+- `StandardOutputCommandEvent` — received every time the underlying process writes a new line to the output stream (contains the text as string)
+- `StandardErrorCommandEvent` — received every time the underlying process writes a new line to the error stream (contains the text as string)
+- `ExitedCommandEvent` — received just once, when the command finishes executing (contains exit code)
 
 To execute a command as a _pull-based_ event stream, use the `ListenAsync()` extension method:
 
