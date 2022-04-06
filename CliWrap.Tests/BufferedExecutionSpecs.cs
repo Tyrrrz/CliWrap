@@ -60,7 +60,7 @@ public class BufferedExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo")
-                .Add("Hello stdout")
+                .Add("Hello stdout and stderr")
                 .Add("--target").Add("all"));
 
         // Act
@@ -69,8 +69,8 @@ public class BufferedExecutionSpecs
         // Assert
         result.ExitCode.Should().Be(0);
         result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
-        result.StandardOutput.Should().Be("Hello stdout");
-        result.StandardError.Should().Be("Hello stdout");
+        result.StandardOutput.Should().Be("Hello stdout and stderr");
+        result.StandardError.Should().Be("Hello stdout and stderr");
     }
 
     [Fact(Timeout = 15000)]
