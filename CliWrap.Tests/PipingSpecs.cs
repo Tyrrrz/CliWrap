@@ -40,6 +40,42 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_text_writer_synchronous_delegate()
+    {
+        // Arrange
+        var source = PipeSource.FromDelegate(writer => writer.Write("Hello world!"));
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo-stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_text_writer_asynchronous_delegate()
+    {
+        // Arrange
+        var source = PipeSource.FromDelegate(async writer => await writer.WriteAsync("Hello world!"));
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo-stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task Stdin_can_be_piped_from_a_file()
     {
         // Arrange
