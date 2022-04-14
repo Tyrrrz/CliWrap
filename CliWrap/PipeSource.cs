@@ -69,18 +69,26 @@ public partial class PipeSource
     public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
 
     /// <summary>
+    /// Creates a pipe source that reads from a synchronous delegate that writes to a <see cref="Stream"/>.
+    /// </summary>
+    public static PipeSource FromDelegate(Action<Stream> source) => new StreamDelegatePipeSource(source);
+
+    /// <summary>
+    /// Creates a pipe source that reads from an asynchronous delegate that writes to a <see cref="Stream"/>.
+    /// </summary>
+    public static PipeSource FromDelegate(Func<Stream, CancellationToken, Task> source) => new StreamAsyncDelegatePipeSource(source);
+
+    /// <summary>
     /// Creates a pipe source that reads from a synchronous delegate that writes to a <see cref="TextWriter"/>.
     /// </summary>
-    /// <param name="source">The synchronous delegate that writes to a <see cref="TextWriter"/>.</param>
-    /// <param name="options">The optional <see cref="DelegatePipeSourceOptions"/> controlling how the underlying <see cref="StreamWriter"/> is created.</param>
-    public static PipeSource FromDelegate(Action<TextWriter> source, DelegatePipeSourceOptions? options = null) => new DelegatePipeSource(source, options);
+    public static PipeSource FromDelegate(Action<TextWriter> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
+        new TextWriterDelegatePipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
 
     /// <summary>
     /// Creates a pipe source that reads from an asynchronous delegate that writes to a <see cref="TextWriter"/>.
     /// </summary>
-    /// <param name="source">The asynchronous delegate that writes to a <see cref="TextWriter"/>.</param>
-    /// <param name="options">The optional <see cref="DelegatePipeSourceOptions"/> controlling how the underlying <see cref="StreamWriter"/> is created.</param>
-    public static PipeSource FromDelegate(Func<TextWriter, Task> source, DelegatePipeSourceOptions? options = null) => new DelegatePipeSource(source, options);
+    public static PipeSource FromDelegate(Func<TextWriter, CancellationToken, Task> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
+        new TextWriterAsyncDelegatePipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
 }
 
 internal class NullPipeSource : PipeSource
@@ -146,67 +154,77 @@ internal class CommandPipeSource : PipeSource
             .ConfigureAwait(false);
 }
 
-/// <summary>
-/// Options to configure how the underlying <see cref="StreamWriter"/> is created.
-/// </summary>
-public class DelegatePipeSourceOptions
+internal class StreamDelegatePipeSource : PipeSource
 {
-    /// <summary>
-    /// The character encoding used by the underlying <see cref="StreamWriter"/>.
-    /// </summary>
-#if NETSTANDARD || NETFRAMEWORK
-    public Encoding Encoding { get; init; } = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-#else
-    public Encoding? Encoding { get; init; } = null;
-#endif
+    private readonly Action<Stream> _source;
 
-    /// <summary>
-    /// The buffer size of the underlying <see cref="StreamWriter"/>, in bytes.
-    /// </summary>
-    public int BufferSize { get; init; } = -1;
+    public StreamDelegatePipeSource(Action<Stream> source) => _source = source;
 
-    /// <summary>
-    /// Whether the underlying <see cref="StreamWriter"/> will flush its buffer to the underlying stream after every call to <see cref="StreamWriter.Write(char)"/>.
-    /// See <see cref="StreamWriter.AutoFlush"/>.
-    /// <para/>
-    /// Defaults to <see langword="false"/>.
-    /// </summary>
-    public bool AutoFlush { get; init; } = false;
+    public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        _source(destination);
+        return Task.CompletedTask;
+    }
 }
 
-internal class DelegatePipeSource : PipeSource
+internal class StreamAsyncDelegatePipeSource : PipeSource
 {
-    private readonly Func<TextWriter, Task>? _asyncSource;
-    private readonly Action<TextWriter>? _syncSource;
-    private readonly DelegatePipeSourceOptions _options;
+    private readonly Func<Stream, CancellationToken, Task> _source;
 
-    public DelegatePipeSource(Func<TextWriter, Task> source, DelegatePipeSourceOptions? options = null)
-    {
-        _asyncSource = source ?? throw new ArgumentNullException(nameof(source));
-        _options = options ?? new DelegatePipeSourceOptions();
-    }
+    public StreamAsyncDelegatePipeSource(Func<Stream, CancellationToken, Task> source) => _source = source;
 
-    public DelegatePipeSource(Action<TextWriter> source, DelegatePipeSourceOptions? options = null)
+    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+        await _source(destination, cancellationToken).ConfigureAwait(false);
+}
+
+internal class TextWriterDelegatePipeSource : PipeSource
+{
+    private readonly Action<TextWriter> _source;
+    private readonly Encoding _encoding;
+    private readonly int _bufferSize;
+    private readonly bool _autoFlush;
+
+    public TextWriterDelegatePipeSource(Action<TextWriter> source, Encoding encoding, int bufferSize, bool autoFlush)
     {
-        _syncSource = source ?? throw new ArgumentNullException(nameof(source));
-        _options = options ?? new DelegatePipeSourceOptions();
+        _source = source;
+        _encoding = encoding;
+        _bufferSize = bufferSize;
+        _autoFlush = autoFlush;
     }
 
     public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        await
-#endif
-        using var streamWriter = new StreamWriter(destination, _options.Encoding, _options.BufferSize, leaveOpen: true);
-        streamWriter.AutoFlush = _options.AutoFlush;
-
-        if (_asyncSource is not null)
+        var streamWriter = new StreamWriter(destination, _encoding, _bufferSize, leaveOpen: true);
+        streamWriter.AutoFlush = _autoFlush;
+        await using (streamWriter.WithAsyncDisposableAdapter())
         {
-            await _asyncSource(streamWriter);
+            _source(streamWriter);
         }
-        else
+    }
+}
+
+internal class TextWriterAsyncDelegatePipeSource : PipeSource
+{
+    private readonly Func<TextWriter, CancellationToken, Task> _source;
+    private readonly Encoding _encoding;
+    private readonly int _bufferSize;
+    private readonly bool _autoFlush;
+
+    public TextWriterAsyncDelegatePipeSource(Func<TextWriter, CancellationToken, Task> source, Encoding encoding, int bufferSize, bool autoFlush)
+    {
+        _source = source;
+        _encoding = encoding;
+        _bufferSize = bufferSize;
+        _autoFlush = autoFlush;
+    }
+
+    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        var streamWriter = new StreamWriter(destination, _encoding, _bufferSize, leaveOpen: true);
+        streamWriter.AutoFlush = _autoFlush;
+        await using (streamWriter.WithAsyncDisposableAdapter())
         {
-            _syncSource!(streamWriter);
+            await _source(streamWriter, cancellationToken).ConfigureAwait(false);
         }
     }
 }

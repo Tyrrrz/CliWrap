@@ -40,6 +40,50 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_stream_synchronous_delegate()
+    {
+        // Arrange
+        var source = PipeSource.FromDelegate(stream =>
+        {
+            using var writer = new StreamWriter(stream);
+            writer.Write("Hello world!");
+        });
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo-stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_stream_asynchronous_delegate()
+    {
+        // Arrange
+        var source = PipeSource.FromDelegate(async (stream, _) =>
+        {
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync("Hello world!");
+        });
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo-stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task Stdin_can_be_piped_from_text_writer_synchronous_delegate()
     {
         // Arrange
@@ -61,7 +105,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task Stdin_can_be_piped_from_text_writer_asynchronous_delegate()
     {
         // Arrange
-        var source = PipeSource.FromDelegate(async writer => await writer.WriteAsync("Hello world!"));
+        var source = PipeSource.FromDelegate(async (writer, _) => await writer.WriteAsync("Hello world!"));
 
         var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a
