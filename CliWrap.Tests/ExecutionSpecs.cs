@@ -100,9 +100,9 @@ public class ExecutionSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text")
+                .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--length").Add(100_000));
+                .Add("--lines").Add(100_000));
 
         // Act
         await cmd.ExecuteAsync();

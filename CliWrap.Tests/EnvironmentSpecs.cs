@@ -15,19 +15,21 @@ public class EnvironmentSpecs
     public async Task Command_can_be_executed_with_a_custom_working_directory()
     {
         // Arrange
-        var workingDirPath = Directory.GetParent(Directory.GetCurrentDirectory())!.FullName;
+        var workingDirPath = Path.GetTempPath()
+            // trim slashes for cross-platform consistency
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         var cmd = Cli.Wrap("dotnet")
             .WithWorkingDirectory(workingDirPath)
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("print-working-dir"));
+                .Add("print cwd"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be(workingDirPath);
+        result.StandardOutput.Trim().Should().Be(workingDirPath);
     }
 
     [Fact(Timeout = 15000)]
@@ -41,15 +43,16 @@ public class EnvironmentSpecs
             ["Path"] = "there"
         };
 
+        var stdOutLines = new List<string>();
+
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("print-environment-variables"))
-            .WithEnvironmentVariables(env);
+                .Add("print env"))
+            .WithEnvironmentVariables(env) | stdOutLines.Add;
 
         // Act
-        var result = await cmd.ExecuteBufferedAsync();
-        var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
+        await cmd.ExecuteAsync();
 
         // Assert
         stdOutLines.Should().Contain(new[]
@@ -73,17 +76,18 @@ public class EnvironmentSpecs
         using (EnvironmentVariable.Set(variableToOverwrite, "bar")) // will be overwritten
         using (EnvironmentVariable.Set(variableToUnset, "baz")) // will be unset
         {
+            var stdOutLines = new List<string>();
+
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add("print-environment-variables"))
+                    .Add("print env"))
                 .WithEnvironmentVariables(e => e
                     .Set(variableToOverwrite, "new bar")
-                    .Set(variableToUnset, null));
+                    .Set(variableToUnset, null)) | stdOutLines.Add;
 
             // Act
-            var result = await cmd.ExecuteBufferedAsync();
-            var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
+            await cmd.ExecuteAsync();
 
             // Assert
             stdOutLines.Should().Contain(new[]

@@ -7,7 +7,7 @@ using CliWrap.Tests.Dummy.Commands.Shared;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("print-stdin-length")]
+[Command("print length stdin")]
 public class PrintStdInLengthCommand : ICommand
 {
     [CommandOption("target")]
@@ -26,7 +26,7 @@ public class PrintStdInLengthCommand : ICommand
 
         foreach (var writer in console.GetWriters(Target))
         {
-            await writer.WriteAsync(length.ToString(CultureInfo.InvariantCulture));
+            await writer.WriteLineAsync(length.ToString(CultureInfo.InvariantCulture));
         }
     }
 }

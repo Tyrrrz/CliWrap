@@ -6,8 +6,8 @@ using CliFx.Infrastructure;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("exit-with")]
-public class ExitWithCommand : ICommand
+[Command("exit")]
+public class ExitCommand : ICommand
 {
     [CommandOption("code")]
     public int ExitCode { get; init; }

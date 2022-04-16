@@ -10,7 +10,7 @@ namespace CliWrap.Benchmarks;
 public class PullEventStreamBenchmarks
 {
     private const string FilePath = "dotnet";
-    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-text-lines";
+    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
 
     [Benchmark(Description = "CliWrap", Baseline = true)]
     public async Task<int> ExecuteWithCliWrap_Async()

@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CliFx;
 using CliFx.Attributes;
-using System;
 using CliFx.Infrastructure;
 using CliWrap.Tests.Dummy.Commands.Shared;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("echo-stdin")]
+[Command("echo stdin")]
 public class EchoStdInCommand : ICommand
 {
     [CommandOption("target")]
@@ -23,7 +23,7 @@ public class EchoStdInCommand : ICommand
 
         while (bytesCopied < Length)
         {
-            var bytesToRead = (int) Math.Min(buffer.Length, Length - bytesCopied);
+            var bytesToRead = (int)Math.Min(buffer.Length, Length - bytesCopied);
 
             var bytesRead = await console.Input.BaseStream.ReadAsync(buffer.AsMemory(0, bytesToRead));
             if (bytesRead <= 0)

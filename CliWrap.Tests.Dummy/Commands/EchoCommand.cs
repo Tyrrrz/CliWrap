@@ -26,7 +26,7 @@ public class EchoCommand : ICommand
 
         foreach (var writer in console.GetWriters(Target))
         {
-            await writer.WriteAsync(joined);
+            await writer.WriteLineAsync(joined);
         }
     }
 }

@@ -6,7 +6,7 @@ using CliFx.Infrastructure;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("print-working-dir")]
+[Command("print cwd")]
 public class PrintWorkingDirCommand : ICommand
 {
     public async ValueTask ExecuteAsync(IConsole console)

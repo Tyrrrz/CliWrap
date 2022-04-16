@@ -8,7 +8,7 @@ using CliFx.Infrastructure;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("print-environment-variables")]
+[Command("print env")]
 public class PrintEnvironmentVariablesCommand : ICommand
 {
     public async ValueTask ExecuteAsync(IConsole console)

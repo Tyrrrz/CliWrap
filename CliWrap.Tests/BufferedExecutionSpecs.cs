@@ -27,7 +27,7 @@ public class BufferedExecutionSpecs
         // Assert
         result.ExitCode.Should().Be(0);
         result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
-        result.StandardOutput.Should().Be("Hello stdout");
+        result.StandardOutput.Trim().Should().Be("Hello stdout");
         result.StandardError.Should().BeEmpty();
     }
 
@@ -49,7 +49,7 @@ public class BufferedExecutionSpecs
         result.ExitCode.Should().Be(0);
         result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
         result.StandardOutput.Should().BeEmpty();
-        result.StandardError.Should().Be("Hello stderr");
+        result.StandardError.Trim().Should().Be("Hello stderr");
     }
 
     [Fact(Timeout = 15000)]
@@ -69,8 +69,8 @@ public class BufferedExecutionSpecs
         // Assert
         result.ExitCode.Should().Be(0);
         result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
-        result.StandardOutput.Should().Be("Hello stdout and stderr");
-        result.StandardError.Should().Be("Hello stdout and stderr");
+        result.StandardOutput.Trim().Should().Be("Hello stdout and stderr");
+        result.StandardError.Trim().Should().Be("Hello stdout and stderr");
     }
 
     [Fact(Timeout = 15000)]
@@ -121,7 +121,7 @@ public class BufferedExecutionSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text")
+                .Add("generate text")
                 .Add("--target").Add("all")
                 .Add("--length").Add(100_000));
 

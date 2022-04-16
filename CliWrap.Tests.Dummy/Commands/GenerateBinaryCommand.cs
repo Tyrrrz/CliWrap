@@ -7,7 +7,7 @@ using CliWrap.Tests.Dummy.Commands.Shared;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("generate-binary")]
+[Command("generate binary")]
 public class GenerateBinaryCommand : ICommand
 {
     // Tests rely on the random seed being fixed
@@ -31,7 +31,7 @@ public class GenerateBinaryCommand : ICommand
         {
             _random.NextBytes(buffer);
 
-            var bytesToWrite = Math.Min((int) bytesRemaining, buffer.Length);
+            var bytesToWrite = Math.Min((int)bytesRemaining, buffer.Length);
 
             foreach (var writer in console.GetWriters(Target))
             {

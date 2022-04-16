@@ -77,7 +77,7 @@ internal class ProcessEx : IDisposable
         {
             throw new Win32Exception(
                 $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. " +
-                "Target file doesn't exist or the provided credentials are invalid.",
+                "Target file or working directory doesn't exist or the provided credentials are invalid.",
                 ex
             );
         }

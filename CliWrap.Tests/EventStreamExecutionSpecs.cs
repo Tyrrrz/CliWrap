@@ -19,14 +19,14 @@ public class EventStreamExecutionSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
+                .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--count").Add(100));
+                .Add("--lines").Add(100));
 
         // Act
         var stdOutLinesCount = 0;
         var stdErrLinesCount = 0;
-        var processHasExited = false;
+        var isExited = false;
 
         await foreach (var cmdEvent in cmd.ListenAsync())
         {
@@ -45,7 +45,7 @@ public class EventStreamExecutionSpecs
                     break;
                 case ExitedCommandEvent exited:
                     exited.ExitCode.Should().Be(0);
-                    processHasExited = true;
+                    isExited = true;
                     break;
             }
         }
@@ -53,7 +53,7 @@ public class EventStreamExecutionSpecs
         // Assert
         stdOutLinesCount.Should().Be(100);
         stdErrLinesCount.Should().Be(100);
-        processHasExited.Should().BeTrue();
+        isExited.Should().BeTrue();
     }
 
     [Fact(Timeout = 15000)]
@@ -63,14 +63,14 @@ public class EventStreamExecutionSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
+                .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--count").Add(100));
+                .Add("--lines").Add(100));
 
         // Act
         var stdOutLinesCount = 0;
         var stdErrLinesCount = 0;
-        var processHasExited = false;
+        var isExited = false;
 
         await cmd.Observe().ForEachAsync(cmdEvent =>
         {
@@ -89,7 +89,7 @@ public class EventStreamExecutionSpecs
                     break;
                 case ExitedCommandEvent exited:
                     exited.ExitCode.Should().Be(0);
-                    processHasExited = true;
+                    isExited = true;
                     break;
             }
         });
@@ -97,7 +97,7 @@ public class EventStreamExecutionSpecs
         // Assert
         stdOutLinesCount.Should().Be(100);
         stdErrLinesCount.Should().Be(100);
-        processHasExited.Should().BeTrue();
+        isExited.Should().BeTrue();
     }
 
     [Fact(Timeout = 15000)]

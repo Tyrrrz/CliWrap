@@ -20,7 +20,7 @@ public class ValidationSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("exit-with")
+                .Add("exit")
                 .Add("--code").Add(1));
 
         // Act & assert
@@ -39,7 +39,7 @@ public class ValidationSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("exit-with")
+                .Add("exit")
                 .Add("--code").Add(1));
 
         // Act & assert
@@ -59,7 +59,7 @@ public class ValidationSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("exit-with")
+                .Add("exit")
                 .Add("--code").Add(1))
             .WithValidation(CommandResultValidation.None);
 

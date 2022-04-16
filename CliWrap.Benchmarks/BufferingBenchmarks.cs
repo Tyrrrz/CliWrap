@@ -13,7 +13,7 @@ namespace CliWrap.Benchmarks;
 public class BufferingBenchmarks
 {
     private const string FilePath = "dotnet";
-    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate-text-lines";
+    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
 
     [Benchmark(Description = "CliWrap", Baseline = true)]
     public async Task<(string, string)> ExecuteWithCliWrap()
@@ -32,7 +32,7 @@ public class BufferingBenchmarks
     [Benchmark(Description = "Sheller")]
     public async Task<(string, string)> ExecuteWithSheller()
     {
-        var result = await Sheller.Builder.UseShell<Cmd>().ExecuteCommandAsync(FilePath, new[] {Args});
+        var result = await Sheller.Builder.UseShell<Cmd>().ExecuteCommandAsync(FilePath, new[] { Args });
         return (result.StandardOutput, result.StandardError);
     }
 

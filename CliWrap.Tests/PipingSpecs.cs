@@ -30,13 +30,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("Hello world!");
+        result.StandardOutput.Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -49,13 +49,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = PipeSource.FromFile(filePath) | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("Hello world!");
+        result.StandardOutput.Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -70,13 +70,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("Hello world!");
+        result.StandardOutput.Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -91,13 +91,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("Hello world!");
+        result.StandardOutput.Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -107,13 +107,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = "Hello world!" | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("Hello world!");
+        result.StandardOutput.Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -123,17 +123,17 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd =
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--length").Add(1_000_000)) |
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("print-stdin-length"));
+                .Add("print length stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("1000000");
+        result.StandardOutput.Trim().Should().Be("1000000");
     }
 
     [Fact(Timeout = 15000)]
@@ -144,20 +144,20 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
             "Hello world" |
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")) |
+                .Add("echo stdin")) |
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")
+                .Add("echo stdin")
                 .Add("--length").Add(5)) |
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("print-stdin-length"));
+                .Add("print length stdin"));
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Should().Be("5");
+        result.StandardOutput.Trim().Should().Be("5");
     }
 
     [Fact(Timeout = 15000)]
@@ -169,7 +169,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--length").Add(1_000_000)) | stream;
 
         // Act
@@ -188,7 +188,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--length").Add(1_000_000)) | PipeTarget.ToFile(filePath);
 
         // Act
@@ -215,7 +215,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         await cmd.ExecuteAsync();
 
         // Assert
-        buffer.ToString().Should().Be("Hello world!");
+        buffer.ToString().Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -229,8 +229,8 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
-                .Add("--count").Add(100)) | HandleStdOut;
+                .Add("generate text")
+                .Add("--lines").Add(100)) | HandleStdOut;
 
         // Act
         await cmd.ExecuteAsync();
@@ -254,8 +254,8 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
-                .Add("--count").Add(100)) | HandleStdOutAsync;
+                .Add("generate text")
+                .Add("--lines").Add(100)) | HandleStdOutAsync;
 
         // Act
         await cmd.ExecuteAsync();
@@ -274,7 +274,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--target").Add("all")
                 .Add("--length").Add(1_000_000)) | (stdOut, stdErr);
 
@@ -303,8 +303,8 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutBuffer.ToString().Should().Be("Hello world!");
-        stdErrBuffer.ToString().Should().Be("Hello world!");
+        stdOutBuffer.ToString().Trim().Should().Be("Hello world!");
+        stdErrBuffer.ToString().Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -320,9 +320,9 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
+                .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--count").Add(100)) | (HandleStdOut, HandleStdErr);
+                .Add("--lines").Add(100)) | (HandleStdOut, HandleStdErr);
 
         // Act
         await cmd.ExecuteAsync();
@@ -354,9 +354,9 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
+                .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--count").Add(100)) | (HandleStdOutAsync, HandleStdErrAsync);
+                .Add("--lines").Add(100)) | (HandleStdOutAsync, HandleStdErrAsync);
 
         // Act
         await cmd.ExecuteAsync();
@@ -383,7 +383,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--length").Add(100_000)) | pipeTarget;
 
         // Act
@@ -420,7 +420,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--length").Add(10_000)) | pipeTarget;
 
         // Act
@@ -445,7 +445,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-binary")
+                .Add("generate binary")
                 .Add("--length").Add(1_000_000)
                 .Add("--buffer").Add(100_000)); // needs to be >= BufferSizes.Stream to fail
 
@@ -478,7 +478,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text")
+                .Add("generate text")
                 .Add("--length").Add(100_000)) | stream;
 
         // Act
@@ -504,8 +504,8 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate-text-lines")
-                .Add("--count").Add(100)) | HandleStdOut;
+                .Add("generate text")
+                .Add("--lines").Add(100)) | HandleStdOut;
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -522,7 +522,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         await cmd.ExecuteAsync();
@@ -537,7 +537,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         await cmd.ExecuteAsync();
@@ -554,7 +554,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
+                .Add("echo stdin"));
 
         // Act
         await cmd.ExecuteAsync();
@@ -571,7 +571,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")
+                .Add("echo stdin")
                 .Add("--length").Add(10_000_000));
 
         // Act
@@ -589,7 +589,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")
+                .Add("echo stdin")
                 .Add("--length").Add(0));
 
         // Act
@@ -607,7 +607,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")
+                .Add("echo stdin")
                 .Add("--length").Add(0));
 
         // Act

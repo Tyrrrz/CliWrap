@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
@@ -12,14 +11,14 @@ public class LineBreakSpecs
     public async Task Newline_char_is_treated_as_a_line_break()
     {
         // Arrange
-        const string content = "Foo\nBar\nBaz";
+        const string data = "Foo\nBar\nBaz";
 
         var stdOutLines = new List<string>();
 
-        var cmd = content | Cli.Wrap("dotnet")
+        var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")) | stdOutLines.Add;
+                .Add("echo stdin")) | stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
@@ -36,14 +35,14 @@ public class LineBreakSpecs
     public async Task Caret_return_char_is_treated_as_a_line_break()
     {
         // Arrange
-        const string content = "Foo\rBar\rBaz";
+        const string data = "Foo\rBar\rBaz";
 
         var stdOutLines = new List<string>();
 
-        var cmd = content | Cli.Wrap("dotnet")
+        var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")) | stdOutLines.Add;
+                .Add("echo stdin")) | stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
@@ -60,14 +59,14 @@ public class LineBreakSpecs
     public async Task Caret_return_char_followed_by_newline_char_is_treated_as_a_single_line_break()
     {
         // Arrange
-        const string content = "Foo\r\nBar\r\nBaz";
+        const string data = "Foo\r\nBar\r\nBaz";
 
         var stdOutLines = new List<string>();
 
-        var cmd = content | Cli.Wrap("dotnet")
+        var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")) | stdOutLines.Add;
+                .Add("echo stdin")) | stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
@@ -84,14 +83,14 @@ public class LineBreakSpecs
     public async Task Multiple_consecutive_line_breaks_are_treated_as_separate_line_breaks()
     {
         // Arrange
-        const string content = "Foo\r\rBar\n\nBaz";
+        const string data = "Foo\r\rBar\n\nBaz";
 
         var stdOutLines = new List<string>();
 
-        var cmd = content | Cli.Wrap("dotnet")
+        var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin")) | stdOutLines.Add;
+                .Add("echo stdin")) | stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
