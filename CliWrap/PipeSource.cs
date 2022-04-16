@@ -22,7 +22,7 @@ public partial class PipeSource
 {
     /// <summary>
     /// Pipe source that does not provide any data.
-    /// Logical equivalent to <code>/dev/null</code>.
+    /// Logical equivalent to /dev/null.
     /// </summary>
     public static PipeSource Null { get; } = new NullPipeSource();
 

@@ -26,8 +26,16 @@ public partial class PipeTarget
 {
     /// <summary>
     /// Pipe target that discards all data.
-    /// Logical equivalent to <code>/dev/null</code>.
+    /// Logical equivalent to /dev/null.
     /// </summary>
+    /// <remarks>
+    /// Using this target results in the corresponding stream (stdout or stderr) not being opened for the underlying
+    /// process at all. In most cases, this behavior should be functionally equivalent to writing to a null stream,
+    /// but without the performance overhad of discarding unneeded data.
+    /// This may cause issues in some situations, however, for example if the process attempts to write data to the
+    /// destination stream without first checking if it's open.
+    /// In such cases, it may be better to use <see cref="ToStream(Stream)" /> with <see cref="Stream.Null" /> instead.
+    /// </remarks>
     public static PipeTarget Null { get; } = new NullPipeTarget();
 
     /// <summary>
@@ -136,7 +144,7 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
     /// </summary>
-    public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>) targets);
+    public static PipeTarget Merge(params PipeTarget[] targets) => Merge((IEnumerable<PipeTarget>)targets);
 }
 
 internal class NullPipeTarget : PipeTarget
