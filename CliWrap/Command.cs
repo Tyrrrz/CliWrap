@@ -379,7 +379,7 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        await using (process.StdIn.WithAsyncDisposableAdapter())
+        await using (process.StandardInput.WithAsyncDisposableAdapter())
         {
             try
             {
@@ -388,7 +388,7 @@ public partial class Command : ICommandConfiguration
                 // This is important with stdin because the process might finish before
                 // the pipe completes, and in case with infinite input stream it would
                 // normally result in a deadlock.
-                await StandardInputPipe.CopyToAsync(process.StdIn, cancellationToken)
+                await StandardInputPipe.CopyToAsync(process.StandardInput, cancellationToken)
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -406,9 +406,9 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        await using (process.StdOut.WithAsyncDisposableAdapter())
+        await using (process.StandardOutput.WithAsyncDisposableAdapter())
         {
-            await StandardOutputPipe.CopyFromAsync(process.StdOut, cancellationToken)
+            await StandardOutputPipe.CopyFromAsync(process.StandardOutput, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
@@ -417,9 +417,9 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        await using (process.StdErr.WithAsyncDisposableAdapter())
+        await using (process.StandardError.WithAsyncDisposableAdapter())
         {
-            await StandardErrorPipe.CopyFromAsync(process.StdErr, cancellationToken)
+            await StandardErrorPipe.CopyFromAsync(process.StandardError, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
