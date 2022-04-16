@@ -8,15 +8,28 @@ namespace CliWrap.Tests.Fixtures;
 
 public class TempOutputFixture : IDisposable
 {
-    private readonly string _dirPath =
+    private readonly string _rootDirPath =
         Path.GetDirectoryName(typeof(TempOutputFixture).Assembly.Location) ??
         Directory.GetCurrentDirectory();
 
+    private readonly ConcurrentBag<string> _dirPaths = new();
     private readonly ConcurrentBag<string> _filePaths = new();
+
+    public string GetTempDirPath(string dirName)
+    {
+        var dirPath = Path.Combine(_rootDirPath, dirName);
+
+        Directory.CreateDirectory(dirPath);
+        _dirPaths.Add(dirPath);
+
+        return dirPath;
+    }
+
+    public string GetTempDirPath() => GetTempDirPath($"Test-{Guid.NewGuid()}");
 
     public string GetTempFilePath(string fileName)
     {
-        var filePath = Path.Combine(_dirPath, fileName);
+        var filePath = Path.Combine(_rootDirPath, fileName);
         _filePaths.Add(filePath);
 
         return filePath;
@@ -35,6 +48,22 @@ public class TempOutputFixture : IDisposable
                 File.Delete(filePath);
             }
             catch (FileNotFoundException)
+            {
+                // Ignore
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+        }
+
+        foreach (var dirPath in _dirPaths)
+        {
+            try
+            {
+                Directory.Delete(dirPath, true);
+            }
+            catch (DirectoryNotFoundException)
             {
                 // Ignore
             }

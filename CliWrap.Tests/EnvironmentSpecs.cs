@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
+using CliWrap.Tests.Fixtures;
 using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests;
 
-public class EnvironmentSpecs
+public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
 {
+    private readonly TempOutputFixture _tempOutputFixture;
+
+    public EnvironmentSpecs(TempOutputFixture tempOutputFixture) =>
+        _tempOutputFixture = tempOutputFixture;
+
     [Fact(Timeout = 15000)]
     public async Task Command_can_be_executed_with_a_custom_working_directory()
     {
         // Arrange
-        var workingDirPath = Path.GetTempPath()
-            // trim slashes for cross-platform consistency
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var workingDirPath = _tempOutputFixture.GetTempDirPath();
 
         var cmd = Cli.Wrap("dotnet")
             .WithWorkingDirectory(workingDirPath)
