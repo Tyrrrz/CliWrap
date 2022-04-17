@@ -19,6 +19,52 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         _tempOutputFixture = tempOutputFixture;
 
     [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_an_anonymous_source()
+    {
+        // Arrange
+        var source = PipeSource.Create(target =>
+            target.Write(new byte[]
+            {
+                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
+            })
+        );
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Trim().Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdin_can_be_piped_from_an_async_anonymous_source()
+    {
+        // Arrange
+        var source = PipeSource.Create(async (target, cancellationToken) =>
+            await target.WriteAsync(new byte[]
+            {
+                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
+            }, cancellationToken)
+        );
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo stdin"));
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Trim().Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task Stdin_can_be_piped_from_a_stream()
     {
         // Arrange
@@ -37,86 +83,6 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
 
         // Assert
         result.StandardOutput.Trim().Should().Be("Hello world!");
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_stream_synchronous_delegate()
-    {
-        // Arrange
-        var source = PipeSource.Create(stream =>
-        {
-            using var writer = new StreamWriter(stream);
-            writer.Write("Hello world!");
-        });
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
-
-        // Act
-        var result = await cmd.ExecuteBufferedAsync();
-
-        // Assert
-        result.StandardOutput.Should().Be("Hello world!");
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_stream_asynchronous_delegate()
-    {
-        // Arrange
-        var source = PipeSource.Create(async (stream, _) =>
-        {
-            await using var writer = new StreamWriter(stream);
-            await writer.WriteAsync("Hello world!");
-        });
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
-
-        // Act
-        var result = await cmd.ExecuteBufferedAsync();
-
-        // Assert
-        result.StandardOutput.Should().Be("Hello world!");
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_text_writer_synchronous_delegate()
-    {
-        // Arrange
-        var source = PipeSource.Create(writer => writer.Write("Hello world!"));
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
-
-        // Act
-        var result = await cmd.ExecuteBufferedAsync();
-
-        // Assert
-        result.StandardOutput.Should().Be("Hello world!");
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_text_writer_asynchronous_delegate()
-    {
-        // Arrange
-        var source = PipeSource.Create(async (writer, _) => await writer.WriteAsync("Hello world!"));
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo-stdin"));
-
-        // Act
-        var result = await cmd.ExecuteBufferedAsync();
-
-        // Assert
-        result.StandardOutput.Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
@@ -238,6 +204,52 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
 
         // Assert
         result.StandardOutput.Trim().Should().Be("5");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdout_can_be_piped_into_an_anonymous_target()
+    {
+        // Arrange
+        await using var stream = new MemoryStream();
+
+        var target = PipeTarget.Create(source =>
+            source.CopyTo(stream)
+        );
+
+        var cmd = Cli.Wrap("dotnet")
+           .WithArguments(a => a
+               .Add(Dummy.Program.FilePath)
+               .Add("generate binary")
+               .Add("--length").Add(1_000_000)) | target;
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        stream.Length.Should().Be(1_000_000);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdout_can_be_piped_into_an_async_anonymous_target()
+    {
+        // Arrange
+        await using var stream = new MemoryStream();
+
+        var target = PipeTarget.Create(async (source, cancellationToken) =>
+            await source.CopyToAsync(stream, cancellationToken)
+        );
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate binary")
+                .Add("--length").Add(1_000_000)) | target;
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        stream.Length.Should().Be(1_000_000);
     }
 
     [Fact(Timeout = 15000)]

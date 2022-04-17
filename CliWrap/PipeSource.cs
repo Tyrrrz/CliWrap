@@ -13,9 +13,20 @@ namespace CliWrap;
 public abstract partial class PipeSource
 {
     /// <summary>
-    /// Copies the binary content pushed to the pipe into the destination stream.
+    /// Copies the binary content pushed to the pipe into the target stream.
     /// </summary>
-    public abstract Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default);
+    public abstract Task CopyToAsync(Stream target, CancellationToken cancellationToken = default);
+}
+
+internal class AnonymousPipeSource : PipeSource
+{
+    private readonly Func<Stream, CancellationToken, Task> _copyToAsync;
+
+    public AnonymousPipeSource(Func<Stream, CancellationToken, Task> copyToAsync) =>
+        _copyToAsync = copyToAsync;
+
+    public override async Task CopyToAsync(Stream target, CancellationToken cancellationToken = default) =>
+        await _copyToAsync(target, cancellationToken).ConfigureAwait(false);
 }
 
 public partial class PipeSource
@@ -24,12 +35,33 @@ public partial class PipeSource
     /// Pipe source that does not provide any data.
     /// Logical equivalent to /dev/null.
     /// </summary>
-    public static PipeSource Null { get; } = new NullPipeSource();
+    public static PipeSource Null { get; } = Create((target, cancellationToken) =>
+         !cancellationToken.IsCancellationRequested
+            ? Task.CompletedTask
+            : Task.FromCanceled(cancellationToken)
+    );
+
+    /// <summary>
+    /// Creates an anonymous pipe source implemented using the specified delegate.
+    /// </summary>
+    public static PipeSource Create(Func<Stream, CancellationToken, Task> handlePipeAsync) =>
+        new AnonymousPipeSource(handlePipeAsync);
+
+    /// <summary>
+    /// Creates an anonymous pipe source implemented using the specified delegate.
+    /// </summary>
+    public static PipeSource Create(Action<Stream> handlePipe) => Create((target, _) =>
+    {
+        handlePipe(target);
+        return Task.CompletedTask;
+    });
 
     /// <summary>
     /// Creates a pipe source that reads from a stream.
     /// </summary>
-    public static PipeSource FromStream(Stream stream, bool autoFlush) => new StreamPipeSource(stream, autoFlush);
+    public static PipeSource FromStream(Stream stream, bool autoFlush) => Create(async (target, cancellationToken) =>
+        await stream.CopyToAsync(target, autoFlush, cancellationToken).ConfigureAwait(false)
+    );
 
     /// <summary>
     /// Creates a pipe source that reads from a stream.
@@ -40,12 +72,19 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from a file.
     /// </summary>
-    public static PipeSource FromFile(string filePath) => new FilePipeSource(filePath);
+    public static PipeSource FromFile(string filePath) => Create(async (target, cancellationToken) =>
+    {
+        var source = File.OpenRead(filePath);
+        await using (source.WithAsyncDisposableAdapter())
+            await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+    });
 
     /// <summary>
     /// Creates a pipe source that reads from memory.
     /// </summary>
-    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => new MemoryPipeSource(data);
+    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => Create(async (target, cancellationToken) =>
+        await target.WriteAsync(data, cancellationToken).ConfigureAwait(false)
+    );
 
     /// <summary>
     /// Creates a pipe source that reads from a byte array.
@@ -66,165 +105,10 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the standard output of a command.
     /// </summary>
-    public static PipeSource FromCommand(Command command) => new CommandPipeSource(command);
-
-    /// <summary>
-    /// Creates a pipe source that reads from a synchronous delegate that writes to a <see cref="Stream"/>.
-    /// </summary>
-    public static PipeSource Create(Action<Stream> source) => new AnonymousPipeSource(source);
-
-    /// <summary>
-    /// Creates a pipe source that reads from an asynchronous delegate that writes to a <see cref="Stream"/>.
-    /// </summary>
-    public static PipeSource Create(Func<Stream, CancellationToken, Task> source) => new AsyncAnonymousPipeSource(source);
-
-    /// <summary>
-    /// Creates a pipe source that reads from a synchronous delegate that writes to a <see cref="TextWriter"/>.
-    /// </summary>
-    public static PipeSource Create(Action<TextWriter> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
-        new TextWriterAnonymousPipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
-
-    /// <summary>
-    /// Creates a pipe source that reads from an asynchronous delegate that writes to a <see cref="TextWriter"/>.
-    /// </summary>
-    public static PipeSource Create(Func<TextWriter, CancellationToken, Task> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
-        new TextWriterAsyncAnonymousPipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
-}
-
-internal class NullPipeSource : PipeSource
-{
-    public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-        !cancellationToken.IsCancellationRequested
-            ? Task.CompletedTask
-            : Task.FromCanceled(cancellationToken);
-}
-
-internal class StreamPipeSource : PipeSource
-{
-    private readonly Stream _stream;
-    private readonly bool _autoFlush;
-
-    public StreamPipeSource(Stream stream, bool autoFlush)
-    {
-        _stream = stream;
-        _autoFlush = autoFlush;
-    }
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-        await _stream.CopyToAsync(destination, _autoFlush, cancellationToken).ConfigureAwait(false);
-}
-
-internal class FilePipeSource : PipeSource
-{
-    private readonly string _filePath;
-
-    public FilePipeSource(string filePath) => _filePath = filePath;
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
-    {
-        var stream = File.OpenRead(_filePath);
-
-        await using (stream.WithAsyncDisposableAdapter())
-        {
-            await stream.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
-        }
-    }
-}
-
-internal class MemoryPipeSource : PipeSource
-{
-    private readonly ReadOnlyMemory<byte> _data;
-
-    public MemoryPipeSource(ReadOnlyMemory<byte> data) => _data = data;
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-        await destination.WriteAsync(_data, cancellationToken).ConfigureAwait(false);
-}
-
-internal class CommandPipeSource : PipeSource
-{
-    private readonly Command _command;
-
-    public CommandPipeSource(Command command) => _command = command;
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-        await _command
-            .WithStandardOutputPipe(PipeTarget.ToStream(destination))
+    public static PipeSource FromCommand(Command command) => Create(async (target, cancellationToken) =>
+        await command
+            .WithStandardOutputPipe(PipeTarget.ToStream(target))
             .ExecuteAsync(cancellationToken)
-            .ConfigureAwait(false);
-}
-
-internal class AnonymousPipeSource : PipeSource
-{
-    private readonly Action<Stream> _source;
-
-    public AnonymousPipeSource(Action<Stream> source) => _source = source;
-
-    public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
-    {
-        _source(destination);
-        return Task.CompletedTask;
-    }
-}
-
-internal class AsyncAnonymousPipeSource : PipeSource
-{
-    private readonly Func<Stream, CancellationToken, Task> _source;
-
-    public AsyncAnonymousPipeSource(Func<Stream, CancellationToken, Task> source) => _source = source;
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
-        await _source(destination, cancellationToken).ConfigureAwait(false);
-}
-
-internal class TextWriterAnonymousPipeSource : PipeSource
-{
-    private readonly Action<TextWriter> _source;
-    private readonly Encoding _encoding;
-    private readonly int _bufferSize;
-    private readonly bool _autoFlush;
-
-    public TextWriterAnonymousPipeSource(Action<TextWriter> source, Encoding encoding, int bufferSize, bool autoFlush)
-    {
-        _source = source;
-        _encoding = encoding;
-        _bufferSize = bufferSize;
-        _autoFlush = autoFlush;
-    }
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
-    {
-        var streamWriter = new StreamWriter(destination, _encoding, _bufferSize, leaveOpen: true);
-        streamWriter.AutoFlush = _autoFlush;
-        await using (streamWriter.WithAsyncDisposableAdapter())
-        {
-            _source(streamWriter);
-        }
-    }
-}
-
-internal class TextWriterAsyncAnonymousPipeSource : PipeSource
-{
-    private readonly Func<TextWriter, CancellationToken, Task> _source;
-    private readonly Encoding _encoding;
-    private readonly int _bufferSize;
-    private readonly bool _autoFlush;
-
-    public TextWriterAsyncAnonymousPipeSource(Func<TextWriter, CancellationToken, Task> source, Encoding encoding, int bufferSize, bool autoFlush)
-    {
-        _source = source;
-        _encoding = encoding;
-        _bufferSize = bufferSize;
-        _autoFlush = autoFlush;
-    }
-
-    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
-    {
-        var streamWriter = new StreamWriter(destination, _encoding, _bufferSize, leaveOpen: true);
-        streamWriter.AutoFlush = _autoFlush;
-        await using (streamWriter.WithAsyncDisposableAdapter())
-        {
-            await _source(streamWriter, cancellationToken).ConfigureAwait(false);
-        }
-    }
+            .ConfigureAwait(false)
+    );
 }
