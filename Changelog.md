@@ -1,3 +1,8 @@
+### v3.4.3 (18-Apr-2022)
+
+- Added `PipeSource.Create(...)` and `PipeTarget.Create(...)` factory methods that can be used to create anonymous instances of `PipeSource` and `PipeTarget`. This approach can be convenient if you need to implement a custom `PipeSource` or `PipeTarget` but don't want to define a new class. (Thanks [@Cédric Luthi](https://github.com/0xced))
+- Updated inline documentation for `PipeTarget.Null` with additional information clarifying the difference in behavior between that target and `PipeTarget.ToStream(Stream.Null)`.
+
 ### v3.4.2 (14-Mar-2022)
 
 - Improved process execution performance by not setting `CreateNoWindow` to `false` when running inside a console application. This change reduces performance overhead by up to 60% in some cases. (Thanks [@Retik](https://github.com/Retik))
