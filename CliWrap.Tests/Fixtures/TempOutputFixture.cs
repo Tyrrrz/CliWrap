@@ -8,9 +8,11 @@ namespace CliWrap.Tests.Fixtures;
 
 public class TempOutputFixture : IDisposable
 {
-    private readonly string _rootDirPath =
+    private readonly string _rootDirPath = Path.Combine(
         Path.GetDirectoryName(typeof(TempOutputFixture).Assembly.Location) ??
-        Directory.GetCurrentDirectory();
+        Directory.GetCurrentDirectory(),
+        "Temp"
+    );
 
     private readonly ConcurrentBag<string> _dirPaths = new();
     private readonly ConcurrentBag<string> _filePaths = new();
@@ -30,6 +32,11 @@ public class TempOutputFixture : IDisposable
     public string GetTempFilePath(string fileName)
     {
         var filePath = Path.Combine(_rootDirPath, fileName);
+
+        var dirPath = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrWhiteSpace(dirPath))
+            Directory.CreateDirectory(dirPath);
+
         _filePaths.Add(filePath);
 
         return filePath;
