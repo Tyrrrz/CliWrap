@@ -43,7 +43,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task Stdin_can_be_piped_from_stream_synchronous_delegate()
     {
         // Arrange
-        var source = PipeSource.FromDelegate(stream =>
+        var source = PipeSource.Create(stream =>
         {
             using var writer = new StreamWriter(stream);
             writer.Write("Hello world!");
@@ -65,7 +65,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task Stdin_can_be_piped_from_stream_asynchronous_delegate()
     {
         // Arrange
-        var source = PipeSource.FromDelegate(async (stream, _) =>
+        var source = PipeSource.Create(async (stream, _) =>
         {
             await using var writer = new StreamWriter(stream);
             await writer.WriteAsync("Hello world!");
@@ -87,7 +87,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task Stdin_can_be_piped_from_text_writer_synchronous_delegate()
     {
         // Arrange
-        var source = PipeSource.FromDelegate(writer => writer.Write("Hello world!"));
+        var source = PipeSource.Create(writer => writer.Write("Hello world!"));
 
         var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -105,7 +105,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task Stdin_can_be_piped_from_text_writer_asynchronous_delegate()
     {
         // Arrange
-        var source = PipeSource.FromDelegate(async (writer, _) => await writer.WriteAsync("Hello world!"));
+        var source = PipeSource.Create(async (writer, _) => await writer.WriteAsync("Hello world!"));
 
         var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a

@@ -71,24 +71,24 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from a synchronous delegate that writes to a <see cref="Stream"/>.
     /// </summary>
-    public static PipeSource FromDelegate(Action<Stream> source) => new StreamDelegatePipeSource(source);
+    public static PipeSource Create(Action<Stream> source) => new AnonymousPipeSource(source);
 
     /// <summary>
     /// Creates a pipe source that reads from an asynchronous delegate that writes to a <see cref="Stream"/>.
     /// </summary>
-    public static PipeSource FromDelegate(Func<Stream, CancellationToken, Task> source) => new StreamAsyncDelegatePipeSource(source);
+    public static PipeSource Create(Func<Stream, CancellationToken, Task> source) => new AsyncAnonymousPipeSource(source);
 
     /// <summary>
     /// Creates a pipe source that reads from a synchronous delegate that writes to a <see cref="TextWriter"/>.
     /// </summary>
-    public static PipeSource FromDelegate(Action<TextWriter> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
-        new TextWriterDelegatePipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
+    public static PipeSource Create(Action<TextWriter> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
+        new TextWriterAnonymousPipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
 
     /// <summary>
     /// Creates a pipe source that reads from an asynchronous delegate that writes to a <see cref="TextWriter"/>.
     /// </summary>
-    public static PipeSource FromDelegate(Func<TextWriter, CancellationToken, Task> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
-        new TextWriterAsyncDelegatePipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
+    public static PipeSource Create(Func<TextWriter, CancellationToken, Task> source, Encoding? encoding = null, int bufferSize = -1, bool autoFlush = false) =>
+        new TextWriterAsyncAnonymousPipeSource(source, encoding ?? Console.InputEncoding, bufferSize, autoFlush);
 }
 
 internal class NullPipeSource : PipeSource
@@ -154,11 +154,11 @@ internal class CommandPipeSource : PipeSource
             .ConfigureAwait(false);
 }
 
-internal class StreamDelegatePipeSource : PipeSource
+internal class AnonymousPipeSource : PipeSource
 {
     private readonly Action<Stream> _source;
 
-    public StreamDelegatePipeSource(Action<Stream> source) => _source = source;
+    public AnonymousPipeSource(Action<Stream> source) => _source = source;
 
     public override Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default)
     {
@@ -167,24 +167,24 @@ internal class StreamDelegatePipeSource : PipeSource
     }
 }
 
-internal class StreamAsyncDelegatePipeSource : PipeSource
+internal class AsyncAnonymousPipeSource : PipeSource
 {
     private readonly Func<Stream, CancellationToken, Task> _source;
 
-    public StreamAsyncDelegatePipeSource(Func<Stream, CancellationToken, Task> source) => _source = source;
+    public AsyncAnonymousPipeSource(Func<Stream, CancellationToken, Task> source) => _source = source;
 
     public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
         await _source(destination, cancellationToken).ConfigureAwait(false);
 }
 
-internal class TextWriterDelegatePipeSource : PipeSource
+internal class TextWriterAnonymousPipeSource : PipeSource
 {
     private readonly Action<TextWriter> _source;
     private readonly Encoding _encoding;
     private readonly int _bufferSize;
     private readonly bool _autoFlush;
 
-    public TextWriterDelegatePipeSource(Action<TextWriter> source, Encoding encoding, int bufferSize, bool autoFlush)
+    public TextWriterAnonymousPipeSource(Action<TextWriter> source, Encoding encoding, int bufferSize, bool autoFlush)
     {
         _source = source;
         _encoding = encoding;
@@ -203,14 +203,14 @@ internal class TextWriterDelegatePipeSource : PipeSource
     }
 }
 
-internal class TextWriterAsyncDelegatePipeSource : PipeSource
+internal class TextWriterAsyncAnonymousPipeSource : PipeSource
 {
     private readonly Func<TextWriter, CancellationToken, Task> _source;
     private readonly Encoding _encoding;
     private readonly int _bufferSize;
     private readonly bool _autoFlush;
 
-    public TextWriterAsyncDelegatePipeSource(Func<TextWriter, CancellationToken, Task> source, Encoding encoding, int bufferSize, bool autoFlush)
+    public TextWriterAsyncAnonymousPipeSource(Func<TextWriter, CancellationToken, Task> source, Encoding encoding, int bufferSize, bool autoFlush)
     {
         _source = source;
         _encoding = encoding;
