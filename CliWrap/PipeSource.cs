@@ -13,9 +13,10 @@ namespace CliWrap;
 public abstract partial class PipeSource
 {
     /// <summary>
-    /// Copies the binary content pushed to the pipe into the target stream.
+    /// Copies the binary content pushed to the pipe into the destination stream.
+    /// Destination stream represents the process's standard input stream.
     /// </summary>
-    public abstract Task CopyToAsync(Stream target, CancellationToken cancellationToken = default);
+    public abstract Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default);
 }
 
 internal class AnonymousPipeSource : PipeSource
@@ -25,8 +26,8 @@ internal class AnonymousPipeSource : PipeSource
     public AnonymousPipeSource(Func<Stream, CancellationToken, Task> copyToAsync) =>
         _copyToAsync = copyToAsync;
 
-    public override async Task CopyToAsync(Stream target, CancellationToken cancellationToken = default) =>
-        await _copyToAsync(target, cancellationToken).ConfigureAwait(false);
+    public override async Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default) =>
+        await _copyToAsync(destination, cancellationToken).ConfigureAwait(false);
 }
 
 public partial class PipeSource
@@ -35,33 +36,36 @@ public partial class PipeSource
     /// Pipe source that does not provide any data.
     /// Logical equivalent to /dev/null.
     /// </summary>
-    public static PipeSource Null { get; } = Create((target, cancellationToken) =>
+    public static PipeSource Null { get; } = Create((_, cancellationToken) =>
          !cancellationToken.IsCancellationRequested
             ? Task.CompletedTask
             : Task.FromCanceled(cancellationToken)
     );
 
     /// <summary>
-    /// Creates an anonymous pipe source implemented using the specified delegate.
+    /// Creates an anonymous pipe source with the <see cref="CopyToAsync(Stream, CancellationToken)" /> method
+    /// implemented by the specified asynchronous delegate.
     /// </summary>
     public static PipeSource Create(Func<Stream, CancellationToken, Task> handlePipeAsync) =>
         new AnonymousPipeSource(handlePipeAsync);
 
     /// <summary>
-    /// Creates an anonymous pipe source implemented using the specified delegate.
+    /// Creates an anonymous pipe source with the <see cref="CopyToAsync(Stream, CancellationToken)" /> method
+    /// implemented by the specified synchronous delegate.
     /// </summary>
-    public static PipeSource Create(Action<Stream> handlePipe) => Create((target, _) =>
+    public static PipeSource Create(Action<Stream> handlePipe) => Create((destination, _) =>
     {
-        handlePipe(target);
+        handlePipe(destination);
         return Task.CompletedTask;
     });
 
     /// <summary>
     /// Creates a pipe source that reads from a stream.
     /// </summary>
-    public static PipeSource FromStream(Stream stream, bool autoFlush) => Create(async (target, cancellationToken) =>
-        await stream.CopyToAsync(target, autoFlush, cancellationToken).ConfigureAwait(false)
-    );
+    public static PipeSource FromStream(Stream stream, bool autoFlush) =>
+        Create(async (destination, cancellationToken) =>
+            await stream.CopyToAsync(destination, autoFlush, cancellationToken).ConfigureAwait(false)
+        );
 
     /// <summary>
     /// Creates a pipe source that reads from a stream.
@@ -72,18 +76,18 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from a file.
     /// </summary>
-    public static PipeSource FromFile(string filePath) => Create(async (target, cancellationToken) =>
+    public static PipeSource FromFile(string filePath) => Create(async (destination, cancellationToken) =>
     {
         var source = File.OpenRead(filePath);
         await using (source.WithAsyncDisposableAdapter())
-            await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+            await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
     });
 
     /// <summary>
     /// Creates a pipe source that reads from memory.
     /// </summary>
-    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => Create(async (target, cancellationToken) =>
-        await target.WriteAsync(data, cancellationToken).ConfigureAwait(false)
+    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => Create(async (destination, cancellationToken) =>
+        await destination.WriteAsync(data, cancellationToken).ConfigureAwait(false)
     );
 
     /// <summary>
@@ -105,9 +109,9 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the standard output of a command.
     /// </summary>
-    public static PipeSource FromCommand(Command command) => Create(async (target, cancellationToken) =>
+    public static PipeSource FromCommand(Command command) => Create(async (destination, cancellationToken) =>
         await command
-            .WithStandardOutputPipe(PipeTarget.ToStream(target))
+            .WithStandardOutputPipe(PipeTarget.ToStream(destination))
             .ExecuteAsync(cancellationToken)
             .ConfigureAwait(false)
     );

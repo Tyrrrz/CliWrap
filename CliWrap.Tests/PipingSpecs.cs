@@ -19,14 +19,14 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         _tempOutputFixture = tempOutputFixture;
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_an_anonymous_source()
+    public async Task Stdin_can_be_piped_from_an_async_anonymous_source()
     {
         // Arrange
-        var source = PipeSource.Create(target =>
-            target.Write(new byte[]
+        var source = PipeSource.Create(async (destination, cancellationToken) =>
+            await destination.WriteAsync(new byte[]
             {
                 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-            })
+            }, cancellationToken)
         );
 
         var cmd = source | Cli.Wrap("dotnet")
@@ -42,14 +42,14 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_an_async_anonymous_source()
+    public async Task Stdin_can_be_piped_from_a_sync_anonymous_source()
     {
         // Arrange
-        var source = PipeSource.Create(async (target, cancellationToken) =>
-            await target.WriteAsync(new byte[]
+        var source = PipeSource.Create(destination =>
+            destination.Write(new byte[]
             {
                 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-            }, cancellationToken)
+            })
         );
 
         var cmd = source | Cli.Wrap("dotnet")
@@ -207,20 +207,20 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_an_anonymous_target()
+    public async Task Stdout_can_be_piped_into_an_async_anonymous_target()
     {
         // Arrange
         await using var stream = new MemoryStream();
 
-        var target = PipeTarget.Create(source =>
-            source.CopyTo(stream)
+        var target = PipeTarget.Create(async (origin, cancellationToken) =>
+            await origin.CopyToAsync(stream, cancellationToken)
         );
 
         var cmd = Cli.Wrap("dotnet")
-           .WithArguments(a => a
-               .Add(Dummy.Program.FilePath)
-               .Add("generate binary")
-               .Add("--length").Add(1_000_000)) | target;
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate binary")
+                .Add("--length").Add(1_000_000)) | target;
 
         // Act
         await cmd.ExecuteAsync();
@@ -230,20 +230,20 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_an_async_anonymous_target()
+    public async Task Stdout_can_be_piped_into_a_sync_anonymous_target()
     {
         // Arrange
         await using var stream = new MemoryStream();
 
-        var target = PipeTarget.Create(async (source, cancellationToken) =>
-            await source.CopyToAsync(stream, cancellationToken)
+        var target = PipeTarget.Create(origin =>
+            origin.CopyTo(stream)
         );
 
         var cmd = Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("generate binary")
-                .Add("--length").Add(1_000_000)) | target;
+           .WithArguments(a => a
+               .Add(Dummy.Program.FilePath)
+               .Add("generate binary")
+               .Add("--length").Add(1_000_000)) | target;
 
         // Act
         await cmd.ExecuteAsync();
@@ -311,27 +311,6 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_delegate()
-    {
-        // Arrange
-        var stdOutLinesCount = 0;
-
-        void HandleStdOut(string s) => stdOutLinesCount++;
-
-        var cmd = Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("generate text")
-                .Add("--lines").Add(100)) | HandleStdOut;
-
-        // Act
-        await cmd.ExecuteAsync();
-
-        // Assert
-        stdOutLinesCount.Should().Be(100);
-    }
-
-    [Fact(Timeout = 15000)]
     public async Task Stdout_can_be_piped_into_an_async_delegate()
     {
         // Arrange
@@ -348,6 +327,27 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--lines").Add(100)) | HandleStdOutAsync;
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        stdOutLinesCount.Should().Be(100);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdout_can_be_piped_into_a_sync_delegate()
+    {
+        // Arrange
+        var stdOutLinesCount = 0;
+
+        void HandleStdOut(string s) => stdOutLinesCount++;
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate text")
+                .Add("--lines").Add(100)) | HandleStdOut;
 
         // Act
         await cmd.ExecuteAsync();
@@ -400,31 +400,6 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_and_stderr_can_be_piped_into_separate_delegates()
-    {
-        // Arrange
-        var stdOutLinesCount = 0;
-        var stdErrLinesCount = 0;
-
-        void HandleStdOut(string s) => stdOutLinesCount++;
-        void HandleStdErr(string s) => stdErrLinesCount++;
-
-        var cmd = Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("generate text")
-                .Add("--target").Add("all")
-                .Add("--lines").Add(100)) | (HandleStdOut, HandleStdErr);
-
-        // Act
-        await cmd.ExecuteAsync();
-
-        // Assert
-        stdOutLinesCount.Should().Be(100);
-        stdErrLinesCount.Should().Be(100);
-    }
-
-    [Fact(Timeout = 15000)]
     public async Task Stdout_and_stderr_can_be_piped_into_separate_async_delegates()
     {
         // Arrange
@@ -449,6 +424,31 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add("generate text")
                 .Add("--target").Add("all")
                 .Add("--lines").Add(100)) | (HandleStdOutAsync, HandleStdErrAsync);
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        stdOutLinesCount.Should().Be(100);
+        stdErrLinesCount.Should().Be(100);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Stdout_and_stderr_can_be_piped_into_separate_sync_delegates()
+    {
+        // Arrange
+        var stdOutLinesCount = 0;
+        var stdErrLinesCount = 0;
+
+        void HandleStdOut(string s) => stdOutLinesCount++;
+        void HandleStdErr(string s) => stdErrLinesCount++;
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate text")
+                .Add("--target").Add("all")
+                .Add("--lines").Add(100)) | (HandleStdOut, HandleStdErr);
 
         // Act
         await cmd.ExecuteAsync();

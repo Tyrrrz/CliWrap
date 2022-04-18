@@ -17,9 +17,10 @@ namespace CliWrap;
 public abstract partial class PipeTarget
 {
     /// <summary>
-    /// Copies the binary content from the stream and pushes it into the pipe.
+    /// Copies the binary content from the origin stream and pushes it into the pipe.
+    /// Origin stream represents the process's standard output or standard error stream.
     /// </summary>
-    public abstract Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default);
+    public abstract Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default);
 }
 
 internal class AnonymousPipeTarget : PipeTarget
@@ -29,8 +30,8 @@ internal class AnonymousPipeTarget : PipeTarget
     public AnonymousPipeTarget(Func<Stream, CancellationToken, Task> copyFromAsync) =>
         _copyFromAsync = copyFromAsync;
 
-    public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default) =>
-        await _copyFromAsync(source, cancellationToken).ConfigureAwait(false);
+    public override async Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default) =>
+        await _copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
 }
 
 internal class MergedPipeTarget : PipeTarget
@@ -39,7 +40,7 @@ internal class MergedPipeTarget : PipeTarget
 
     public MergedPipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
 
-    public override async Task CopyFromAsync(Stream source, CancellationToken cancellationToken = default)
+    public override async Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default)
     {
         // Create a separate sub-stream for each target
         var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
@@ -60,7 +61,7 @@ internal class MergedPipeTarget : PipeTarget
             // Read from the master stream and replicate the data to each sub-stream
             using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
             int bytesRead;
-            while ((bytesRead = await source.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
+            while ((bytesRead = await origin.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
             {
                 foreach (var (_, subStream) in targetSubStreams)
                 {
@@ -97,32 +98,34 @@ public partial class PipeTarget
     /// destination stream without first checking if it's open.
     /// In such cases, it may be better to use <see cref="ToStream(Stream)" /> with <see cref="Stream.Null" /> instead.
     /// </remarks>
-    public static PipeTarget Null { get; } = Create((source, cancellationToken) =>
+    public static PipeTarget Null { get; } = Create((_, cancellationToken) =>
          !cancellationToken.IsCancellationRequested
             ? Task.CompletedTask
             : Task.FromCanceled(cancellationToken)
     );
 
     /// <summary>
-    /// Creates an anonymous pipe target implemented using the specified delegate.
+    /// Creates an anonymous pipe target with the <see cref="CopyFromAsync(Stream, CancellationToken)" /> method
+    /// implemented by the specified asynchronous delegate.
     /// </summary>
     public static PipeTarget Create(Func<Stream, CancellationToken, Task> handlePipeAsync) =>
         new AnonymousPipeTarget(handlePipeAsync);
 
     /// <summary>
-    /// Creates an anonymous pipe target implemented using the specified delegate.
+    /// Creates an anonymous pipe target with the <see cref="CopyFromAsync(Stream, CancellationToken)" /> method
+    /// implemented by the specified synchronous delegate.
     /// </summary>
-    public static PipeTarget Create(Action<Stream> handlePipe) => Create((source, _) =>
+    public static PipeTarget Create(Action<Stream> handlePipe) => Create((origin, _) =>
     {
-        handlePipe(source);
+        handlePipe(origin);
         return Task.CompletedTask;
     });
 
     /// <summary>
     /// Creates a pipe target that writes to a stream.
     /// </summary>
-    public static PipeTarget ToStream(Stream stream, bool autoFlush) => Create(async (source, cancellationToken) =>
-        await source.CopyToAsync(stream, autoFlush, cancellationToken).ConfigureAwait(false)
+    public static PipeTarget ToStream(Stream stream, bool autoFlush) => Create(async (origin, cancellationToken) =>
+        await origin.CopyToAsync(stream, autoFlush, cancellationToken).ConfigureAwait(false)
     );
 
     /// <summary>
@@ -134,20 +137,20 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to a file.
     /// </summary>
-    public static PipeTarget ToFile(string filePath) => Create(async (source, cancellationToken) =>
+    public static PipeTarget ToFile(string filePath) => Create(async (origin, cancellationToken) =>
     {
         var target = File.Create(filePath);
         await using (target.WithAsyncDisposableAdapter())
-            await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+            await origin.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
     });
 
     /// <summary>
     /// Creates a pipe target that writes to a string builder.
     /// </summary>
     public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding) =>
-        Create(async (source, cancellationToken) =>
+        Create(async (origin, cancellationToken) =>
         {
-            using var reader = new StreamReader(source, encoding, false, BufferSizes.StreamReader, true);
+            using var reader = new StreamReader(origin, encoding, false, BufferSizes.StreamReader, true);
             using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
 
             int charsRead;
@@ -163,30 +166,12 @@ public partial class PipeTarget
         ToStringBuilder(stringBuilder, Console.OutputEncoding);
 
     /// <summary>
-    /// Creates a pipe target that invokes a delegate on every line written.
-    /// </summary>
-    public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding) =>
-        Create(async (source, cancellationToken) =>
-        {
-            using var reader = new StreamReader(source, encoding, false, BufferSizes.StreamReader, true);
-            await foreach (var line in reader.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false))
-                handleLine(line);
-        });
-
-    /// <summary>
-    /// Creates a pipe target that invokes a delegate on every line written.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
-    /// </summary>
-    public static PipeTarget ToDelegate(Action<string> handleLine) =>
-        ToDelegate(handleLine, Console.OutputEncoding);
-
-    /// <summary>
     /// Creates a pipe target that invokes an asynchronous delegate on every line written.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
-        Create(async (source, cancellationToken) =>
+        Create(async (origin, cancellationToken) =>
         {
-            using var reader = new StreamReader(source, encoding, false, BufferSizes.StreamReader, true);
+            using var reader = new StreamReader(origin, encoding, false, BufferSizes.StreamReader, true);
             await foreach (var line in reader.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false))
                 await handleLineAsync(line).ConfigureAwait(false);
         });
@@ -197,6 +182,23 @@ public partial class PipeTarget
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
         ToDelegate(handleLineAsync, Console.OutputEncoding);
+
+    /// <summary>
+    /// Creates a pipe target that invokes a synchronous delegate on every line written.
+    /// </summary>
+    public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding) =>
+        ToDelegate(line =>
+        {
+            handleLine(line);
+            return Task.CompletedTask;
+        }, encoding);
+
+    /// <summary>
+    /// Creates a pipe target that invokes a synchronous delegate on every line written.
+    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// </summary>
+    public static PipeTarget ToDelegate(Action<string> handleLine) =>
+        ToDelegate(handleLine, Console.OutputEncoding);
 
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
