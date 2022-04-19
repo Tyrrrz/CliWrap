@@ -59,7 +59,37 @@ public class EnvironmentSpecs
             "[Path] = there"
         });
     }
+    
+    [Fact(Timeout = 15000)]
+    public async Task Command_can_be_executed_with_sensitive_environment_variables()
+    {
+        // Arrange
+        var env = new Dictionary<string, SensitiveString?>
+        {
+            ["foo"] = new SensitiveString("bar"),
+            ["hello"] = new SensitiveString("world", "(sensitive)"),
+            ["Path"] = new SensitiveString("there", "%%%%%")
+        };
 
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("print-environment-variables"))
+            .WithEnvironmentVariables(env);
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+        var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
+
+        // Assert
+        stdOutLines.Should().Contain(new[]
+        {
+            "[foo] = bar",
+            "[hello] = world",
+            "[Path] = there"
+        });
+    }
+    
     [Fact(Timeout = 15000)]
     public async Task Command_can_be_executed_with_some_inherited_environment_variables_overwritten()
     {
@@ -79,7 +109,7 @@ public class EnvironmentSpecs
                     .Add("print-environment-variables"))
                 .WithEnvironmentVariables(e => e
                     .Set(variableToOverwrite, "new bar")
-                    .Set(variableToUnset, null));
+                    .Set(variableToUnset, (string?)null));
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();

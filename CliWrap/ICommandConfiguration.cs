@@ -15,7 +15,7 @@ public interface ICommandConfiguration
     /// <summary>
     /// Arguments passed on the command line.
     /// </summary>
-    string Arguments { get; }
+    SensitiveString Arguments { get; }
 
     /// <summary>
     /// Working directory path set for the underlying process.
@@ -30,7 +30,7 @@ public interface ICommandConfiguration
     /// <summary>
     /// Environment variables set for the underlying process.
     /// </summary>
-    IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }
+    IReadOnlyDictionary<string, SensitiveString?> EnvironmentVariables { get; }
 
     /// <summary>
     /// Configured result validation strategy.

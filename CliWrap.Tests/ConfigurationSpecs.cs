@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -16,7 +17,7 @@ public class ConfigurationSpecs
 
         // Assert
         cmd.TargetFilePath.Should().Be("foo");
-        cmd.Arguments.Should().BeEmpty();
+        cmd.Arguments.ToString().Should().BeEmpty();
         cmd.WorkingDirPath.Should().Be(Directory.GetCurrentDirectory());
         cmd.Credentials.Should().BeEquivalentTo(Credentials.Default);
         cmd.EnvironmentVariables.Should().BeEmpty();
@@ -37,8 +38,8 @@ public class ConfigurationSpecs
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-        cmdOther.Arguments.Should().Be("qqq ppp");
+        cmd.Arguments.ToString().Should().NotBe(cmdOther.Arguments.ToString());
+        cmdOther.Arguments.ToString().Should().Be("qqq ppp");
     }
 
     [Fact]
@@ -52,8 +53,23 @@ public class ConfigurationSpecs
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-        cmdOther.Arguments.Should().Be("-a \"foo bar\"");
+        cmd.Arguments.ToString().Should().NotBe(cmdOther.Arguments.ToString());
+        cmdOther.Arguments.ToString().Should().Be("-a \"foo bar\"");
+    }
+
+    [Fact]
+    public void Sensitive_command_line_arguments_values_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithArguments("yyyy", "(sensitive)");
+
+        // Act
+        var cmdOther = cmd.WithArguments("qqq ppp", "*sensitive*");
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+        cmd.Arguments.ToString().Should().NotBe(cmdOther.Arguments.ToString());
+        cmdOther.Arguments.ToString().Should().Be("*sensitive*");
     }
 
     [Fact]
@@ -74,8 +90,31 @@ public class ConfigurationSpecs
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-        cmdOther.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
+        cmd.Arguments.ToString().Should().NotBe(cmdOther.Arguments.ToString());
+        cmdOther.Arguments.ToString().Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
+    }
+
+    [Fact]
+    public void Sensitive_command_line_arguments_can_be_set_using_a_builder()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithArguments("xxx", "*****");
+
+        // Act
+        var cmdOther = cmd.WithArguments(b => b
+                .Add("-a")
+                .Add("pass word", true, "!!!!!")
+                .Add("\"foo\\\\bar\"")
+                .Add(3.14, "#####")
+                .Add(new SensitiveString("secret"))
+                .Add(new[] { "foo", "bar" })
+                .Add(new IFormattable[] { -5, 89.13 })
+            );
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
+        cmd.Arguments.ToString().Should().NotBe(cmdOther.Arguments.ToString());
+        cmdOther.Arguments.ToString().Should().Be("-a !!!!! \"\\\"foo\\\\bar\\\"\" ##### ***** foo bar -5 89.13");
     }
 
     [Fact]
@@ -143,10 +182,36 @@ public class ConfigurationSpecs
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
         cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-        cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
+        var actual = cmdOther.EnvironmentVariables.ToDictionary(i => i.Key, i => i.Value?.ToString());
+        actual.Should().BeEquivalentTo(new Dictionary<string, string?>
         {
             ["name"] = "value",
             ["key"] = "door"
+        });
+    }
+
+    [Fact]
+    public void Sensitive_environment_variables_can_be_set()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo")
+            .WithEnvironmentVariables(e => e.Set("xxx", "xxx", "$$$$$"));
+
+        // Act
+        var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, SensitiveString?>
+        {
+            ["name"] = new SensitiveString("value"),
+            ["key"] = new SensitiveString("door", "!!!!!")
+        });
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
+        cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
+        var actual = cmdOther.EnvironmentVariables.ToDictionary(i => i.Key, i => i.Value?.ToString());
+        actual.Should().BeEquivalentTo(new Dictionary<string, string?>
+        {
+            ["name"] = "*****",
+            ["key"] = "!!!!!"
         });
     }
 
@@ -170,7 +235,8 @@ public class ConfigurationSpecs
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
         cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-        cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
+        var actual = cmdOther.EnvironmentVariables.ToDictionary(i => i.Key, i => i.Value?.ToString());
+        actual.Should().BeEquivalentTo(new Dictionary<string, string?>
         {
             ["name"] = "value",
             ["key"] = "door",
@@ -179,6 +245,36 @@ public class ConfigurationSpecs
         });
     }
 
+    [Fact]
+    public void Sensitive_environment_variables_can_be_set_with_a_builder()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
+
+        // Act
+        var cmdOther = cmd.WithEnvironmentVariables(b => b
+                .Set("name", "value", "&&&&&")
+                .Set("key", new SensitiveString("door"))
+                .Set(new Dictionary<string, string?>
+                {
+                    ["zzz"] = "yyy",
+                    ["aaa"] = "bbb"
+                })
+            );
+
+        // Assert
+        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
+        cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
+        var actual = cmdOther.EnvironmentVariables.ToDictionary(i => i.Key, i => i.Value?.ToString());
+        actual.Should().BeEquivalentTo(new Dictionary<string, string?>
+        {
+            ["name"] = "&&&&&",
+            ["key"] = "*****",
+            ["zzz"] = "yyy",
+            ["aaa"] = "bbb"
+        });
+    }
+    
     [Fact]
     public void Result_validation_can_be_set()
     {

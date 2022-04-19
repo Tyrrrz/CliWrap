@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security;
 using System.Text;
 
 namespace CliWrap.Builders;
@@ -9,28 +10,21 @@ namespace CliWrap.Builders;
 /// <summary>
 /// Builder that helps generate well-formed arguments string.
 /// </summary>
-public partial class ArgumentsBuilder
+public class ArgumentsBuilder
 {
     private static readonly IFormatProvider DefaultFormatProvider = CultureInfo.InvariantCulture;
 
-    private readonly StringBuilder _buffer = new();
+    private readonly SecureString _buffer = new();
+    private readonly StringBuilder _mask = new();
 
     /// <summary>
     /// Adds the specified value to the list of arguments.
     /// </summary>
     public ArgumentsBuilder Add(string value, bool escape)
     {
-        if (_buffer.Length > 0)
-            _buffer.Append(' ');
-
-        _buffer.Append(escape
-            ? Escape(value)
-            : value
-        );
-
-        return this;
+        return AddInternal(value, escape);
     }
-
+    
     /// <summary>
     /// Adds the specified value to the list of arguments.
     /// </summary>
@@ -43,8 +37,9 @@ public partial class ArgumentsBuilder
     public ArgumentsBuilder Add(IEnumerable<string> values, bool escape)
     {
         foreach (var value in values)
+        {
             Add(value, escape);
-
+        }
         return this;
     }
 
@@ -55,6 +50,20 @@ public partial class ArgumentsBuilder
     public ArgumentsBuilder Add(IEnumerable<string> values) =>
         Add(values, true);
 
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(string value, bool escape, string mask)
+    {
+        return AddInternal(value, escape, mask);
+    }
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(string value, string mask) => Add(value, true, mask);
+    
     /// <summary>
     /// Adds the specified value to the list of arguments.
     /// </summary>
@@ -129,15 +138,120 @@ public partial class ArgumentsBuilder
     // TODO: (breaking change) remove in favor of optional parameter
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values) =>
         Add(values, true);
+    
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add
+        (IFormattable value,
+        IFormatProvider formatProvider,
+        bool escape,
+        string mask) =>
+        Add(value.ToString(null, formatProvider), escape, mask);
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add
+        (IFormattable value,
+        CultureInfo cultureInfo,
+        bool escape,
+        string mask) =>
+        Add(value, (IFormatProvider)cultureInfo, escape, mask);
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, string mask) =>
+        Add(value, cultureInfo, true, mask);
+    
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// The value is converted to string using invariant culture.
+    /// </summary>
+    public ArgumentsBuilder Add(IFormattable value, bool escape, string mask) =>
+        Add(value, DefaultFormatProvider, escape, mask);
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// The value is converted to string using invariant culture.
+    /// </summary>
+    public ArgumentsBuilder Add(IFormattable value, string mask) =>
+        Add(value, true, mask);
+    
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(SensitiveString value) 
+        => Add(value, true);
+    
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(SensitiveString value, bool escape)
+    {
+        var unsecureValue = value.UnsecureString ?? string.Empty;
+        return AddInternal(unsecureValue, escape, value.ToString());
+    }
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(SecureString value)
+        => Add(value, true);
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(SecureString value, bool escape)
+        => AddInternal(SecureStringHelper.MarshalToString(value) ?? string.Empty, escape, SensitiveString.DefaultMask);
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(SecureString value, string mask)
+        => Add(value, true, mask);
+
+    /// <summary>
+    /// Adds the specified sensitive value to the list of arguments.
+    /// </summary>
+    public ArgumentsBuilder Add(SecureString value, bool escape, string mask) 
+        => AddInternal(SecureStringHelper.MarshalToString(value) ?? string.Empty, escape, mask);
 
     /// <summary>
     /// Builds the resulting arguments string.
     /// </summary>
-    public string Build() => _buffer.ToString();
-}
+    public SensitiveString Build() => new SensitiveString(_buffer, _mask.ToString());
 
-public partial class ArgumentsBuilder
-{
+
+    private ArgumentsBuilder AddInternal(string value, bool escape)
+    {
+        string escapedValue = escape ? Escape(value) : value;
+        return AddInternal(escapedValue, escapedValue);
+    }
+
+    private ArgumentsBuilder AddInternal(string value, bool escape, string mask)
+    {
+        string escapedValue = escape ? Escape(value) : value;
+        return AddInternal(escapedValue, mask);
+    }
+
+    private ArgumentsBuilder AddInternal(string value, string mask)
+    {
+        if (_buffer.Length > 0)
+        {
+            _buffer.AppendChar(' ');
+            _mask.Append(' ');
+        }
+        foreach (char c in value)
+        {
+            _buffer.AppendChar(c);
+        }
+        _mask.Append(mask);
+
+        return this;
+    }
+
     private static string Escape(string argument)
     {
         // Implementation reference:

@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Buffered;
+using CliWrap.Builders;
 using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
@@ -120,4 +122,39 @@ public class ExecutionSpecs
         // Should throw synchronously!
         Assert.ThrowsAny<Win32Exception>(() => cmd.ExecuteAsync());
     }
+    
+    [Fact(Timeout = 15000)]
+    public async Task Command_can_be_executed_with_sensitive_arguments()
+    {
+        // Arrange
+        Action<ArgumentsBuilder> configureArgs = builder =>
+        {
+            builder.Add(Dummy.Program.FilePath)
+                .Add("print-args")
+                .Add("valueA", "AAA")
+                .Add("valueB", "BBB")
+                .Add("valueC", "$$$")
+                .Add(new SensitiveString("valueD"))
+                .Add("valueE");
+        };
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(configureArgs);
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+        var stdOutLines = result.StandardOutput.Split(Environment.NewLine);
+
+        // Assert
+        stdOutLines.Should().Contain(new[]
+        {
+            $"[0] = {Dummy.Program.FilePath}",
+            "[1] = print-args",
+            "[2] = valueA",
+            "[3] = valueB",
+            "[4] = valueC",
+            "[5] = valueD",
+            "[6] = valueE"
+        });
+    }
+
 }

@@ -19,3 +19,6 @@ bld/
 
 # Coverage
 *.opencover.xml
+
+# Visual Studio cache/options directory
+.vs/

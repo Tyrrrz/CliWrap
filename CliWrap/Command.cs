@@ -24,7 +24,7 @@ public partial class Command : ICommandConfiguration
     public string TargetFilePath { get; }
 
     /// <inheritdoc />
-    public string Arguments { get; }
+    public SensitiveString Arguments { get; }
 
     /// <inheritdoc />
     public string WorkingDirPath { get; }
@@ -33,7 +33,7 @@ public partial class Command : ICommandConfiguration
     public Credentials Credentials { get; }
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }
+    public IReadOnlyDictionary<string, SensitiveString?> EnvironmentVariables { get; }
 
     /// <inheritdoc />
     public CommandResultValidation Validation { get; }
@@ -52,10 +52,10 @@ public partial class Command : ICommandConfiguration
     /// </summary>
     public Command(
         string targetFilePath,
-        string arguments,
+        SensitiveString arguments,
         string workingDirPath,
         Credentials credentials,
-        IReadOnlyDictionary<string, string?> environmentVariables,
+        IReadOnlyDictionary<string, SensitiveString?> environmentVariables,
         CommandResultValidation validation,
         PipeSource standardInputPipe,
         PipeTarget standardOutputPipe,
@@ -77,10 +77,10 @@ public partial class Command : ICommandConfiguration
     /// </summary>
     public Command(string targetFilePath) : this(
         targetFilePath,
-        string.Empty,
+        new SensitiveString(string.Empty, string.Empty),
         Directory.GetCurrentDirectory(),
         Credentials.Default,
-        new Dictionary<string, string?>(),
+        new Dictionary<string, SensitiveString?>(),
         CommandResultValidation.ZeroExitCode,
         PipeSource.Null,
         PipeTarget.Null,
@@ -92,7 +92,7 @@ public partial class Command : ICommandConfiguration
     /// Creates a copy of this command, setting the arguments to the specified value.
     /// </summary>
     [Pure]
-    public Command WithArguments(string arguments) => new(
+    public Command WithArguments(SensitiveString arguments) => new(
         TargetFilePath,
         arguments,
         WorkingDirPath,
@@ -103,6 +103,38 @@ public partial class Command : ICommandConfiguration
         StandardOutputPipe,
         StandardErrorPipe
     );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the arguments to the specified value.
+    /// </summary>
+    [Pure]
+    public Command WithArguments(string arguments) => new(
+        TargetFilePath,
+        new SensitiveString(arguments, arguments),
+        WorkingDirPath,
+        Credentials,
+        EnvironmentVariables,
+        Validation,
+        StandardInputPipe,
+        StandardOutputPipe,
+        StandardErrorPipe
+        );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the sensitive arguments to the specified value.
+    /// </summary>
+    [Pure]
+    public Command WithArguments(string arguments, string mask) => new(
+        TargetFilePath,
+        new SensitiveString(arguments, mask),
+        WorkingDirPath,
+        Credentials,
+        EnvironmentVariables,
+        Validation,
+        StandardInputPipe,
+        StandardOutputPipe,
+        StandardErrorPipe
+        );
 
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
@@ -179,18 +211,11 @@ public partial class Command : ICommandConfiguration
     /// Creates a copy of this command, setting the environment variables to the specified value.
     /// </summary>
     [Pure]
-    public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string?> environmentVariables) => new(
-        TargetFilePath,
-        Arguments,
-        WorkingDirPath,
-        Credentials,
-        environmentVariables,
-        Validation,
-        StandardInputPipe,
-        StandardOutputPipe,
-        StandardErrorPipe
-    );
-
+    public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string?> environmentVariables)
+    {
+        return WithEnvironmentVariables(configure: builder => builder.Set(environmentVariables));
+    }
+    
     /// <summary>
     /// Creates a copy of this command, setting the environment variables to the value configured by the specified delegate.
     /// </summary>
@@ -202,7 +227,23 @@ public partial class Command : ICommandConfiguration
 
         return WithEnvironmentVariables(builder.Build());
     }
-
+    
+    /// <summary>
+    /// Creates a copy of this command, setting the environment variables to the specified value.
+    /// </summary>
+    [Pure]
+    public Command WithEnvironmentVariables(IReadOnlyDictionary<string, SensitiveString?> environmentVariables) => new(
+        TargetFilePath,
+        Arguments,
+        WorkingDirPath,
+        Credentials,
+        environmentVariables,
+        Validation,
+        StandardInputPipe,
+        StandardOutputPipe,
+        StandardErrorPipe
+        );
+    
     /// <summary>
     /// Creates a copy of this command, setting the validation options to the specified value.
     /// </summary>
@@ -325,7 +366,7 @@ public partial class Command : ICommandConfiguration
         var startInfo = new ProcessStartInfo
         {
             FileName = ResolveOptimallyQualifiedTargetFilePath(),
-            Arguments = Arguments,
+            Arguments = Arguments.UnsecureString,
             WorkingDirectory = WorkingDirPath,
             UserName = Credentials.UserName,
             RedirectStandardInput = true,
@@ -359,8 +400,9 @@ public partial class Command : ICommandConfiguration
             }
         }
 
-        foreach (var (key, value) in EnvironmentVariables)
+        foreach (var (key, sensitiveValue) in EnvironmentVariables)
         {
+            string? value = sensitiveValue?.UnsecureString;
             // Workaround for https://github.com/dotnet/runtime/issues/34446
             if (value is null)
             {
