@@ -47,7 +47,7 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 
 📺 **Watch [Intro to CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) webinar on YouTube for a deep look into the library and its features!**
 
-[![Intro to CliWrap](.screenshots/webinar-yt-thumb.png)](https://youtube.com/watch?v=3_Ucw3Fflmo)
+[![Intro to CliWrap](.assets/webinar-yt-thumb.jpg)](https://youtube.com/watch?v=3_Ucw3Fflmo)
 
 ### Quick overview
 
@@ -62,7 +62,7 @@ var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .WithWorkingDirectory("work/dir/path")
     .ExecuteAsync();
-    
+
 // Result contains:
 // -- result.ExitCode        (int)
 // -- result.StartTime       (DateTimeOffset)
@@ -74,7 +74,7 @@ The code above spawns a child process with the configured command line arguments
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other related information.
 
 > ⚠️ **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
-You can [override this behavior](#command-configuration) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
+> You can [override this behavior](#command-configuration) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
 By default, the process's standard input, output and error streams are routed to **CliWrap**'s equivalent of the [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
 You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutputPipe(...)`, or `WithStandardErrorPipe(...)` to configure pipes for the corresponding streams:
@@ -91,9 +91,9 @@ var result = await Cli.Wrap("path/to/exe")
     .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
     .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
     .ExecuteAsync();
-    
+
 // Contains stdOut/stdErr buffered in-memory as string
-var stdOut = stdOutBuffer.ToString(); 
+var stdOut = stdOutBuffer.ToString();
 var stdErr = stdErrBuffer.ToString();
 ```
 
@@ -124,8 +124,8 @@ var result = await Cli.Wrap("path/to/exe")
 ```
 
 > ⚠️ Be mindful when using `ExecuteBufferedAsync()`.
-Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to buffer in-memory.
-For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [Piping](#piping) section.
+> Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to buffer in-memory.
+> For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [Piping](#piping) section.
 
 ### Command configuration
 
@@ -166,7 +166,7 @@ var cmd = Cli.Wrap("git")
 ```
 
 > 💡 You can define your own extension methods for `ArgumentsBuilder` to simplify the process of providing arguments for specific usage scenarios.
-See [this tweet](https://twitter.com/Tyrrrz/status/1409104223753605121) for an example.
+> See [this tweet](https://twitter.com/Tyrrrz/status/1409104223753605121) for an example.
 
 #### `WithWorkingDirectory(...)`
 
@@ -206,8 +206,8 @@ var cmd = Cli.Wrap("git")
 ```
 
 > 💡 These environment variables are set on top of those inherited from the parent process.
-If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
-Additionally, you can also remove an inherited variable by setting its value to `null`.
+> If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
+> Additionally, you can also remove an inherited variable by setting its value to `null`.
 
 #### `WithCredentials(...)`
 
@@ -237,7 +237,7 @@ var cmd = Cli.Wrap("git")
 ```
 
 > ⚠️ Specifying domain and password is only supported on Windows and will result in an exception on other operating systems.
-Specifying username, on the other hand, is supported across all platforms.
+> Specifying username, on the other hand, is supported across all platforms.
 
 #### `WithValidation(...)`
 
