@@ -66,7 +66,7 @@ public partial class ArgumentsBuilder
     /// </summary>
     // TODO: (breaking change) remove in favor of other overloads
     public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, bool escape) =>
-        Add(value, (IFormatProvider) cultureInfo, escape);
+        Add(value, (IFormatProvider)cultureInfo, escape);
 
     /// <summary>
     /// Adds the specified value to the list of arguments.
@@ -106,7 +106,7 @@ public partial class ArgumentsBuilder
     /// </summary>
     // TODO: (breaking change) remove in favor of other overloads
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo, bool escape) =>
-        Add(values, (IFormatProvider) cultureInfo, escape);
+        Add(values, (IFormatProvider)cultureInfo, escape);
 
     /// <summary>
     /// Adds the specified values to the list of arguments.
@@ -157,32 +157,33 @@ public partial class ArgumentsBuilder
 
             if (c == '\\')
             {
-                var numBackSlash = 1;
+                var backslashCount = 1;
                 while (i < argument.Length && argument[i] == '\\')
                 {
-                    numBackSlash++;
+                    backslashCount++;
                     i++;
                 }
 
                 if (i == argument.Length)
                 {
-                    buffer.Append('\\', numBackSlash * 2);
+                    buffer.Append('\\', backslashCount * 2);
                 }
                 else if (argument[i] == '"')
                 {
-                    buffer.Append('\\', numBackSlash * 2 + 1);
-                    buffer.Append('"');
+                    buffer
+                        .Append('\\', backslashCount * 2 + 1)
+                        .Append('"');
+
                     i++;
                 }
                 else
                 {
-                    buffer.Append('\\', numBackSlash);
+                    buffer.Append('\\', backslashCount);
                 }
             }
             else if (c == '"')
             {
-                buffer.Append('\\');
-                buffer.Append('"');
+                buffer.Append('\\').Append('"');
             }
             else
             {
