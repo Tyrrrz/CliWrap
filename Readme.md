@@ -83,7 +83,7 @@ You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutput
 var stdOutBuffer = new StringBuilder();
 var stdErrBuffer = new StringBuilder();
 
-// This particular example can also be simplified with ExecuteBufferedAsync()
+// ⚠ This particular example can also be simplified with ExecuteBufferedAsync().
 // Continue reading below!
 var result = await Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
@@ -98,7 +98,7 @@ var stdErr = stdErrBuffer.ToString();
 ```
 
 This example command is configured to decode the data written to standard output and error streams as text, and append it to the corresponding `StringBuilder` buffers.
-After the execution has completed, these buffers can be inspected to see what the process has printed to the console.
+After the execution is completed, these buffers can be inspected to see what the process has printed to the console.
 
 Handling command output is a very common use case, so **CliWrap** offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
 In particular, the same thing shown above can also be achieved more succinctly with the `ExecuteBufferedAsync()` extension method:
@@ -125,7 +125,7 @@ var result = await Cli.Wrap("path/to/exe")
 
 > ⚠️ Be mindful when using `ExecuteBufferedAsync()`.
 > Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to buffer in-memory.
-> For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [Piping](#piping) section.
+> For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
 
 ### Command configuration
 
@@ -138,23 +138,25 @@ Below list covers all available configuration methods and their usage.
 
 Sets the command line arguments that will be passed to the child process.
 
-Default: empty.
+**Default**: empty.
 
-Set arguments directly from a string:
+**Examples**:
+
+- Set arguments from a string:
 
 ```csharp
 var cmd = Cli.Wrap("git")
     .WithArguments("commit -m \"my commit\"");
 ```
 
-Set arguments from a list (each element is treated as a separate argument; spaces are escaped automatically):
+- Set arguments from a list (each element is treated as a separate argument; spaces are escaped automatically):
 
 ```csharp
 var cmd = Cli.Wrap("git")
     .WithArguments(new[] {"commit", "-m", "my commit"});
 ```
 
-Set arguments using a builder (same as above, but also automatically converts certain values to their string representations):
+- Set arguments using a builder (same as above, but also automatically converts certain values to their string representations):
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -162,7 +164,7 @@ var cmd = Cli.Wrap("git")
         .Add("clone")
         .Add("https://github.com/Tyrrrz/CliWrap")
         .Add("--depth")
-        .Add(20)); // <- formatted to a string
+        .Add(20));
 ```
 
 > 💡 You can define your own extension methods for `ArgumentsBuilder` to simplify the process of providing arguments for specific usage scenarios.
@@ -172,7 +174,9 @@ var cmd = Cli.Wrap("git")
 
 Sets the working directory of the child process.
 
-Default: current working directory, i.e. `Directory.GetCurrentDirectory()`.
+**Default**: current working directory, i.e. `Directory.GetCurrentDirectory()`.
+
+**Example**:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -183,9 +187,11 @@ var cmd = Cli.Wrap("git")
 
 Sets additional environment variables that will be exposed to the child process.
 
-Default: empty.
+**Default**: empty.
 
-Set environment variables from a dictionary:
+**Examples**:
+
+- Set environment variables from a dictionary:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -196,7 +202,7 @@ var cmd = Cli.Wrap("git")
     });
 ```
 
-Set environment variables using a builder:
+- Set environment variables using a builder:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -205,7 +211,7 @@ var cmd = Cli.Wrap("git")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
 ```
 
-> 💡 These environment variables are set on top of those inherited from the parent process.
+> 💡 Configured environment variables are applied on top of those inherited from the parent process.
 > If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
 > Additionally, you can also remove an inherited variable by setting its value to `null`.
 
@@ -213,9 +219,11 @@ var cmd = Cli.Wrap("git")
 
 Sets domain, name and password of the user, under whom the child process will be started.
 
-Default: no credentials.
+**Default**: no credentials.
 
-Set credentials directly:
+**Examples**:
+
+- Set credentials directly:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -226,7 +234,7 @@ var cmd = Cli.Wrap("git")
     ));
 ```
 
-Set credentials using a builder:
+- Set credentials using a builder:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -236,28 +244,29 @@ var cmd = Cli.Wrap("git")
        .SetPassword("securepassword123"));
 ```
 
-> ⚠️ Specifying domain and password is only supported on Windows and will result in an exception on other operating systems.
-> Specifying username, on the other hand, is supported across all platforms.
+> ⚠️ Running a process under a different username is supported across all platforms, but the domain and password options only work on Windows.
 
 #### `WithValidation(...)`
 
 Sets the strategy for validating the result of an execution.
 
-The following modes are available:
+**Accepted values**:
 
 - `CommandResultValidation.None` — no validation
 - `CommandResultValidation.ZeroExitCode` — ensures zero exit code when the process exits
 
-Default: `CommandResultValidation.ZeroExitCode`.
+**Default**: `CommandResultValidation.ZeroExitCode`.
 
-Disable validation:
+**Examples**:
+
+- Disable validation:
 
 ```csharp
 var cmd = Cli.Wrap("git")
     .WithValidation(CommandResultValidation.None);
 ```
 
-Enable validation:
+- Enable validation:
 
 ```csharp
 // Ensure that exit code is zero after the process exits (otherwise throw an exception)
@@ -269,7 +278,7 @@ var cmd = Cli.Wrap("git")
 
 Sets the pipe source that will be used for the standard _input_ stream of the process.
 
-Default: `PipeSource.Null`.
+**Default**: `PipeSource.Null`.
 
 _Read more about this method in the [Piping](#piping) section._
 
@@ -277,7 +286,7 @@ _Read more about this method in the [Piping](#piping) section._
 
 Sets the pipe target that will be used for the standard _output_ stream of the process.
 
-Default: `PipeTarget.Null`.
+**Default**: `PipeTarget.Null`.
 
 _Read more about this method in the [Piping](#piping) section._
 
@@ -285,7 +294,7 @@ _Read more about this method in the [Piping](#piping) section._
 
 Sets the pipe target that will be used for the standard _error_ stream of the process.
 
-Default: `PipeTarget.Null`.
+**Default**: `PipeTarget.Null`.
 
 _Read more about this method in the [Piping](#piping) section._
 
@@ -335,16 +344,16 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
 
-Below you can see some examples of what you can achieve with the help of **CliWrap**'s piping feature.
+Below you can see some examples of what you can achieve with the help of **CliWrap**'s piping feature:
 
-#### Pipe a string into stdin
+- Pipe a string into stdin:
 
 ```csharp
 var cmd = "Hello world" | Cli.Wrap("foo");
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe stdout as text into a `StringBuilder`
+- Pipe stdout as text into a `StringBuilder`:
 
 ```csharp
 var stdOutBuffer = new StringBuilder();
@@ -353,7 +362,7 @@ var cmd = Cli.Wrap("foo") | stdOutBuffer;
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe a binary HTTP stream into stdin
+- Pipe a binary HTTP stream into stdin:
 
 ```csharp
 using var httpClient = new HttpClient();
@@ -363,14 +372,14 @@ var cmd = input | Cli.Wrap("foo");
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe stdout of one command into stdin of another
+- Pipe stdout of one command into stdin of another:
 
 ```csharp
 var cmd = Cli.Wrap("foo") | Cli.Wrap("bar") | Cli.Wrap("baz");
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe stdout and stderr into parent process
+- Pipe stdout and stderr into stdout and stderr of the parent process:
 
 ```csharp
 await using var stdOut = Console.OpenStandardOutput();
@@ -380,14 +389,14 @@ var cmd = Cli.Wrap("foo") | (stdOut, stdErr);
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe stdout to a delegate
+- Pipe stdout to a delegate:
 
 ```csharp
 var cmd = Cli.Wrap("foo") | Debug.WriteLine;
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe stdout into a file and stderr into a `StringBuilder`
+- Pipe stdout into a file and stderr into a `StringBuilder`:
 
 ```csharp
 var buffer = new StringBuilder();
@@ -398,7 +407,7 @@ var cmd = Cli.Wrap("foo") |
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe stdout into multiple files simultaneously
+- Pipe stdout into multiple files simultaneously:
 
 ```csharp
 var target = PipeTarget.Merge(
@@ -411,7 +420,7 @@ var cmd = Cli.Wrap("foo") | target;
 await cmd.ExecuteAsync();
 ```
 
-#### Pipe a chain of commands
+- Pipe a string into stdin of a command, stdout of that command into stdin of another command, and then stdout and stderr of the last command into stdout and stderr of the parent process:
 
 ```csharp
 var cmd =
@@ -425,13 +434,13 @@ await cmd.ExecuteAsync();
 
 ### Execution models
 
-**CliWrap** provides a few high-level execution models, which are essentially just extension methods that offer alternative ways to reason about commands.
-Under the hood, they are all built by leveraging the [piping feature](#piping) shown earlier.
+**CliWrap** provides a few high-level execution models that offer alternative ways to reason about commands.
+These are essentially just extension methods that work by leveraging the [piping feature](#piping) shown earlier.
 
 #### Buffered execution
 
 This execution model lets you run a process while buffering its standard output and error streams in-memory.
-The buffered data can then be accessed after the command finishes executing.
+The buffered data can then be accessed after the command finished executing.
 
 In order to execute a command with buffering, call the `ExecuteBufferedAsync()` extension method:
 
@@ -546,7 +555,7 @@ Unlike with the pull-based event stream, this execution model does not involve a
 
 #### Combining execution models with custom pipes
 
-The different execution models shown above are based on the piping model, but these two concepts are not mutually exclusive.
+The different execution models shown above are based on the piping model, but those two concepts are not mutually exclusive.
 When running a command this way, existing pipe configurations are preserved and extended using `PipeTarget.Merge()`.
 
 This means that you can, for example, pipe a command to a file and also execute it as an event stream without any issues:
@@ -581,8 +590,19 @@ cts.CancelAfter(TimeSpan.FromSeconds(10));
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 ```
 
-In the event that the cancellation is requested, the underlying process will get killed and the `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
-You will need to catch this exception in your code to recover from cancellation.
+In the event that the cancellation is requested, the underlying process gets killed and `ExecuteAsync()` throws an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
+You will need to catch this exception in your code to recover from cancellation:
+
+```csharp
+try
+{
+    await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
+}
+catch (OperationCanceledException)
+{
+    // Command was cancelled
+}
+```
 
 > 💡 Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
