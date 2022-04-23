@@ -280,7 +280,7 @@ Sets the pipe source that will be used for the standard _input_ stream of the pr
 
 **Default**: `PipeSource.Null`.
 
-_Read more about this method in the [Piping](#piping) section._
+_Read more about this method in the [piping section](#piping)._
 
 #### `WithStandardOutputPipe(...)`
 
@@ -288,7 +288,7 @@ Sets the pipe target that will be used for the standard _output_ stream of the p
 
 **Default**: `PipeTarget.Null`.
 
-_Read more about this method in the [Piping](#piping) section._
+_Read more about this method in the [piping section](#piping)._
 
 #### `WithStandardErrorPipe(...)`
 
@@ -296,7 +296,7 @@ Sets the pipe target that will be used for the standard _error_ stream of the pr
 
 **Default**: `PipeTarget.Null`.
 
-_Read more about this method in the [Piping](#piping) section._
+_Read more about this method in the [piping section](#piping)._
 
 ### Piping
 
@@ -389,7 +389,7 @@ var cmd = Cli.Wrap("foo") | (stdOut, stdErr);
 await cmd.ExecuteAsync();
 ```
 
-- Pipe stdout to a delegate:
+- Pipe stdout into a delegate:
 
 ```csharp
 var cmd = Cli.Wrap("foo") | Debug.WriteLine;
@@ -420,7 +420,7 @@ var cmd = Cli.Wrap("foo") | target;
 await cmd.ExecuteAsync();
 ```
 
-- Pipe a string into stdin of a command, stdout of that command into stdin of another command, and then stdout and stderr of the last command into stdout and stderr of the parent process:
+- Pipe a string into stdin of one command, stdout of that command into stdin of another command, and then stdout and stderr of the last command into stdout and stderr of the parent process:
 
 ```csharp
 var cmd =
@@ -590,7 +590,7 @@ cts.CancelAfter(TimeSpan.FromSeconds(10));
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 ```
 
-In the event that the cancellation is requested, the underlying process gets killed and `ExecuteAsync()` throws an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
+In the event of a cancellation request, the underlying process gets killed and `ExecuteAsync()` throws an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
 You will need to catch this exception in your code to recover from cancellation:
 
 ```csharp
@@ -605,6 +605,8 @@ catch (OperationCanceledException)
 ```
 
 > 💡 Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
+
+> 💡 You can read more about `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
 
 ### Retrieving process ID
 
