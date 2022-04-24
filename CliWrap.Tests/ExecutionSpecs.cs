@@ -69,8 +69,9 @@ public class ExecutionSpecs
         var task = cmd.ExecuteAsync(cts.Token);
 
         // Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]
@@ -89,8 +90,9 @@ public class ExecutionSpecs
         var task = cmd.ExecuteAsync(cts.Token);
 
         // Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils;
+using CliWrap.Utils.Extensions;
 
 namespace CliWrap.EventStream;
 
@@ -130,7 +131,7 @@ public static class EventStreamCommandExtensions
                     // Canceled tasks don't have exception
                     if (t.IsCanceled)
                     {
-                        observer.OnError(new OperationCanceledException("Command execution has been canceled."));
+                        observer.OnError(new TaskCanceledException(t));
                     }
                     else if (t.Exception is null)
                     {
@@ -139,7 +140,7 @@ public static class EventStreamCommandExtensions
                     }
                     else
                     {
-                        observer.OnError(t.Exception);
+                        observer.OnError(t.Exception.TryGetSingle() ?? t.Exception);
                     }
                 }, TaskContinuationOptions.None);
 

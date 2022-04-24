@@ -440,12 +440,26 @@ public partial class Command : ICommandConfiguration
                 PipeStandardErrorAsync(process, cancellationToken)
             );
 
-            // Wait until the process is terminated or killed
-            await process.WaitUntilExitAsync().ConfigureAwait(false);
+            try
+            {
+                // Wait until the process is terminated or killed
+                await process.WaitUntilExitAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ex) when
+                (ex.CancellationToken == default && cancellationToken.IsCancellationRequested)
+            {
+                // This exception was triggered when the process was killed by the user's cancellation token.
+                // Enrich the exception with the passed token because the original exception doesn't know about it.
+                throw new OperationCanceledException(
+                    ex.Message,
+                    ex,
+                    cancellationToken
+                );
+            }
 
             // Send the cancellation signal to the stdin pipe since the process has exited
             // and won't need it anymore.
-            // If the pipe has already been exhausted (most likely), this will do nothing.
+            // If the pipe has already been exhausted (most likely), this won't do anything.
             // If the pipe is still trying to transfer data, this will cause it to abort.
             stdInCts.Cancel();
 
@@ -454,9 +468,10 @@ public partial class Command : ICommandConfiguration
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
             {
-                // Don't throw if cancellation happened internally and not by user request
+                // This exception was triggered by our internal cancellation token.
+                // Don't propagate the exception to the caller in this case.
             }
 
             // Validate exit code if required

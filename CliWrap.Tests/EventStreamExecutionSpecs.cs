@@ -114,9 +114,11 @@ public class EventStreamExecutionSpecs
                 .Add("--duration").Add("00:00:10"));
 
         // Act & assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await cmd.ListenAsync(cts.Token).IterateDiscardAsync()
         );
+
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]
@@ -132,9 +134,11 @@ public class EventStreamExecutionSpecs
                 .Add("--duration").Add("00:00:10"));
 
         // Act & assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await cmd.ListenAsync(cts.Token).IterateDiscardAsync()
         );
+
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]
@@ -151,9 +155,11 @@ public class EventStreamExecutionSpecs
                 .Add("--duration").Add("00:00:10"));
 
         // Act & assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await cmd.Observe(cts.Token).ToTask(CancellationToken.None)
         );
+
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]
@@ -169,8 +175,10 @@ public class EventStreamExecutionSpecs
                 .Add("--duration").Add("00:00:10"));
 
         // Act & assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await cmd.Observe(cts.Token).ToTask(CancellationToken.None)
         );
+
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 }
