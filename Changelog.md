@@ -1,3 +1,8 @@
+### v3.4.4 (24-Apr-2022)
+
+- Improved cancellation handling in all execution models by attaching the triggered `CancellationToken` to produced `OperationCanceledException`s.
+- Fixed an issue where using `PipeSource.FromFile(...)` with a non-existing file did not throw an exception.
+
 ### v3.4.3 (18-Apr-2022)
 
 - Added `PipeSource.Create(...)` and `PipeTarget.Create(...)` factory methods that can be used to create anonymous instances of `PipeSource` and `PipeTarget`. This approach can be convenient if you need to implement a custom `PipeSource` or `PipeTarget` but don't want to define a new class. (Thanks [@Cédric Luthi](https://github.com/0xced))
@@ -15,7 +20,7 @@
 
 ### v3.4 (07-Jan-2022)
 
-- Added automatic resolving of script files on Windows (i.e. `.bat` and `.cmd` files). Previously, if you did `Cli.Wrap("foo")`, the underlying implementation of `System.Diagnostic.Process` would try to find `foo` in several locations, including directories listed in the PATH environment variable. On Windows, however, this only worked for `.exe` files, meaning that it wouldn't find `foo.cmd` or `foo.bat` even if they existed on the PATH. This was an issue with `Cli.Wrap("npm")` and `Cli.Wrap("az")` because those CLI tools are implemented as `.cmd` scripts on Windows. CliWrap now attempts to resolves those paths itself. (Thanks [@AliReZa Sabouri](https://github.com/alirezanet))
+- Added automatic resolving of script files on Windows (i.e. `.bat` and `.cmd` files). Previously, if you did `Cli.Wrap("foo")`, the underlying implementation of `System.Diagnostic.Process` would try to find `foo` in several locations, including directories listed in the PATH environment variable. On Windows, however, this only worked for `.exe` files, meaning that it wouldn't find `foo.cmd` or `foo.bat` even if they existed on the PATH. This was an issue with `Cli.Wrap("npm")` and `Cli.Wrap("az")` because those CLI tools are implemented as `.cmd` scripts on Windows. CliWrap now attempts to resolve those paths itself. (Thanks [@AliReZa Sabouri](https://github.com/alirezanet))
 - Improved exception thrown when the underlying process fails to start. It now contains the target file path, which can be helpful to identify the exact command that failed. (Thanks [@Mohamed Hassan](https://github.com/moh-hassan))
 
 ⚠ Warning: the next major version of CliWrap (4.0) will drop support for legacy .NET Framework, .NET Standard, and .NET Core (prior to rebranding). Going forward, the library will only target .NET 5 and higher. If you have any questions, please comment on [this issue](https://github.com/Tyrrrz/CliWrap/issues/131).
@@ -69,7 +74,7 @@ Known incompatibility issue: Using CliWrap together with [ConfigureAwait.Fody](h
 ### v3.1.1 (06-Sep-2020)
 
 - Fixed an issue where `PipeTarget.Merge(...)` worked incorrectly when processing large stdout written in a single operation (more than 81920 bytes at a time). (Thanks [@Tom Pažourek](https://github.com/tompazourek))
-- Replaced `[DebuggerDisplay]` attribute with an implementation of `ToString()` on types deriving from `CommandEvent`. Calling `commandEvent.ToString()` now yields an informative string that can be useful in debugging. This change shouldn't have any unwanted side-effects.
+- Replaced `[DebuggerDisplay]` attribute with an implementation of `ToString()` on types deriving from `CommandEvent`. Calling `commandEvent.ToString()` now yields an informative string that can be useful in debugging. This change shouldn't have any unwanted side effects.
 
 ### v3.1 (27-Jun-2020)
 
@@ -187,7 +192,7 @@ Check out the new readme to see the whole list of new features.
 - Refactored additional `Cli` constructor parameters into a separate class called `CliSettings`. This is breaking if you used to supply more than 1 parameter to the constructor.
 - `Execute` and `ExecuteAsync` no longer depend on process getting successfully killed. An attempt to kill it is made but if it's not successful, no exception is thrown.
 - All `CancellationToken` callbacks are now exception-safe.
-- Fixed an issue where `CancellationToken` would throw an out of scope exception when the process could not be killed.
+- Fixed an issue where `CancellationToken` would throw an out-of-scope exception when the process could not be killed.
 - Fixed a race condition when an execution task is completed and canceled at the same time.
 
 ### v1.7.5 (21-Jan-2018)
