@@ -392,9 +392,11 @@ public partial class Command : ICommandConfiguration
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (IOException) when (process.IsExited)
+            // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Linux).
+            // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
+            // We can't rely on process.IsExited here because of potential race conditions.
+            catch (IOException ex) when (ex.GetType() == typeof(IOException))
             {
-                // Expect IOException: The pipe has been ended.
                 // This may happen if the process terminated before the pipe could complete.
                 // It's not an exceptional situation because the process may not need
                 // the entire stdin to complete successfully.
@@ -465,10 +467,10 @@ public partial class Command : ICommandConfiguration
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
+            // Catch cancellations triggered internally
             catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
             {
-                // This exception was triggered by our internal cancellation token.
-                // Don't propagate the exception to the caller in this case.
+                // This exception has no value to the user so don't propagate it
             }
 
             // Validate exit code if required
