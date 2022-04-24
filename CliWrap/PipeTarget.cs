@@ -91,12 +91,12 @@ public partial class PipeTarget
     /// Logical equivalent to /dev/null.
     /// </summary>
     /// <remarks>
-    /// Using this target results in the corresponding stream (stdout or stderr) not being opened for the underlying
-    /// process at all. In most cases, this behavior should be functionally equivalent to writing to a null stream,
-    /// but without the performance overhad of discarding unneeded data.
-    /// This may cause issues in some situations, however, for example if the process attempts to write data to the
-    /// destination stream without first checking if it's open.
-    /// In such cases, it may be better to use <see cref="ToStream(Stream)" /> with <see cref="Stream.Null" /> instead.
+    /// Using this target results in the corresponding stream (standard output or standard error)
+    /// not being opened for the underlying process at all.
+    /// In the vast majority of cases, this behavior should be functionally equivalent to piping
+    /// to a null stream, but without the performance overhead of consuming and discarding unneeded data.
+    /// This may be undesirable in certain situations — in which case it's recommended to pipe to a
+    /// null stream explicitly using <see cref="ToStream(Stream)" /> with <see cref="Stream.Null" />.
     /// </remarks>
     public static PipeTarget Null { get; } = Create((_, cancellationToken) =>
          !cancellationToken.IsCancellationRequested

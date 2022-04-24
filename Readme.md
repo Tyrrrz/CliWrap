@@ -98,7 +98,7 @@ var stdErr = stdErrBuffer.ToString();
 ```
 
 This example command is configured to decode the data written to standard output and error streams as text, and append it to the corresponding `StringBuilder` buffers.
-After the execution is completed, these buffers can be inspected to see what the process has printed to the console.
+After the execution is complete, these buffers can be inspected to see what the process has printed to the console.
 
 Handling command output is a very common use case, so **CliWrap** offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
 In particular, the same thing shown above can also be achieved more succinctly with the `ExecuteBufferedAsync()` extension method:
@@ -166,6 +166,9 @@ var cmd = Cli.Wrap("git")
         .Add("--depth")
         .Add(20));
 ```
+
+> ⚠️ String overload of `WithArguments(...)` only works well when the arguments are short, simple, and not expected to change.
+> In all other scenarios, both the array and builder overloads of `WithArguments(...)` offer a far more flexible alternative.
 
 #### `WithWorkingDirectory(...)`
 
@@ -333,14 +336,14 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeSource.FromCommand(...)` — pipes data from standard output of another command
 - `PipeTarget`:
   - `PipeTarget.Null` — represents a pipe target that discards all data
-  - `PipeTarget.ToStream(...)` — pipes data into any writeable stream
+  - `PipeTarget.ToStream(...)` — pipes data into any writable stream
   - `PipeTarget.ToFile(...)` — pipes data into a file
   - `PipeTarget.ToStringBuilder(...)` — pipes data as text into `StringBuilder`
   - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
 
 > ⚠️ Using `PipeTarget.Null` results in the corresponding stream (standard output or standard error) not being opened for the underlying process at all.
-> In vast majority of cases, this behavior should be functionally equivalent to piping to a null stream, but without the performance overhead of consuming and discarding unneeded data.
+> In the vast majority of cases, this behavior should be functionally equivalent to piping to a null stream, but without the performance overhead of consuming and discarding unneeded data.
 > This may be undesirable in [certain situations](https://github.com/Tyrrrz/CliWrap/issues/145#issuecomment-1100680547) — in which case it's recommended to pipe to a null stream explicitly using `PipeTarget.ToStream(Stream.Null)`.
 
 Below you can see some examples of what you can achieve with the help of **CliWrap**'s piping feature:
