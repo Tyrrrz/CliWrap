@@ -45,7 +45,7 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 
 ### Video guide
 
-📺 **Watch [Intro to CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) webinar on YouTube for a deep look into the library and its features!**
+📺 **Watch [Intro to CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) on YouTube for a deep look into the library and its features!**
 
 [![Intro to CliWrap](.assets/webinar-yt-thumb.jpg)](https://youtube.com/watch?v=3_Ucw3Fflmo)
 
@@ -132,11 +132,11 @@ var result = await Cli.Wrap("path/to/exe")
 The fluent interface provided by the command object allows you to configure various options related to its execution.
 Below list covers all available configuration methods and their usage.
 
-> 💡 `Command` is an immutable object, meaning that all configuration methods listed here return a new instance instead of modifying the existing one.
+> 💡 `Command` is an immutable object — all configuration methods listed here create a new instance instead of modifying the existing one.
 
 #### `WithArguments(...)`
 
-Sets the command line arguments that will be passed to the child process.
+Sets the command line arguments passed to the child process.
 
 **Default**: empty.
 
@@ -149,14 +149,14 @@ var cmd = Cli.Wrap("git")
     .WithArguments("commit -m \"my commit\"");
 ```
 
-- Set arguments from a list (each element is treated as a separate argument; spaces are escaped automatically):
+- Set arguments from a list — each element is treated as a separate argument and spaces are escaped automatically:
 
 ```csharp
 var cmd = Cli.Wrap("git")
     .WithArguments(new[] {"commit", "-m", "my commit"});
 ```
 
-- Set arguments using a builder (same as above, but also automatically converts certain values to their string representations):
+- Set arguments using a builder — same as above, but also works with non-string arguments and can be [enhanced with your own extension methods](https://twitter.com/Tyrrrz/status/1409104223753605121):
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -166,9 +166,6 @@ var cmd = Cli.Wrap("git")
         .Add("--depth")
         .Add(20));
 ```
-
-> 💡 You can define your own extension methods for `ArgumentsBuilder` to simplify the process of providing arguments for specific usage scenarios.
-> See [this tweet](https://twitter.com/Tyrrrz/status/1409104223753605121) for an example.
 
 #### `WithWorkingDirectory(...)`
 
@@ -185,7 +182,7 @@ var cmd = Cli.Wrap("git")
 
 #### `WithEnvironmentVariables(...)`
 
-Sets additional environment variables that will be exposed to the child process.
+Sets additional environment variables exposed to the child process.
 
 **Default**: empty.
 
@@ -211,13 +208,12 @@ var cmd = Cli.Wrap("git")
         .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
 ```
 
-> 💡 Configured environment variables are applied on top of those inherited from the parent process.
-> If you provide a variable with the same name as one of the inherited variables, the provided value will take precedence.
-> Additionally, you can also remove an inherited variable by setting its value to `null`.
+> 💡 Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
+> If you need to remove an inherited variable, simply set its value to `null`.
 
 #### `WithCredentials(...)`
 
-Sets domain, name and password of the user, under whom the child process will be started.
+Sets domain, name and password of the user, under whom the child process is started.
 
 **Default**: no credentials.
 
@@ -259,19 +255,18 @@ Sets the strategy for validating the result of an execution.
 
 **Examples**:
 
+- Enable validation — will throw an exception if the process exits with a non-zero exit code:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithValidation(CommandResultValidation.ZeroExitCode);
+```
+
 - Disable validation:
 
 ```csharp
 var cmd = Cli.Wrap("git")
     .WithValidation(CommandResultValidation.None);
-```
-
-- Enable validation:
-
-```csharp
-// Ensure that exit code is zero after the process exits (otherwise throw an exception)
-var cmd = Cli.Wrap("git")
-    .WithValidation(CommandResultValidation.ZeroExitCode);
 ```
 
 #### `WithStandardInputPipe(...)`
@@ -343,6 +338,10 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeTarget.ToStringBuilder(...)` — pipes data as text into `StringBuilder`
   - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
+
+> ⚠️ Using `PipeTarget.Null` results in the corresponding stream (standard output or standard error) not being opened for the underlying process at all.
+> In vast majority of cases, this behavior should be functionally equivalent to piping to a null stream, but without the performance overhead of consuming and discarding unneeded data.
+> This may be undesirable in [certain situations](https://github.com/Tyrrrz/CliWrap/issues/145#issuecomment-1100680547) — in which case it's recommended to pipe to a null stream explicitly using `PipeTarget.ToStream(Stream.Null)`.
 
 Below you can see some examples of what you can achieve with the help of **CliWrap**'s piping feature:
 
