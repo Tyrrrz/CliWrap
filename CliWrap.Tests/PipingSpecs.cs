@@ -608,7 +608,34 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Not_piping_stdin_into_a_command_that_expects_it_does_not_deadlock()
+    public async Task Command_execution_throws_if_an_underlying_pipe_source_throws()
+    {
+        // Arrange
+        var cmd = PipeSource.FromFile("non-existing-file.txt") | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo stdin"));
+
+        // Act & assert
+        await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Command_execution_throws_if_an_underlying_pipe_target_throws()
+    {
+        // Arrange
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate binary")
+                .Add("--length").Add(1_000_000)) | PipeTarget.ToFile("non-existing-directory/file.txt");
+
+        // Act & assert
+        await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task Command_execution_does_not_deadlock_if_the_process_expects_stdin_but_none_is_provided()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -621,12 +648,10 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Piping_empty_stdin_into_a_command_that_expects_it_does_not_deadlock()
+    public async Task Command_execution_does_not_deadlock_if_the_process_expects_stdin_but_empty_data_is_provided()
     {
         // Arrange
-        await using var stream = new MemoryStream();
-
-        var cmd = stream | Cli.Wrap("dotnet")
+        var cmd = Array.Empty<byte>() | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin"));
@@ -636,7 +661,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Piping_large_stdin_into_a_command_that_simultaneously_writes_stdout_and_stderr_does_not_deadlock()
+    public async Task Command_execution_does_not_deadlock_on_large_stdin_while_it_writes_stdout()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/61
 
@@ -653,7 +678,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Piping_infinite_stdin_into_a_command_that_only_reads_it_partially_does_not_deadlock()
+    public async Task Command_execution_does_not_deadlock_on_infinite_stdin_which_is_only_consumed_partially()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -671,7 +696,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Piping_unresolvable_stdin_into_a_command_that_does_not_read_it_does_not_deadlock()
+    public async Task Command_execution_does_not_deadlock_on_unresolvable_stdin_which_is_not_consumed()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -689,7 +714,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Piping_unresolvable_and_uncancellable_stdin_into_a_command_that_does_not_read_it_does_not_deadlock()
+    public async Task Command_execution_does_not_deadlock_on_uncancellable_and_unresolvable_stdin_which_is_not_consumed()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
