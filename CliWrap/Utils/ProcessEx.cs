@@ -17,11 +17,11 @@ internal class ProcessEx : IDisposable
     private CancellationTokenSource? _waitTimeoutCts;
     private CancellationTokenRegistration? _waitTimeoutRegistration;
 
-    private bool _isKilled;
-
     public int Id { get; private set; }
 
-    public bool HasExited { get; private set; }
+    public bool IsExited { get; private set; }
+
+    public bool IsKilled { get; private set; }
 
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
@@ -49,20 +49,15 @@ internal class ProcessEx : IDisposable
         _nativeProcess.EnableRaisingEvents = true;
         _nativeProcess.Exited += (_, _) =>
         {
-            HasExited = true;
+            IsExited = true;
             ExitCode = _nativeProcess.ExitCode;
 
             // Calculate our own ExitTime to be consistent with StartTime
             ExitTime = DateTimeOffset.Now;
 
-            if (!_isKilled)
-            {
-                _exitTcs.TrySetResult(null);
-            }
-            else
-            {
-                _exitTcs.TrySetCanceled();
-            }
+            // Don't cancel the task here because we don't have access to the provided cancellation token.
+            // Let the upstream caller handle cancellation based on the IsKilled property.
+            _exitTcs.TrySetResult(null);
         };
 
         // Start the process
@@ -104,7 +99,7 @@ internal class ProcessEx : IDisposable
     {
         try
         {
-            _isKilled = true;
+            IsKilled = true;
             _nativeProcess.Kill(true);
         }
         catch

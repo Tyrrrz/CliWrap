@@ -392,7 +392,7 @@ public partial class Command : ICommandConfiguration
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (IOException) when (process.HasExited)
+            catch (IOException) when (process.IsExited)
             {
                 // Expect IOException: The pipe has been ended.
                 // This may happen if the process terminated before the pipe could complete.
@@ -440,19 +440,16 @@ public partial class Command : ICommandConfiguration
                 PipeStandardErrorAsync(process, cancellationToken)
             );
 
-            try
+            // Wait until the process exits normally or gets killed
+            await process.WaitUntilExitAsync().ConfigureAwait(false);
+
+            // Throw if the process was killed
+            if (process.IsKilled)
             {
-                // Wait until the process is terminated or killed
-                await process.WaitUntilExitAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException ex) when
-                (ex.CancellationToken == default && cancellationToken.IsCancellationRequested)
-            {
-                // This exception was triggered when the process was killed by the user's cancellation token.
-                // Enrich the exception with the passed token because the original exception doesn't know about it.
+                // IsKilled is only true if the process was killed by us, so we can safely assume that
+                // this happened as a result of user cancellation.
                 throw new OperationCanceledException(
-                    ex.Message,
-                    ex,
+                    $"Process (ID: {process.Id}) was killed by user request.",
                     cancellationToken
                 );
             }
