@@ -392,9 +392,9 @@ public partial class Command : ICommandConfiguration
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (IOException)
+            catch (IOException) when (process.HasExited)
             {
-                // IOException: The pipe has been ended.
+                // Expect IOException: The pipe has been ended.
                 // This may happen if the process terminated before the pipe could complete.
                 // It's not an exceptional situation because the process may not need
                 // the entire stdin to complete successfully.
@@ -486,9 +486,9 @@ public partial class Command : ICommandConfiguration
     {
         var process = new ProcessEx(GetStartInfo());
 
-        // Process must be started in a synchronous context, in order
-        // to ensure that, if the process fails to start, the exception
-        // will be thrown synchronously and CommandTask won't be created.
+        // Process must be started in a synchronous context in order
+        // to ensure that, if it fails to start, the exception will be
+        // thrown synchronously and CommandTask won't be created.
         // Otherwise we may end up with a CommandTask that has invalid state.
         // https://github.com/Tyrrrz/CliWrap/issues/139
         process.Start();

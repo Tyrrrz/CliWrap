@@ -21,6 +21,8 @@ internal class ProcessEx : IDisposable
 
     public int Id { get; private set; }
 
+    public bool HasExited { get; private set; }
+
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
 
@@ -47,10 +49,11 @@ internal class ProcessEx : IDisposable
         _nativeProcess.EnableRaisingEvents = true;
         _nativeProcess.Exited += (_, _) =>
         {
-            // Don't rely on Process.ExitTime.
-            // See the code for StartTime below for explanation.
-            ExitTime = DateTimeOffset.Now;
+            HasExited = true;
             ExitCode = _nativeProcess.ExitCode;
+
+            // Calculate our own ExitTime to be consistent with StartTime
+            ExitTime = DateTimeOffset.Now;
 
             if (!_isKilled)
             {
