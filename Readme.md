@@ -168,7 +168,7 @@ var cmd = Cli.Wrap("git")
 ```
 
 > ⚠️ String overload of `WithArguments(...)` only works well when the arguments are short, simple, and not expected to change.
-> In all other scenarios, both the array and builder overloads of `WithArguments(...)` offer a far more flexible alternative.
+> For all other scenarios, it's recommended to use the array or builder overload instead.
 
 #### `WithWorkingDirectory(...)`
 
@@ -442,7 +442,7 @@ These are essentially just extension methods that work by leveraging the [piping
 #### Buffered execution
 
 This execution model lets you run a process while buffering its standard output and error streams in-memory.
-The buffered data can then be accessed after the command finished executing.
+The buffered data can then be accessed after the command finishes executing.
 
 In order to execute a command with buffering, call the `ExecuteBufferedAsync()` extension method:
 
@@ -459,7 +459,7 @@ var stdOut = result.StandardOutput;
 var stdErr = result.StandardError;
 ```
 
-By default, `ExecuteBufferedAsync()` assumes that the underlying process uses default encoding (`Console.OutputEncoding`) for writing text to the console.
+By default, `ExecuteBufferedAsync()` assumes that the underlying process uses the default encoding (`Console.OutputEncoding`) for writing text to the console.
 To override this, specify the encoding explicitly by using one of the available overloads:
 
 ```csharp
@@ -517,7 +517,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct introduced in C# 8.
 When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop, preventing unnecessary buffering of data in-memory.
 
-> 💡 Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
+> 💡 Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
 #### Push-based event stream
 
@@ -551,7 +551,7 @@ await cmd.Observe().ForEachAsync(cmdEvent =>
 In this case, `Observe()` returns a cold `IObservable<CommandEvent>` that represents an observable stream of command events.
 You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet/reactive) to transform, filter, throttle, or otherwise manipulate this stream.
 
-Unlike with the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate it becomes available.
+Unlike the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate it becomes available.
 
 > 💡 Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
 
