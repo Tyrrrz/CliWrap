@@ -74,7 +74,7 @@ The code above spawns a child process with the configured command line arguments
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other related information.
 
 > ⚠️ **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
-> You can [override this behavior](#command-configuration) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
+> You can [override this behavior](#withvalidation) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
 By default, the process's standard input, output and error streams are routed to **CliWrap**'s equivalent of the [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
 You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutputPipe(...)`, or `WithStandardErrorPipe(...)` to configure pipes for the corresponding streams:
