@@ -697,7 +697,18 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         // https://github.com/Tyrrrz/CliWrap/issues/61
 
         // Arrange
-        await using var stream = new RandomStream(10_000_000);
+        var random = new Random(1234567);
+        const long bytesTotal = 10_000_000L;
+        var bytesRead = 0L;
+        await using var stream = new AnonymousReadableStream((memory, _) =>
+        {
+            var count = (int) Math.Min(bytesTotal - bytesRead, memory.Length);
+
+            random.NextBytes(memory.Span[..count]);
+            bytesRead += count;
+
+            return Task.FromResult(count);
+        });
 
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -715,7 +726,12 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
         // Arrange
-        await using var stream = new RandomStream(-1);
+        var random = new Random(1234567);
+        await using var stream = new AnonymousReadableStream((memory, _) =>
+        {
+            random.NextBytes(memory.Span);
+            return Task.FromResult(memory.Length);
+        });
 
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -734,7 +750,12 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
         // Arrange
-        await using var stream = new UnresolvableEmptyStream();
+        await using var stream = new AnonymousReadableStream(async (_, cancellationToken) =>
+        {
+            var tcs = new TaskCompletionSource<int>();
+            await using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+                return await tcs.Task;
+        });
 
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -753,7 +774,11 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
         // Arrange
-        await using var stream = new UnresolvableEmptyStream(false);
+        await using var stream = new AnonymousReadableStream(async (_, _) =>
+        {
+            var tcs = new TaskCompletionSource<int>();
+            return await tcs.Task;
+        });
 
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
