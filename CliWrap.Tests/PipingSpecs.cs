@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Fixtures;
-using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -692,25 +691,29 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_large_stdin_while_it_writes_stdout()
+    public async Task Command_execution_does_not_deadlock_on_large_stdin_while_also_writing_stdout()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/61
 
         // Arrange
         var random = new Random(1234567);
-        const long bytesTotal = 10_000_000L;
-        var bytesRead = 0L;
-        await using var stream = new AnonymousReadableStream((memory, _) =>
+        var bytesRemaining = 10_000_000L;
+
+        var source = PipeSource.Create(async (destination, cancellationToken) =>
         {
-            var count = (int) Math.Min(bytesTotal - bytesRead, memory.Length);
+            var buffer = new byte[256];
+            while (bytesRemaining > 0)
+            {
+                random.NextBytes(buffer);
 
-            random.NextBytes(memory.Span[..count]);
-            bytesRead += count;
+                var count = (int) Math.Min(bytesRemaining, buffer.Length);
+                await destination.WriteAsync(buffer.AsMemory()[..count], cancellationToken);
 
-            return Task.FromResult(count);
+                bytesRemaining -= count;
+            }
         });
 
-        var cmd = stream | Cli.Wrap("dotnet")
+        var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
@@ -727,13 +730,18 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
 
         // Arrange
         var random = new Random(1234567);
-        await using var stream = new AnonymousReadableStream((memory, _) =>
+
+        var source = PipeSource.Create(async (destination, cancellationToken) =>
         {
-            random.NextBytes(memory.Span);
-            return Task.FromResult(memory.Length);
+            var buffer = new byte[256];
+            while (true)
+            {
+                random.NextBytes(buffer);
+                await destination.WriteAsync(buffer, cancellationToken);
+            }
         });
 
-        var cmd = stream | Cli.Wrap("dotnet")
+        var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
@@ -745,19 +753,19 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_unresolvable_stdin_which_is_not_consumed()
+    public async Task Command_execution_does_not_deadlock_on_unresolvable_stdin_which_is_not_consumed_at_all()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
         // Arrange
-        await using var stream = new AnonymousReadableStream(async (_, cancellationToken) =>
+        var source = PipeSource.Create(async (_, cancellationToken) =>
         {
-            var tcs = new TaskCompletionSource<int>();
-            await using (cancellationToken.Register(() => tcs.TrySetCanceled()))
-                return await tcs.Task;
+            var tcs = new TaskCompletionSource();
+            await using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
+                await tcs.Task;
         });
 
-        var cmd = stream | Cli.Wrap("dotnet")
+        var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
@@ -769,18 +777,17 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_uncancellable_and_unresolvable_stdin_which_is_not_consumed()
+    public async Task Command_execution_does_not_deadlock_on_uncancellable_and_unresolvable_stdin_which_is_not_consumed_at_all()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
         // Arrange
-        await using var stream = new AnonymousReadableStream(async (_, _) =>
-        {
-            var tcs = new TaskCompletionSource<int>();
-            return await tcs.Task;
-        });
+        var source = PipeSource.Create(async (_, _) =>
+            // Not infinite, but long enough
+            await Task.Delay(TimeSpan.FromSeconds(20), default)
+        );
 
-        var cmd = stream | Cli.Wrap("dotnet")
+        var cmd = source | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
