@@ -365,14 +365,14 @@ public partial class Command : ICommandConfiguration
 
         foreach (var (key, value) in EnvironmentVariables)
         {
-            // Workaround for https://github.com/dotnet/runtime/issues/34446
-            if (value is null)
+            if (value is not null)
             {
-                startInfo.Environment.Remove(key);
+                startInfo.Environment[key] = value;
             }
             else
             {
-                startInfo.Environment[key] = value;
+                // Workaround for https://github.com/dotnet/runtime/issues/34446
+                startInfo.Environment.Remove(key);
             }
         }
 
@@ -383,7 +383,7 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        await using (process.StandardInput.WithAsyncDisposableAdapter())
+        await using (process.StandardInput.ToAsyncDisposable())
         {
             try
             {
@@ -412,7 +412,7 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        await using (process.StandardOutput.WithAsyncDisposableAdapter())
+        await using (process.StandardOutput.ToAsyncDisposable())
         {
             await StandardOutputPipe.CopyFromAsync(process.StandardOutput, cancellationToken)
                 .ConfigureAwait(false);
@@ -423,7 +423,7 @@ public partial class Command : ICommandConfiguration
         ProcessEx process,
         CancellationToken cancellationToken = default)
     {
-        await using (process.StandardError.WithAsyncDisposableAdapter())
+        await using (process.StandardError.ToAsyncDisposable())
         {
             await StandardErrorPipe.CopyFromAsync(process.StandardError, cancellationToken)
                 .ConfigureAwait(false);
@@ -437,7 +437,7 @@ public partial class Command : ICommandConfiguration
         using (process)
         // Additional cancellation for stdin in case the process terminates early and doesn't fully consume it
         using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-        await using (cancellationToken.Register(process.Kill).WithAsyncDisposableAdapter())
+        await using (cancellationToken.Register(process.Kill).ToAsyncDisposable())
         {
             // Start piping streams in the background
             var pipingTask = Task.WhenAll(

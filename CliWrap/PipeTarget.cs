@@ -79,7 +79,7 @@ internal class MergedPipeTarget : PipeTarget
         finally
         {
             foreach (var (_, subStream) in targetSubStreams)
-                await subStream.WithAsyncDisposableAdapter().DisposeAsync().ConfigureAwait(false);
+                await subStream.ToAsyncDisposable().DisposeAsync().ConfigureAwait(false);
         }
     }
 }
@@ -140,7 +140,7 @@ public partial class PipeTarget
     public static PipeTarget ToFile(string filePath) => Create(async (origin, cancellationToken) =>
     {
         var target = File.Create(filePath);
-        await using (target.WithAsyncDisposableAdapter())
+        await using (target.ToAsyncDisposable())
             await origin.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
     });
 

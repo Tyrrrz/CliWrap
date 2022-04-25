@@ -79,7 +79,7 @@ public partial class PipeSource
     public static PipeSource FromFile(string filePath) => Create(async (destination, cancellationToken) =>
     {
         var source = File.OpenRead(filePath);
-        await using (source.WithAsyncDisposableAdapter())
+        await using (source.ToAsyncDisposable())
             await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
     });
 

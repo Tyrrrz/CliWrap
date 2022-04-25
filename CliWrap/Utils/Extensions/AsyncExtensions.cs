@@ -18,16 +18,16 @@ internal static partial class AsyncExtensions
         this Task task,
         CancellationToken cancellationToken)
     {
-        var cancellationTask = Task.Delay(-1, cancellationToken);
+        var cancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
 
-        // Note: Task.WhenAny() doesn't throw
+        // Task.WhenAny() doesn't throw if the underlying task wraps an exception
         var finishedTask = await Task.WhenAny(task, cancellationTask).ConfigureAwait(false);
 
         // Finalize and propagate exceptions
         await finishedTask.ConfigureAwait(false);
     }
 
-    public static IAsyncDisposable WithAsyncDisposableAdapter(this IDisposable disposable) =>
+    public static IAsyncDisposable ToAsyncDisposable(this IDisposable disposable) =>
         new AsyncDisposableAdapter(disposable);
 }
 
