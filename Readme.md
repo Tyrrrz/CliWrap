@@ -164,7 +164,8 @@ var cmd = Cli.Wrap("git")
         .Add("clone")
         .Add("https://github.com/Tyrrrz/CliWrap")
         .Add("--depth")
-        .Add(20));
+        .Add(20)
+    );
 ```
 
 > ⚠️ String overload of `WithArguments(...)` only works well when the arguments are short, simple, and not expected to change.
@@ -208,7 +209,8 @@ var cmd = Cli.Wrap("git")
 var cmd = Cli.Wrap("git")
     .WithEnvironmentVariables(env => env
         .Set("GIT_AUTHOR_NAME", "John")
-        .Set("GIT_AUTHOR_EMAIL", "john@email.com"));
+        .Set("GIT_AUTHOR_EMAIL", "john@email.com")
+    );
 ```
 
 > 💡 Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
@@ -240,7 +242,8 @@ var cmd = Cli.Wrap("git")
     .WithCredentials(creds => creds
        .SetDomain("some_workspace")
        .SetUserName("johndoe")
-       .SetPassword("securepassword123"));
+       .SetPassword("securepassword123")
+    );
 ```
 
 > ⚠️ Running a process under a different username is supported across all platforms, but the domain and password options only work on Windows.
