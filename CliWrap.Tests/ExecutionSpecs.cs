@@ -63,7 +63,8 @@ public class ExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
@@ -84,7 +85,8 @@ public class ExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
@@ -104,7 +106,8 @@ public class ExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--lines").Add(100_000));
+                .Add("--lines").Add(100_000)
+            );
 
         // Act
         await cmd.ExecuteAsync();

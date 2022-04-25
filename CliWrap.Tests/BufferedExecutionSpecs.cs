@@ -19,7 +19,8 @@ public class BufferedExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("echo")
                 .Add("Hello stdout")
-                .Add("--target").Add("stdout"));
+                .Add("--target").Add("stdout")
+            );
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -40,7 +41,8 @@ public class BufferedExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("echo")
                 .Add("Hello stderr")
-                .Add("--target").Add("stderr"));
+                .Add("--target").Add("stderr")
+            );
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -61,7 +63,8 @@ public class BufferedExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("echo")
                 .Add("Hello stdout and stderr")
-                .Add("--target").Add("all"));
+                .Add("--target").Add("all")
+            );
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -84,7 +87,8 @@ public class BufferedExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act
         var task = cmd.ExecuteBufferedAsync(cts.Token);
@@ -105,7 +109,8 @@ public class BufferedExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act
         var task = cmd.ExecuteBufferedAsync(cts.Token);
@@ -125,7 +130,8 @@ public class BufferedExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--length").Add(100_000));
+                .Add("--length").Add(100_000)
+            );
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();

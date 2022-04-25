@@ -22,7 +22,8 @@ public class CredentialsSpecs
             .WithArguments(a => a.Add(Dummy.Program.FilePath))
             .WithCredentials(c => c
                 .SetUserName("user123")
-                .SetPassword("password123"));
+                .SetPassword("password123")
+            );
 
         // Act & assert
         await Assert.ThrowsAsync<Win32Exception>(() => cmd.ExecuteAsync());
@@ -43,7 +44,8 @@ public class CredentialsSpecs
             .WithCredentials(c => c
                 .SetDomain("domain123")
                 .SetUserName("user123")
-                .SetPassword("password123"));
+                .SetPassword("password123")
+            );
 
         // Act & assert
         await Assert.ThrowsAsync<Win32Exception>(() => cmd.ExecuteAsync());
@@ -59,7 +61,8 @@ public class CredentialsSpecs
             .WithArguments(a => a.Add(Dummy.Program.FilePath))
             .WithCredentials(c => c
                 .SetUserName("user123")
-                .SetPassword("password123"));
+                .SetPassword("password123")
+            );
 
         // Act & assert
         await Assert.ThrowsAsync<NotSupportedException>(() => cmd.ExecuteAsync());

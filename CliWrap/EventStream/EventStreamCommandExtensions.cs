@@ -128,19 +128,19 @@ public static class EventStreamCommandExtensions
                 .Task
                 .ContinueWith(t =>
                 {
-                    // Canceled tasks don't have exception
+                    // Canceled tasks don't have exceptions
                     if (t.IsCanceled)
                     {
                         observer.OnError(new TaskCanceledException(t));
                     }
-                    else if (t.Exception is null)
+                    else if (t.Exception is not null)
                     {
-                        observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
-                        observer.OnCompleted();
+                        observer.OnError(t.Exception.TryGetSingle() ?? t.Exception);
                     }
                     else
                     {
-                        observer.OnError(t.Exception.TryGetSingle() ?? t.Exception);
+                        observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
+                        observer.OnCompleted();
                     }
                 }, TaskContinuationOptions.None);
 

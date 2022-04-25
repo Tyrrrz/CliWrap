@@ -11,22 +11,23 @@ namespace CliWrap.Tests;
 
 public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
 {
-    private readonly TempOutputFixture _tempOutputFixture;
+    private readonly TempOutputFixture _tempOutput;
 
     public EnvironmentSpecs(TempOutputFixture tempOutputFixture) =>
-        _tempOutputFixture = tempOutputFixture;
+        _tempOutput = tempOutputFixture;
 
     [Fact(Timeout = 15000)]
     public async Task Command_can_be_executed_with_a_custom_working_directory()
     {
         // Arrange
-        var workingDirPath = _tempOutputFixture.GetTempDirPath();
+        var workingDirPath = _tempOutput.GetTempDirPath();
 
         var cmd = Cli.Wrap("dotnet")
             .WithWorkingDirectory(workingDirPath)
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("print cwd"));
+                .Add("print cwd")
+            );
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -51,7 +52,8 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("print env"))
+                .Add("print env")
+            )
             .WithEnvironmentVariables(env) | stdOutLines.Add;
 
         // Act
@@ -84,10 +86,12 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
             var cmd = Cli.Wrap("dotnet")
                 .WithArguments(a => a
                     .Add(Dummy.Program.FilePath)
-                    .Add("print env"))
+                    .Add("print env")
+                )
                 .WithEnvironmentVariables(e => e
                     .Set(variableToOverwrite, "new bar")
-                    .Set(variableToUnset, null)) | stdOutLines.Add;
+                    .Set(variableToUnset, null)
+                ) | stdOutLines.Add;
 
             // Act
             await cmd.ExecuteAsync();

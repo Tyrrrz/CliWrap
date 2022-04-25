@@ -267,52 +267,58 @@ public partial class Command : ICommandConfiguration
         target
     );
 
-    // System.Diagnostics.Process already resolves full paths from PATH environment variable,
-    // but it only seems to do that for executable files if the extension is omitted.
-    // For instance, `Process.Start("dotnet")` works because it can find the "dotnet.exe" file on PATH.
-    // On the other hand, `Process.Start("npm")` doesn't work because it needs to find "npm.cmd" instead.
-    // However, if we supply the extension too ("npm.cmd" in the sample above), it works correctly.
-    // We need to do a bit of extra work to make sure that full paths to script files are also resolved.
-    private string ResolveOptimallyQualifiedTargetFilePath()
+    private IEnumerable<string> GetProbeDirectoryPaths()
+    {
+        // Executable directory
+        if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
+        {
+            var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
+            if (!string.IsNullOrWhiteSpace(processDirPath))
+                yield return processDirPath;
+        }
+
+        // Working directory (current process)
+        yield return Directory.GetCurrentDirectory();
+
+        // Directories in the PATH environment variable
+        if (Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) is { } paths)
+        {
+            foreach (var path in paths)
+                yield return path;
+        }
+
+        // Working directory (configured on the command)
+        yield return WorkingDirPath;
+    }
+
+    // System.Diagnostics.Process already resolves full paths from the PATH environment variable
+    // and other sources. However, if the file extension is omitted, it only does that for executables.
+    // For instance, Process.Start("dotnet") works because it can find "dotnet.exe" via PATH, but
+    // Process.Start("npm") doesn't because it needs to find "npm.cmd" instead.
+    // If the extension is provided, however, it works correctly in both cases.
+    // This problem is specific to Windows because you can't run scripts directly on other platforms.
+    private string GetOptimallyQualifiedTargetFilePath()
     {
         // Implementation reference:
         // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L686-L728
 
         // Currently we only need this workaround for script files on Windows,
-        // so short-circuit if we are on a different operating system.
+        // so short-circuit if we are on a different platform.
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return TargetFilePath;
 
-        // Don't do anything for fully qualified paths or paths that already have an extension specified
+        // Don't do anything for fully qualified paths or paths that already have an extension specified.
+        // System.Diagnostics.Process already knows how to handle these.
         if (Path.IsPathRooted(TargetFilePath) || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath)))
             return TargetFilePath;
 
-        // Potential directories to look for the file in (ordered by priority)
-        var parentPaths = new List<string>();
-
-        // ... executable directory
-        if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
-        {
-            var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
-            if (!string.IsNullOrWhiteSpace(processDirPath))
-                parentPaths.Add(processDirPath);
-        }
-
-        // ... working directory
-        parentPaths.Add(Directory.GetCurrentDirectory());
-
-        // ... directories specified in PATH
-        parentPaths.AddRange(
-            Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ??
-            Array.Empty<string>()
-        );
-
         var potentialFilePaths =
-            from parentPath in parentPaths
+            from parentPath in GetProbeDirectoryPaths()
+            where Directory.Exists(parentPath)
             select Path.Combine(parentPath, TargetFilePath)
             into filePathBase
             from extension in new[] { "exe", "cmd", "bat" }
-            select filePathBase + '.' + extension;
+            select Path.ChangeExtension(filePathBase, extension);
 
         // Return first existing file or fall back to the original path
         return
@@ -324,7 +330,7 @@ public partial class Command : ICommandConfiguration
     {
         var startInfo = new ProcessStartInfo
         {
-            FileName = ResolveOptimallyQualifiedTargetFilePath(),
+            FileName = GetOptimallyQualifiedTargetFilePath(),
             Arguments = Arguments,
             WorkingDirectory = WorkingDirPath,
             UserName = Credentials.UserName,
@@ -335,9 +341,10 @@ public partial class Command : ICommandConfiguration
         };
 
         // Setting CreateNoWindow has a 30ms overhead added to execution time of the process.
-        // A window won't be created for console applications even when CreateNoWindow = false,
-        // so it's only necessary to set it if there is no console.
-        // This check is only necessary on Windows platforms because CreateNoWindow does not work on MacOS or Linux.
+        // This option only affects console windows and is only relevant if we're running in a process
+        // that does not have its own console window already attached. If we're running in a console process,
+        // then all child processes will inherit the console window regardless of whether CreateNoWindow is set or not.
+        // This check is only necessary on Windows because CreateNoWindow doesn't work on MacOS or Linux at all.
         // https://github.com/Tyrrrz/CliWrap/pull/142
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && NativeMethods.GetConsoleWindow() == IntPtr.Zero)
             startInfo.CreateNoWindow = true;
@@ -431,7 +438,7 @@ public partial class Command : ICommandConfiguration
         CancellationToken cancellationToken = default)
     {
         using (process)
-        // Additional cancellation for stdin in case the process terminates early and doesn't fully exhaust it
+        // Additional cancellation for stdin in case the process terminates early and doesn't fully consume it
         using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         await using (cancellationToken.Register(process.Kill).WithAsyncDisposableAdapter())
         {
@@ -470,7 +477,7 @@ public partial class Command : ICommandConfiguration
             // Catch cancellations triggered internally
             catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
             {
-                // This exception has no value to the user so don't propagate it
+                // This exception is not critical and has no value to the user, so don't propagate it
             }
 
             // Validate exit code if required

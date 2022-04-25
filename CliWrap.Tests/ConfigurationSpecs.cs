@@ -8,7 +8,7 @@ namespace CliWrap.Tests;
 
 public class ConfigurationSpecs
 {
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Command_is_created_with_default_configuration()
     {
         // Act
@@ -26,7 +26,7 @@ public class ConfigurationSpecs
         cmd.StandardErrorPipe.Should().Be(PipeTarget.Null);
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Command_line_arguments_can_be_set()
     {
         // Arrange
@@ -41,14 +41,14 @@ public class ConfigurationSpecs
         cmdOther.Arguments.Should().Be("qqq ppp");
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Command_line_arguments_can_be_set_from_a_list()
     {
         // Arrange
         var cmd = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var cmdOther = cmd.WithArguments(new[] {"-a", "foo bar"});
+        var cmdOther = cmd.WithArguments(new[] { "-a", "foo bar" });
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
@@ -56,7 +56,7 @@ public class ConfigurationSpecs
         cmdOther.Arguments.Should().Be("-a \"foo bar\"");
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Command_line_arguments_can_be_set_using_a_builder()
     {
         // Arrange
@@ -68,8 +68,8 @@ public class ConfigurationSpecs
             .Add("foo bar")
             .Add("\"foo\\\\bar\"")
             .Add(3.14)
-            .Add(new[] {"foo", "bar"})
-            .Add(new IFormattable[] {-5, 89.13})
+            .Add(new[] { "foo", "bar" })
+            .Add(new IFormattable[] { -5, 89.13 })
         );
 
         // Assert
@@ -78,7 +78,7 @@ public class ConfigurationSpecs
         cmdOther.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Working_directory_can_be_set()
     {
         // Arrange
@@ -93,7 +93,7 @@ public class ConfigurationSpecs
         cmdOther.WorkingDirPath.Should().Be("new");
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Credentials_can_be_set()
     {
         // Arrange
@@ -108,7 +108,7 @@ public class ConfigurationSpecs
         cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Credentials_can_be_set_with_a_builder()
     {
         // Arrange
@@ -127,7 +127,7 @@ public class ConfigurationSpecs
         cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Environment_variables_can_be_set()
     {
         // Arrange
@@ -150,7 +150,7 @@ public class ConfigurationSpecs
         });
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Environment_variables_can_be_set_with_a_builder()
     {
         // Arrange
@@ -179,7 +179,7 @@ public class ConfigurationSpecs
         });
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Result_validation_can_be_set()
     {
         // Arrange
@@ -194,7 +194,7 @@ public class ConfigurationSpecs
         cmdOther.Validation.Should().Be(CommandResultValidation.None);
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Stdin_pipe_can_be_set()
     {
         // Arrange
@@ -208,7 +208,7 @@ public class ConfigurationSpecs
         cmd.StandardInputPipe.Should().NotBeSameAs(cmdOther.StandardInputPipe);
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Stdout_pipe_can_be_set()
     {
         // Arrange
@@ -222,7 +222,7 @@ public class ConfigurationSpecs
         cmd.StandardOutputPipe.Should().NotBeSameAs(cmdOther.StandardOutputPipe);
     }
 
-    [Fact]
+    [Fact(Timeout = 15000)]
     public void Stderr_pipe_can_be_set()
     {
         // Arrange

@@ -21,7 +21,8 @@ public class EventStreamExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--lines").Add(100));
+                .Add("--lines").Add(100)
+            );
 
         // Act
         var stdOutLinesCount = 0;
@@ -65,7 +66,8 @@ public class EventStreamExecutionSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--target").Add("all")
-                .Add("--lines").Add(100));
+                .Add("--lines").Add(100)
+            );
 
         // Act
         var stdOutLinesCount = 0;
@@ -111,7 +113,8 @@ public class EventStreamExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -131,7 +134,8 @@ public class EventStreamExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -152,7 +156,8 @@ public class EventStreamExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -172,7 +177,8 @@ public class EventStreamExecutionSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10"));
+                .Add("--duration").Add("00:00:10")
+            );
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>

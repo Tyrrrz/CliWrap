@@ -21,7 +21,8 @@ public class ValidationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("exit")
-                .Add("--code").Add(1));
+                .Add("--code").Add(1)
+            );
 
         // Act & assert
         var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteAsync());
@@ -40,7 +41,8 @@ public class ValidationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("exit")
-                .Add("--code").Add(1));
+                .Add("--code").Add(1)
+            );
 
         // Act & assert
         var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteBufferedAsync());
@@ -60,7 +62,8 @@ public class ValidationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("exit")
-                .Add("--code").Add(1))
+                .Add("--code").Add(1)
+            )
             .WithValidation(CommandResultValidation.None);
 
         // Act

@@ -55,7 +55,7 @@ internal class ProcessEx : IDisposable
             // Calculate our own ExitTime to be consistent with StartTime
             ExitTime = DateTimeOffset.Now;
 
-            // Don't cancel the task here because we don't have access to the provided cancellation token.
+            // Don't cancel the task here because we don't have access to the user's cancellation token.
             // Let the upstream caller handle cancellation based on the IsKilled property.
             _exitTcs.TrySetResult(null);
         };
@@ -108,12 +108,13 @@ internal class ProcessEx : IDisposable
             // Getting an exception here could indicate an actual failure to kill the process, but could also
             // indicate that the process has already exited (race condition).
             // The exception itself doesn't carry enough information to differentiate between those cases.
-            // As a workaround, we swallow all exceptions and create a delayed cancellation registration
-            // that will cancel the waiting task after a timeout, preventing a potential deadlock.
+            // As a workaround, we swallow all exceptions and create a registration that will mark the task as
+            // completed after a timeout, to avoid waiting forever in case we were actually unable to kill the process.
             _waitTimeoutCts = new CancellationTokenSource();
             _waitTimeoutRegistration = _waitTimeoutCts.Token.Register(() =>
             {
-                if (_exitTcs.TrySetCanceled())
+                // Don't cancel the task here because we don't have access to the user's cancellation token
+                if (_exitTcs.TrySetResult(null))
                     Debug.Fail("Process termination timed out.");
             });
             _waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3));
