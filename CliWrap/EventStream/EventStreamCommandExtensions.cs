@@ -32,14 +32,16 @@ public static class EventStreamCommandExtensions
             command.StandardOutputPipe,
             PipeTarget.ToDelegate(
                 s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellationToken),
-                standardOutputEncoding)
+                standardOutputEncoding
+            )
         );
 
         var stdErrPipe = PipeTarget.Merge(
             command.StandardErrorPipe,
             PipeTarget.ToDelegate(
                 s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellationToken),
-                standardErrorEncoding)
+                standardErrorEncoding
+            )
         );
 
         var commandPiped = command
@@ -56,9 +58,7 @@ public static class EventStreamCommandExtensions
             .ContinueWith(_ => channel.Close(), TaskContinuationOptions.None);
 
         await foreach (var cmdEvent in channel.ReceiveAsync(cancellationToken).ConfigureAwait(false))
-        {
             yield return cmdEvent;
-        }
 
         var exitCode = await commandTask.Select(r => r.ExitCode).ConfigureAwait(false);
         yield return new ExitedCommandEvent(exitCode);
@@ -105,14 +105,16 @@ public static class EventStreamCommandExtensions
                 command.StandardOutputPipe,
                 PipeTarget.ToDelegate(
                     s => observer.OnNext(new StandardOutputCommandEvent(s)),
-                    standardOutputEncoding)
+                    standardOutputEncoding
+                )
             );
 
             var stdErrPipe = PipeTarget.Merge(
                 command.StandardErrorPipe,
                 PipeTarget.ToDelegate(
                     s => observer.OnNext(new StandardErrorCommandEvent(s)),
-                    standardErrorEncoding)
+                    standardErrorEncoding
+                )
             );
 
             var commandPiped = command

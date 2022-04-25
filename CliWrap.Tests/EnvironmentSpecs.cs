@@ -77,23 +77,23 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
         var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{salt}";
         var variableToUnset = $"CLIWRAP_TEST_UNSET_{salt}";
 
+        var stdOutLines = new List<string>();
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("print env")
+            )
+            .WithEnvironmentVariables(e => e
+                .Set(variableToOverwrite, "new bar")
+                .Set(variableToUnset, null)
+            ) | stdOutLines.Add;
+
+        // Act
         using (EnvironmentVariable.Set(variableToKeep, "foo")) // will be left unchanged
         using (EnvironmentVariable.Set(variableToOverwrite, "bar")) // will be overwritten
         using (EnvironmentVariable.Set(variableToUnset, "baz")) // will be unset
         {
-            var stdOutLines = new List<string>();
-
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("print env")
-                )
-                .WithEnvironmentVariables(e => e
-                    .Set(variableToOverwrite, "new bar")
-                    .Set(variableToUnset, null)
-                ) | stdOutLines.Add;
-
-            // Act
             await cmd.ExecuteAsync();
 
             // Assert

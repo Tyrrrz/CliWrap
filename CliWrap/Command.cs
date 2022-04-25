@@ -277,7 +277,7 @@ public partial class Command : ICommandConfiguration
                 yield return processDirPath;
         }
 
-        // Working directory (current process)
+        // Working directory
         yield return Directory.GetCurrentDirectory();
 
         // Directories in the PATH environment variable
@@ -286,9 +286,6 @@ public partial class Command : ICommandConfiguration
             foreach (var path in paths)
                 yield return path;
         }
-
-        // Working directory (configured on the command)
-        yield return WorkingDirPath;
     }
 
     // System.Diagnostics.Process already resolves full paths from the PATH environment variable

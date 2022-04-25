@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Fixtures;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -38,18 +39,18 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
 
         // Arrange
         var filePath = _tempOutput.GetTempFilePath("test-script.cmd");
-        File.WriteAllText(filePath, "echo hello");
+        await File.WriteAllTextAsync(filePath, "@echo hello");
 
-        var cmd = Cli.Wrap("test-script")
-            .WithEnvironmentVariables(env => env
-                .Set("PATH", Path.GetDirectoryName(filePath))
-            );
+        var cmd = Cli.Wrap("test-script");
 
         // Act
-        var result = await cmd.ExecuteBufferedAsync();
+        using (EnvironmentVariable.Set("PATH", Path.GetDirectoryName(filePath)))
+        {
+            var result = await cmd.ExecuteBufferedAsync();
 
-        // Assert
-        result.ExitCode.Should().Be(0);
-        result.StandardOutput.Trim().Should().Be("hello");
+            // Assert
+            result.ExitCode.Should().Be(0);
+            result.StandardOutput.Trim().Should().Be("hello");
+        }
     }
 }
