@@ -558,7 +558,7 @@ Unlike the pull-based event stream, this execution model does not involve any ba
 #### Combining execution models with custom pipes
 
 The different execution models shown above are based on the piping model, but those two concepts are not mutually exclusive.
-When running a command this way, existing pipe configurations are preserved and extended using `PipeTarget.Merge()`.
+When running a command this way, existing pipe configurations are preserved and extended using `PipeTarget.Merge(...)`.
 
 This means that you can, for example, pipe a command to a file and also execute it as an event stream without any issues:
 
