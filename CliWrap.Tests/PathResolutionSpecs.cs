@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -41,10 +42,15 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
         var filePath = _tempOutput.GetTempFilePath("test-script.cmd");
         await File.WriteAllTextAsync(filePath, "@echo hello");
 
+        var pathValue =
+            Environment.GetEnvironmentVariable("PATH") +
+            Path.PathSeparator +
+            Path.GetDirectoryName(filePath);
+
         var cmd = Cli.Wrap("test-script");
 
         // Act
-        using (EnvironmentVariable.Set("PATH", Path.GetDirectoryName(filePath)))
+        using (EnvironmentVariable.Set("PATH", pathValue))
         {
             var result = await cmd.ExecuteBufferedAsync();
 

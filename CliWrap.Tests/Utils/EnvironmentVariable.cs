@@ -7,7 +7,11 @@ internal static class EnvironmentVariable
 {
     public static IDisposable Set(string name, string? value)
     {
+        var previousValue = Environment.GetEnvironmentVariable(name);
         Environment.SetEnvironmentVariable(name, value);
-        return Disposable.Create(() => Environment.SetEnvironmentVariable(name, null));
+
+        return Disposable.Create(() =>
+            Environment.SetEnvironmentVariable(name, previousValue)
+        );
     }
 }
