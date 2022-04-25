@@ -149,7 +149,7 @@ var cmd = Cli.Wrap("git")
     .WithArguments("commit -m \"my commit\"");
 ```
 
-- Set arguments from a list — each element is treated as a separate argument and spaces are escaped automatically:
+- Set arguments from an array — each element is treated as a separate argument and spaces are escaped automatically:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -316,7 +316,7 @@ await Cli.Wrap("foo")
     .ExecuteAsync();
 ```
 
-Alternatively, pipes can also be configured in a slightly terser way by using pipe operators:
+Alternatively, pipes can also be configured in a slightly terser way using pipe operators:
 
 ```csharp
 await using var input = File.OpenRead("input.txt");
@@ -569,7 +569,7 @@ var cmd =
     PipeTarget.ToFile("output.txt");
 
 // Iterate as an event stream and pipe to a file at the same time
-// (pipes are combined, not overriden)
+// (execution models preserve configured pipes)
 await foreach (var cmdEvent in cmd.ListenAsync())
 {
     // ...
@@ -592,7 +592,7 @@ cts.CancelAfter(TimeSpan.FromSeconds(10));
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 ```
 
-In the event of a cancellation request, the underlying process gets killed and `ExecuteAsync()` throws an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
+In the event of a cancellation request, the underlying process will be killed and `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
 You will need to catch this exception in your code to recover from cancellation:
 
 ```csharp
