@@ -78,7 +78,7 @@ public static class EventStreamCommandExtensions
 
     /// <summary>
     /// Executes the command as an asynchronous (pull-based) event stream.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
     /// </summary>
     /// <remarks>
     /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
@@ -163,7 +163,7 @@ public static class EventStreamCommandExtensions
 
     /// <summary>
     /// Executes the command as an observable (push-based) event stream.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
     /// </summary>
     /// <remarks>
     /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.

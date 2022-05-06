@@ -267,60 +267,56 @@ public partial class Command : ICommandConfiguration
         target
     );
 
-    private IEnumerable<string> GetProbeDirectoryPaths()
-    {
-        // Executable directory
-        if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
-        {
-            var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
-            if (!string.IsNullOrWhiteSpace(processDirPath))
-                yield return processDirPath;
-        }
-
-        // Working directory
-        yield return Directory.GetCurrentDirectory();
-
-        // Directories in the PATH environment variable
-        if (Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) is { } paths)
-        {
-            foreach (var path in paths)
-                yield return path;
-        }
-    }
-
-    // System.Diagnostics.Process already resolves full paths from the PATH environment variable
-    // and other sources. However, if the file extension is omitted, it only does that for executables.
-    // For instance, Process.Start("dotnet") works because it can find "dotnet.exe" via PATH, but
-    // Process.Start("npm") doesn't because it needs to find "npm.cmd" instead.
-    // If the extension is provided, however, it works correctly in both cases.
+    // System.Diagnostics.Process already resolves full path by itself, but it naively assumes that the file
+    // is an executable if the extension is omitted. On Windows, BAT and CMD files are also valid targets.
+    // In practice, it means that Process.Start("dotnet") works because the corresponding "dotnet.exe"
+    // exists on the PATH, but Process.Start("npm") doesn't work because it needs to look for "npm.cmd"
+    // instead of "npm.exe". If the extension is provided, however, it works correctly in both cases.
     // This problem is specific to Windows because you can't run scripts directly on other platforms.
     private string GetOptimallyQualifiedTargetFilePath()
     {
-        // Implementation reference:
-        // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L686-L728
-
         // Currently we only need this workaround for script files on Windows,
         // so short-circuit if we are on a different platform.
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return TargetFilePath;
 
         // Don't do anything for fully qualified paths or paths that already have an extension specified.
-        // System.Diagnostics.Process already knows how to handle these.
+        // System.Diagnostics.Process knows how to handle those without our help.
         if (Path.IsPathRooted(TargetFilePath) || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath)))
             return TargetFilePath;
 
-        var potentialFilePaths =
-            from parentPath in GetProbeDirectoryPaths()
-            where Directory.Exists(parentPath)
-            select Path.Combine(parentPath, TargetFilePath)
-            into filePathBase
-            from extension in new[] { "exe", "cmd", "bat" }
-            select Path.ChangeExtension(filePathBase, extension);
+        static IEnumerable<string> GetProbeDirectoryPaths()
+        {
+            // Implementation reference:
+            // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L686-L728
 
-        // Return first existing file or fall back to the original path
-        return
-            potentialFilePaths.FirstOrDefault(File.Exists) ??
-            TargetFilePath;
+            // Executable directory
+            if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
+            {
+                var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
+                if (!string.IsNullOrWhiteSpace(processDirPath))
+                    yield return processDirPath;
+            }
+
+            // Working directory
+            yield return Directory.GetCurrentDirectory();
+
+            // Directories in the PATH environment variable
+            if (Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) is { } paths)
+            {
+                foreach (var path in paths)
+                    yield return path;
+            }
+        }
+
+        return (
+            from probeDirPath in GetProbeDirectoryPaths()
+            where Directory.Exists(probeDirPath)
+            select Path.Combine(probeDirPath, TargetFilePath)
+            into baseFilePath
+            from extension in new[] { "exe", "cmd", "bat" }
+            select Path.ChangeExtension(baseFilePath, extension)
+        ).FirstOrDefault(File.Exists) ?? TargetFilePath;
     }
 
     private ProcessStartInfo GetStartInfo()
@@ -337,10 +333,10 @@ public partial class Command : ICommandConfiguration
             UseShellExecute = false
         };
 
-        // Setting CreateNoWindow has a 30ms overhead added to execution time of the process.
-        // This option only affects console windows and is only relevant if we're running in a process
-        // that does not have its own console window already attached. If we're running in a console process,
-        // then all child processes will inherit the console window regardless of whether CreateNoWindow is set or not.
+        // Setting CreateNoWindow adds a 30ms overhead to the execution time of the process.
+        // This option only affects console windows and is only relevant if we're running in a process that does not
+        // have its own console window already attached. If we're running in a console process, then all child
+        // processes will inherit the console window regardless of whether CreateNoWindow is set.
         // This check is only necessary on Windows because CreateNoWindow doesn't work on MacOS or Linux at all.
         // https://github.com/Tyrrrz/CliWrap/pull/142
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && NativeMethods.GetConsoleWindow() == IntPtr.Zero)
@@ -504,10 +500,8 @@ public partial class Command : ICommandConfiguration
     {
         var process = new ProcessEx(GetStartInfo());
 
-        // Process must be started in a synchronous context in order
-        // to ensure that, if it fails to start, the exception will be
-        // thrown synchronously and CommandTask won't be created.
-        // Otherwise we may end up with a CommandTask that has invalid state.
+        // Process must be started in a synchronous context in order to ensure that the exception is thrown
+        // synchronously in case of failure. Otherwise we may end up with a CommandTask that has invalid state.
         // https://github.com/Tyrrrz/CliWrap/issues/139
         process.Start();
 

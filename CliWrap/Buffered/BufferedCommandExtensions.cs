@@ -12,7 +12,8 @@ public static class BufferedCommandExtensions
 {
     /// <summary>
     /// Executes the command asynchronously.
-    /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
+    /// The result of this execution contains the standard output and standard error streams
+    /// buffered in-memory as strings.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.
@@ -39,7 +40,8 @@ public static class BufferedCommandExtensions
         var commandPiped = command
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe)
-            .WithValidation(CommandResultValidation.None); // disable validation because we have our own
+            // Disable validation because we have our own
+            .WithValidation(CommandResultValidation.None);
 
         return commandPiped
             .ExecuteAsync(cancellationToken)
@@ -70,7 +72,8 @@ public static class BufferedCommandExtensions
 
     /// <summary>
     /// Executes the command asynchronously.
-    /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
+    /// The result of this execution contains the standard output and standard error streams
+    /// buffered in-memory as strings.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.
@@ -83,8 +86,9 @@ public static class BufferedCommandExtensions
 
     /// <summary>
     /// Executes the command asynchronously.
-    /// The result of this execution contains the standard output and standard error streams buffered in-memory as strings.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// The result of this execution contains the standard output and standard error streams
+    /// buffered in-memory as strings.
+    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.

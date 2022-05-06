@@ -143,7 +143,7 @@ public partial class ArgumentsBuilder
         // Implementation reference:
         // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Private.CoreLib/src/System/PasteArguments.cs#L10-L79
 
-        // Short circuit if argument is clean and doesn't need escaping
+        // Short circuit if the argument is clean and doesn't need escaping
         if (argument.Length != 0 && argument.All(c => !char.IsWhiteSpace(c) && c != '"'))
             return argument;
 

@@ -252,10 +252,10 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         );
 
         var cmd = Cli.Wrap("dotnet")
-           .WithArguments(a => a
-               .Add(Dummy.Program.FilePath)
-               .Add("generate binary")
-               .Add("--length").Add(1_000_000)
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate binary")
+                .Add("--length").Add(1_000_000)
             ) | target;
 
         // Act
@@ -562,7 +562,8 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
                 .Add("--length").Add(1_000_000)
-                .Add("--buffer").Add(100_000) // needs to be >= BufferSizes.Stream to fail
+                // Buffer needs to be >= BufferSizes.Stream to fail
+                .Add("--buffer").Add(100_000)
             );
 
         // Act
@@ -706,7 +707,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
             {
                 random.NextBytes(buffer);
 
-                var count = (int) Math.Min(bytesRemaining, buffer.Length);
+                var count = (int)Math.Min(bytesRemaining, buffer.Length);
                 await destination.WriteAsync(buffer.AsMemory()[..count], cancellationToken);
 
                 bytesRemaining -= count;
