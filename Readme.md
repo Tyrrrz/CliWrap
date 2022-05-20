@@ -73,7 +73,8 @@ var result = await Cli.Wrap("path/to/exe")
 The code above spawns a child process with the configured command line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other related information.
 
-> ⚠️ **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
+> **Warning**:
+> **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 > You can [override this behavior](#withvalidation) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
 By default, the process's standard input, output and error streams are routed to **CliWrap**'s equivalent of the [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
@@ -123,7 +124,8 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-> ⚠️ Be mindful when using `ExecuteBufferedAsync()`.
+> **Warning**:
+> Be mindful when using `ExecuteBufferedAsync()`.
 > Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to buffer in-memory.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
 
@@ -132,7 +134,8 @@ var result = await Cli.Wrap("path/to/exe")
 The fluent interface provided by the command object allows you to configure various options related to its execution.
 Below list covers all available configuration methods and their usage.
 
-> 💡 `Command` is an immutable object — all configuration methods listed here create a new instance instead of modifying the existing one.
+> **Note**:
+> `Command` is an immutable object — all configuration methods listed here create a new instance instead of modifying the existing one.
 
 #### `WithArguments(...)`
 
@@ -168,7 +171,8 @@ var cmd = Cli.Wrap("git")
     );
 ```
 
-> ⚠️ String overload of `WithArguments(...)` only works well when the arguments are short, simple, and not expected to change.
+> **Warning**:
+> String overload of `WithArguments(...)` only works well when the arguments are short, simple, and not expected to change.
 > For all other scenarios, it's recommended to use the array or builder overload instead.
 
 #### `WithWorkingDirectory(...)`
@@ -213,7 +217,8 @@ var cmd = Cli.Wrap("git")
     );
 ```
 
-> 💡 Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
+> **Note**:
+> Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
 > If you need to remove an inherited variable, simply set its value to `null`.
 
 #### `WithCredentials(...)`
@@ -246,7 +251,8 @@ var cmd = Cli.Wrap("git")
     );
 ```
 
-> ⚠️ Running a process under a different username is supported across all platforms, but the domain and password options only work on Windows.
+> **Warning**:
+> Running a process under a different username is supported across all platforms, but the domain and password options only work on Windows.
 
 #### `WithValidation(...)`
 
@@ -345,7 +351,8 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
 
-> ⚠️ Using `PipeTarget.Null` results in the corresponding stream (standard output or standard error) not being opened for the underlying process at all.
+> **Warning**:
+> Using `PipeTarget.Null` results in the corresponding stream (standard output or standard error) not being opened for the underlying process at all.
 > In the vast majority of cases, this behavior should be functionally equivalent to piping to a null stream, but without the performance overhead of consuming and discarding unneeded data.
 > This may be undesirable in [certain situations](https://github.com/Tyrrrz/CliWrap/issues/145#issuecomment-1100680547) — in which case it's recommended to pipe to a null stream explicitly using `PipeTarget.ToStream(Stream.Null)`.
 
@@ -520,7 +527,8 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct introduced in C# 8.
 When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop, preventing unnecessary buffering of data in-memory.
 
-> 💡 Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
+> **Note**:
+> Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
 #### Push-based event stream
 
@@ -556,7 +564,8 @@ You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet
 
 Unlike the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate it becomes available.
 
-> 💡 Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
+> **Note**:
+> Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
 
 #### Combining execution models with custom pipes
 
@@ -609,9 +618,11 @@ catch (OperationCanceledException)
 }
 ```
 
-> 💡 Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
+> **Note**:
+> Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
-> 💡 You can read more about `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
+> **Note**:
+> You can read more about `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
 
 ### Retrieving process ID
 
