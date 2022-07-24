@@ -172,8 +172,12 @@ var cmd = Cli.Wrap("git")
 ```
 
 > **Warning**:
-> String overload of `WithArguments(...)` only works well when the arguments are short, simple, and not expected to change.
-> For all other scenarios, it's recommended to use the array or builder overload instead.
+> Avoid using the string overload of `WithArguments(...)` when the argument string is too long, contains special characters, or is formed based on variable input.
+> For those scenarios, it's recommended to use the array or builder overloads as the more ergonomic alternatives.
+
+> **Note**:
+> You can also manually instantiate `ArgumentsBuilder` to help with the formatting and escaping of arguments.
+> This may be useful if you need to generate an argument string outside of the `WithArguments(...)` method.
 
 #### `WithWorkingDirectory(...)`
 
