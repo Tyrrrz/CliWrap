@@ -100,12 +100,12 @@ public class ConfigurationSpecs
         var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
         // Act
-        var cmdOther = cmd.WithCredentials(new Credentials("domain", "username", "password"));
+        var cmdOther = cmd.WithCredentials(new Credentials("domain", "username", "password", true));
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
         cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
     [Fact(Timeout = 15000)]
@@ -119,12 +119,13 @@ public class ConfigurationSpecs
             .SetDomain("domain")
             .SetUserName("username")
             .SetPassword("password")
+            .LoadUserProfile()
         );
 
         // Assert
         cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
         cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password"));
+        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
     [Fact(Timeout = 15000)]

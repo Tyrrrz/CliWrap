@@ -327,6 +327,7 @@ public partial class Command : ICommandConfiguration
             Arguments = Arguments,
             WorkingDirectory = WorkingDirPath,
             UserName = Credentials.UserName,
+            LoadUserProfile = Credentials.LoadUserProfile,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,

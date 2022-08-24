@@ -22,7 +22,8 @@ public class CredentialsSpecs
             .WithArguments(a => a.Add(Dummy.Program.FilePath))
             .WithCredentials(c => c
                 .SetUserName("user123")
-                .SetPassword("password123")
+                .SetPassword("pass123")
+                .LoadUserProfile()
             );
 
         // Act & assert
@@ -44,7 +45,8 @@ public class CredentialsSpecs
             .WithCredentials(c => c
                 .SetDomain("domain123")
                 .SetUserName("user123")
-                .SetPassword("password123")
+                .SetPassword("pass123")
+                .LoadUserProfile()
             );
 
         // Act & assert
@@ -61,7 +63,7 @@ public class CredentialsSpecs
             .WithArguments(a => a.Add(Dummy.Program.FilePath))
             .WithCredentials(c => c
                 .SetUserName("user123")
-                .SetPassword("password123")
+                .SetPassword("pass123")
             );
 
         // Act & assert
