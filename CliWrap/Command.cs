@@ -327,7 +327,6 @@ public partial class Command : ICommandConfiguration
             Arguments = Arguments,
             WorkingDirectory = WorkingDirPath,
             UserName = Credentials.UserName,
-            LoadUserProfile = Credentials.LoadUserProfile,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -344,18 +343,19 @@ public partial class Command : ICommandConfiguration
             startInfo.CreateNoWindow = true;
 
         // Domain and password are only supported on Windows
-        if (Credentials.Domain is not null || Credentials.Password is not null)
+        if (Credentials.Domain is not null || Credentials.Password is not null || Credentials.LoadUserProfile)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 startInfo.Domain = Credentials.Domain;
                 startInfo.Password = Credentials.Password?.ToSecureString();
+                startInfo.LoadUserProfile = Credentials.LoadUserProfile;
             }
             else
             {
                 throw new NotSupportedException(
-                    "Cannot start a process using custom domain and/or password on this platform. " +
-                    "This feature is only supported on Windows."
+                    "Cannot start a process under the provided credentials. " +
+                    "Using custom domain, password, or loading user profile is only supported on Windows."
                 );
             }
         }
