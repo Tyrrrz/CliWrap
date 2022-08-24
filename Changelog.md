@@ -1,3 +1,8 @@
+### v3.5 (25-Aug-2022)
+
+- Added `LoadUserProfile` option to `Credentials` and the corresponding `LoadUserProfile()` method to `CredentialsBuilder`. Setting this option to `true` will load the user profile when starting the process. Only supported on Windows.
+- Improved wording in some exception messages.
+
 ### v3.4.4 (24-Apr-2022)
 
 - Improved cancellation handling in all execution models by attaching the triggered `CancellationToken` to produced `OperationCanceledException`s.

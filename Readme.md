@@ -238,9 +238,10 @@ Sets domain, name and password of the user, under whom the child process is star
 ```csharp
 var cmd = Cli.Wrap("git")
     .WithCredentials(new Credentials(
-        "some_workspace",
-        "johndoe",
-        "securepassword123"
+        domain: "some_workspace",
+        userName: "johndoe",
+        password: "securepassword123",
+        loadUserProfile: true
     ));
 ```
 
@@ -252,11 +253,12 @@ var cmd = Cli.Wrap("git")
        .SetDomain("some_workspace")
        .SetUserName("johndoe")
        .SetPassword("securepassword123")
+       .LoadUserProfile()
     );
 ```
 
 > **Warning**:
-> Running a process under a different username is supported across all platforms, but the domain and password options only work on Windows.
+> Running a process under a different username is supported across all platforms, but other options are only available on Windows.
 
 #### `WithValidation(...)`
 
