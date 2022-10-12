@@ -18,7 +18,7 @@ public static class EventStreamCommandExtensions
     /// Executes the command as an asynchronous (pull-based) event stream.
     /// </summary>
     /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
     public static async IAsyncEnumerable<CommandEvent> ListenAsync(
         this Command command,
@@ -68,7 +68,7 @@ public static class EventStreamCommandExtensions
     /// Executes the command as an asynchronous (pull-based) event stream.
     /// </summary>
     /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
     public static IAsyncEnumerable<CommandEvent> ListenAsync(
         this Command command,
@@ -78,10 +78,10 @@ public static class EventStreamCommandExtensions
 
     /// <summary>
     /// Executes the command as an asynchronous (pull-based) event stream.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
     public static IAsyncEnumerable<CommandEvent> ListenAsync(
         this Command command,
@@ -92,7 +92,7 @@ public static class EventStreamCommandExtensions
     /// Executes the command as an observable (push-based) event stream.
     /// </summary>
     /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
     public static IObservable<CommandEvent> Observe(
         this Command command,
@@ -153,7 +153,7 @@ public static class EventStreamCommandExtensions
     /// Executes the command as an observable (push-based) event stream.
     /// </summary>
     /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
     public static IObservable<CommandEvent> Observe(
         this Command command,
@@ -163,10 +163,10 @@ public static class EventStreamCommandExtensions
 
     /// <summary>
     /// Executes the command as an observable (push-based) event stream.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent"/>.
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
     public static IObservable<CommandEvent> Observe(
         this Command command,

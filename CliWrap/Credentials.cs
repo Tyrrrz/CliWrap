@@ -31,7 +31,7 @@ public partial class Credentials
     public bool LoadUserProfile { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="Credentials"/>.
+    /// Initializes an instance of <see cref="Credentials" />.
     /// </summary>
     public Credentials(
         string? domain = null,
@@ -46,7 +46,7 @@ public partial class Credentials
     }
 
     /// <summary>
-    /// Initializes an instance of <see cref="Credentials"/>.
+    /// Initializes an instance of <see cref="Credentials" />.
     /// </summary>
     // TODO: (breaking change) remove in favor of other overload
     [ExcludeFromCodeCoverage]

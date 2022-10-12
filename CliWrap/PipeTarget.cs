@@ -160,7 +160,7 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that writes to a string builder.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
         ToStringBuilder(stringBuilder, Console.OutputEncoding);
@@ -178,7 +178,7 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that invokes an asynchronous delegate on every line written.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
         ToDelegate(handleLineAsync, Console.OutputEncoding);
@@ -195,7 +195,7 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that invokes a synchronous delegate on every line written.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     public static PipeTarget ToDelegate(Action<string> handleLine) =>
         ToDelegate(handleLine, Console.OutputEncoding);

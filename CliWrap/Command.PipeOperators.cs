@@ -24,7 +24,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output to a string builder.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, StringBuilder target) =>
@@ -32,7 +32,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output line-by-line to a delegate.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, Action<string> target) =>
@@ -40,7 +40,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output line-by-line to a delegate.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode the byte stream.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, Func<string, Task> target) =>
@@ -64,7 +64,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error to separate string builders.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, (StringBuilder, StringBuilder) targets) =>
@@ -72,7 +72,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line to separate delegates.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, (Action<string>, Action<string>) targets) =>
@@ -80,7 +80,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line to separate delegates.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, (Func<string, Task>, Func<string, Task>) targets) =>
@@ -116,7 +116,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard input from a string.
-    /// Uses <see cref="Console.InputEncoding"/> to encode the string.
+    /// Uses <see cref="Console.InputEncoding" /> to encode the string.
     /// </summary>
     [Pure]
     public static Command operator |(string source, Command target) =>

@@ -16,7 +16,7 @@ public partial class CommandExecutionException : CliWrapException
     public int ExitCode { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="CommandExecutionException"/>.
+    /// Initializes an instance of <see cref="CommandExecutionException" />.
     /// </summary>
     public CommandExecutionException(ICommandConfiguration command, int exitCode, string message)
         : base(message)

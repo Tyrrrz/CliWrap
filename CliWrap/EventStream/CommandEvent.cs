@@ -10,10 +10,10 @@ namespace CliWrap.EventStream;
 /// <p>
 ///     Can be either one of the following:
 ///     <list type="bullet">
-///         <item><see cref="StartedCommandEvent"/></item>
-///         <item><see cref="StandardOutputCommandEvent"/></item>
-///         <item><see cref="StandardErrorCommandEvent"/></item>
-///         <item><see cref="ExitedCommandEvent"/></item>
+///         <item><see cref="StartedCommandEvent" /></item>
+///         <item><see cref="StandardOutputCommandEvent" /></item>
+///         <item><see cref="StandardErrorCommandEvent" /></item>
+///         <item><see cref="ExitedCommandEvent" /></item>
 ///     </list>
 /// </p>
 /// </summary>
@@ -31,7 +31,7 @@ public class StartedCommandEvent : CommandEvent
     public int ProcessId { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="StartedCommandEvent"/>.
+    /// Initializes an instance of <see cref="StartedCommandEvent" />.
     /// </summary>
     public StartedCommandEvent(int processId) => ProcessId = processId;
 
@@ -51,7 +51,7 @@ public class StandardOutputCommandEvent : CommandEvent
     public string Text { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="StandardOutputCommandEvent"/>.
+    /// Initializes an instance of <see cref="StandardOutputCommandEvent" />.
     /// </summary>
     public StandardOutputCommandEvent(string text) => Text = text;
 
@@ -71,7 +71,7 @@ public class StandardErrorCommandEvent : CommandEvent
     public string Text { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="StandardErrorCommandEvent"/>.
+    /// Initializes an instance of <see cref="StandardErrorCommandEvent" />.
     /// </summary>
     public StandardErrorCommandEvent(string text) => Text = text;
 
@@ -92,7 +92,7 @@ public class ExitedCommandEvent : CommandEvent
     public int ExitCode { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="ExitedCommandEvent"/>.
+    /// Initializes an instance of <see cref="ExitedCommandEvent" />.
     /// </summary>
     public ExitedCommandEvent(int exitCode) => ExitCode = exitCode;
 

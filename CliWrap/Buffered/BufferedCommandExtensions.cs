@@ -88,7 +88,7 @@ public static class BufferedCommandExtensions
     /// Executes the command asynchronously.
     /// The result of this execution contains the standard output and standard error streams
     /// buffered in-memory as strings.
-    /// Uses <see cref="Console.OutputEncoding"/> to decode byte streams.
+    /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.

@@ -18,7 +18,7 @@ public class BufferedCommandResult : CommandResult
     public string StandardError { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="BufferedCommandResult"/>.
+    /// Initializes an instance of <see cref="BufferedCommandResult" />.
     /// </summary>
     public BufferedCommandResult(
         int exitCode,

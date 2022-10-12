@@ -48,7 +48,7 @@ public partial class Command : ICommandConfiguration
     public PipeTarget StandardErrorPipe { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="Command"/>.
+    /// Initializes an instance of <see cref="Command" />.
     /// </summary>
     public Command(
         string targetFilePath,
@@ -73,7 +73,7 @@ public partial class Command : ICommandConfiguration
     }
 
     /// <summary>
-    /// Initializes an instance of <see cref="Command"/>.
+    /// Initializes an instance of <see cref="Command" />.
     /// </summary>
     public Command(string targetFilePath) : this(
         targetFilePath,

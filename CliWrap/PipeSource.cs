@@ -102,7 +102,7 @@ public partial class PipeSource
 
     /// <summary>
     /// Creates a pipe source that reads from a string.
-    /// Uses <see cref="Console.InputEncoding"/> to encode the string.
+    /// Uses <see cref="Console.InputEncoding" /> to encode the string.
     /// </summary>
     public static PipeSource FromString(string str) => FromString(str, Console.InputEncoding);
 

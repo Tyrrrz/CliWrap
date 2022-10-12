@@ -21,7 +21,7 @@ public partial class CommandTask<TResult> : IDisposable
     public int ProcessId { get; }
 
     /// <summary>
-    /// Initializes an instance of <see cref="CommandTask{TResult}"/>.
+    /// Initializes an instance of <see cref="CommandTask{TResult}" />.
     /// </summary>
     public CommandTask(Task<TResult> task, int processId)
     {

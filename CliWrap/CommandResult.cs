@@ -28,7 +28,7 @@ public class CommandResult
     public TimeSpan RunTime => ExitTime - StartTime;
 
     /// <summary>
-    /// Initializes an instance of <see cref="CommandResult"/>.
+    /// Initializes an instance of <see cref="CommandResult" />.
     /// </summary>
     public CommandResult(int exitCode, DateTimeOffset startTime, DateTimeOffset exitTime)
     {
