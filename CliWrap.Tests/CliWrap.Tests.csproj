@@ -24,12 +24,4 @@
     <ProjectReference Include="..\CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="../CliWrap.Tests.Dummy/bin/$(Configuration)/$(TargetFramework)/CliWrap.Tests.Dummy.runtimeconfig.json">
-      <Link>CliWrap.Tests.Dummy.runtimeconfig.json</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </None>
-  </ItemGroup>
-
 </Project>
