@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
-    <PackageReference Include="ProcessX" Version="1.5.4" />
+    <PackageReference Include="ProcessX" Version="1.5.5" />
     <PackageReference Include="Sheller" Version="6.0.1" />
     <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
@@ -17,14 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CliWrap\CliWrap.csproj" />
     <ProjectReference Include="..\CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="../CliWrap.Tests.Dummy/bin/$(Configuration)/$(TargetFramework)/CliWrap.Tests.Dummy.runtimeconfig.json">
-      <Link>CliWrap.Tests.Dummy.runtimeconfig.json</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </None>
   </ItemGroup>
 
 </Project>
