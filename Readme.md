@@ -45,13 +45,13 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 
 ### Video guides
 
-You can watch one of these videos to get a detailed overview of the library:
+You can watch one of these videos to get a quick and detailed overview of the library:
 
-- [OSS Power-Ups: CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) by [Oleksii Holub](https://twitter.com/tyrrrz)
+- [**OSS Power-Ups: CliWrap**](https://youtube.com/watch?v=3_Ucw3Fflmo) by [Oleksii Holub](https://twitter.com/tyrrrz)
 
 [![Intro to CliWrap](.assets/video-guide-oss-powerups.jpg)](https://youtube.com/watch?v=3_Ucw3Fflmo)
 
-- [Stop using the Process class for CLI interactions in .NET](https://youtube.com/watch?v=Pt-0KM5SxmI) by [Nick Chapsas](https://twitter.com/nickchapsas)
+- [**Stop using the Process class for CLI interactions in .NET**](https://youtube.com/watch?v=Pt-0KM5SxmI) by [Nick Chapsas](https://twitter.com/nickchapsas)
 
 [![Stop using the Process class for CLI interactions in .NET](.assets/video-guide-nick-chapsas.jpg)](https://youtube.com/watch?v=Pt-0KM5SxmI)
 
