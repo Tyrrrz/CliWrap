@@ -43,11 +43,17 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 
 ## Usage
 
-### Video guide
+### Video guides
 
-📺 **Watch [Intro to CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) on YouTube for a deep look into the library and its features!**
+You can watch one of these videos to get a detailed overview of the library:
 
-[![Intro to CliWrap](.assets/webinar-yt-thumb.jpg)](https://youtube.com/watch?v=3_Ucw3Fflmo)
+- [OSS Power-Ups: CliWrap](https://youtube.com/watch?v=3_Ucw3Fflmo) by [Oleksii Holub](https://twitter.com/tyrrrz)
+
+[![Intro to CliWrap](.assets/video-guide-oss-powerups.jpg)](https://youtube.com/watch?v=3_Ucw3Fflmo)
+
+- [Stop using the Process class for CLI interactions in .NET](https://youtube.com/watch?v=Pt-0KM5SxmI) by [Nick Chapsas](https://twitter.com/nickchapsas)
+
+[![Stop using the Process class for CLI interactions in .NET](.assets/video-guide-nick-chapsas.jpg)](https://youtube.com/watch?v=Pt-0KM5SxmI)
 
 ### Quick overview
 
