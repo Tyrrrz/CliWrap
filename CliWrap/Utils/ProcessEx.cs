@@ -55,8 +55,8 @@ internal class ProcessEx : IDisposable
             // Calculate our own ExitTime to be consistent with StartTime
             ExitTime = DateTimeOffset.Now;
 
-            // Don't cancel the task here because we don't have access to the user's cancellation token.
-            // Let the upstream caller handle cancellation based on the IsKilled property.
+            // We don't handle cancellation here.
+            // If necessary, proper exception will be thrown upstream.
             _exitTcs.TrySetResult(null);
         };
 
@@ -80,15 +80,15 @@ internal class ProcessEx : IDisposable
             );
         }
 
-        // We can't access Process.StartTime if the process has already terminated.
+        // We can't access Process.StartTime if the process has already exited.
         // It's entirely possible that the process exits so fast that by the time
         // we try to get the start time, it won't be accessible anymore.
-        // See: https://github.com/Tyrrrz/CliWrap/issues/93
         // Calculating time ourselves is slightly inaccurate, but at least we can
         // guarantee it won't fail.
+        // https://github.com/Tyrrrz/CliWrap/issues/93
         StartTime = DateTimeOffset.Now;
 
-        // Copy metadata
+        // Copy metadata and stream references
         Id = _nativeProcess.Id;
         StandardInput = _nativeProcess.StandardInput.BaseStream;
         StandardOutput = _nativeProcess.StandardOutput.BaseStream;
@@ -97,23 +97,26 @@ internal class ProcessEx : IDisposable
 
     public void Kill()
     {
+        Debug.Assert(!IsKilled, "Attempt to kill a process more than once.");
+
         try
         {
             IsKilled = true;
             _nativeProcess.Kill(true);
         }
+        catch when (_nativeProcess.HasExited)
+        {
+            // The process has exited before we could kill it. This is fine.
+        }
         catch
         {
-            // Ideally, we want to make sure WaitUntilExitAsync() does NOT return before the process terminates.
-            // Getting an exception here could indicate an actual failure to kill the process, but could also
-            // indicate that the process has already exited (race condition).
-            // The exception itself doesn't carry enough information to differentiate between those cases.
-            // As a workaround, we swallow all exceptions and create a registration that will mark the task as
-            // completed after a timeout, to avoid waiting forever in case we were actually unable to kill the process.
+            // Either we actually failed to kill the process, or the system hasn't finished processing
+            // the kill request yet. In either case, we can't really do anything about it.
+            // Set up a timeout that will resolve the task after a while, in case the process hasn't exited by then.
             _waitTimeoutCts = new CancellationTokenSource();
             _waitTimeoutRegistration = _waitTimeoutCts.Token.Register(() =>
             {
-                // Don't cancel the task here because we don't have access to the user's cancellation token
+                // We don't cancel the task here. Proper exception will be thrown upstream.
                 if (_exitTcs.TrySetResult(null))
                     Debug.Fail("Process termination timed out.");
             });

@@ -267,12 +267,11 @@ public partial class Command : ICommandConfiguration
         target
     );
 
-    // System.Diagnostics.Process already resolves full path by itself, but it naively assumes that the file
-    // is an executable if the extension is omitted. On Windows, BAT and CMD files are also valid targets.
+    // System.Diagnostics.Process already resolves the full path by itself, but it naively assumes that the file
+    // is an executable if the extension is omitted. On Windows, BAT and CMD files may also be valid targets.
     // In practice, it means that Process.Start("dotnet") works because the corresponding "dotnet.exe"
     // exists on the PATH, but Process.Start("npm") doesn't work because it needs to look for "npm.cmd"
     // instead of "npm.exe". If the extension is provided, however, it works correctly in both cases.
-    // This problem is specific to Windows because you can't run scripts directly on other platforms.
     private string GetOptimallyQualifiedTargetFilePath()
     {
         // Currently we only need this workaround for script files on Windows,
@@ -368,7 +367,9 @@ public partial class Command : ICommandConfiguration
             }
             else
             {
-                // Workaround for https://github.com/dotnet/runtime/issues/34446
+                // Null value means we should remove the variable
+                // https://github.com/Tyrrrz/CliWrap/issues/109
+                // https://github.com/dotnet/runtime/issues/34446
                 startInfo.Environment.Remove(key);
             }
         }
@@ -468,7 +469,7 @@ public partial class Command : ICommandConfiguration
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
-            // Catch cancellations triggered internally
+            // Catch internally-triggered cancellations
             catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
             {
                 // This exception is not critical and has no value to the user, so don't propagate it
