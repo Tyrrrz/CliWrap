@@ -83,7 +83,7 @@ After the task has completed, it resolves to a `CommandResult` object that conta
 > **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 > You can [override this behavior](#withvalidation) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
-By default, the process's standard input, output and error streams are routed to **CliWrap**'s equivalent of the [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
+By default, the process's standard input, output and error streams are routed to **CliWrap**'s equivalent of a [_null device_](https://en.wikipedia.org/wiki/Null_device), which represents an empty source and a target that discards all data.
 You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutputPipe(...)`, or `WithStandardErrorPipe(...)` to configure pipes for the corresponding streams:
 
 ```csharp
@@ -99,7 +99,7 @@ var result = await Cli.Wrap("path/to/exe")
     .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
     .ExecuteAsync();
 
-// Contains stdOut/stdErr buffered in-memory as string
+// Access stdout & stderr buffered in-memory as strings
 var stdOut = stdOutBuffer.ToString();
 var stdErr = stdErrBuffer.ToString();
 ```
@@ -158,6 +158,10 @@ var cmd = Cli.Wrap("git")
     .WithArguments("commit -m \"my commit\"");
 ```
 
+> **Warning**:
+> Unless you absolutely have to, avoid setting command arguments from a string.
+> This method expects that all of the arguments are already escaped and formatted correctly — which can be really hard to get right.
+
 - Set arguments from an array — each element is treated as a separate argument and spaces are escaped automatically:
 
 ```csharp
@@ -176,10 +180,6 @@ var cmd = Cli.Wrap("git")
         .Add(20)
     );
 ```
-
-> **Warning**:
-> Avoid using the string overload of `WithArguments(...)` when the argument string is too long, contains special characters, or is formed based on variable input.
-> For those scenarios, it's recommended to use the array or builder overloads as the more ergonomic alternatives.
 
 > **Note**:
 > You can also manually instantiate `ArgumentsBuilder` to help with the formatting and escaping of arguments.
@@ -320,7 +320,7 @@ _Read more about this method in the [piping section](#piping)._
 ### Piping
 
 **CliWrap** provides a very powerful and flexible piping model that allows you to redirect process's streams, transform input and output data, and even chain multiple commands together with minimal effort.
-At its core, it's based on two abstractions: `PipeSource` which provides data for standard input stream, and `PipeTarget` which reads data coming from standard output or standard error streams.
+At its core, it's based on two abstractions: `PipeSource` which provides data for the standard input stream, and `PipeTarget` which reads data coming from the standard output stream or the standard error stream.
 
 By default, command's input pipe is set to `PipeSource.Null` and the output and error pipes are set to `PipeTarget.Null`.
 These objects effectively represent no-op stubs that provide empty input and discard all output respectively.
@@ -354,17 +354,17 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeSource.FromFile(...)` — pipes data from a file
   - `PipeSource.FromBytes(...)` — pipes data from a byte array
   - `PipeSource.FromString(...)` — pipes from a text string
-  - `PipeSource.FromCommand(...)` — pipes data from standard output of another command
+  - `PipeSource.FromCommand(...)` — pipes data from the standard output of another command
 - `PipeTarget`:
   - `PipeTarget.Null` — represents a pipe target that discards all data
   - `PipeTarget.ToStream(...)` — pipes data into any writable stream
   - `PipeTarget.ToFile(...)` — pipes data into a file
-  - `PipeTarget.ToStringBuilder(...)` — pipes data as text into `StringBuilder`
-  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into `Action<string>` or `Func<string, Task>`
+  - `PipeTarget.ToStringBuilder(...)` — pipes data as text into a `StringBuilder`
+  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>` or a `Func<string, Task>`
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
 
 > **Warning**:
-> Using `PipeTarget.Null` results in the corresponding stream (standard output or standard error) not being opened for the underlying process at all.
+> Using `PipeTarget.Null` results in the corresponding stream (stdout or stderr) not being opened for the underlying process at all.
 > In the vast majority of cases, this behavior should be functionally equivalent to piping to a null stream, but without the performance overhead of consuming and discarding unneeded data.
 > This may be undesirable in [certain situations](https://github.com/Tyrrrz/CliWrap/issues/145#issuecomment-1100680547) — in which case it's recommended to pipe to a null stream explicitly using `PipeTarget.ToStream(Stream.Null)`.
 
@@ -504,8 +504,8 @@ This lets you start a command and react to the events it produces in real-time.
 Those events are:
 
 - `StartedCommandEvent` — received just once, when the command starts executing (contains process ID)
-- `StandardOutputCommandEvent` — received every time the underlying process writes a new line to the output stream (contains the text as string)
-- `StandardErrorCommandEvent` — received every time the underlying process writes a new line to the error stream (contains the text as string)
+- `StandardOutputCommandEvent` — received every time the underlying process writes a new line to the output stream (contains the text as a string)
+- `StandardErrorCommandEvent` — received every time the underlying process writes a new line to the error stream (contains the text as a string)
 - `ExitedCommandEvent` — received just once, when the command finishes executing (contains exit code)
 
 To execute a command as a _pull-based_ event stream, use the `ListenAsync()` extension method:
