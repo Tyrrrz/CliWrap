@@ -469,7 +469,7 @@ public partial class Command : ICommandConfiguration
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
-            // Catch internally-triggered cancellations
+            // Catch internally triggered cancellations
             catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
             {
                 // This exception is not critical and has no value to the user, so don't propagate it
