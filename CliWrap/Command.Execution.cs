@@ -81,10 +81,17 @@ public partial class Command
         // Set credentials
         try
         {
-            startInfo.Domain = Credentials.Domain;
-            startInfo.UserName = Credentials.UserName;
-            startInfo.Password = Credentials.Password?.ToSecureString();
-            startInfo.LoadUserProfile = Credentials.LoadUserProfile;
+            if (Credentials.Domain is not null)
+                startInfo.Domain = Credentials.Domain;
+
+            if (Credentials.UserName is not null)
+                startInfo.UserName = Credentials.UserName;
+
+            if (Credentials.Password is not null)
+                startInfo.Password = Credentials.Password.ToSecureString();
+
+            if (Credentials.LoadUserProfile)
+                startInfo.LoadUserProfile = Credentials.LoadUserProfile;
         }
         catch (NotSupportedException ex)
         {
