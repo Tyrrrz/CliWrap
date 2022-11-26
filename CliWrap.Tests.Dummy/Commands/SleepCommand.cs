@@ -24,7 +24,7 @@ public class SleepCommand : ICommand
         }
         catch (OperationCanceledException)
         {
-            await console.Output.WriteLineAsync("Operation canceled gracefully.");
+            await console.Output.WriteLineAsync("Canceled.");
             return;
         }
 
