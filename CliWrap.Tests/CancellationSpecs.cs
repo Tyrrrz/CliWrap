@@ -24,7 +24,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act
@@ -46,7 +46,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act
@@ -68,7 +68,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act
@@ -96,7 +96,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act
@@ -118,7 +118,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act
@@ -141,7 +141,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act & assert
@@ -162,7 +162,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act & assert
@@ -184,7 +184,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act & assert
@@ -205,7 +205,7 @@ public class CancellationSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
-                .Add("--duration").Add("00:00:10")
+                .Add("--duration").Add("00:00:20")
             );
 
         // Act & assert
