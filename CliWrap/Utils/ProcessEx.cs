@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,10 +19,6 @@ internal class ProcessEx : IDisposable
     private CancellationTokenRegistration? _waitTimeoutRegistration;
 
     public int Id { get; private set; }
-
-    public bool IsExited { get; private set; }
-
-    public bool IsKilled { get; private set; }
 
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
@@ -49,7 +46,6 @@ internal class ProcessEx : IDisposable
         _nativeProcess.EnableRaisingEvents = true;
         _nativeProcess.Exited += (_, _) =>
         {
-            IsExited = true;
             ExitCode = _nativeProcess.ExitCode;
 
             // Calculate our own ExitTime to be consistent with StartTime
@@ -95,13 +91,30 @@ internal class ProcessEx : IDisposable
         StandardError = _nativeProcess.StandardError.BaseStream;
     }
 
-    public void Kill()
+    // Equivalent to SIGINT
+    public void Interrupt()
     {
-        Debug.Assert(!IsKilled, "Attempt to kill a process more than once.");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // TODO
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                 RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            if (NativeMethods.Unix.Kill(_nativeProcess.Id, 2) != 0)
+                Debug.WriteLine("Failed to send an interrupt signal (Unix).");
+        }
+        else
+        {
+            Debug.WriteLine("Failed to send an interrupt signal (unsupported platform).");
+        }
+    }
 
+    // Equivalent to SIGTERM
+    public void Terminate()
+    {
         try
         {
-            IsKilled = true;
             _nativeProcess.Kill(true);
         }
         catch when (_nativeProcess.HasExited)

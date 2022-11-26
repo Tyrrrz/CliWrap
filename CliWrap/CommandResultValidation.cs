@@ -3,7 +3,7 @@
 namespace CliWrap;
 
 /// <summary>
-/// Strategy used for validating the result of command execution.
+/// Strategy used for validating the result of a command execution.
 /// </summary>
 [Flags]
 public enum CommandResultValidation
