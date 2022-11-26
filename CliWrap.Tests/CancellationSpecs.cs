@@ -88,7 +88,7 @@ public class CancellationSpecs
         // Assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
-        ex.CancellationToken.Should().Be(cts.Token);
+        ex.CancellationToken.Should().Be(cts.Token.Graceful);
 
         stdOutLines.Should().ContainEquivalentOf("Operation cancelled gracefully.");
         stdOutLines.Should().NotContainEquivalentOf("Done.");
@@ -156,7 +156,7 @@ public class CancellationSpecs
             await cmd.ExecuteBufferedAsync(Console.OutputEncoding, Console.OutputEncoding, cts.Token)
         );
 
-        ex.CancellationToken.Should().Be(cts.Token);
+        ex.CancellationToken.Should().Be(cts.Token.Graceful);
     }
 
     [Fact(Timeout = 15000)]
@@ -230,7 +230,7 @@ public class CancellationSpecs
             }
         });
 
-        ex.CancellationToken.Should().Be(cts.Token);
+        ex.CancellationToken.Should().Be(cts.Token.Graceful);
     }
 
     [Fact(Timeout = 15000)]
@@ -295,6 +295,6 @@ public class CancellationSpecs
             await cmd.Observe(Console.OutputEncoding, Console.OutputEncoding, cts.Token).ToTask(CancellationToken.None)
         );
 
-        ex.CancellationToken.Should().Be(cts.Token);
+        ex.CancellationToken.Should().Be(cts.Token.Graceful);
     }
 }
