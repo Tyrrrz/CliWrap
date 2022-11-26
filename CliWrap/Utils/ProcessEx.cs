@@ -92,7 +92,7 @@ internal class ProcessEx : IDisposable
     }
 
     // Equivalent to SIGINT
-    public void Interrupt()
+    public void SoftKill()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -111,7 +111,7 @@ internal class ProcessEx : IDisposable
     }
 
     // Equivalent to SIGTERM
-    public void Terminate()
+    public void Kill()
     {
         try
         {

@@ -23,14 +23,14 @@ public static class EventStreamCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellation cancellation)
+        CommandCancellationToken cancellationToken)
     {
         using var channel = new Channel<CommandEvent>();
 
         var stdOutPipe = PipeTarget.Merge(
             command.StandardOutputPipe,
             PipeTarget.ToDelegate(
-                s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellation.ForcefulCancellationToken),
+                s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellationToken.Forceful),
                 standardOutputEncoding
             )
         );
@@ -38,7 +38,7 @@ public static class EventStreamCommandExtensions
         var stdErrPipe = PipeTarget.Merge(
             command.StandardErrorPipe,
             PipeTarget.ToDelegate(
-                s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellation.ForcefulCancellationToken),
+                s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellationToken.Forceful),
                 standardErrorEncoding
             )
         );
@@ -47,7 +47,7 @@ public static class EventStreamCommandExtensions
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe);
 
-        var commandTask = pipedCommand.ExecuteAsync(cancellation);
+        var commandTask = pipedCommand.ExecuteAsync(cancellationToken);
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
         // Don't pass cancellation token to continuation because we need it to always trigger
@@ -56,7 +56,7 @@ public static class EventStreamCommandExtensions
             .Task
             .ContinueWith(_ => channel.Close(), TaskContinuationOptions.None);
 
-        await foreach (var cmdEvent in channel.ReceiveAsync(cancellation.ForcefulCancellationToken).ConfigureAwait(false))
+        await foreach (var cmdEvent in channel.ReceiveAsync(cancellationToken.Forceful).ConfigureAwait(false))
             yield return cmdEvent;
 
         var exitCode = await commandTask.Select(r => r.ExitCode).ConfigureAwait(false);
@@ -77,7 +77,7 @@ public static class EventStreamCommandExtensions
         command.ListenAsync(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellation.ForcefulOnly(cancellationToken)
+            CommandCancellationToken.CreateForceful(cancellationToken)
         );
 
     /// <summary>
@@ -114,7 +114,7 @@ public static class EventStreamCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellation cancellation) =>
+        CommandCancellationToken cancellationToken) =>
         Observable.Create<CommandEvent>(observer =>
         {
             var stdOutPipe = PipeTarget.Merge(
@@ -137,7 +137,7 @@ public static class EventStreamCommandExtensions
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe);
 
-            var commandTask = pipedCommand.ExecuteAsync(cancellation);
+            var commandTask = pipedCommand.ExecuteAsync(cancellationToken);
             observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
             // Don't pass cancellation token to continuation because we need it to always trigger
@@ -179,7 +179,7 @@ public static class EventStreamCommandExtensions
         command.Observe(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellation.ForcefulOnly(cancellationToken)
+            CommandCancellationToken.CreateForceful(cancellationToken)
         );
 
     /// <summary>

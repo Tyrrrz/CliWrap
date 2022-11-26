@@ -184,19 +184,19 @@ public partial class Command
         }
     }
 
-    private async Task<CommandResult> ExecuteAsync(ProcessEx process, CommandCancellation cancellation)
+    private async Task<CommandResult> ExecuteAsync(ProcessEx process, CommandCancellationToken cancellationToken)
     {
         using (process)
         // Additional cancellation for the stdin pipe in case the process terminates early and doesn't fully consume it
-        using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellation.ForcefulCancellationToken))
-        await using (cancellation.GracefulCancellationToken.Register(process.Interrupt).ToAsyncDisposable())
-        await using (cancellation.ForcefulCancellationToken.Register(process.Terminate).ToAsyncDisposable())
+        using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Forceful))
+        await using (cancellationToken.Graceful.Register(process.SoftKill).ToAsyncDisposable())
+        await using (cancellationToken.Forceful.Register(process.Kill).ToAsyncDisposable())
         {
             // Start piping streams in the background
             var pipingTask = Task.WhenAll(
                 PipeStandardInputAsync(process, stdInCts.Token),
-                PipeStandardOutputAsync(process, cancellation.ForcefulCancellationToken),
-                PipeStandardErrorAsync(process, cancellation.ForcefulCancellationToken)
+                PipeStandardOutputAsync(process, cancellationToken.Forceful),
+                PipeStandardErrorAsync(process, cancellationToken.Forceful)
             );
 
             // Wait until the process exits normally or gets killed
@@ -220,20 +220,20 @@ public partial class Command
 
             // Throw if forceful cancellation was requested
             // (we need to check this one first because out of the two cancellations this one is the more decisive)
-            if (cancellation.ForcefulCancellationToken.IsCancellationRequested)
+            if (cancellationToken.Forceful.IsCancellationRequested)
             {
                 throw new OperationCanceledException(
-                    $"Process (ID: {process.Id}) was forcefully terminated by user request.",
-                    cancellation.ForcefulCancellationToken
+                    $"Process (ID: {process.Id}) was forcefully terminated.",
+                    cancellationToken.Forceful
                 );
             }
 
             // Throw if graceful cancellation was requested
-            if (cancellation.GracefulCancellationToken.IsCancellationRequested)
+            if (cancellationToken.Graceful.IsCancellationRequested)
             {
                 throw new OperationCanceledException(
-                    $"Process (ID: {process.Id}) was gracefully terminated by user request.",
-                    cancellation.GracefulCancellationToken
+                    $"Process (ID: {process.Id}) was gracefully terminated.",
+                    cancellationToken.Graceful
                 );
             }
 
@@ -260,7 +260,7 @@ public partial class Command
     /// <remarks>
     /// This method can be awaited.
     /// </remarks>
-    public CommandTask<CommandResult> ExecuteAsync(CommandCancellation cancellation)
+    public CommandTask<CommandResult> ExecuteAsync(CommandCancellationToken cancellationToken)
     {
         var process = new ProcessEx(GetStartInfo());
 
@@ -270,7 +270,7 @@ public partial class Command
         process.Start();
 
         return new CommandTask<CommandResult>(
-            ExecuteAsync(process, cancellation),
+            ExecuteAsync(process, cancellationToken),
             process.Id
         );
     }
@@ -282,5 +282,5 @@ public partial class Command
     /// This method can be awaited.
     /// </remarks>
     public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default) =>
-        ExecuteAsync(CommandCancellation.ForcefulOnly(cancellationToken));
+        ExecuteAsync(CommandCancellationToken.CreateForceful(cancellationToken));
 }

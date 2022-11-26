@@ -22,7 +22,7 @@ public static class BufferedCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellation cancellation)
+        CommandCancellationToken cancellationToken)
     {
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
@@ -44,7 +44,7 @@ public static class BufferedCommandExtensions
             .WithValidation(CommandResultValidation.None);
 
         return pipedCommand
-            .ExecuteAsync(cancellation)
+            .ExecuteAsync(cancellationToken)
             .Select(r =>
             {
                 // Transform the result
@@ -86,7 +86,7 @@ public static class BufferedCommandExtensions
         command.ExecuteBufferedAsync(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellation.ForcefulOnly(cancellationToken)
+            CommandCancellationToken.CreateForceful(cancellationToken)
         );
 
     /// <summary>
