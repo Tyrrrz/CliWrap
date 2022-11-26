@@ -96,8 +96,8 @@ public partial class Command
         catch (NotSupportedException ex)
         {
             throw new NotSupportedException(
-                "Cannot start a process under the provided credentials. " +
-                "Using custom domain, password, or loading user profile is only supported on Windows.",
+                "Cannot start a process using provided credentials. " +
+                "Setting custom domain, password, or loading user profile is only supported on Windows.",
                 ex
             );
         }
@@ -152,7 +152,7 @@ public partial class Command
             }
             // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Linux).
             // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
-            // We can't rely on process.IsExited here because of potential race conditions.
+            // We can't rely on process.HasExited here because of potential race conditions.
             catch (IOException ex) when (ex.GetType() == typeof(IOException))
             {
                 // This may happen if the process terminated before the pipe could complete.
@@ -282,12 +282,5 @@ public partial class Command
     /// This method can be awaited.
     /// </remarks>
     public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default) =>
-        ExecuteAsync(
-            new CommandCancellation(
-                // Graceful cancellation
-                CancellationToken.None,
-                // Forceful cancellation
-                cancellationToken
-            )
-        );
+        ExecuteAsync(CommandCancellation.ForcefulOnly(cancellationToken));
 }

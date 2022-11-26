@@ -3,9 +3,9 @@
 namespace CliWrap;
 
 /// <summary>
-/// Cancellation instructions for a command.
+/// Cancellation policy for a command.
 /// </summary>
-public readonly struct CommandCancellation
+public readonly partial struct CommandCancellation
 {
     /// <summary>
     /// Token that triggers graceful cancellation of a command by sending an interrupt signal to the process.
@@ -27,4 +27,21 @@ public readonly struct CommandCancellation
         GracefulCancellationToken = gracefulCancellationToken;
         ForcefulCancellationToken = forcefulCancellationToken;
     }
+}
+
+public partial struct CommandCancellation
+{
+    /// <summary>
+    /// Creates cancellation policy for a command by using the provided cancellation token as the
+    /// graceful cancellation token. Forceful cancellation will not be used.
+    /// </summary>
+    public static CommandCancellation GracefulOnly(CancellationToken cancellationToken) =>
+        new(cancellationToken, CancellationToken.None);
+
+    /// <summary>
+    /// Creates cancellation policy for a command by using the provided cancellation token as the
+    /// forceful cancellation token. Graceful cancellation will not be used.
+    /// </summary>
+    public static CommandCancellation ForcefulOnly(CancellationToken cancellationToken) =>
+        new(CancellationToken.None, cancellationToken);
 }

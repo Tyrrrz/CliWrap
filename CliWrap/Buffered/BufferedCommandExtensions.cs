@@ -22,7 +22,7 @@ public static class BufferedCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CancellationToken cancellationToken = default)
+        CommandCancellation cancellation)
     {
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
@@ -37,14 +37,14 @@ public static class BufferedCommandExtensions
             PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
         );
 
-        var commandPiped = command
+        var pipedCommand = command
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe)
             // Disable validation because we have our own
             .WithValidation(CommandResultValidation.None);
 
-        return commandPiped
-            .ExecuteAsync(cancellationToken)
+        return pipedCommand
+            .ExecuteAsync(cancellation)
             .Select(r =>
             {
                 // Transform the result
@@ -56,7 +56,7 @@ public static class BufferedCommandExtensions
                     stdErrBuffer.ToString()
                 );
 
-                // We perform validation separately here because we want to include stderr in the exception as well
+                // Perform validation separately here because we want to include stderr in the exception as well
                 if (result.ExitCode != 0 && command.Validation.IsZeroExitCodeValidationEnabled())
                 {
                     throw CommandExecutionException.ValidationError(
@@ -69,6 +69,25 @@ public static class BufferedCommandExtensions
                 return result;
             });
     }
+
+    /// <summary>
+    /// Executes the command asynchronously.
+    /// The result of this execution contains the standard output and standard error streams
+    /// buffered in-memory as strings.
+    /// </summary>
+    /// <remarks>
+    /// This method can be awaited.
+    /// </remarks>
+    public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
+        this Command command,
+        Encoding standardOutputEncoding,
+        Encoding standardErrorEncoding,
+        CancellationToken cancellationToken = default) =>
+        command.ExecuteBufferedAsync(
+            standardOutputEncoding,
+            standardErrorEncoding,
+            CommandCancellation.ForcefulOnly(cancellationToken)
+        );
 
     /// <summary>
     /// Executes the command asynchronously.
