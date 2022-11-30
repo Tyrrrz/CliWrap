@@ -86,7 +86,7 @@ public static class BufferedCommandExtensions
         command.ExecuteBufferedAsync(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellationToken.CreateForceful(cancellationToken)
+            CommandCancellationToken.ForcefulOnly(cancellationToken)
         );
 
     /// <summary>

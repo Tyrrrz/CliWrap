@@ -17,8 +17,8 @@ namespace CliWrap;
 public abstract partial class PipeTarget
 {
     /// <summary>
-    /// Copies the binary content from the origin stream and pushes it into the pipe.
-    /// Origin stream represents the process's standard output or standard error stream.
+    /// Reads the binary content from the origin stream and pushes it into the pipe.
+    /// Origin stream represents the process's standard output or standard error.
     /// </summary>
     public abstract Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default);
 }
@@ -88,7 +88,7 @@ public partial class PipeTarget
 {
     /// <summary>
     /// Pipe target that discards all data.
-    /// Logical equivalent to /dev/null.
+    /// Functional equivalent to /dev/null.
     /// </summary>
     /// <remarks>
     /// Using this target results in the corresponding stream (standard output or standard error)

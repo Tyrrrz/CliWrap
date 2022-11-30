@@ -23,26 +23,42 @@ public class CommandCancellationTokenSource : IDisposable
         Token = new CommandCancellationToken(_gracefulCts.Token, _forcefulCts.Token);
 
     /// <summary>
-    /// Requests graceful cancellation of an executing command.
-    /// This will send an interrupt signal to the underlying process, allowing it to exit on its own terms.
+    /// Sends an interrupt signal to the underlying process, requesting it to exit early
+    /// but allowing it to do so on its own terms.
+    /// Functional equivalent to SIGINT or Ctrl+C.
     /// </summary>
+    /// <remarks>
+    /// Because this cancellation method is cooperative in nature, it's possible that
+    /// the underlying process may choose to ignore it.
+    /// In order to ensure that the process exits regardless, for example within an
+    /// allotted timeout, you can additionally schedule forceful cancellation
+    /// using <see cref="CancelForcefullyAfter" />.
+    /// </remarks>
     public void CancelGracefully() => _gracefulCts.Cancel();
 
     /// <summary>
-    /// Requests graceful cancellation of an executing command after the specified delay.
-    /// This will send an interrupt signal to the underlying process, allowing it to exit on its own terms.
+    /// Schedules an interrupt signal to the underlying process, requesting it to exit early
+    /// but allowing it to do so on its own terms.
+    /// Functional equivalent to SIGINT or Ctrl+C.
     /// </summary>
+    /// <remarks>
+    /// Because this cancellation method is cooperative in nature, it's possible that
+    /// the underlying process may choose to ignore it.
+    /// In order to ensure that the process exits regardless, for example within an
+    /// allotted timeout, you can additionally schedule forceful cancellation
+    /// using <see cref="CancelForcefullyAfter" />.
+    /// </remarks>
     public void CancelGracefullyAfter(TimeSpan delay) => _gracefulCts.CancelAfter(delay);
 
     /// <summary>
-    /// Requests forceful cancellation of an executing command.
-    /// This will kill the underlying process.
+    /// Sends a termination signal to the underlying process, forcing it to exit immediately.
+    /// Functional equivalent to SIGTERM or Alt+F4.
     /// </summary>
     public void CancelForcefully() => _forcefulCts.Cancel();
 
     /// <summary>
-    /// Requests forceful cancellation of an executing command after the specified delay.
-    /// This will kill the underlying process.
+    /// Schedules a termination signal to the underlying process, forcing it to exit immediately.
+    /// Functional equivalent to SIGTERM or Alt+F4.
     /// </summary>
     public void CancelForcefullyAfter(TimeSpan delay) => _forcefulCts.CancelAfter(delay);
 

@@ -282,5 +282,5 @@ public partial class Command
     /// This method can be awaited.
     /// </remarks>
     public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default) =>
-        ExecuteAsync(CommandCancellationToken.CreateForceful(cancellationToken));
+        ExecuteAsync(CommandCancellationToken.ForcefulOnly(cancellationToken));
 }

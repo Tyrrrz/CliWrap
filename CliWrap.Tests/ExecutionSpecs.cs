@@ -62,7 +62,7 @@ public class ExecutionSpecs
                 .Add("--lines").Add(100_000)
             );
 
-        // Act
+        // Act & assert
         await cmd.ExecuteAsync();
     }
 

@@ -13,8 +13,8 @@ namespace CliWrap;
 public abstract partial class PipeSource
 {
     /// <summary>
-    /// Copies the binary content pushed to the pipe into the destination stream.
-    /// Destination stream represents the process's standard input stream.
+    /// Reads the binary content pushed into the pipe and writes it to the destination stream.
+    /// Destination stream represents the process's standard input.
     /// </summary>
     public abstract Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default);
 }
@@ -34,7 +34,7 @@ public partial class PipeSource
 {
     /// <summary>
     /// Pipe source that does not provide any data.
-    /// Logical equivalent to /dev/null.
+    /// Functional equivalent to /dev/null.
     /// </summary>
     public static PipeSource Null { get; } = Create((_, cancellationToken) =>
          !cancellationToken.IsCancellationRequested

@@ -47,7 +47,8 @@ public class CancellationSpecs
         // Arrange
         var stdOutLines = new List<string>();
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -123,7 +124,8 @@ public class CancellationSpecs
     public async Task Buffered_command_execution_can_be_canceled_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -191,7 +193,8 @@ public class CancellationSpecs
     public async Task Pull_event_stream_command_execution_can_be_canceled_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -262,7 +265,8 @@ public class CancellationSpecs
     public async Task Push_event_stream_command_execution_can_be_canceled_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a

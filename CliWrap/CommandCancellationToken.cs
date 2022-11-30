@@ -33,6 +33,6 @@ public readonly partial struct CommandCancellationToken
 
 public partial struct CommandCancellationToken
 {
-    internal static CommandCancellationToken CreateForceful(CancellationToken cancellationToken) =>
+    internal static CommandCancellationToken ForcefulOnly(CancellationToken cancellationToken) =>
         new(CancellationToken.None, cancellationToken);
 }

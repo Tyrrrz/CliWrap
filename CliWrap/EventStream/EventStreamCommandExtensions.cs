@@ -77,7 +77,7 @@ public static class EventStreamCommandExtensions
         command.ListenAsync(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellationToken.CreateForceful(cancellationToken)
+            CommandCancellationToken.ForcefulOnly(cancellationToken)
         );
 
     /// <summary>
@@ -179,7 +179,7 @@ public static class EventStreamCommandExtensions
         command.Observe(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellationToken.CreateForceful(cancellationToken)
+            CommandCancellationToken.ForcefulOnly(cancellationToken)
         );
 
     /// <summary>

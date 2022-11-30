@@ -15,7 +15,7 @@ public class CredentialsSpecs
         Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
         // We can't really test the happy path, but at least can verify
-        // that the credentials have been passed.
+        // that the credentials have been passed by getting an exception.
 
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -37,7 +37,7 @@ public class CredentialsSpecs
         Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
         // We can't really test the happy path, but at least can verify
-        // that the credentials have been passed.
+        // that the credentials have been passed by getting an exception.
 
         // Arrange
         var cmd = Cli.Wrap("dotnet")
