@@ -141,12 +141,12 @@ public partial class Command
         {
             try
             {
-                // Some streams do not support cancellation, so we add a fallback that
-                // drops the task and returns early (uncooperative cancellation).
-                // This is important with stdin because the process might finish before
-                // the pipe completes, and in case with infinite input stream it would
-                // normally result in a deadlock.
                 await StandardInputPipe.CopyToAsync(process.StandardInput, cancellationToken)
+                    // Some streams do not support cancellation, so we add a fallback that
+                    // drops the task and returns early.
+                    // This is important with stdin because the process might finish before
+                    // the pipe completes, and in case with infinite input stream it would
+                    // normally result in a deadlock.
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -213,17 +213,20 @@ public partial class Command
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex) when (
+                ex.CancellationToken == cancellationToken.Graceful ||
+                ex.CancellationToken == cancellationToken.Forceful ||
+                ex.CancellationToken == stdInCts.Token)
             {
                 // Cancellations inside pipes are not relevant to the user
             }
 
             // Throw if forceful cancellation was requested
-            // (we need to check this one first because out of the two cancellations this one is the more decisive)
+            // (needs to be checked first because out of the two cancellations this one is the more decisive)
             if (cancellationToken.Forceful.IsCancellationRequested)
             {
                 throw new OperationCanceledException(
-                    $"Process (ID: {process.Id}) was forcefully terminated.",
+                    $"Command execution canceled. Process (ID: {process.Id}) was forcefully terminated.",
                     cancellationToken.Forceful
                 );
             }
@@ -232,7 +235,7 @@ public partial class Command
             if (cancellationToken.Graceful.IsCancellationRequested)
             {
                 throw new OperationCanceledException(
-                    $"Process (ID: {process.Id}) was gracefully terminated.",
+                    $"Command execution canceled. Process (ID: {process.Id}) was gracefully terminated.",
                     cancellationToken.Graceful
                 );
             }

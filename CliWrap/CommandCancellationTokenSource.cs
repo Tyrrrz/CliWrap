@@ -29,7 +29,7 @@ public class CommandCancellationTokenSource : IDisposable
     /// </summary>
     /// <remarks>
     /// Because this cancellation method is cooperative in nature, it's possible that
-    /// the underlying process may choose to ignore it.
+    /// the underlying process may choose to ignore the request or take too long to fulfill it.
     /// In order to ensure that the process exits regardless, for example within an
     /// allotted timeout, you can additionally schedule forceful cancellation
     /// using <see cref="CancelForcefullyAfter" />.
@@ -43,7 +43,7 @@ public class CommandCancellationTokenSource : IDisposable
     /// </summary>
     /// <remarks>
     /// Because this cancellation method is cooperative in nature, it's possible that
-    /// the underlying process may choose to ignore it.
+    /// the underlying process may choose to ignore the request or take too long to fulfill it.
     /// In order to ensure that the process exits regardless, for example within an
     /// allotted timeout, you can additionally schedule forceful cancellation
     /// using <see cref="CancelForcefullyAfter" />.

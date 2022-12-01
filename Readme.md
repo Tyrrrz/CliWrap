@@ -610,13 +610,13 @@ To do that, just pass the corresponding `CancellationToken` when calling `Execut
 ```csharp
 using var cts = new CancellationTokenSource();
 
-// Cancel automatically after a timeout of 10 seconds
+// Cancel after a timeout of 10 seconds
 cts.CancelAfter(TimeSpan.FromSeconds(10));
 
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 ```
 
-In the event of a cancellation request, the underlying process will be killed and `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
+In the event of a cancellation request, the underlying process will be forcefully killed and `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
 You will need to catch this exception in your code to recover from cancellation:
 
 ```csharp
@@ -631,10 +631,34 @@ catch (OperationCanceledException)
 ```
 
 > **Note**:
-> Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
+> You can read more about `CancellationTokenSource` and `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
+
+Besides forceful cancellation via process termination, **CliWrap** also supports graceful cancellation using interrupt signals.
+You can leverage this capability by passing a special cancellation token provided by an instance of `CommandCancellationTokenSource`:
+
+```csharp
+// Special cancellation token source for usage with commands
+using var cts = new CommandCancellationTokenSource();
+
+// Cancel gracefully after a timeout of 10 seconds
+cts.CancelGracefullAfter(TimeSpan.FromSeconds(10));
+
+// Cancel forcefully after a timeout of 15 seconds
+// (i.e. 5 seconds after graceful cancellation) 
+cts.CancelForcefullyAfter(TimeSpan.FromSeconds(15));
+
+var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
+```
+
+Requesting graceful cancellation sends an interrupt signal, which is functionally equivalent to pressing `Ctrl+C` in the terminal.
+The underlying process may handle this signal to perform last-minute critical work before finally exiting on its own terms.
+
+> **Warning**:
+> Because graceful cancellation is inherently cooperative, it's possible that the underlying process may choose to ignore the request or take too long to fulfill it.
+> Consider always employing forceful cancellation as a backup (via `CancelForcefully()` or `CancelForcefullyAfter(...)`) to prevent the command from hanging.
 
 > **Note**:
-> You can read more about `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
+> Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
 ### Retrieving process ID
 
