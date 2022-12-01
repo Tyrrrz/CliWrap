@@ -88,7 +88,7 @@ public partial class PipeTarget
 {
     /// <summary>
     /// Pipe target that discards all data.
-    /// Functional equivalent to /dev/null.
+    /// Functional equivalent to a null device.
     /// </summary>
     /// <remarks>
     /// Using this target results in the corresponding stream (standard output or standard error)

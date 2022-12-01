@@ -91,8 +91,8 @@ internal class ProcessEx : IDisposable
         StandardError = _nativeProcess.StandardError.BaseStream;
     }
 
-    // Equivalent to SIGINT
-    public void SoftKill()
+    // Sends SIGINT
+    public void Interrupt()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -110,7 +110,7 @@ internal class ProcessEx : IDisposable
         }
     }
 
-    // Equivalent to SIGTERM
+    // Sends SIGKILL
     public void Kill()
     {
         try

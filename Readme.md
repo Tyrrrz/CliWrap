@@ -626,7 +626,7 @@ try
 }
 catch (OperationCanceledException)
 {
-    // Command was cancelled
+    // Command was canceled
 }
 ```
 

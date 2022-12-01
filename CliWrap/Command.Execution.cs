@@ -189,7 +189,7 @@ public partial class Command
         using (process)
         // Additional cancellation for the stdin pipe in case the process terminates early and doesn't fully consume it
         using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Forceful))
-        await using (cancellationToken.Graceful.Register(process.SoftKill).ToAsyncDisposable())
+        await using (cancellationToken.Graceful.Register(process.Interrupt).ToAsyncDisposable())
         await using (cancellationToken.Forceful.Register(process.Kill).ToAsyncDisposable())
         {
             // Start piping streams in the background
