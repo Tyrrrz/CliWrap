@@ -35,6 +35,7 @@ public partial class Command
         {
             // Implementation reference:
             // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L686-L728
+            // MIT License, .NET Foundation
 
             // Executable directory
             if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))

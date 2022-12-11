@@ -25,28 +25,26 @@ public class CommandCancellationTokenSource : IDisposable
     /// <summary>
     /// Sends an interrupt signal to the underlying process, requesting it to terminate early
     /// but allowing it to do so on its own terms.
-    /// Functional equivalent to pressing Ctrl+C in the console window.
+    /// Functionally equivalent to pressing Ctrl+C in the console window.
     /// </summary>
     /// <remarks>
     /// Because this cancellation method is cooperative in nature, it's possible that
     /// the underlying process may choose to ignore the request or take too long to fulfill it.
-    /// In order to ensure that the process exits regardless, for example within an
-    /// allotted timeout, you can additionally schedule forceful cancellation
-    /// using <see cref="CancelForcefullyAfter" />.
+    /// In order to ensure that the process exits within an allotted timeout,
+    /// you can additionally schedule forceful cancellation using <see cref="CancelForcefullyAfter" />.
     /// </remarks>
     public void CancelGracefully() => _gracefulCts.Cancel();
 
     /// <summary>
     /// Schedules an interrupt signal to the underlying process, requesting it to terminate early
     /// but allowing it to do so on its own terms.
-    /// Functional equivalent to pressing Ctrl+C in the console window.
+    /// Functionally equivalent to pressing Ctrl+C in the console window.
     /// </summary>
     /// <remarks>
     /// Because this cancellation method is cooperative in nature, it's possible that
     /// the underlying process may choose to ignore the request or take too long to fulfill it.
-    /// In order to ensure that the process exits regardless, for example within an
-    /// allotted timeout, you can additionally schedule forceful cancellation
-    /// using <see cref="CancelForcefullyAfter" />.
+    /// In order to ensure that the process exits within an allotted timeout,
+    /// you can additionally schedule forceful cancellation using <see cref="CancelForcefullyAfter" />.
     /// </remarks>
     public void CancelGracefullyAfter(TimeSpan delay) => _gracefulCts.CancelAfter(delay);
 

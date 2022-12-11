@@ -605,7 +605,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 Command execution is asynchronous in nature as it involves a completely separate process.
 In many cases, it may be useful to implement an abortion mechanism to stop the execution before it finishes, either through a manual trigger or a timeout.
 
-To do that, just pass the corresponding `CancellationToken` when calling `ExecuteAsync()`:
+To do that, issue the corresponding `CancellationToken` and pass it when calling `ExecuteAsync()`:
 
 ```csharp
 using var cts = new CancellationTokenSource();
@@ -616,7 +616,7 @@ cts.CancelAfter(TimeSpan.FromSeconds(10));
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
 ```
 
-In the event of a cancellation request, the underlying process will be forcefully killed and `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
+In the event of a cancellation request, the underlying process will be killed and `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
 You will need to catch this exception in your code to recover from cancellation:
 
 ```csharp
@@ -634,10 +634,10 @@ catch (OperationCanceledException)
 > You can read more about `CancellationTokenSource` and `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
 
 Besides forceful cancellation via process termination, **CliWrap** also supports graceful cancellation using interrupt signals.
-You can leverage this capability by passing a special cancellation token provided by an instance of `CommandCancellationTokenSource`:
+You can leverage this capability by passing a specialized `CommandCancellationToken`, which can be issued through an instance of `CommandCancellationTokenSource`:
 
 ```csharp
-// Special cancellation token source for usage with commands
+// Specialized cancellation token source for usage with commands
 using var cts = new CommandCancellationTokenSource();
 
 // Cancel gracefully after a timeout of 10 seconds
@@ -663,7 +663,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 ### Retrieving process ID
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is in fact not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a special awaitable object that contains additional information related to the currently executing command.
+This is a specialized awaitable object that contains additional information related to the currently executing command.
 
 You can inspect the task while it's running to get the ID of the process that was started by the associated command:
 

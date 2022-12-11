@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 
-#if NET461
+#if NET462
 using System;
 using System.Management;
 using System.Linq;

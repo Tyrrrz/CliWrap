@@ -34,7 +34,7 @@ public partial class PipeSource
 {
     /// <summary>
     /// Pipe source that does not provide any data.
-    /// Functional equivalent to a null device.
+    /// Functionally equivalent to a null device.
     /// </summary>
     public static PipeSource Null { get; } = Create((_, cancellationToken) =>
          !cancellationToken.IsCancellationRequested
