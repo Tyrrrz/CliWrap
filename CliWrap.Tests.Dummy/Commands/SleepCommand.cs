@@ -14,12 +14,11 @@ public class SleepCommand : ICommand
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        await console.Output.WriteLineAsync($"Sleeping for {Duration}...");
-
         var cancellationToken = console.RegisterCancellationHandler();
 
         try
         {
+            await console.Output.WriteLineAsync($"Sleeping for {Duration}...");
             await Task.Delay(Duration, cancellationToken);
         }
         catch (OperationCanceledException)
