@@ -79,20 +79,29 @@ public class CancellationSpecs
         );
 
         // Arrange
+        using var handlerRegistered = new SemaphoreSlim(0, 1);
         var stdOutLines = new List<string>();
 
         using var cts = new CommandCancellationTokenSource();
-        cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
-            ) | stdOutLines.Add;
+            ) | (s =>
+        {
+            stdOutLines.Add(s);
+
+            if (s.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
+                handlerRegistered.Release();
+        });
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
+
+        await handlerRegistered.WaitAsync(20000);
+        cts.CancelGracefully();
 
         // Assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
