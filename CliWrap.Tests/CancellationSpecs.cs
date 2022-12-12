@@ -70,7 +70,7 @@ public class CancellationSpecs
         stdOutLines.Should().NotContainEquivalentOf("Done.");
     }
 
-    [Fact(Timeout = 15000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task Command_execution_can_be_canceled_gracefully()
     {
         Skip.If(
@@ -157,7 +157,7 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
-    [Fact(Timeout = 15000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task Buffered_command_execution_can_be_canceled_gracefully()
     {
         Skip.If(
@@ -234,7 +234,7 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
-    [Fact(Timeout = 15000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task Pull_event_stream_command_execution_can_be_canceled_gracefully()
     {
         Skip.If(
@@ -308,7 +308,7 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
-    [Fact(Timeout = 15000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task Push_event_stream_command_execution_can_be_canceled_gracefully()
     {
         Skip.If(
