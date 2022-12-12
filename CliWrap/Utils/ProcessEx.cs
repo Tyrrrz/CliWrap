@@ -94,19 +94,27 @@ internal class ProcessEx : IDisposable
     // Sends SIGINT
     public void Interrupt()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        bool TryInterrupt()
         {
-            // TODO
+            // Sending an interrupt signal to a specific process is only possible on Unix.
+            // On Windows, we can only send the signal to an entire process group, which
+            // has the risk of bringing down unrelated processes. There are some workarounds,
+            // but they are brittle and not worth the effort.
+            // https://github.com/Tyrrrz/CliWrap/issues/47
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
+            }
+
+            return false;
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                 RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+
+        if (!TryInterrupt())
         {
-            if (NativeMethods.Unix.Kill(_nativeProcess.Id, 2) != 0)
-                Debug.WriteLine("Failed to send an interrupt signal (Unix).");
-        }
-        else
-        {
-            Debug.WriteLine("Failed to send an interrupt signal (unsupported platform).");
+            // In case of failure, just do nothing and assume the user prepared a fallback
+            Debug.Fail("Failed to send an interrupt signal.");
         }
     }
 

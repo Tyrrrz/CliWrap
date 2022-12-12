@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Threading.Tasks;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
@@ -72,6 +73,11 @@ public class CancellationSpecs
     [Fact(Timeout = 15000)]
     public async Task Command_execution_can_be_canceled_gracefully()
     {
+        Skip.If(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Graceful cancellation is not supported on Windows."
+        );
+
         // Arrange
         var stdOutLines = new List<string>();
 
@@ -145,6 +151,11 @@ public class CancellationSpecs
     [Fact(Timeout = 15000)]
     public async Task Buffered_command_execution_can_be_canceled_gracefully()
     {
+        Skip.If(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Graceful cancellation is not supported on Windows."
+        );
+
         // Arrange
         using var cts = new CommandCancellationTokenSource();
         cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
@@ -217,6 +228,11 @@ public class CancellationSpecs
     [Fact(Timeout = 15000)]
     public async Task Pull_event_stream_command_execution_can_be_canceled_gracefully()
     {
+        Skip.If(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Graceful cancellation is not supported on Windows."
+        );
+
         // Arrange
         using var cts = new CommandCancellationTokenSource();
         cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
@@ -286,6 +302,11 @@ public class CancellationSpecs
     [Fact(Timeout = 15000)]
     public async Task Push_event_stream_command_execution_can_be_canceled_gracefully()
     {
+        Skip.If(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Graceful cancellation is not supported on Windows."
+        );
+
         // Arrange
         using var cts = new CommandCancellationTokenSource();
         cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));

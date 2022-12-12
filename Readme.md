@@ -657,6 +657,10 @@ The underlying process may handle this signal to perform last-minute critical wo
 > Because graceful cancellation is inherently cooperative, it's possible that the underlying process may choose to ignore the request or take too long to fulfill it.
 > Consider always employing forceful cancellation as a backup (via `CancelForcefully()` or `CancelForcefullyAfter(...)`) to prevent the command from hanging.
 
+> **Warning**:
+> Graceful cancellation is not supported on Windows, because this platform does not allow sending interrupt signals to specific processes.
+> Calling `CancelGracefully()` or `CancelGracefullyAfter(...)` on Windows will do nothing.
+
 > **Note**:
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 

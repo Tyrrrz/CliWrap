@@ -18,8 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Tests.Dummy", "CliW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Benchmarks", "CliWrap.Benchmarks\CliWrap.Benchmarks.csproj", "{22636DB4-8A4D-4540-95AF-59C848459948}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Signaler", "CliWrap.Signaler\CliWrap.Signaler.csproj", "{55FDA194-057D-41CC-BBEA-B856B1C34066}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,10 +40,6 @@ Global
 		{22636DB4-8A4D-4540-95AF-59C848459948}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22636DB4-8A4D-4540-95AF-59C848459948}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22636DB4-8A4D-4540-95AF-59C848459948}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55FDA194-057D-41CC-BBEA-B856B1C34066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55FDA194-057D-41CC-BBEA-B856B1C34066}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55FDA194-057D-41CC-BBEA-B856B1C34066}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55FDA194-057D-41CC-BBEA-B856B1C34066}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

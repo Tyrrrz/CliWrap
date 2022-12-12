@@ -11,8 +11,10 @@ public class CredentialsSpecs
     [SkippableFact(Timeout = 15000)]
     public async Task Command_can_be_executed_as_another_user()
     {
-        // Only properly supported on Windows
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        Skip.IfNot(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Starting a process under a different user is only supported on Windows."
+        );
 
         // We can't really test the happy path, but at least can verify
         // that the credentials have been passed by getting an exception.
@@ -33,8 +35,10 @@ public class CredentialsSpecs
     [SkippableFact(Timeout = 15000)]
     public async Task Command_can_be_executed_as_another_user_under_a_different_domain()
     {
-        // Only properly supported on Windows
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        Skip.IfNot(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Starting a process under a different user is only supported on Windows."
+        );
 
         // We can't really test the happy path, but at least can verify
         // that the credentials have been passed by getting an exception.
@@ -56,7 +60,10 @@ public class CredentialsSpecs
     [SkippableFact(Timeout = 15000)]
     public async Task Command_execution_throws_if_executed_as_another_user_on_an_unsupported_operating_system()
     {
-        Skip.If(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        Skip.If(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Starting a process under a different user is only supported on Windows."
+        );
 
         // Arrange
         var cmd = Cli.Wrap("dotnet")

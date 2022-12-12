@@ -151,7 +151,7 @@ public partial class Command
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
-            // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Linux).
+            // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
             // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
             // We can't rely on process.HasExited here because of potential race conditions.
             catch (IOException ex) when (ex.GetType() == typeof(IOException))

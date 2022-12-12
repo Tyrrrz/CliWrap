@@ -51,24 +51,4 @@
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
-  <!-- Non-linking dependency on the signaler project to ensure correct build order -->
-  <ItemGroup>
-    <ProjectReference Include="..\CliWrap.Signaler\CliWrap.Signaler.csproj">
-      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <CopyLocal>false</CopyLocal>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
-
-  <!-- Embed the signaler executable inside the assembly -->
-  <ItemGroup>
-    <EmbeddedResource Include="../CliWrap.Signaler/bin/$(Configuration)/net35/CliWrap.Signaler.exe">
-      <Link>CliWrap.Signaler.exe</Link>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </EmbeddedResource>
-  </ItemGroup>
-
 </Project>

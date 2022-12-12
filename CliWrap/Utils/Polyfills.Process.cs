@@ -1,7 +1,6 @@
 ﻿// ReSharper disable CheckNamespace
 
 using System.Diagnostics;
-
 #if NET462
 using System;
 using System.Management;
@@ -48,9 +47,12 @@ internal static class ProcessPolyfills
 #endif
 
 #if NETSTANDARD2_0 || NETSTANDARD2_1
-internal static class ProcessPolyfills
+namespace CliWrap.Utils
 {
-    // Can't kill children in .NET Standard :(
-    public static void Kill(this Process process, bool entireProcessTree) => process.Kill();
+    internal static class ProcessPolyfills
+    {
+        // Can't kill children in .NET Standard :(
+        public static void Kill(this Process process, bool entireProcessTree) => process.Kill();
+    }
 }
 #endif
