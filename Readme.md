@@ -667,7 +667,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 ### Retrieving process ID
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is in fact not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a specialized awaitable object that contains additional information about the execution of the corresponding command.
+This is a specialized awaitable object that contains additional information about the execution of the associated command.
 
 You can inspect the task while it's running to get the ID of the underlying process:
 

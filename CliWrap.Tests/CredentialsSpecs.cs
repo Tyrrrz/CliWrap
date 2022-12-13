@@ -13,10 +13,10 @@ public class CredentialsSpecs
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Starting a process under a different user is only supported on Windows."
+            "Starting a process as another user is only supported on Windows."
         );
 
-        // We can't really test the happy path, but at least can verify
+        // We can't really test the happy path, but we can at least verify
         // that the credentials have been passed by getting an exception.
 
         // Arrange
@@ -37,10 +37,10 @@ public class CredentialsSpecs
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Starting a process under a different user is only supported on Windows."
+            "Starting a process as another user is only supported on Windows."
         );
 
-        // We can't really test the happy path, but at least can verify
+        // We can't really test the happy path, but we can at least verify
         // that the credentials have been passed by getting an exception.
 
         // Arrange
@@ -62,7 +62,7 @@ public class CredentialsSpecs
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Starting a process under a different user is only supported on Windows."
+            "Starting a process as another user is only supported on Windows."
         );
 
         // Arrange

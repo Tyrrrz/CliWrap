@@ -119,11 +119,10 @@ public partial class Command
             }
         }
 
-        // Setting CreateNoWindow adds a 30ms overhead to the execution time of the process.
-        // This option only affects console windows and is only relevant if we're running in a process that does not
-        // have its own console window already attached. If we're running in a console process, then all child
-        // processes will inherit the console window regardless of whether CreateNoWindow is set.
-        // This check is only necessary on Windows because CreateNoWindow doesn't work on MacOS or Linux at all.
+        // Setting CreateNoWindow has a noticeable performance overhead, so we want to avoid it in situations
+        // where the window is not going to be created anyway. This is the case if we're running inside a process
+        // that already has a console window, as all child processes will inherit it instead of creating a new one.
+        // We only need to check this on Windows, because CreateNoWindow doesn't do anything on other platforms.
         // https://github.com/Tyrrrz/CliWrap/pull/142
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
             NativeMethods.Windows.GetConsoleWindow() == IntPtr.Zero)
