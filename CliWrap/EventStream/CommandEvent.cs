@@ -3,11 +3,11 @@
 namespace CliWrap.EventStream;
 
 /// <summary>
-/// <p>
+/// <para>
 ///     Abstract event produced by a command.
 ///     Use pattern matching to handle specific instances of this type.
-/// </p>
-/// <p>
+/// </para>
+/// <para>
 ///     Can be either one of the following:
 ///     <list type="bullet">
 ///         <item><see cref="StartedCommandEvent" /></item>
@@ -15,7 +15,7 @@ namespace CliWrap.EventStream;
 ///         <item><see cref="StandardErrorCommandEvent" /></item>
 ///         <item><see cref="ExitedCommandEvent" /></item>
 ///     </list>
-/// </p>
+/// </para>
 /// </summary>
 public abstract class CommandEvent {}
 

@@ -18,10 +18,10 @@ public class CancellationSpecs
     public async Task Command_execution_can_be_canceled_immediately()
     {
         // Arrange
-        var stdOutLines = new List<string>();
-
         using var cts = new CancellationTokenSource();
         cts.Cancel();
+
+        var stdOutLines = new List<string>();
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -46,10 +46,10 @@ public class CancellationSpecs
     public async Task Command_execution_can_be_canceled_while_it_is_in_progress()
     {
         // Arrange
-        var stdOutLines = new List<string>();
-
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+
+        var stdOutLines = new List<string>();
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -71,37 +71,41 @@ public class CancellationSpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Command_execution_can_be_canceled_gracefully()
+    public async Task Command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is not supported on Windows."
+            "Graceful cancellation is only supported on Windows."
         );
 
         // Arrange
-        using var handlerRegistered = new SemaphoreSlim(0, 1);
+        using var cts = new CommandCancellationTokenSource();
+
+        // We need to send the cancellation request right after the process has registered
+        // a handler for the interrupt signal, otherwise the default handler will trigger
+        // and just kill the process.
+        void HandleStdOut(string line)
+        {
+            if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
+                cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
+        }
+
         var stdOutLines = new List<string>();
 
-        using var cts = new CommandCancellationTokenSource();
+        var pipeTarget = PipeTarget.Merge(
+            PipeTarget.ToDelegate(HandleStdOut),
+            PipeTarget.ToDelegate(stdOutLines.Add)
+        );
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
-            ) | (s =>
-        {
-            stdOutLines.Add(s);
-
-            if (s.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
-                handlerRegistered.Release();
-        });
+            ) | pipeTarget;
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
-
-        await handlerRegistered.WaitAsync(20000);
-        cts.CancelGracefully();
 
         // Assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
@@ -158,11 +162,11 @@ public class CancellationSpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Buffered_command_execution_can_be_canceled_gracefully()
+    public async Task Buffered_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is not supported on Windows."
+            "Graceful cancellation is only supported on Unix."
         );
 
         // Arrange
@@ -235,11 +239,11 @@ public class CancellationSpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Pull_event_stream_command_execution_can_be_canceled_gracefully()
+    public async Task Pull_event_stream_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is not supported on Windows."
+            "Graceful cancellation is only supported on Unix."
         );
 
         // Arrange
@@ -309,11 +313,11 @@ public class CancellationSpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Push_event_stream_command_execution_can_be_canceled_gracefully()
+    public async Task Push_event_stream_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is not supported on Windows."
+            "Graceful cancellation is only supported on Unix."
         );
 
         // Arrange

@@ -10,7 +10,9 @@ public partial class Credentials
     /// <summary>
     /// Active directory domain used when starting the process.
     /// </summary>
-    /// <remarks>Only supported on Windows.</remarks>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
     public string? Domain { get; }
 
     /// <summary>
@@ -21,13 +23,17 @@ public partial class Credentials
     /// <summary>
     /// User password used when starting the process.
     /// </summary>
-    /// <remarks>Only supported on Windows.</remarks>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
     public string? Password { get; }
 
     /// <summary>
     /// Whether to load the user profile when starting the process.
     /// </summary>
-    /// <remarks>Only supported on Windows.</remarks>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
     public bool LoadUserProfile { get; }
 
     /// <summary>
