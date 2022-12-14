@@ -221,7 +221,8 @@ public partial class Command
             if (cancellationToken.Forceful.IsCancellationRequested)
             {
                 throw new OperationCanceledException(
-                    $"Command execution canceled. Process (ID: {process.Id}) was forcefully terminated.",
+                    "Command execution canceled. " +
+                    $"Process ({Path.GetFileName(TargetFilePath)}#{process.Id}) was forcefully terminated.",
                     cancellationToken.Forceful
                 );
             }
@@ -230,7 +231,8 @@ public partial class Command
             if (cancellationToken.Graceful.IsCancellationRequested)
             {
                 throw new OperationCanceledException(
-                    $"Command execution canceled. Process (ID: {process.Id}) was gracefully terminated.",
+                    "Command execution canceled. " +
+                    $"Process ({Path.GetFileName(TargetFilePath)}#{process.Id}) was gracefully terminated.",
                     cancellationToken.Graceful
                 );
             }
