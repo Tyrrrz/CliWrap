@@ -22,9 +22,9 @@ public static class Program
         var isSuccess =
             // Attach to the target process's console
             NativeMethods.Windows.AttachConsole((uint) processId) &&
-            // Ignore signals on ourselves
+            // Ignore signals on ourselves so we can return a proper exit code
             NativeMethods.Windows.SetConsoleCtrlHandler(null, true) &&
-            // Send the signal to the target process
+            // Send the signal to the console
             NativeMethods.Windows.GenerateConsoleCtrlEvent((uint) signalId, 0);
 
         return isSuccess

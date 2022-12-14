@@ -6,13 +6,13 @@ internal static class NativeMethods
 {
     public static class Windows
     {
-        public delegate bool ConsoleCtrlDelegate(uint dwCtrlEvent);
-
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool FreeConsole();
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool AttachConsole(uint dwProcessId);
+
+        public delegate bool ConsoleCtrlDelegate(uint dwCtrlEvent);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate? handlerRoutine, bool add);
