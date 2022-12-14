@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,24 +14,20 @@ namespace CliWrap.EventStream;
 /// </summary>
 public static class EventStreamCommandExtensions
 {
-    /// <summary>
-    /// Executes the command as an asynchronous (pull-based) event stream.
-    /// </summary>
-    /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-    /// </remarks>
-    public static async IAsyncEnumerable<CommandEvent> ListenAsync(
+    // This overload is required for [EnumeratorCancellation]
+    private static async IAsyncEnumerable<CommandEvent> ListenAsync(
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellationToken cancellationToken)
+        CancellationToken gracefulCancellationToken,
+        [EnumeratorCancellation] CancellationToken forcefulCancellationToken)
     {
         using var channel = new Channel<CommandEvent>();
 
         var stdOutPipe = PipeTarget.Merge(
             command.StandardOutputPipe,
             PipeTarget.ToDelegate(
-                s => channel.PublishAsync(new StandardOutputCommandEvent(s), cancellationToken.Forceful),
+                s => channel.PublishAsync(new StandardOutputCommandEvent(s), forcefulCancellationToken),
                 standardOutputEncoding
             )
         );
@@ -38,7 +35,7 @@ public static class EventStreamCommandExtensions
         var stdErrPipe = PipeTarget.Merge(
             command.StandardErrorPipe,
             PipeTarget.ToDelegate(
-                s => channel.PublishAsync(new StandardErrorCommandEvent(s), cancellationToken.Forceful),
+                s => channel.PublishAsync(new StandardErrorCommandEvent(s), forcefulCancellationToken),
                 standardErrorEncoding
             )
         );
@@ -47,7 +44,10 @@ public static class EventStreamCommandExtensions
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe);
 
-        var commandTask = pipedCommand.ExecuteAsync(cancellationToken);
+        var commandTask = pipedCommand.ExecuteAsync(
+            new CommandCancellationToken(gracefulCancellationToken, forcefulCancellationToken)
+        );
+
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
         // Don't pass cancellation token to continuation because we need it to always trigger
@@ -56,12 +56,30 @@ public static class EventStreamCommandExtensions
             .Task
             .ContinueWith(_ => channel.Close(), TaskContinuationOptions.None);
 
-        await foreach (var cmdEvent in channel.ReceiveAsync(cancellationToken.Forceful).ConfigureAwait(false))
+        await foreach (var cmdEvent in channel.ReceiveAsync(forcefulCancellationToken).ConfigureAwait(false))
             yield return cmdEvent;
 
         var exitCode = await commandTask.Select(r => r.ExitCode).ConfigureAwait(false);
         yield return new ExitedCommandEvent(exitCode);
     }
+
+    /// <summary>
+    /// Executes the command as an asynchronous (pull-based) event stream.
+    /// </summary>
+    /// <remarks>
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
+    /// </remarks>
+    public static IAsyncEnumerable<CommandEvent> ListenAsync(
+        this Command command,
+        Encoding standardOutputEncoding,
+        Encoding standardErrorEncoding,
+        CommandCancellationToken cancellationToken) =>
+        command.ListenAsync(
+            standardOutputEncoding,
+            standardErrorEncoding,
+            cancellationToken.Graceful,
+            cancellationToken.Forceful
+        );
 
     /// <summary>
     /// Executes the command as an asynchronous (pull-based) event stream.
