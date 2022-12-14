@@ -1,0 +1,68 @@
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using CliWrap.Utils.Extensions;
+
+namespace CliWrap.Utils;
+
+internal partial class WindowsSignaler : IDisposable
+{
+    private readonly string _filePath;
+
+    public WindowsSignaler(string filePath) =>
+        _filePath = filePath;
+
+    public bool TrySignal(int processId, int signalId)
+    {
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = _filePath,
+                Arguments = $"{processId} {signalId}",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                Environment =
+                {
+                    // Signaler is a .NET 3.5 executable, so we need to configure framework rollover
+                    // to allow it to also run against .NET 4.0+ runtime.
+                    // https://gist.github.com/MichalStrehovsky/d6bc5e4d459c23d0cf3bd17af9a1bcf5
+                    ["COMPLUS_OnlyUseLatestCLR"] = "1"
+                }
+            }
+        };
+
+        if (!process.Start())
+            return false;
+
+        if (!process.WaitForExit(5_000))
+            return false;
+
+        return process.ExitCode == 0;
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            File.Delete(_filePath);
+        }
+        catch
+        {
+            Debug.Fail("Failed to delete the signaler executable.");
+        }
+    }
+}
+
+internal partial class WindowsSignaler
+{
+    public static WindowsSignaler Deploy()
+    {
+        // Signaler executable is embedded inside this library as a resource
+        var filePath = Path.ChangeExtension(Path.GetTempFileName(), ".exe");
+        Assembly.GetExecutingAssembly().ExtractManifestResource("CliWrap.Signaler.exe", filePath);
+
+        return new WindowsSignaler(filePath);
+    }
+}

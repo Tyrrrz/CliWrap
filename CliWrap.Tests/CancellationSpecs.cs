@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Threading.Tasks;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
@@ -70,14 +69,9 @@ public class CancellationSpecs
         stdOutLines.Should().NotContainEquivalentOf("Done.");
     }
 
-    [SkippableFact(Timeout = 15000)]
+    [Fact(Timeout = 15000)]
     public async Task Command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
-        Skip.If(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is only supported on Windows."
-        );
-
         // Arrange
         using var cts = new CommandCancellationTokenSource();
 
@@ -161,14 +155,9 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
-    [SkippableFact(Timeout = 15000)]
+    [Fact(Timeout = 15000)]
     public async Task Buffered_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
-        Skip.If(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is only supported on Unix."
-        );
-
         // Arrange
         using var cts = new CommandCancellationTokenSource();
         cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
@@ -238,14 +227,9 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
-    [SkippableFact(Timeout = 15000)]
+    [Fact(Timeout = 15000)]
     public async Task Pull_event_stream_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
-        Skip.If(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is only supported on Unix."
-        );
-
         // Arrange
         using var cts = new CommandCancellationTokenSource();
         cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
@@ -312,14 +296,9 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
-    [SkippableFact(Timeout = 15000)]
+    [Fact(Timeout = 15000)]
     public async Task Push_event_stream_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
-        Skip.If(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Graceful cancellation is only supported on Unix."
-        );
-
         // Arrange
         using var cts = new CommandCancellationTokenSource();
         cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));

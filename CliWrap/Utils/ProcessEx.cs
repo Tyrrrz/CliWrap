@@ -96,19 +96,35 @@ internal class ProcessEx : IDisposable
     {
         bool TryInterrupt()
         {
-            // Sending an interrupt signal to a specific process is only possible on Unix.
-            // On Windows, we can only send the signal to an entire process group, which
-            // has the risk of bringing down unrelated processes. There are some workarounds,
-            // but they are brittle and not worth the effort.
-            // https://github.com/Tyrrrz/CliWrap/issues/47
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            try
             {
-                return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
-            }
+                // On Windows, we need to launch an external executable that will attach
+                // to the target process's console (or create one if it doesn't exist),
+                // and then send a Ctrl+C event to it. We can guarantee that the target
+                // process doesn't have a console window because we're creating the
+                // process with the CREATE_NO_WINDOW flag set. This ensures that only
+                // the target process will receive the signal, and not any other process
+                // spawned by us.
+                // https://github.com/Tyrrrz/CliWrap/issues/47
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    using var signaler = WindowsSignaler.Deploy();
+                    return signaler.TrySignal(_nativeProcess.Id, 0);
+                }
 
-            return false;
+                // On Unix, we can just send the signal to the process directly
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         if (!TryInterrupt())

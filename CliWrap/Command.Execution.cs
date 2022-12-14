@@ -66,7 +66,7 @@ public partial class Command
         ).FirstOrDefault(File.Exists) ?? TargetFilePath;
     }
 
-    private ProcessStartInfo GetStartInfo()
+    private ProcessStartInfo CreateStartInfo()
     {
         var startInfo = new ProcessStartInfo
         {
@@ -76,7 +76,13 @@ public partial class Command
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            UseShellExecute = false
+            UseShellExecute = false,
+            // This option only works on Windows and is required there to prevent the
+            // child processes from attaching to the parent console window, if one exists.
+            // We need this in order to be able to send signals to one specific child process,
+            // without affecting all the others that may be also running in parallel.
+            // https://github.com/Tyrrrz/CliWrap/issues/47
+            CreateNoWindow = true
         };
 
         // Set credentials
@@ -117,17 +123,6 @@ public partial class Command
                 // https://github.com/dotnet/runtime/issues/34446
                 startInfo.Environment.Remove(key);
             }
-        }
-
-        // Setting CreateNoWindow has a noticeable performance overhead, so we want to avoid it in situations
-        // where the window is not going to be created anyway. This is the case if we're running inside a process
-        // that already has a console window, as all child processes will inherit it instead of creating a new one.
-        // We only need to check this on Windows, because CreateNoWindow doesn't do anything on other platforms.
-        // https://github.com/Tyrrrz/CliWrap/pull/142
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            NativeMethods.Windows.GetConsoleWindow() == IntPtr.Zero)
-        {
-            startInfo.CreateNoWindow = true;
         }
 
         return startInfo;
@@ -265,7 +260,7 @@ public partial class Command
     /// </remarks>
     public CommandTask<CommandResult> ExecuteAsync(CommandCancellationToken cancellationToken)
     {
-        var process = new ProcessEx(GetStartInfo());
+        var process = new ProcessEx(CreateStartInfo());
 
         // This method may fail and we want to propagate the exceptions immediately
         // instead of wrapping them in a task, so it needs to be executed in a synchronous context.
