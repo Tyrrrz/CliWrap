@@ -21,7 +21,7 @@ public partial class Command
     // instead of "npm.exe". If the extension is provided, however, it works correctly in both cases.
     private string GetOptimallyQualifiedTargetFilePath()
     {
-        // Currently we only need this workaround for script files on Windows,
+        // Currently, we only need this workaround for script files on Windows,
         // so short-circuit if we are on a different platform.
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return TargetFilePath;
@@ -80,7 +80,7 @@ public partial class Command
             // This option only works on Windows and is required there to prevent the
             // child processes from attaching to the parent console window, if one exists.
             // We need this in order to be able to send signals to one specific child process,
-            // without affecting all the others that may be also running in parallel.
+            // without affecting any others that may also be running in parallel.
             // https://github.com/Tyrrrz/CliWrap/issues/47
             CreateNoWindow = true
         };

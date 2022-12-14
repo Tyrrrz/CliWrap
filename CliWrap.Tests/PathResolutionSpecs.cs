@@ -37,7 +37,7 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Path resolution for scripts is only needed on Windows."
+            "Path resolution for scripts is only required on Windows."
         );
 
         // Arrange

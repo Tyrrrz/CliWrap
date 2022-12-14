@@ -13,7 +13,7 @@ internal partial class WindowsSignaler : IDisposable
     public WindowsSignaler(string filePath) =>
         _filePath = filePath;
 
-    public bool TrySignal(int processId, int signalId)
+    public bool TrySend(int processId, int signalId)
     {
         using var process = new Process
         {
@@ -25,8 +25,8 @@ internal partial class WindowsSignaler : IDisposable
                 UseShellExecute = false,
                 Environment =
                 {
-                    // Signaler is a .NET 3.5 executable, so we need to configure framework rollover
-                    // to allow it to also run against .NET 4.0+ runtime.
+                    // This is a .NET 3.5 executable, so we need to configure framework rollover
+                    // to allow it to also run against .NET 4.0+ runtimes.
                     // https://gist.github.com/MichalStrehovsky/d6bc5e4d459c23d0cf3bd17af9a1bcf5
                     ["COMPLUS_OnlyUseLatestCLR"] = "1"
                 }

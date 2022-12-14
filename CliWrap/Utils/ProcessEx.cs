@@ -109,7 +109,7 @@ internal class ProcessEx : IDisposable
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     using var signaler = WindowsSignaler.Deploy();
-                    return signaler.TrySignal(_nativeProcess.Id, 0);
+                    return signaler.TrySend(_nativeProcess.Id, 0);
                 }
 
                 // On Unix, we can just send the signal to the process directly
