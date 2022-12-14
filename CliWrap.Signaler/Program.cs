@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using CliWrap.Signaler.Utils;
 
 namespace CliWrap.Signaler;
@@ -11,8 +12,8 @@ public static class Program
 {
     public static int Main(string[] args)
     {
-        var processId = int.Parse(args[0]);
-        var signalId = int.Parse(args[1]);
+        var processId = int.Parse(args[0], CultureInfo.InvariantCulture);
+        var signalId = int.Parse(args[1], CultureInfo.InvariantCulture);
 
         // Detach from the current console, if it exists.
         // Potential error here would mean that we're not attached to any console, so just ignore it.
