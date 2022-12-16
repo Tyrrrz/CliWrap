@@ -499,7 +499,7 @@ var result = await Cli.Wrap("path/to/exe")
 #### Pull-based event stream
 
 Besides executing a command as a task, **CliWrap** also supports an alternative model, in which the execution is represented as an event stream.
-This lets you start a command and react to the events it produces in real-time.
+This lets you start a process and react to the events it produces in real-time.
 
 Those events are:
 
@@ -605,7 +605,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 Command execution is asynchronous in nature as it involves a completely separate process.
 In many cases, it may be useful to implement an abortion mechanism to stop the execution before it finishes, either through a manual trigger or a timeout.
 
-To do that, issue the corresponding `CancellationToken` and pass it when calling `ExecuteAsync()`:
+To do that, issue the corresponding `CancellationToken` and include it when calling `ExecuteAsync()`:
 
 ```csharp
 using var cts = new CancellationTokenSource();
@@ -653,16 +653,17 @@ Requesting graceful cancellation in **CliWrap** is functionally equivalent to pr
 The underlying process may handle this signal to perform last-minute critical work before finally exiting on its own terms.
 
 Graceful cancellation is inherently cooperative, so it's possible that the process may choose to ignore the request or take too long to fulfill it.
-In the above example, this risk is mitigated by additionally scheduling forceful cancellation to prevent the command from hanging.
+In the above example, this risk is mitigated by additionally scheduling forceful cancellation that prevents the command from hanging.
 
-If you are provided with a single cancellation token from upstream and want to use it for graceful cancellation, you can still extend it with a timeout with the help of the following pattern:
+If you are executing a command inside a method and don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a timeout:
 
 ```csharp
 public async Task GitPushAsync(CancellationToken cancellationToken = default)
 {
     using var forcefulCts = new CancellationTokenSource();
 
-    // When the cancellation token is triggered, schedule forceful cancellation as fallback
+    // When the cancellation token is triggered,
+    // schedule forceful cancellation as fallback.
     await using var link = cancellationToken.Register(() =>
         forcefulCts.CancelAfter(TimeSpan.FromSeconds(3))
     );
