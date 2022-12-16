@@ -223,13 +223,13 @@ public partial class Command
             // (needs to be checked first because out of the two cancellations this one is the more decisive)
             forcefulCancellationToken.ThrowIfCancellationRequested(
                 "Command execution canceled. " +
-                $"Process ({Path.GetFileName(TargetFilePath)}#{process.Id}) was forcefully terminated."
+                $"Process ({process.Name}#{process.Id}) was forcefully terminated."
             );
 
             // Throw if graceful cancellation was requested
             gracefulCancellationToken.ThrowIfCancellationRequested(
                 "Command execution canceled. " +
-                $"Process ({Path.GetFileName(TargetFilePath)}#{process.Id}) was gracefully terminated."
+                $"Process ({process.Name}#{process.Id}) was gracefully terminated."
             );
 
             // Validate the exit code if required

@@ -19,6 +19,8 @@ internal class ProcessEx : IDisposable
 
     public int Id { get; private set; }
 
+    public string Name { get; private set; } = "";
+
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
 
@@ -85,6 +87,7 @@ internal class ProcessEx : IDisposable
 
         // Copy metadata and stream references
         Id = _nativeProcess.Id;
+        Name = _nativeProcess.ProcessName;
         StandardInput = _nativeProcess.StandardInput.BaseStream;
         StandardOutput = _nativeProcess.StandardOutput.BaseStream;
         StandardError = _nativeProcess.StandardError.BaseStream;
