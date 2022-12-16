@@ -46,11 +46,11 @@ public static class EventStreamCommandExtensions
             )
         );
 
-        var pipedCommand = command
+        var commandWithPipes = command
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe);
 
-        var commandTask = pipedCommand.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
+        var commandTask = commandWithPipes.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
         // Don't pass cancellation token to continuation because we need it to always trigger
@@ -139,11 +139,11 @@ public static class EventStreamCommandExtensions
                 )
             );
 
-            var commandPiped = command
+            var commandWithPipes = command
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe);
 
-            var commandTask = commandPiped.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
+            var commandTask = commandWithPipes.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
             observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
             // Don't pass cancellation token to continuation because we need it to always trigger

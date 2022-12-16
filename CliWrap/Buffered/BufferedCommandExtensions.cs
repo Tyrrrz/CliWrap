@@ -39,13 +39,13 @@ public static class BufferedCommandExtensions
             PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
         );
 
-        var pipedCommand = command
+        var commandWithPipes = command
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe)
             // Disable validation because we have our own
             .WithValidation(CommandResultValidation.None);
 
-        return pipedCommand
+        return commandWithPipes
             .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
             .Select(r =>
             {
