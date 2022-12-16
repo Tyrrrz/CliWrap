@@ -14,8 +14,14 @@ namespace CliWrap.EventStream;
 /// </summary>
 public static class EventStreamCommandExtensions
 {
-    // This overload is required for [EnumeratorCancellation]
-    private static async IAsyncEnumerable<CommandEvent> ListenAsync(
+    /// <summary>
+    /// Executes the command as an asynchronous (pull-based) event stream.
+    /// </summary>
+    /// <remarks>
+    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
+    /// </remarks>
+    // TODO: (breaking change) use optional parameters and remove the other overload
+    public static async IAsyncEnumerable<CommandEvent> ListenAsync(
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
@@ -44,10 +50,7 @@ public static class EventStreamCommandExtensions
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe);
 
-        var commandTask = pipedCommand.ExecuteAsync(
-            new CommandCancellationToken(gracefulCancellationToken, forcefulCancellationToken)
-        );
-
+        var commandTask = pipedCommand.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
         // Don't pass cancellation token to continuation because we need it to always trigger
@@ -73,29 +76,12 @@ public static class EventStreamCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellationToken cancellationToken) =>
-        command.ListenAsync(
-            standardOutputEncoding,
-            standardErrorEncoding,
-            cancellationToken.Graceful,
-            cancellationToken.Forceful
-        );
-
-    /// <summary>
-    /// Executes the command as an asynchronous (pull-based) event stream.
-    /// </summary>
-    /// <remarks>
-    /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-    /// </remarks>
-    public static IAsyncEnumerable<CommandEvent> ListenAsync(
-        this Command command,
-        Encoding standardOutputEncoding,
-        Encoding standardErrorEncoding,
         CancellationToken cancellationToken = default) =>
         command.ListenAsync(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellationToken.ForcefulOnly(cancellationToken)
+            cancellationToken,
+            CancellationToken.None
         );
 
     /// <summary>
@@ -128,11 +114,13 @@ public static class EventStreamCommandExtensions
     /// <remarks>
     /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
     /// </remarks>
+    // TODO: (breaking change) use optional parameters and remove the other overload
     public static IObservable<CommandEvent> Observe(
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellationToken cancellationToken) =>
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken) =>
         Observable.Create<CommandEvent>(observer =>
         {
             var stdOutPipe = PipeTarget.Merge(
@@ -155,7 +143,7 @@ public static class EventStreamCommandExtensions
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe);
 
-            var commandTask = commandPiped.ExecuteAsync(cancellationToken);
+            var commandTask = commandPiped.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
             observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
             // Don't pass cancellation token to continuation because we need it to always trigger
@@ -197,7 +185,8 @@ public static class EventStreamCommandExtensions
         command.Observe(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellationToken.ForcefulOnly(cancellationToken)
+            cancellationToken,
+            CancellationToken.None
         );
 
     /// <summary>

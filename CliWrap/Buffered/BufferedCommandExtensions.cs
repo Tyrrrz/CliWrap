@@ -18,11 +18,13 @@ public static class BufferedCommandExtensions
     /// <remarks>
     /// This method can be awaited.
     /// </remarks>
+    // TODO: (breaking change) use optional parameters and remove the other overload
     public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CommandCancellationToken cancellationToken)
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken)
     {
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
@@ -44,7 +46,7 @@ public static class BufferedCommandExtensions
             .WithValidation(CommandResultValidation.None);
 
         return pipedCommand
-            .ExecuteAsync(cancellationToken)
+            .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
             .Select(r =>
             {
                 // Transform the result
@@ -86,7 +88,8 @@ public static class BufferedCommandExtensions
         command.ExecuteBufferedAsync(
             standardOutputEncoding,
             standardErrorEncoding,
-            CommandCancellationToken.ForcefulOnly(cancellationToken)
+            cancellationToken,
+            CancellationToken.None
         );
 
     /// <summary>

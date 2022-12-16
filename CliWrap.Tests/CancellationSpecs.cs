@@ -73,7 +73,7 @@ public class CancellationSpecs
     public async Task Command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CommandCancellationTokenSource();
+        using var cts = new CancellationTokenSource();
 
         // We need to send the cancellation request right after the process has registered
         // a handler for the interrupt signal, otherwise the default handler will trigger
@@ -81,7 +81,7 @@ public class CancellationSpecs
         void HandleStdOut(string line)
         {
             if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
-                cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
+                cts.CancelAfter(TimeSpan.FromSeconds(0.5));
         }
 
         var stdOutLines = new List<string>();
@@ -99,11 +99,11 @@ public class CancellationSpecs
             ) | pipeTarget;
 
         // Act
-        var task = cmd.ExecuteAsync(cts.Token);
+        var task = cmd.ExecuteAsync(CancellationToken.None, cts.Token);
 
         // Assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-        ex.CancellationToken.Should().Be(cts.Token.Graceful);
+        ex.CancellationToken.Should().Be(cts.Token);
 
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
 
@@ -159,8 +159,8 @@ public class CancellationSpecs
     public async Task Buffered_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CommandCancellationTokenSource();
-        cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -171,10 +171,15 @@ public class CancellationSpecs
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await cmd.ExecuteBufferedAsync(Console.OutputEncoding, Console.OutputEncoding, cts.Token)
+            await cmd.ExecuteBufferedAsync(
+                Console.OutputEncoding,
+                Console.OutputEncoding,
+                CancellationToken.None,
+                cts.Token
+            )
         );
 
-        ex.CancellationToken.Should().Be(cts.Token.Graceful);
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]
@@ -231,8 +236,8 @@ public class CancellationSpecs
     public async Task Pull_event_stream_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CommandCancellationTokenSource();
-        cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -244,12 +249,16 @@ public class CancellationSpecs
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
-            await foreach (var _ in cmd.ListenAsync(Console.OutputEncoding, Console.OutputEncoding, cts.Token))
+            await foreach (var _ in cmd.ListenAsync(
+                               Console.OutputEncoding,
+                               Console.OutputEncoding,
+                               CancellationToken.None,
+                               cts.Token))
             {
             }
         });
 
-        ex.CancellationToken.Should().Be(cts.Token.Graceful);
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 
     [Fact(Timeout = 15000)]
@@ -300,8 +309,8 @@ public class CancellationSpecs
     public async Task Push_event_stream_command_execution_can_be_canceled_gracefully_while_it_is_in_progress()
     {
         // Arrange
-        using var cts = new CommandCancellationTokenSource();
-        cts.CancelGracefullyAfter(TimeSpan.FromSeconds(0.5));
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -312,9 +321,15 @@ public class CancellationSpecs
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await cmd.Observe(Console.OutputEncoding, Console.OutputEncoding, cts.Token).ToTask(CancellationToken.None)
+            await cmd.Observe(
+                    Console.OutputEncoding,
+                    Console.OutputEncoding,
+                    CancellationToken.None,
+                    cts.Token
+                )
+                .ToTask(CancellationToken.None)
         );
 
-        ex.CancellationToken.Should().Be(cts.Token.Graceful);
+        ex.CancellationToken.Should().Be(cts.Token);
     }
 }
