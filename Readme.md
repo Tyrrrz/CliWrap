@@ -1,7 +1,7 @@
 # CliWrap
 
 [![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://vshymanskyy.github.io/StandWithUkraine)
-[![Build](https://img.shields.io/github/workflow/status/Tyrrrz/CliWrap/CI/master)](https://github.com/Tyrrrz/CliWrap/actions)
+[![Build](https://img.shields.io/github/actions/workflow/status/Tyrrrz/CliWrap/main.yml?branch=master)](https://github.com/Tyrrrz/CliWrap/actions)
 [![Coverage](https://img.shields.io/codecov/c/github/Tyrrrz/CliWrap/master)](https://codecov.io/gh/Tyrrrz/CliWrap)
 [![Version](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Downloads](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
