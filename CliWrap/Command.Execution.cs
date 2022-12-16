@@ -267,9 +267,12 @@ public partial class Command
         // https://github.com/Tyrrrz/CliWrap/issues/139
         process.Start();
 
+        // Extract process ID before calling ExecuteAsync(), because the process may get disposed by then
+        var processId = process.Id;
+
         return new CommandTask<CommandResult>(
             ExecuteAsync(process, forcefulCancellationToken, gracefulCancellationToken),
-            process.Id
+            processId
         );
     }
 

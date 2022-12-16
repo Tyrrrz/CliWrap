@@ -17,43 +17,41 @@ internal class ProcessEx : IDisposable
 
     private Timer? _waitForExitTimeoutTimer;
 
-    public int Id { get; private set; }
+    public int Id => _nativeProcess.Id;
 
-    public string Name { get; private set; } = "";
+    public string Name =>
+        // Can't rely on ProcessName because it becomes inaccessible after the process exits
+        Path.GetFileName(_nativeProcess.StartInfo.FileName);
 
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
 
-    public Stream StandardInput { get; private set; } = Stream.Null;
+    public Stream StandardInput => _nativeProcess.StandardInput.BaseStream;
 
-    public Stream StandardOutput { get; private set; } = Stream.Null;
+    public Stream StandardOutput => _nativeProcess.StandardOutput.BaseStream;
 
-    public Stream StandardError { get; private set; } = Stream.Null;
+    public Stream StandardError => _nativeProcess.StandardError.BaseStream;
 
-    public int ExitCode { get; private set; }
-
+    // We have to keep track of StartTime ourselves because it becomes inaccessible after the process exits
+    // https://github.com/Tyrrrz/CliWrap/issues/93
     public DateTimeOffset StartTime { get; private set; }
 
+    // We have to keep track of ExitTime ourselves because it becomes inaccessible after the process exits
+    // https://github.com/Tyrrrz/CliWrap/issues/93
     public DateTimeOffset ExitTime { get; private set; }
+
+    public int ExitCode => _nativeProcess.ExitCode;
 
     public ProcessEx(ProcessStartInfo startInfo) =>
         _nativeProcess = new Process { StartInfo = startInfo };
 
     public void Start()
     {
-        Debug.Assert(Id == default, "Attempt to launch a process more than once.");
-
         // Hook up events
         _nativeProcess.EnableRaisingEvents = true;
         _nativeProcess.Exited += (_, _) =>
         {
-            ExitCode = _nativeProcess.ExitCode;
-
-            // Calculate our own ExitTime to be consistent with StartTime
             ExitTime = DateTimeOffset.Now;
-
-            // We don't handle cancellation here.
-            // If necessary, proper exception will be thrown upstream.
             _exitTcs.TrySetResult(null);
         };
 
@@ -67,6 +65,8 @@ internal class ProcessEx : IDisposable
                     "Target file is not an executable or lacks execute permissions."
                 );
             }
+
+            StartTime = DateTimeOffset.Now;
         }
         catch (Win32Exception ex)
         {
@@ -76,21 +76,6 @@ internal class ProcessEx : IDisposable
                 ex
             );
         }
-
-        // We can't access Process.StartTime if the process has already exited.
-        // It's entirely possible that the process exits so fast that by the time
-        // we try to get the start time, it won't be accessible anymore.
-        // Calculating time ourselves is slightly inaccurate, but at least we can
-        // guarantee it won't fail.
-        // https://github.com/Tyrrrz/CliWrap/issues/93
-        StartTime = DateTimeOffset.Now;
-
-        // Copy metadata and stream references
-        Id = _nativeProcess.Id;
-        Name = _nativeProcess.ProcessName;
-        StandardInput = _nativeProcess.StandardInput.BaseStream;
-        StandardOutput = _nativeProcess.StandardOutput.BaseStream;
-        StandardError = _nativeProcess.StandardError.BaseStream;
     }
 
     // Sends SIGINT
