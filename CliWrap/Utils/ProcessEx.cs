@@ -15,8 +15,7 @@ internal class ProcessEx : IDisposable
     private readonly TaskCompletionSource<object?> _exitTcs =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private CancellationTokenSource? _waitTimeoutCts;
-    private CancellationTokenRegistration? _waitTimeoutRegistration;
+    private Timer? _waitForExitTimeoutTimer;
 
     public int Id { get; private set; }
 
@@ -119,6 +118,7 @@ internal class ProcessEx : IDisposable
                     return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
                 }
 
+                // Unsupported platform
                 return false;
             }
             catch
@@ -129,7 +129,10 @@ internal class ProcessEx : IDisposable
 
         if (!TryInterrupt())
         {
-            // In case of failure, just do nothing and assume the user prepared a fallback
+            // In case of failure, revert to the default behavior of killing the process.
+            // Ideally, we should throw an exception here, but this method is called from
+            // a cancellation callback upstream, so we can't do that.
+            Kill();
             Debug.Fail("Failed to send an interrupt signal.");
         }
     }
@@ -150,14 +153,19 @@ internal class ProcessEx : IDisposable
             // Either we actually failed to kill the process, or the system hasn't finished processing
             // the kill request yet. In either case, we can't really do anything about it.
             // Set up a timeout that will resolve the task after a while, in case the process hasn't exited by then.
-            _waitTimeoutCts = new CancellationTokenSource();
-            _waitTimeoutRegistration = _waitTimeoutCts.Token.Register(() =>
-            {
-                // We don't cancel the task here. Proper exception will be thrown upstream.
-                if (_exitTcs.TrySetResult(null))
-                    Debug.Fail("Process termination timed out.");
-            });
-            _waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3));
+            _waitForExitTimeoutTimer = new Timer(
+                _ =>
+                {
+                    // We don't cancel the task here. Proper exception will be thrown upstream.
+                    if (_exitTcs.TrySetResult(null))
+                        Debug.Fail("Process termination timed out.");
+                },
+                null,
+                // Trigger in X seconds
+                TimeSpan.FromSeconds(3),
+                // Don't repeat
+                Timeout.InfiniteTimeSpan
+            );
         }
     }
 
@@ -165,8 +173,7 @@ internal class ProcessEx : IDisposable
 
     public void Dispose()
     {
-        _waitTimeoutRegistration?.Dispose();
-        _waitTimeoutCts?.Dispose();
+        _waitForExitTimeoutTimer?.Dispose();
         _nativeProcess.Dispose();
     }
 }
