@@ -655,18 +655,18 @@ The underlying process may handle this signal to perform last-minute critical wo
 Graceful cancellation is inherently cooperative, so it's possible that the process may choose to ignore the request or take too long to fulfill it.
 In the above example, this risk is mitigated by additionally scheduling forceful cancellation to prevent the command from hanging.
 
-If you are provided with a single cancellation token from upstream and want to use it for graceful cancellation, you can use the following pattern to extend it with a timeout:
+If you are provided with a single cancellation token from upstream and want to use it for graceful cancellation, you can also use the following pattern to extend it with a timeout:
 
 ```csharp
 public async Task GitPushAsync(CancellationToken cancellationToken = default)
 {
-    using var forcefulCts = new CancellationTokenSource();    
-    
+    using var forcefulCts = new CancellationTokenSource();
+
     // When the cancellation token is triggered, schedule forceful cancellation as fallback
     await using var link = cancellationToken.Register(() =>
         forcefulCts.CancelAfter(TimeSpan.FromSeconds(3))
     );
-    
+
     await Cli.Wrap("git")
         .WithArguments("push")
         .ExecuteAsync(forcefulCts.Token, cancellationToken);
