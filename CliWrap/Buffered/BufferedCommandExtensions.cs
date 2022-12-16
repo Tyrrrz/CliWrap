@@ -41,34 +41,38 @@ public static class BufferedCommandExtensions
 
         var commandWithPipes = command
             .WithStandardOutputPipe(stdOutPipe)
-            .WithStandardErrorPipe(stdErrPipe)
-            // Disable validation because we have our own
-            .WithValidation(CommandResultValidation.None);
+            .WithStandardErrorPipe(stdErrPipe);
 
         return commandWithPipes
             .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
-            .Select(r =>
+            .Bind(async task =>
             {
-                // Transform the result
-                var result = new BufferedCommandResult(
-                    r.ExitCode,
-                    r.StartTime,
-                    r.ExitTime,
-                    stdOutBuffer.ToString(),
-                    stdErrBuffer.ToString()
-                );
-
-                // Perform validation separately here because we want to include stderr in the exception as well
-                if (result.ExitCode != 0 && command.Validation.IsZeroExitCodeValidationEnabled())
+                try
                 {
-                    throw CommandExecutionException.ValidationError(
-                        command,
+                    var result = await task;
+
+                    return new BufferedCommandResult(
                         result.ExitCode,
-                        result.StandardError.Trim()
+                        result.StartTime,
+                        result.ExitTime,
+                        stdOutBuffer.ToString(),
+                        stdErrBuffer.ToString()
                     );
                 }
+                catch (CommandExecutionException ex)
+                {
+                    throw new CommandExecutionException(
+                        ex.Command,
+                        ex.ExitCode,
+                        $"""
+                        Command execution failed, see inner exception for details.
 
-                return result;
+                        Standard error:
+                        {stdErrBuffer.ToString().Trim()}
+                        """,
+                        ex
+                    );
+                }
             });
     }
 

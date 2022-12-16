@@ -47,7 +47,7 @@ public class ValidationSpecs
         // Act & assert
         var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () => await cmd.ExecuteBufferedAsync());
 
-        ex.Message.Should().Contain("Standard error");
+        ex.Message.Should().Contain("Exit code set to 1");
         ex.ExitCode.Should().Be(1);
         ex.Command.Should().BeEquivalentTo(cmd);
 

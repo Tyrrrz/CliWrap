@@ -219,8 +219,8 @@ public partial class Command
                 // Cancellations inside pipes are not relevant to the user
             }
 
-            // Throw if forceful cancellation was requested
-            // (needs to be checked first because out of the two cancellations this one is the more decisive)
+            // Throw if forceful cancellation was requested.
+            // Needs to be checked first because out of the two cancellations this is the more decisive one.
             forcefulCancellationToken.ThrowIfCancellationRequested(
                 "Command execution canceled. " +
                 $"Process ({process.Name}#{process.Id}) was forcefully terminated."
@@ -235,9 +235,17 @@ public partial class Command
             // Validate the exit code if required
             if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
             {
-                throw CommandExecutionException.ValidationError(
+                throw new CommandExecutionException(
                     this,
-                    process.ExitCode
+                    process.ExitCode,
+                    $"""
+                    Command execution failed because the underlying process ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
+
+                    Command:
+                    {TargetFilePath} {Arguments}
+
+                    You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.
+                    """
                 );
             }
 

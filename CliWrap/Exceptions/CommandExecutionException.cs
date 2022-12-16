@@ -1,9 +1,12 @@
-﻿namespace CliWrap.Exceptions;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+
+namespace CliWrap.Exceptions;
 
 /// <summary>
 /// Exception thrown when the command fails to execute correctly.
 /// </summary>
-public partial class CommandExecutionException : CliWrapException
+public class CommandExecutionException : CliWrapException
 {
     /// <summary>
     /// Command that triggered the exception.
@@ -18,49 +21,27 @@ public partial class CommandExecutionException : CliWrapException
     /// <summary>
     /// Initializes an instance of <see cref="CommandExecutionException" />.
     /// </summary>
-    public CommandExecutionException(ICommandConfiguration command, int exitCode, string message)
-        : base(message)
+    public CommandExecutionException(
+        ICommandConfiguration command,
+        int exitCode,
+        string message,
+        Exception? innerException)
+        : base(message, innerException)
     {
         Command = command;
         ExitCode = exitCode;
     }
-}
 
-public partial class CommandExecutionException
-{
-    internal static CommandExecutionException ValidationError(
-        ICommandConfiguration command,
-        int exitCode) =>
-        new(
-            command,
-            exitCode,
-            $"""
-            Underlying process reported a non-zero exit code ({exitCode}).
-
-            Command:
-              {command.TargetFilePath} {command.Arguments}
-
-            You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.
-            """
-        );
-
-    internal static CommandExecutionException ValidationError(
+    /// <summary>
+    /// Initializes an instance of <see cref="CommandExecutionException" />.
+    /// </summary>
+    // TODO: (breaking change) remove in favor of an optional parameter in the constructor above
+    [ExcludeFromCodeCoverage]
+    public CommandExecutionException(
         ICommandConfiguration command,
         int exitCode,
-        string standardError) =>
-        new(
-            command,
-            exitCode,
-            $"""
-            Underlying process reported a non-zero exit code ({exitCode}).
-
-            Command:
-              {command.TargetFilePath} {command.Arguments}
-
-            Standard error:
-              {standardError}
-
-            You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.
-            """
-        );
+        string message)
+        : this(command, exitCode, message, null)
+    {
+    }
 }

@@ -29,10 +29,14 @@ public partial class CommandTask<TResult> : IDisposable
         ProcessId = processId;
     }
 
+    internal CommandTask<T> Bind<T>(Func<Task<TResult>, Task<T>> selector) =>
+        new(selector(Task), ProcessId);
+
     /// <summary>
     /// Lazily maps the result of the task using the specified transform.
     /// </summary>
-    public CommandTask<T> Select<T>(Func<TResult, T> transform) => new(Task.Select(transform), ProcessId);
+    public CommandTask<T> Select<T>(Func<TResult, T> transform) =>
+        Bind(task => task.Select(transform));
 
     /// <summary>
     /// Gets the awaiter of the inner task.
