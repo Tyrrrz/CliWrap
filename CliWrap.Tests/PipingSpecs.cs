@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Fixtures;
@@ -567,12 +568,6 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
             );
 
         // Act
-
-        // Run without merging to get the expected byte array (random seed is constant)
-        await using var unmergedStream = new MemoryStream();
-        await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
-
-        // Run with merging to check if it's the same
         await using var mergedStream1 = new MemoryStream();
         await using var mergedStream2 = new MemoryStream();
         await (cmd | PipeTarget.Merge(
@@ -581,6 +576,11 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
             ).ExecuteAsync();
 
         // Assert
+
+        // Run without merging to get the expected byte array (random seed is constant)
+        await using var unmergedStream = new MemoryStream();
+        await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
+
         unmergedStream.Length.Should().Be(1_000_000);
         mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
         mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
@@ -602,11 +602,11 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
+        // Assert
         stream.Seek(0, SeekOrigin.Begin);
         using var streamReader = new StreamReader(stream);
         var streamContent = await streamReader.ReadToEndAsync();
 
-        // Assert
         result.StandardOutput.Should().Be(streamContent);
     }
 
@@ -628,10 +628,13 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
-        var resultLines = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
         // Assert
-        delegateLines.Should().Equal(resultLines);
+        delegateLines.Should().Equal(
+            result
+                .StandardOutput
+                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+        );
     }
 
     [Fact(Timeout = 15000)]
@@ -720,7 +723,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add("echo stdin")
             );
 
-        // Act
+        // Act & assert
         await cmd.ExecuteAsync();
     }
 
@@ -749,7 +752,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add("--length").Add(10_000_000)
             );
 
-        // Act
+        // Act & assert
         await cmd.ExecuteAsync();
     }
 
@@ -773,7 +776,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add("--length").Add(0)
             );
 
-        // Act
+        // Act & assert
         await cmd.ExecuteAsync();
     }
 
@@ -785,7 +788,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         // Arrange
         var source = PipeSource.Create(async (_, _) =>
             // Not infinite, but long enough
-            await Task.Delay(TimeSpan.FromSeconds(20), default)
+            await Task.Delay(TimeSpan.FromSeconds(20), CancellationToken.None)
         );
 
         var cmd = source | Cli.Wrap("dotnet")
@@ -795,7 +798,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
                 .Add("--length").Add(0)
             );
 
-        // Act
+        // Act & assert
         await cmd.ExecuteAsync();
     }
 }

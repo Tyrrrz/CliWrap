@@ -35,9 +35,9 @@ internal static partial class AsyncExtensions
 {
     // Provides a dynamic and uniform way to deal with async disposable.
     // Used as an abstraction to polyfill IAsyncDisposable implementations in BCL types. For example:
-    // - Stream in .NET Framework 4.6.1 -> calls Dispose() because DisposeAsync() is not implemented
-    // - Stream in .NET Standard 2.0 -> calls DisposeAsync() or Dispose(), depending on actual target framework
-    // - Stream in .NET Core 3.0 -> calls DisposeAsync()
+    // - Stream class on .NET Framework 4.6.1 -> calls Dispose()
+    // - Stream class on .NET Core 3.0 -> calls DisposeAsync()
+    // - Stream class on .NET Standard 2.0 -> calls DisposeAsync() or Dispose(), depending on the runtime
     private readonly struct AsyncDisposableAdapter : IAsyncDisposable
     {
         private readonly IDisposable _target;

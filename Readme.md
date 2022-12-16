@@ -605,12 +605,12 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 Command execution is asynchronous in nature as it involves a completely separate process.
 In many cases, it may be useful to implement an abortion mechanism to stop the execution before it finishes, either through a manual trigger or a timeout.
 
-To do that, just pass the corresponding `CancellationToken` when calling `ExecuteAsync()`:
+To do that, issue the corresponding `CancellationToken` and pass it when calling `ExecuteAsync()`:
 
 ```csharp
 using var cts = new CancellationTokenSource();
 
-// Cancel automatically after a timeout of 10 seconds
+// Cancel after a timeout of 10 seconds
 cts.CancelAfter(TimeSpan.FromSeconds(10));
 
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
@@ -626,22 +626,46 @@ try
 }
 catch (OperationCanceledException)
 {
-    // Command was cancelled
+    // Command was canceled
 }
 ```
 
-> **Note**:
-> Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
+Besides outright killing the process, you can also request cancellation in a more graceful way by sending an interrupt signal.
+To do that, use the overload of `ExecuteAsync()` that accepts two cancellation tokens:
+
+```csharp
+using var forcefulCts = new CancellationTokenSource();
+using var gracefulCts = new CancellationTokenSource();
+
+// Cancel gracefully after a timeout of 10 seconds
+gracefulCts.CancelAfter(TimeSpan.FromSeconds(10));
+
+// Cancel forcefully after a timeout of 15 seconds
+// (i.e. 5 seconds after graceful cancellation) 
+forcefulCts.CancelAfter(TimeSpan.FromSeconds(15));
+
+var result = await Cli.Wrap("path/to/exe").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
+```
+
+Requesting graceful cancellation in **CliWrap** is functionally equivalent to pressing `Ctrl+C` in the console window.
+The underlying process may handle this signal to perform last-minute critical work before finally exiting on its own terms.
+
+> **Warning**:
+> Because graceful cancellation is inherently cooperative, it's possible that the underlying process may choose to ignore the request or take too long to fulfill it.
+> Consider always employing forceful cancellation as a backup to prevent the command from hanging.
 
 > **Note**:
-> You can read more about `CancellationToken` in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
+> Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
+ 
+> **Note**:
+> You can read more about `CancellationTokenSource` and `CancellationToken` to learn how they work in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
 
 ### Retrieving process ID
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is in fact not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a special awaitable object that contains additional information related to the currently executing command.
+This is a specialized awaitable object that contains additional information about the execution of the associated command.
 
-You can inspect the task while it's running to get the ID of the process that was started by the associated command:
+You can inspect the task while it's running to get the ID of the underlying process:
 
 ```csharp
 var task = Cli.Wrap("path/to/exe")

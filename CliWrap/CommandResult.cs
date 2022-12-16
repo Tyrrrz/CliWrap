@@ -3,7 +3,7 @@
 namespace CliWrap;
 
 /// <summary>
-/// Result of command execution.
+/// Result of a command execution.
 /// </summary>
 public class CommandResult
 {

@@ -31,7 +31,7 @@ public partial class Command
         source | PipeTarget.ToStringBuilder(target);
 
     /// <summary>
-    /// Creates a new command that pipes its standard output line-by-line to a delegate.
+    /// Creates a new command that pipes its standard output line-by-line to a synchronous delegate.
     /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     [Pure]
@@ -39,7 +39,7 @@ public partial class Command
         source | PipeTarget.ToDelegate(target);
 
     /// <summary>
-    /// Creates a new command that pipes its standard output line-by-line to a delegate.
+    /// Creates a new command that pipes its standard output line-by-line to an asynchronous delegate.
     /// Uses <see cref="Console.OutputEncoding" /> to decode the byte stream.
     /// </summary>
     [Pure]
@@ -71,7 +71,8 @@ public partial class Command
         source | (PipeTarget.ToStringBuilder(targets.Item1), PipeTarget.ToStringBuilder(targets.Item2));
 
     /// <summary>
-    /// Creates a new command that pipes its standard output and standard error line-by-line to separate delegates.
+    /// Creates a new command that pipes its standard output and standard error line-by-line to
+    /// separate synchronous delegates.
     /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     [Pure]
@@ -79,7 +80,8 @@ public partial class Command
         source | (PipeTarget.ToDelegate(targets.Item1), PipeTarget.ToDelegate(targets.Item2));
 
     /// <summary>
-    /// Creates a new command that pipes its standard output and standard error line-by-line to separate delegates.
+    /// Creates a new command that pipes its standard output and standard error line-by-line to
+    /// separate asynchronous delegates.
     /// Uses <see cref="Console.OutputEncoding" /> to decode byte streams.
     /// </summary>
     [Pure]

@@ -1,6 +1,6 @@
 ﻿// ReSharper disable CheckNamespace
 
-#if NET461 || NETSTANDARD2_0
+#if NET462 || NETSTANDARD2_0
 using System;
 using System.IO;
 using System.Runtime.InteropServices;

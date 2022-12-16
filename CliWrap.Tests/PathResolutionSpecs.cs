@@ -35,8 +35,10 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
     [SkippableFact(Timeout = 15000)]
     public async Task Command_can_be_executed_on_a_script_using_its_short_name()
     {
-        // Only relevant to Windows
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        Skip.IfNot(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Path resolution for scripts is only required on Windows."
+        );
 
         // Arrange
         var filePath = _tempOutput.GetTempFilePath("test-script.cmd");

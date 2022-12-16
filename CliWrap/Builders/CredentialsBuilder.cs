@@ -13,7 +13,9 @@ public class CredentialsBuilder
     /// <summary>
     /// Sets the active directory domain used when starting the process.
     /// </summary>
-    /// <remarks>Only supported on Windows.</remarks>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
     public CredentialsBuilder SetDomain(string? domain)
     {
         _domain = domain;
@@ -32,7 +34,9 @@ public class CredentialsBuilder
     /// <summary>
     /// Sets the user password used when starting the process.
     /// </summary>
-    /// <remarks>Only supported on Windows.</remarks>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
     public CredentialsBuilder SetPassword(string? password)
     {
         _password = password;
@@ -42,7 +46,9 @@ public class CredentialsBuilder
     /// <summary>
     /// Instructs whether to load the user profile when starting the process.
     /// </summary>
-    /// <remarks>Only supported on Windows.</remarks>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
     public CredentialsBuilder LoadUserProfile(bool loadUserProfile = true)
     {
         _loadUserProfile = loadUserProfile;

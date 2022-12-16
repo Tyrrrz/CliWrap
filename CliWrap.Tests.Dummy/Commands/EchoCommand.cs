@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CliFx;
 using CliFx.Attributes;
@@ -12,7 +11,7 @@ namespace CliWrap.Tests.Dummy.Commands;
 public class EchoCommand : ICommand
 {
     [CommandParameter(0)]
-    public IReadOnlyList<string> Items { get; init; } = Array.Empty<string>();
+    public required IReadOnlyList<string> Items { get; init; }
 
     [CommandOption("target")]
     public OutputTarget Target { get; init; } = OutputTarget.StdOut;

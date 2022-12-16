@@ -30,25 +30,37 @@ public partial class CommandExecutionException
 {
     internal static CommandExecutionException ValidationError(
         ICommandConfiguration command,
-        int exitCode) => new(command, exitCode, @$"
-Underlying process reported a non-zero exit code ({exitCode}).
+        int exitCode) =>
+        new(
+            command,
+            exitCode,
+            $"""
+            Underlying process reported a non-zero exit code ({exitCode}).
 
-Command:
-  {command.TargetFilePath} {command.Arguments}
+            Command:
+              {command.TargetFilePath} {command.Arguments}
 
-You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim());
+            You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.
+            """
+        );
 
     internal static CommandExecutionException ValidationError(
         ICommandConfiguration command,
         int exitCode,
-        string standardError) => new(command, exitCode, @$"
-Underlying process reported a non-zero exit code ({exitCode}).
+        string standardError) =>
+        new(
+            command,
+            exitCode,
+            $"""
+            Underlying process reported a non-zero exit code ({exitCode}).
 
-Command:
-  {command.TargetFilePath} {command.Arguments}
+            Command:
+              {command.TargetFilePath} {command.Arguments}
 
-Standard error:
-  {standardError}
+            Standard error:
+              {standardError}
 
-You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.".Trim());
+            You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.
+            """
+        );
 }

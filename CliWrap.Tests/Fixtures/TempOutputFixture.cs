@@ -9,7 +9,8 @@ namespace CliWrap.Tests.Fixtures;
 public class TempOutputFixture : IDisposable
 {
     private readonly string _rootDirPath = Path.Combine(
-        Path.GetDirectoryName(typeof(TempOutputFixture).Assembly.Location) ?? Directory.GetCurrentDirectory(),
+        Path.GetDirectoryName(typeof(TempOutputFixture).Assembly.Location) ??
+        Directory.GetCurrentDirectory(),
         "Temp"
     );
 
