@@ -631,20 +631,20 @@ catch (OperationCanceledException)
 ```
 
 Besides outright killing the process, you can also request cancellation in a more graceful way by sending an interrupt signal.
-To do that, use the overload of `ExecuteAsync()` that accepts two cancellation tokens:
+To do that, pass an additional cancellation token to `ExecuteAsync()` that corresponds to that request:
 
 ```csharp
 using var forcefulCts = new CancellationTokenSource();
 using var gracefulCts = new CancellationTokenSource();
 
-// Cancel gracefully after a timeout of 10 seconds
-gracefulCts.CancelAfter(TimeSpan.FromSeconds(10));
+// Cancel forcefully after a timeout of 10 seconds
+forcefulCts.CancelAfter(TimeSpan.FromSeconds(10));
 
-// Cancel forcefully after a timeout of 15 seconds
-// (i.e. 5 seconds after graceful cancellation).
-// This cancellation is used as backup, in case the
-// graceful one takes too long.
-forcefulCts.CancelAfter(TimeSpan.FromSeconds(15));
+// Cancel gracefully after a timeout of 7 seconds.
+// If the process takes too long responding to our request,
+// the previously configured cancellation will trigger
+// after 3 seconds and forcefully kill the process.
+gracefulCts.CancelAfter(TimeSpan.FromSeconds(7));
 
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
 ```
@@ -654,7 +654,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 
 > **Warning**:
 > Because graceful cancellation is inherently cooperative, it's possible that the underlying process may choose to ignore the request or take too long to fulfill it.
-> Consider always employing forceful cancellation as a backup to prevent the command from hanging.
+> Consider always employing forceful cancellation as a fallback to prevent the command from hanging.
 
 > **Note**:
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
