@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using CliWrap.Utils.Extensions;
@@ -20,7 +21,11 @@ internal partial class WindowsSignaler : IDisposable
             StartInfo = new ProcessStartInfo
             {
                 FileName = _filePath,
-                Arguments = $"{processId} {signalId}",
+                Arguments = string.Join(
+                    " ",
+                    processId.ToString(CultureInfo.InvariantCulture),
+                    signalId.ToString(CultureInfo.InvariantCulture)
+                ),
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 Environment =
@@ -36,7 +41,7 @@ internal partial class WindowsSignaler : IDisposable
         if (!process.Start())
             return false;
 
-        if (!process.WaitForExit(5_000))
+        if (!process.WaitForExit(30_000))
             return false;
 
         return process.ExitCode == 0;
