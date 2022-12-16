@@ -641,7 +641,9 @@ using var gracefulCts = new CancellationTokenSource();
 gracefulCts.CancelAfter(TimeSpan.FromSeconds(10));
 
 // Cancel forcefully after a timeout of 15 seconds
-// (i.e. 5 seconds after graceful cancellation) 
+// (i.e. 5 seconds after graceful cancellation).
+// This cancellation is used as backup, in case the
+// graceful one takes too long.
 forcefulCts.CancelAfter(TimeSpan.FromSeconds(15));
 
 var result = await Cli.Wrap("path/to/exe").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
@@ -658,7 +660,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
  
 > **Note**:
-> You can read more about `CancellationTokenSource` and `CancellationToken` to learn how they work in .NET [here](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken).
+> You can read [this article](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken) to learn more about how `CancellationTokenSource` and `CancellationToken` work in .NET.
 
 ### Retrieving process ID
 
