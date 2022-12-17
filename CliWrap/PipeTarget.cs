@@ -23,7 +23,7 @@ public abstract partial class PipeTarget
     public abstract Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default);
 }
 
-internal class AnonymousPipeTarget : PipeTarget
+file class AnonymousPipeTarget : PipeTarget
 {
     private readonly Func<Stream, CancellationToken, Task> _copyFromAsync;
 
@@ -34,7 +34,7 @@ internal class AnonymousPipeTarget : PipeTarget
         await _copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
 }
 
-internal class MergedPipeTarget : PipeTarget
+file class MergedPipeTarget : PipeTarget
 {
     public IReadOnlyList<PipeTarget> Targets { get; }
 

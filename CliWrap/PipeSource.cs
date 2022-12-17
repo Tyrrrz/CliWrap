@@ -19,7 +19,7 @@ public abstract partial class PipeSource
     public abstract Task CopyToAsync(Stream destination, CancellationToken cancellationToken = default);
 }
 
-internal class AnonymousPipeSource : PipeSource
+file class AnonymousPipeSource : PipeSource
 {
     private readonly Func<Stream, CancellationToken, Task> _copyToAsync;
 
