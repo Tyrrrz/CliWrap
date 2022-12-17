@@ -1,18 +1,22 @@
 ﻿// ReSharper disable CheckNamespace
+// ReSharper disable RedundantUsingDirective
+// ReSharper disable PartialTypeWithSinglePart
 
-#if NET462 || NETSTANDARD2_0
 using System;
+using System.Buffers;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal static class StreamPolyfills
+#if NET462 || NETSTANDARD2_0
+internal static partial class StreamPolyfills
 {
     public static async ValueTask<int> ReadAsync(
         this Stream stream,
         Memory<byte> buffer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)buffer, out var segment))
             segment = new ArraySegment<byte>(buffer.ToArray());
@@ -24,7 +28,7 @@ internal static class StreamPolyfills
     public static async ValueTask<int> ReadAsync(
         this StreamReader reader,
         Memory<char> buffer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         // StreamReader doesn't accept cancellation token anywhere (pre-netstd2.1)
         cancellationToken.ThrowIfCancellationRequested();
@@ -39,7 +43,7 @@ internal static class StreamPolyfills
     public static async ValueTask WriteAsync(
         this Stream stream,
         ReadOnlyMemory<byte> buffer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         if (!MemoryMarshal.TryGetArray(buffer, out var segment))
             segment = new ArraySegment<byte>(buffer.ToArray());
@@ -51,7 +55,7 @@ internal static class StreamPolyfills
     public static async ValueTask CopyToAsync(
         this Stream stream,
         Stream destination,
-        CancellationToken cancellationToken) =>
+        CancellationToken cancellationToken = default) =>
         await stream.CopyToAsync(destination, 81920, cancellationToken).ConfigureAwait(false);
 }
 #endif

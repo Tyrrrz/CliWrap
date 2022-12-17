@@ -1,11 +1,13 @@
 ﻿// ReSharper disable CheckNamespace
+// ReSharper disable RedundantUsingDirective
+// ReSharper disable PartialTypeWithSinglePart
 
 using System.Diagnostics;
+using System;
+using System.Linq;
 
 #if NET462
-using System;
 using System.Management;
-using System.Linq;
 
 internal static class ProcessPolyfills
 {

@@ -49,7 +49,7 @@ public class EventStreamSpecs
             );
 
         // Act
-        var events = await cmd.Observe().Synchronize().ToArray();
+        var events = await cmd.Observe().ToArray();
 
         // Assert
         events.OfType<StartedCommandEvent>().Should().ContainSingle();

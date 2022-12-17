@@ -1,8 +1,10 @@
 ﻿// ReSharper disable CheckNamespace
+// ReSharper disable RedundantUsingDirective
+// ReSharper disable PartialTypeWithSinglePart
 
-#if NET462 || NETSTANDARD2_0
 using System.Collections.Generic;
 
+#if NET462 || NETSTANDARD2_0
 internal static class CollectionPolyfills
 {
     public static void Deconstruct<TKey, TValue>(
