@@ -8,7 +8,7 @@ using CliWrap.Builders;
 namespace CliWrap;
 
 /// <summary>
-/// Encapsulates instructions for running a process.
+/// Instructions for running a process.
 /// </summary>
 public partial class Command : ICommandConfiguration
 {
@@ -97,14 +97,16 @@ public partial class Command : ICommandConfiguration
     );
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
+    /// Creates a copy of this command, setting the arguments to the value
+    /// obtained by formatting the specified enumeration.
     /// </summary>
     [Pure]
     public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
         WithArguments(args => args.Add(arguments, escape));
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value obtained by formatting the specified enumeration.
+    /// Creates a copy of this command, setting the arguments to the value
+    /// obtained by formatting the specified enumeration.
     /// </summary>
     // TODO: (breaking change) remove in favor of optional parameter
     [Pure]
@@ -112,7 +114,8 @@ public partial class Command : ICommandConfiguration
         WithArguments(arguments, true);
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value configured by the specified delegate.
+    /// Creates a copy of this command, setting the arguments to the value
+    /// configured by the specified delegate.
     /// </summary>
     [Pure]
     public Command WithArguments(Action<ArgumentsBuilder> configure)
@@ -140,7 +143,7 @@ public partial class Command : ICommandConfiguration
     );
 
     /// <summary>
-    /// Creates a copy of this command, setting the credentials to the specified value.
+    /// Creates a copy of this command, setting the user credentials to the specified value.
     /// </summary>
     [Pure]
     public Command WithCredentials(Credentials credentials) => new(
@@ -156,7 +159,8 @@ public partial class Command : ICommandConfiguration
     );
 
     /// <summary>
-    /// Creates a copy of this command, setting the credentials to the value configured by the specified delegate.
+    /// Creates a copy of this command, setting the user credentials to the value
+    /// configured by the specified delegate.
     /// </summary>
     [Pure]
     public Command WithCredentials(Action<CredentialsBuilder> configure)
@@ -184,7 +188,8 @@ public partial class Command : ICommandConfiguration
     );
 
     /// <summary>
-    /// Creates a copy of this command, setting the environment variables to the value configured by the specified delegate.
+    /// Creates a copy of this command, setting the environment variables to the value
+    /// configured by the specified delegate.
     /// </summary>
     [Pure]
     public Command WithEnvironmentVariables(Action<EnvironmentVariablesBuilder> configure)

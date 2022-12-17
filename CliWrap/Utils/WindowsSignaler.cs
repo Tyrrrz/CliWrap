@@ -31,7 +31,7 @@ internal partial class WindowsSignaler : IDisposable
                 Environment =
                 {
                     // This is a .NET 3.5 executable, so we need to configure framework rollover
-                    // to allow it to also run against .NET 4.0+ runtimes.
+                    // to allow it to also run against .NET 4.0 and higher.
                     // https://gist.github.com/MichalStrehovsky/d6bc5e4d459c23d0cf3bd17af9a1bcf5
                     ["COMPLUS_OnlyUseLatestCLR"] = "1"
                 }

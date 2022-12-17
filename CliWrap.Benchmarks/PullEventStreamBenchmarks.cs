@@ -2,7 +2,6 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using CliWrap.EventStream;
-using Cysharp.Diagnostics;
 
 namespace CliWrap.Benchmarks;
 
@@ -12,8 +11,8 @@ public class PullEventStreamBenchmarks
     private const string FilePath = "dotnet";
     private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
 
-    [Benchmark(Description = "CliWrap", Baseline = true)]
-    public async Task<int> ExecuteWithCliWrap_Async()
+    [Benchmark(Baseline = true)]
+    public async Task<int> CliWrap()
     {
         var counter = 0;
 
@@ -21,10 +20,10 @@ public class PullEventStreamBenchmarks
         {
             switch (cmdEvent)
             {
-                case StandardOutputCommandEvent _:
+                case StandardOutputCommandEvent:
                     counter++;
                     break;
-                case StandardErrorCommandEvent _:
+                case StandardErrorCommandEvent:
                     counter++;
                     break;
             }
@@ -33,12 +32,13 @@ public class PullEventStreamBenchmarks
         return counter;
     }
 
-    [Benchmark(Description = "ProcessX")]
-    public async Task<int> ExecuteWithProcessX()
+    [Benchmark]
+    public async Task<int> ProcessX()
     {
         var counter = 0;
 
-        var (_, stdOutStream, stdErrStream) = ProcessX.GetDualAsyncEnumerable(FilePath, arguments: Args);
+        var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX
+            .GetDualAsyncEnumerable(FilePath, arguments: Args);
 
         var consumeStdOutTask = Task.Run(async () =>
         {

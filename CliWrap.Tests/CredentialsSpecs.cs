@@ -9,7 +9,7 @@ namespace CliWrap.Tests;
 public class CredentialsSpecs
 {
     [SkippableFact(Timeout = 15000)]
-    public async Task Command_can_be_executed_as_another_user()
+    public async Task I_can_execute_a_command_as_a_different_user()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
@@ -33,7 +33,7 @@ public class CredentialsSpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Command_can_be_executed_as_another_user_under_a_different_domain()
+    public async Task I_can_execute_a_command_as_a_different_user_under_the_specified_domain()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
@@ -58,7 +58,7 @@ public class CredentialsSpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Command_execution_throws_if_executed_as_another_user_on_an_unsupported_operating_system()
+    public async Task I_cannot_execute_a_command_as_a_different_user_on_a_system_that_does_not_support_it()
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),

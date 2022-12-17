@@ -19,7 +19,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
         _tempOutput = tempOutputFixture;
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_an_async_anonymous_source()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_an_async_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(async (destination, cancellationToken) =>
@@ -43,7 +43,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_a_sync_anonymous_source()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_a_sync_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(destination =>
@@ -67,7 +67,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_a_stream()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream(new byte[]
@@ -89,7 +89,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_a_file()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_a_file()
     {
         // Arrange
         var filePath = _tempOutput.GetTempFilePath();
@@ -109,13 +109,10 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_memory()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_memory()
     {
         // Arrange
-        var data = new ReadOnlyMemory<byte>(new byte[]
-        {
-            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-        });
+        var data = new ReadOnlyMemory<byte>("Hello world!"u8.ToArray());
 
         var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -131,13 +128,10 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_a_byte_array()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_a_byte_array()
     {
         // Arrange
-        var data = new byte[]
-        {
-            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-        };
+        var data = "Hello world!"u8.ToArray();
 
         var cmd = data | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -153,7 +147,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_a_string()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_a_string()
     {
         // Arrange
         var cmd = "Hello world!" | Cli.Wrap("dotnet")
@@ -170,7 +164,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_stdout_of_another_command()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_another_command()
     {
         // Arrange
         var cmd =
@@ -192,7 +186,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdin_can_be_piped_from_stdout_of_another_command_in_a_chain()
+    public async Task I_can_execute_a_command_with_stdin_piped_from_another_chain_of_commands()
     {
         // Arrange
         var cmd =
@@ -219,7 +213,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_an_async_anonymous_target()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_an_async_anonymous_target()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -243,7 +237,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_sync_anonymous_target()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_a_sync_anonymous_target()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -267,7 +261,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_stream()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -287,7 +281,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_file()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_a_file()
     {
         // Arrange
         var filePath = _tempOutput.GetTempFilePath();
@@ -308,7 +302,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_string_builder()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_a_string_builder()
     {
         // Arrange
         var buffer = new StringBuilder();
@@ -328,7 +322,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_an_async_delegate()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_an_async_delegate()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -354,7 +348,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_sync_delegate()
+    public async Task I_can_execute_a_command_with_stdout_piped_into_a_sync_delegate()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -376,7 +370,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_and_stderr_can_be_piped_into_separate_streams()
+    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_streams()
     {
         // Arrange
         await using var stdOut = new MemoryStream();
@@ -399,7 +393,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_and_stderr_can_be_piped_into_separate_string_builders()
+    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_string_builders()
     {
         // Arrange
         var stdOutBuffer = new StringBuilder();
@@ -421,7 +415,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_and_stderr_can_be_piped_into_separate_async_delegates()
+    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_async_delegates()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -456,7 +450,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_and_stderr_can_be_piped_into_separate_sync_delegates()
+    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_sync_delegates()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -482,7 +476,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_merged_target()
+    public async Task I_can_execute_a_command_and_pipe_stdout_into_multiple_targets()
     {
         // Arrange
         await using var stream1 = new MemoryStream();
@@ -514,7 +508,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_hierarchy_of_merged_targets()
+    public async Task I_can_execute_a_command_and_pipe_stdout_into_a_complicated_target_hierarchy()
     {
         // Arrange
         await using var stream1 = new MemoryStream();
@@ -553,7 +547,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_multiple_streams_simultaneously_with_large_buffer()
+    public async Task I_can_execute_a_command_and_pipe_stdout_into_multiple_streams_with_a_large_buffer()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/81
 
@@ -587,7 +581,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_a_stream_while_also_buffering()
+    public async Task I_can_execute_a_command_with_buffering_and_also_pipe_stdout_into_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -611,7 +605,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Stdout_can_be_piped_into_into_a_delegate_while_also_buffering()
+    public async Task I_can_execute_a_command_with_buffering_and_also_pipe_stdout_into_a_sync_delegate()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/75
 
@@ -638,7 +632,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_throws_if_an_underlying_pipe_source_throws()
+    public async Task I_can_execute_a_command_and_get_an_exception_if_a_pipe_source_throws_an_exception()
     {
         // Arrange
         var cmd = PipeSource.FromFile("non-existing-file.txt") | Cli.Wrap("dotnet")
@@ -652,7 +646,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_throws_if_an_underlying_pipe_target_throws()
+    public async Task I_can_execute_a_command_and_get_an_exception_if_a_pipe_target_throws_an_exception()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -667,7 +661,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_if_the_process_expects_stdin_but_none_is_provided()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_expects_stdin_but_none_is_provided()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -681,7 +675,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_if_the_process_expects_stdin_but_empty_data_is_provided()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_expects_stdin_but_empty_data_is_provided()
     {
         // Arrange
         var cmd = Array.Empty<byte>() | Cli.Wrap("dotnet")
@@ -695,7 +689,83 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_large_stdin_while_also_writing_stdout()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_only_partially_consumes_stdin()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/74
+
+        // Arrange
+        var random = new Random(1234567);
+
+        var source = PipeSource.Create(async (destination, cancellationToken) =>
+        {
+            var buffer = new byte[256];
+            while (true)
+            {
+                random.NextBytes(buffer);
+                await destination.WriteAsync(buffer, cancellationToken);
+            }
+
+            // ReSharper disable once FunctionNeverReturns
+        });
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo stdin")
+                .Add("--length").Add(10_000_000)
+            );
+
+        // Act & assert
+        await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_never_consumes_stdin()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/74
+
+        // Arrange
+        var source = PipeSource.Create(async (_, cancellationToken) =>
+        {
+            // Not infinite, but long enough
+            await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
+        });
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo stdin")
+                .Add("--length").Add(0)
+            );
+
+        // Act & assert
+        await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_never_consumes_stdin_even_if_it_cannot_be_canceled()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/74
+
+        // Arrange
+        var source = PipeSource.Create(async (_, _) =>
+            // Not infinite, but long enough
+            await Task.Delay(TimeSpan.FromSeconds(20), CancellationToken.None)
+        );
+
+        var cmd = source | Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("echo stdin")
+                .Add("--length").Add(0)
+            );
+
+        // Act & assert
+        await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_not_hang_on_large_stdin_while_also_writing_stdout()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/61
 
@@ -721,81 +791,6 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
-            );
-
-        // Act & assert
-        await cmd.ExecuteAsync();
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_infinite_stdin_which_is_only_consumed_partially()
-    {
-        // https://github.com/Tyrrrz/CliWrap/issues/74
-
-        // Arrange
-        var random = new Random(1234567);
-
-        var source = PipeSource.Create(async (destination, cancellationToken) =>
-        {
-            var buffer = new byte[256];
-            while (true)
-            {
-                random.NextBytes(buffer);
-                await destination.WriteAsync(buffer, cancellationToken);
-            }
-        });
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-                .Add("--length").Add(10_000_000)
-            );
-
-        // Act & assert
-        await cmd.ExecuteAsync();
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_unresolvable_stdin_which_is_not_consumed_at_all()
-    {
-        // https://github.com/Tyrrrz/CliWrap/issues/74
-
-        // Arrange
-        var source = PipeSource.Create(async (_, cancellationToken) =>
-        {
-            var tcs = new TaskCompletionSource();
-            await using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
-                await tcs.Task;
-        });
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-                .Add("--length").Add(0)
-            );
-
-        // Act & assert
-        await cmd.ExecuteAsync();
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task Command_execution_does_not_deadlock_on_uncancellable_and_unresolvable_stdin_which_is_not_consumed_at_all()
-    {
-        // https://github.com/Tyrrrz/CliWrap/issues/74
-
-        // Arrange
-        var source = PipeSource.Create(async (_, _) =>
-            // Not infinite, but long enough
-            await Task.Delay(TimeSpan.FromSeconds(20), CancellationToken.None)
-        );
-
-        var cmd = source | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-                .Add("--length").Add(0)
             );
 
         // Act & assert

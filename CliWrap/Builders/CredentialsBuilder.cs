@@ -11,7 +11,7 @@ public class CredentialsBuilder
     private bool _loadUserProfile;
 
     /// <summary>
-    /// Sets the active directory domain used when starting the process.
+    /// Sets the Active Directory domain used when starting the process.
     /// </summary>
     /// <remarks>
     /// Only supported on Windows.
@@ -23,7 +23,7 @@ public class CredentialsBuilder
     }
 
     /// <summary>
-    /// Sets the user name used when starting the process.
+    /// Sets the username used when starting the process.
     /// </summary>
     public CredentialsBuilder SetUserName(string? userName)
     {
@@ -32,7 +32,7 @@ public class CredentialsBuilder
     }
 
     /// <summary>
-    /// Sets the user password used when starting the process.
+    /// Sets the password used when starting the process.
     /// </summary>
     /// <remarks>
     /// Only supported on Windows.

@@ -42,12 +42,12 @@ internal class SimplexStream : Stream
         var length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
         Array.Copy(_currentBuffer, _currentBufferBytesRead, buffer, offset, length);
 
-        // If the consumer finished reading current buffer - release write lock
+        // Release the write lock if the consumer finished reading the current buffer
         if ((_currentBufferBytesRead += count) >= _currentBufferBytes)
         {
             _writeLock.Release();
         }
-        // Otherwise - release read lock again so that they can continue reading
+        // Otherwise, release the read lock again so that the consumer can finish reading
         else
         {
             _readLock.Release();
@@ -64,7 +64,7 @@ internal class SimplexStream : Stream
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        // Attempt to reuse existing buffer as long as it has enough capacity
+        // Attempt to reuse the existing buffer as long as it has enough capacity
         if (_currentBuffer.Length < count)
             _currentBuffer = new byte[count];
 
@@ -76,7 +76,7 @@ internal class SimplexStream : Stream
 
     public async Task ReportCompletionAsync(CancellationToken cancellationToken = default)
     {
-        // Write empty buffer that will make ReadAsync return 0, which signifies end-of-stream
+        // Write an empty buffer that will make ReadAsync(...) return 0, which signifies end-of-stream
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         _currentBuffer = Array.Empty<byte>();
         _currentBufferBytes = 0;

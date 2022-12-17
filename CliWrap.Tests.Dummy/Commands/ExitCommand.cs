@@ -14,6 +14,11 @@ public class ExitCommand : ICommand
 
     public ValueTask ExecuteAsync(IConsole console)
     {
-        throw new CommandException($"Exit code set to {ExitCode}", ExitCode);
+        if (ExitCode != 0)
+        {
+            throw new CommandException($"Exit code set to {ExitCode}", ExitCode);
+        }
+
+        return default;
     }
 }

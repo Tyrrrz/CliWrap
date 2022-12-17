@@ -18,7 +18,7 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
         _tempOutput = tempOutput;
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_on_an_executable_using_its_short_name()
+    public async Task I_can_execute_a_command_on_an_executable_using_its_short_name()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -33,7 +33,7 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task Command_can_be_executed_on_a_script_using_its_short_name()
+    public async Task I_can_execute_a_command_on_a_script_using_its_short_name()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),

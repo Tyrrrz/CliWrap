@@ -17,11 +17,13 @@ namespace CliWrap.EventStream;
 ///     </list>
 /// </para>
 /// </summary>
-public abstract class CommandEvent {}
+public abstract class CommandEvent
+{
+}
 
 /// <summary>
 /// Event triggered when the command starts executing.
-/// May only appear once in an event stream.
+/// May only appear once in the event stream.
 /// </summary>
 public class StartedCommandEvent : CommandEvent
 {
@@ -41,12 +43,12 @@ public class StartedCommandEvent : CommandEvent
 }
 
 /// <summary>
-/// Event triggered when the underlying process prints a line of text to the standard output stream.
+/// Event triggered when the underlying process writes a line of text to the standard output stream.
 /// </summary>
 public class StandardOutputCommandEvent : CommandEvent
 {
     /// <summary>
-    /// Text.
+    /// Line of text written to the standard output stream.
     /// </summary>
     public string Text { get; }
 
@@ -61,12 +63,12 @@ public class StandardOutputCommandEvent : CommandEvent
 }
 
 /// <summary>
-/// Event triggered when the underlying process prints a line of text to the standard error stream.
+/// Event triggered when the underlying process writes a line of text to the standard error stream.
 /// </summary>
 public class StandardErrorCommandEvent : CommandEvent
 {
     /// <summary>
-    /// Text.
+    /// Line of text written to the standard error stream.
     /// </summary>
     public string Text { get; }
 
@@ -82,7 +84,7 @@ public class StandardErrorCommandEvent : CommandEvent
 
 /// <summary>
 /// Event triggered when the command finishes executing.
-/// May only appear once in an event stream.
+/// May only appear once in the event stream.
 /// </summary>
 public class ExitedCommandEvent : CommandEvent
 {

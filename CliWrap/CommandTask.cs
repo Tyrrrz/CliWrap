@@ -11,7 +11,7 @@ namespace CliWrap;
 public partial class CommandTask<TResult> : IDisposable
 {
     /// <summary>
-    /// Inner task.
+    /// Underlying task.
     /// </summary>
     public Task<TResult> Task { get; }
 
@@ -39,8 +39,8 @@ public partial class CommandTask<TResult> : IDisposable
         Bind(task => task.Select(transform));
 
     /// <summary>
-    /// Gets the awaiter of the inner task.
-    /// Used to facilitate async/await expressions on this object.
+    /// Gets the awaiter of the underlying task.
+    /// Used to enable await expressions on this object.
     /// </summary>
     public TaskAwaiter<TResult> GetAwaiter() => Task.GetAwaiter();
 
@@ -50,10 +50,7 @@ public partial class CommandTask<TResult> : IDisposable
     public ConfiguredTaskAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
         Task.ConfigureAwait(continueOnCapturedContext);
 
-    /// <summary>
-    /// Disposes the inner task.
-    /// There is no need to call this manually, unless you are not planning to await the task.
-    /// </summary>
+    /// <inheritdoc />
     public void Dispose() => Task.Dispose();
 }
 

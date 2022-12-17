@@ -103,7 +103,7 @@ public partial class Command
         catch (NotSupportedException ex)
         {
             throw new NotSupportedException(
-                "Cannot start a process using provided credentials. " +
+                "Cannot start a process using the provided credentials. " +
                 "Setting custom domain, password, or loading user profile is only supported on Windows.",
                 ex
             );
@@ -140,8 +140,7 @@ public partial class Command
                     // Some streams do not support cancellation, so we add a fallback that
                     // drops the task and returns early.
                     // This is important with stdin because the process might finish before
-                    // the pipe completes, and in case with infinite input stream it would
-                    // normally result in a deadlock.
+                    // the pipe has been fully exhausted, and we don't want to wait for it.
                     .WithUncooperativeCancellation(cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -150,7 +149,7 @@ public partial class Command
             // We can't rely on process.HasExited here because of potential race conditions.
             catch (IOException ex) when (ex.GetType() == typeof(IOException))
             {
-                // This may happen if the process terminated before the pipe could complete.
+                // This may happen if the process terminated before the pipe has been exhausted.
                 // It's not an exceptional situation because the process may not need
                 // the entire stdin to complete successfully.
             }
@@ -185,7 +184,7 @@ public partial class Command
         CancellationToken gracefulCancellationToken = default)
     {
         using (process)
-        // Additional cancellation for the stdin pipe in case the process terminates early and doesn't fully consume it
+        // Additional cancellation for the stdin pipe in case the process exit without fully exhausting it
         using (var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken))
         await using (gracefulCancellationToken.Register(process.Interrupt).ToAsyncDisposable())
         await using (forcefulCancellationToken.Register(process.Kill).ToAsyncDisposable())

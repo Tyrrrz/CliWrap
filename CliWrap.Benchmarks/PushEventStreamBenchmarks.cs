@@ -12,8 +12,8 @@ public class PushEventStreamBenchmarks
     private const string FilePath = "dotnet";
     private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
 
-    [Benchmark(Description = "CliWrap", Baseline = true)]
-    public async Task<int> ExecuteWithCliWrap_Observable()
+    [Benchmark(Baseline = true)]
+    public async Task<int> CliWrap()
     {
         var counter = 0;
 
@@ -21,10 +21,10 @@ public class PushEventStreamBenchmarks
         {
             switch (cmdEvent)
             {
-                case StandardOutputCommandEvent _:
+                case StandardOutputCommandEvent:
                     counter++;
                     break;
-                case StandardErrorCommandEvent _:
+                case StandardErrorCommandEvent:
                     counter++;
                     break;
             }

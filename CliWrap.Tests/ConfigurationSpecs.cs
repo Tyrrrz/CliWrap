@@ -9,7 +9,7 @@ namespace CliWrap.Tests;
 public class ConfigurationSpecs
 {
     [Fact(Timeout = 15000)]
-    public void Command_is_created_with_default_configuration()
+    public void I_can_create_a_command_with_a_default_configuration()
     {
         // Act
         var cmd = Cli.Wrap("foo");
@@ -27,43 +27,43 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void Command_line_arguments_can_be_set()
+    public void I_can_configure_command_line_arguments()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithArguments("xxx");
+        var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var cmdOther = cmd.WithArguments("qqq ppp");
+        var modified = original.WithArguments("qqq ppp");
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-        cmdOther.Arguments.Should().Be("qqq ppp");
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
+        original.Arguments.Should().NotBe(modified.Arguments);
+        modified.Arguments.Should().Be("qqq ppp");
     }
 
     [Fact(Timeout = 15000)]
-    public void Command_line_arguments_can_be_set_from_a_list()
+    public void I_can_configure_command_line_arguments_by_passing_an_array()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithArguments("xxx");
+        var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var cmdOther = cmd.WithArguments(new[] { "-a", "foo bar" });
+        var modified = original.WithArguments(new[] { "-a", "foo bar" });
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-        cmdOther.Arguments.Should().Be("-a \"foo bar\"");
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
+        original.Arguments.Should().NotBe(modified.Arguments);
+        modified.Arguments.Should().Be("-a \"foo bar\"");
     }
 
     [Fact(Timeout = 15000)]
-    public void Command_line_arguments_can_be_set_using_a_builder()
+    public void I_can_configure_command_line_arguments_using_a_builder()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithArguments("xxx");
+        var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var cmdOther = cmd.WithArguments(b => b
+        var modified = original.WithArguments(b => b
             .Add("-a")
             .Add("foo bar")
             .Add("\"foo\\\\bar\"")
@@ -73,49 +73,49 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Arguments));
-        cmd.Arguments.Should().NotBe(cmdOther.Arguments);
-        cmdOther.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
+        original.Arguments.Should().NotBe(modified.Arguments);
+        modified.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
     }
 
     [Fact(Timeout = 15000)]
-    public void Working_directory_can_be_set()
+    public void I_can_configure_the_working_directory()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithWorkingDirectory("xxx");
+        var original = Cli.Wrap("foo").WithWorkingDirectory("xxx");
 
         // Act
-        var cmdOther = cmd.WithWorkingDirectory("new");
+        var modified = original.WithWorkingDirectory("new");
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.WorkingDirPath));
-        cmd.WorkingDirPath.Should().NotBe(cmdOther.WorkingDirPath);
-        cmdOther.WorkingDirPath.Should().Be("new");
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.WorkingDirPath));
+        original.WorkingDirPath.Should().NotBe(modified.WorkingDirPath);
+        modified.WorkingDirPath.Should().Be("new");
     }
 
     [Fact(Timeout = 15000)]
-    public void Credentials_can_be_set()
+    public void I_can_configure_user_credentials()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
+        var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
         // Act
-        var cmdOther = cmd.WithCredentials(new Credentials("domain", "username", "password", true));
+        var modified = original.WithCredentials(new Credentials("domain", "username", "password", true));
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
-        cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
+        original.Credentials.Should().NotBe(modified.Credentials);
+        modified.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
     [Fact(Timeout = 15000)]
-    public void Credentials_can_be_set_with_a_builder()
+    public void I_can_configure_user_credentials_using_a_builder()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
+        var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
         // Act
-        var cmdOther = cmd.WithCredentials(c => c
+        var modified = original.WithCredentials(c => c
             .SetDomain("domain")
             .SetUserName("username")
             .SetPassword("password")
@@ -123,28 +123,28 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Credentials));
-        cmd.Credentials.Should().NotBe(cmdOther.Credentials);
-        cmdOther.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
+        original.Credentials.Should().NotBe(modified.Credentials);
+        modified.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
     [Fact(Timeout = 15000)]
-    public void Environment_variables_can_be_set()
+    public void I_can_configure_environment_variables()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
+        var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
         // Act
-        var cmdOther = cmd.WithEnvironmentVariables(new Dictionary<string, string?>
+        var modified = original.WithEnvironmentVariables(new Dictionary<string, string?>
         {
             ["name"] = "value",
             ["key"] = "door"
         });
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
-        cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-        cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
+        original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
+        modified.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
         {
             ["name"] = "value",
             ["key"] = "door"
@@ -152,13 +152,13 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void Environment_variables_can_be_set_with_a_builder()
+    public void I_can_configure_environment_variables_using_a_builder()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
+        var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
         // Act
-        var cmdOther = cmd.WithEnvironmentVariables(b => b
+        var modified = original.WithEnvironmentVariables(b => b
             .Set("name", "value")
             .Set("key", "door")
             .Set(new Dictionary<string, string?>
@@ -169,9 +169,9 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.EnvironmentVariables));
-        cmd.EnvironmentVariables.Should().NotBeEquivalentTo(cmdOther.EnvironmentVariables);
-        cmdOther.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
+        original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
+        modified.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
         {
             ["name"] = "value",
             ["key"] = "door",
@@ -181,59 +181,59 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void Result_validation_can_be_set()
+    public void I_can_configure_the_result_validation_strategy()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithValidation(CommandResultValidation.ZeroExitCode);
+        var original = Cli.Wrap("foo").WithValidation(CommandResultValidation.ZeroExitCode);
 
         // Act
-        var cmdOther = cmd.WithValidation(CommandResultValidation.None);
+        var modified = original.WithValidation(CommandResultValidation.None);
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.Validation));
-        cmd.Validation.Should().NotBe(cmdOther.Validation);
-        cmdOther.Validation.Should().Be(CommandResultValidation.None);
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Validation));
+        original.Validation.Should().NotBe(modified.Validation);
+        modified.Validation.Should().Be(CommandResultValidation.None);
     }
 
     [Fact(Timeout = 15000)]
-    public void Stdin_pipe_can_be_set()
+    public void I_can_configure_the_stdin_pipe()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
+        var original = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
 
         // Act
-        var cmdOther = cmd.WithStandardInputPipe(PipeSource.FromString("new"));
+        var modified = original.WithStandardInputPipe(PipeSource.FromString("new"));
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardInputPipe));
-        cmd.StandardInputPipe.Should().NotBeSameAs(cmdOther.StandardInputPipe);
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardInputPipe));
+        original.StandardInputPipe.Should().NotBeSameAs(modified.StandardInputPipe);
     }
 
     [Fact(Timeout = 15000)]
-    public void Stdout_pipe_can_be_set()
+    public void I_can_configure_the_stdout_pipe()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
+        var original = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
 
         // Act
-        var cmdOther = cmd.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
+        var modified = original.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardOutputPipe));
-        cmd.StandardOutputPipe.Should().NotBeSameAs(cmdOther.StandardOutputPipe);
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardOutputPipe));
+        original.StandardOutputPipe.Should().NotBeSameAs(modified.StandardOutputPipe);
     }
 
     [Fact(Timeout = 15000)]
-    public void Stderr_pipe_can_be_set()
+    public void I_can_configure_the_stderr_pipe()
     {
         // Arrange
-        var cmd = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
+        var original = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
 
         // Act
-        var cmdOther = cmd.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
+        var modified = original.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
 
         // Assert
-        cmd.Should().BeEquivalentTo(cmdOther, o => o.Excluding(c => c.StandardErrorPipe));
-        cmd.StandardErrorPipe.Should().NotBeSameAs(cmdOther.StandardErrorPipe);
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardErrorPipe));
+        original.StandardErrorPipe.Should().NotBeSameAs(modified.StandardErrorPipe);
     }
 }

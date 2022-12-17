@@ -7,7 +7,7 @@ using System.Text;
 namespace CliWrap.Builders;
 
 /// <summary>
-/// Builder that helps generate well-formed arguments string.
+/// Builder that helps format command line arguments into a string.
 /// </summary>
 public partial class ArgumentsBuilder
 {
@@ -64,14 +64,14 @@ public partial class ArgumentsBuilder
     /// <summary>
     /// Adds the specified value to the list of arguments.
     /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
+    // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, bool escape) =>
         Add(value, (IFormatProvider)cultureInfo, escape);
 
     /// <summary>
     /// Adds the specified value to the list of arguments.
     /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
+    // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
         Add(value, cultureInfo, true);
 
@@ -104,14 +104,14 @@ public partial class ArgumentsBuilder
     /// <summary>
     /// Adds the specified values to the list of arguments.
     /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
+    // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo, bool escape) =>
         Add(values, (IFormatProvider)cultureInfo, escape);
 
     /// <summary>
     /// Adds the specified values to the list of arguments.
     /// </summary>
-    // TODO: (breaking change) remove in favor of other overloads
+    // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo) =>
         Add(values, cultureInfo, true);
 

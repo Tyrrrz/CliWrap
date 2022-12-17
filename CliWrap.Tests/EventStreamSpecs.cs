@@ -1,4 +1,6 @@
-﻿using System.Reactive.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CliWrap.EventStream;
 using FluentAssertions;
@@ -9,7 +11,7 @@ namespace CliWrap.Tests;
 public class EventStreamSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_as_a_pull_event_stream()
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -21,40 +23,21 @@ public class EventStreamSpecs
             );
 
         // Act
-        var stdOutLinesCount = 0;
-        var stdErrLinesCount = 0;
-        var isExited = false;
-
+        var events = new List<CommandEvent>();
         await foreach (var cmdEvent in cmd.ListenAsync())
-        {
-            switch (cmdEvent)
-            {
-                case StartedCommandEvent started:
-                    started.ProcessId.Should().NotBe(0);
-                    break;
-                case StandardOutputCommandEvent stdOut:
-                    stdOut.Text.Should().NotBeNullOrEmpty();
-                    stdOutLinesCount++;
-                    break;
-                case StandardErrorCommandEvent stdErr:
-                    stdErr.Text.Should().NotBeNullOrEmpty();
-                    stdErrLinesCount++;
-                    break;
-                case ExitedCommandEvent exited:
-                    exited.ExitCode.Should().Be(0);
-                    isExited = true;
-                    break;
-            }
-        }
+            events.Add(cmdEvent);
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
-        stdErrLinesCount.Should().Be(100);
-        isExited.Should().BeTrue();
+        events.OfType<StartedCommandEvent>().Should().ContainSingle();
+        events.OfType<StartedCommandEvent>().Single().ProcessId.Should().NotBe(0);
+        events.OfType<StandardOutputCommandEvent>().Should().HaveCount(100);
+        events.OfType<StandardErrorCommandEvent>().Should().HaveCount(100);
+        events.OfType<ExitedCommandEvent>().Should().ContainSingle();
+        events.OfType<ExitedCommandEvent>().Single().ExitCode.Should().Be(0);
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_as_a_push_event_stream()
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -66,35 +49,14 @@ public class EventStreamSpecs
             );
 
         // Act
-        var stdOutLinesCount = 0;
-        var stdErrLinesCount = 0;
-        var isExited = false;
-
-        await cmd.Observe().ForEachAsync(cmdEvent =>
-        {
-            switch (cmdEvent)
-            {
-                case StartedCommandEvent started:
-                    started.ProcessId.Should().NotBe(0);
-                    break;
-                case StandardOutputCommandEvent stdOut:
-                    stdOut.Text.Should().NotBeNullOrEmpty();
-                    stdOutLinesCount++;
-                    break;
-                case StandardErrorCommandEvent stdErr:
-                    stdErr.Text.Should().NotBeNullOrEmpty();
-                    stdErrLinesCount++;
-                    break;
-                case ExitedCommandEvent exited:
-                    exited.ExitCode.Should().Be(0);
-                    isExited = true;
-                    break;
-            }
-        });
+        var events = await cmd.Observe().Synchronize().ToArray();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
-        stdErrLinesCount.Should().Be(100);
-        isExited.Should().BeTrue();
+        events.OfType<StartedCommandEvent>().Should().ContainSingle();
+        events.OfType<StartedCommandEvent>().Single().ProcessId.Should().NotBe(0);
+        events.OfType<StandardOutputCommandEvent>().Should().HaveCount(100);
+        events.OfType<StandardErrorCommandEvent>().Should().HaveCount(100);
+        events.OfType<ExitedCommandEvent>().Should().ContainSingle();
+        events.OfType<ExitedCommandEvent>().Single().ExitCode.Should().Be(0);
     }
 }

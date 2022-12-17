@@ -3,7 +3,7 @@
 namespace CliWrap;
 
 /// <summary>
-/// Configuration of a command.
+/// Instructions for running a process.
 /// </summary>
 public interface ICommandConfiguration
 {
@@ -13,7 +13,7 @@ public interface ICommandConfiguration
     string TargetFilePath { get; }
 
     /// <summary>
-    /// Arguments passed on the command line.
+    /// Command line arguments passed to the underlying process.
     /// </summary>
     string Arguments { get; }
 

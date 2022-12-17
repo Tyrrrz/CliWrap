@@ -12,7 +12,7 @@ public class PipeToMultipleStreamsBenchmark
     private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate binary";
 
     [Benchmark(Description = "CliWrap", Baseline = true)]
-    public async Task<(Stream, Stream)> ExecuteWithCliWrap_PipeToMultipleStreams()
+    public async Task<(Stream, Stream)> CliWrap()
     {
         await using var stream1 = new MemoryStream();
         await using var stream2 = new MemoryStream();

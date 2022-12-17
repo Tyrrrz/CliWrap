@@ -35,17 +35,18 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 - Fluent configuration interface
 - Flexible support for piping
 - Fully asynchronous and cancellation-aware API
+- Graceful cancellation using interrupt signals
 - Designed with strict immutability in mind
 - Provides safety against typical deadlock scenarios
 - Tested on Windows, Linux, and macOS
-- Targets .NET Standard 2.0+, .NET Core 3.0+, .NET Framework 4.6.1+
+- Targets .NET Standard 2.0+, .NET Core 3.0+, .NET Framework 4.6.2+
 - No external dependencies
 
 ## Usage
 
 ### Video guides
 
-You can watch one of these videos to get a quick and detailed overview of the library:
+You can watch one of these videos to learn more about the library:
 
 - [**OSS Power-Ups: CliWrap**](https://youtube.com/watch?v=3_Ucw3Fflmo) by [Oleksii Holub](https://twitter.com/tyrrrz)
 
@@ -57,7 +58,7 @@ You can watch one of these videos to get a quick and detailed overview of the li
 
 ### Quick overview
 
-Similarly to a shell, **CliWrap**'s base unit of work is a **command** — an object that encodes instructions for running a process.
+Similarly to a shell, **CliWrap**'s base unit of work is a **command** — an object that encapsulates instructions for running a process.
 To build a command, start by calling `Cli.Wrap(...)` with the executable path, and then use the provided fluent interface to configure arguments, working directory, or other options.
 Once the command is configured, you can run it by calling `ExecuteAsync()`:
 
@@ -87,6 +88,8 @@ By default, the process's standard input, output and error streams are routed to
 You can change this by calling `WithStandardInputPipe(...)`, `WithStandardOutputPipe(...)`, or `WithStandardErrorPipe(...)` to configure pipes for the corresponding streams:
 
 ```csharp
+using CliWrap;
+
 var stdOutBuffer = new StringBuilder();
 var stdErrBuffer = new StringBuilder();
 
@@ -132,13 +135,13 @@ var result = await Cli.Wrap("path/to/exe")
 
 > **Warning**:
 > Be mindful when using `ExecuteBufferedAsync()`.
-> Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to buffer in-memory.
+> Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to store in-memory.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
 
 ### Command configuration
 
-The fluent interface provided by the command object allows you to configure various options related to its execution.
-Below list covers all available configuration methods and their usage.
+The fluent interface provided by the command object allows you to configure various aspects of its execution.
+This section covers all available configuration methods and their usage.
 
 > **Note**:
 > `Command` is an immutable object — all configuration methods listed here create a new instance instead of modifying the existing one.
@@ -160,9 +163,9 @@ var cmd = Cli.Wrap("git")
 
 > **Warning**:
 > Unless you absolutely have to, avoid setting command arguments from a string.
-> This method expects that all of the arguments are already escaped and formatted correctly — which can be really hard to get right.
+> This method expects that all of the arguments are already escaped and formatted properly — which can be really hard to get right.
 
-- Set arguments from an array — each element is treated as a separate argument and spaces are escaped automatically:
+- Set arguments from an array — each element is treated as a separate argument and special characters are escaped automatically:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -463,7 +466,7 @@ These are essentially just extension methods that work by leveraging the [piping
 
 #### Buffered execution
 
-This execution model lets you run a process while buffering its standard output and error streams in-memory.
+This execution model lets you run a process while buffering its standard output and error streams in-memory as text.
 The buffered data can then be accessed after the command finishes executing.
 
 In order to execute a command with buffering, call the `ExecuteBufferedAsync()` extension method:
@@ -547,9 +550,9 @@ When using this execution model, back pressure is facilitated by locking the pip
 Similarly to the pull-based stream, you can also execute a command as a _push-based_ event stream instead:
 
 ```csharp
+using System.Reactive;
 using CliWrap;
 using CliWrap.EventStream;
-using System.Reactive;
 
 await cmd.Observe().ForEachAsync(cmdEvent =>
 {
@@ -605,9 +608,12 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 Command execution is asynchronous in nature as it involves a completely separate process.
 In many cases, it may be useful to implement an abortion mechanism to stop the execution before it finishes, either through a manual trigger or a timeout.
 
-To do that, issue the corresponding `CancellationToken` and include it when calling `ExecuteAsync()`:
+To do that, issue the corresponding [`CancellationToken`](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken) and include it when calling `ExecuteAsync()`:
 
 ```csharp
+using System.Threading;
+using CliWrap;
+
 using var cts = new CancellationTokenSource();
 
 // Cancel after a timeout of 10 seconds
@@ -655,7 +661,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 Graceful cancellation is inherently cooperative, so it's possible that the process may choose to ignore the request or take too long to fulfill it.
 In the above example, this risk is mitigated by additionally scheduling forceful cancellation that prevents the command from hanging.
 
-If you are executing a command inside a method and don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a timeout:
+If you are executing a command inside a method where you don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a timeout:
 
 ```csharp
 public async Task GitPushAsync(CancellationToken cancellationToken = default)
@@ -676,21 +682,18 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 
 > **Note**:
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
-> You can read [this article](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken) to learn more about how `CancellationTokenSource` and `CancellationToken` work in .NET.
 
-### Retrieving process ID
+### Retrieving process-related information
 
-The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is in fact not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a specialized awaitable object that contains additional information about the execution of the associated command.
-
-You can inspect the task while it's running to get the ID of the underlying process:
+The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.
+This is a specialized awaitable object that contains additional information about the process associated with the executing command:
 
 ```csharp
 var task = Cli.Wrap("path/to/exe")
     .WithArguments("--foo bar")
     .ExecuteAsync();
 
-// Get the process ID (for example, for logging purposes)
+// Get the process ID
 var processId = task.ProcessId;
 
 // Wait for the task to complete

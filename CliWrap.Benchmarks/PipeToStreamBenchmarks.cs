@@ -11,8 +11,8 @@ public class PipeToStreamBenchmarks
     private const string FilePath = "dotnet";
     private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate binary";
 
-    [Benchmark(Description = "CliWrap", Baseline = true)]
-    public async Task<Stream> ExecuteWithCliWrap_PipeToStream()
+    [Benchmark(Baseline = true)]
+    public async Task<Stream> CliWrap()
     {
         await using var stream = new MemoryStream();
 
@@ -22,8 +22,8 @@ public class PipeToStreamBenchmarks
         return stream;
     }
 
-    [Benchmark(Description = "MedallionShell")]
-    public async Task<Stream> ExecuteWithMedallionShell_PipeToStream()
+    [Benchmark]
+    public async Task<Stream> MedallionShell()
     {
         await using var stream = new MemoryStream();
 

@@ -10,7 +10,10 @@ namespace CliWrap.Utils.Extensions;
 
 internal static class StreamExtensions
 {
-    public static async Task CopyToAsync(this Stream source, Stream destination, bool autoFlush,
+    public static async Task CopyToAsync(
+        this Stream source,
+        Stream destination,
+        bool autoFlush,
         CancellationToken cancellationToken = default)
     {
         using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
@@ -29,7 +32,10 @@ internal static class StreamExtensions
         this StreamReader reader,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var stringBuilder = new StringBuilder();
+        // We could use reader.ReadLineAsync() and loop on it, but that method
+        // does not support cancellation.
+
+        var lineBuffer = new StringBuilder();
         using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
 
         // Following sequences are treated as individual linebreaks:
@@ -61,13 +67,13 @@ internal static class StreamExtensions
                 // If current char is \n or \r, yield the buffer (even if it is empty)
                 if (curChar is '\n' or '\r')
                 {
-                    yield return stringBuilder.ToString();
-                    stringBuilder.Clear();
+                    yield return lineBuffer.ToString();
+                    lineBuffer.Clear();
                 }
                 // For any other char, just append it to the buffer
                 else
                 {
-                    stringBuilder.Append(curChar);
+                    lineBuffer.Append(curChar);
                 }
 
                 prevSeqChar = curChar;
@@ -75,7 +81,7 @@ internal static class StreamExtensions
         }
 
         // Yield what's remaining in the buffer
-        if (stringBuilder.Length > 0)
-            yield return stringBuilder.ToString();
+        if (lineBuffer.Length > 0)
+            yield return lineBuffer.ToString();
     }
 }

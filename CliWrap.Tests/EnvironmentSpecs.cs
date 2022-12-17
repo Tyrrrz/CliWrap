@@ -17,17 +17,17 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
         _tempOutput = tempOutputFixture;
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_with_a_custom_working_directory()
+    public async Task I_can_execute_a_command_with_a_custom_working_directory()
     {
         // Arrange
         var workingDirPath = _tempOutput.GetTempDirPath();
 
         var cmd = Cli.Wrap("dotnet")
-            .WithWorkingDirectory(workingDirPath)
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("print cwd")
-            );
+            )
+            .WithWorkingDirectory(workingDirPath);
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -37,7 +37,7 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_with_additional_environment_variables()
+    public async Task I_can_execute_a_command_with_additional_environment_variables()
     {
         // Arrange
         var env = new Dictionary<string, string?>
@@ -47,37 +47,32 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
             ["Path"] = "there"
         };
 
-        var stdOutLines = new List<string>();
-
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("print env")
             )
-            .WithEnvironmentVariables(env) | stdOutLines.Add;
+            .WithEnvironmentVariables(env);
 
         // Act
-        await cmd.ExecuteAsync();
+        var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        stdOutLines.Should().Contain(new[]
-        {
+        result.StandardOutput.Trim().Should().ContainAll(
             "[foo] = bar",
             "[hello] = world",
             "[Path] = there"
-        });
+        );
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_with_some_inherited_environment_variables_overwritten()
+    public async Task I_can_execute_a_command_with_some_environment_variables_overwritten()
     {
         // Arrange
-        var salt = Guid.NewGuid();
-        var variableToKeep = $"CLIWRAP_TEST_KEEP_{salt}";
-        var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{salt}";
-        var variableToUnset = $"CLIWRAP_TEST_UNSET_{salt}";
-
-        var stdOutLines = new List<string>();
+        var key = Guid.NewGuid();
+        var variableToKeep = $"CLIWRAP_TEST_KEEP_{key}";
+        var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{key}";
+        var variableToUnset = $"CLIWRAP_TEST_UNSET_{key}";
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -85,29 +80,27 @@ public class EnvironmentSpecs : IClassFixture<TempOutputFixture>
                 .Add("print env")
             )
             .WithEnvironmentVariables(e => e
-                .Set(variableToOverwrite, "new bar")
+                .Set(variableToOverwrite, "overwritten")
                 .Set(variableToUnset, null)
-            ) | stdOutLines.Add;
+            );
 
         // Act
-        using (EnvironmentVariable.Set(variableToKeep, "foo")) // will be left unchanged
-        using (EnvironmentVariable.Set(variableToOverwrite, "bar")) // will be overwritten
-        using (EnvironmentVariable.Set(variableToUnset, "baz")) // will be unset
+        using (EnvironmentVariable.Set(variableToKeep, "keep")) // will be left unchanged
+        using (EnvironmentVariable.Set(variableToOverwrite, "overwrite")) // will be overwritten
+        using (EnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
         {
-            await cmd.ExecuteAsync();
+            var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            stdOutLines.Should().Contain(new[]
-            {
-                $"[{variableToKeep}] = foo",
-                $"[{variableToOverwrite}] = new bar"
-            });
+            result.StandardOutput.Trim().Should().ContainAll(
+                $"[{variableToKeep}] = keep",
+                $"[{variableToOverwrite}] = overwritten"
+            );
 
-            stdOutLines.Should().NotContain(new[]
-            {
-                $"[{variableToOverwrite}] = bar",
-                $"[{variableToUnset}] = baz"
-            });
+            result.StandardOutput.Trim().Should().NotContainAny(
+                $"[{variableToOverwrite}] = overwrite",
+                $"[{variableToUnset}] = unset"
+            );
         }
     }
 }

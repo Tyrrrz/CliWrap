@@ -3,12 +3,12 @@
 namespace CliWrap;
 
 /// <summary>
-/// User credentials used for running a process.
+/// User credentials used for starting a process.
 /// </summary>
 public partial class Credentials
 {
     /// <summary>
-    /// Active directory domain used when starting the process.
+    /// Active Directory domain used when starting the process.
     /// </summary>
     /// <remarks>
     /// Only supported on Windows.
@@ -16,12 +16,12 @@ public partial class Credentials
     public string? Domain { get; }
 
     /// <summary>
-    /// User name used when starting the process.
+    /// Username used when starting the process.
     /// </summary>
     public string? UserName { get; }
 
     /// <summary>
-    /// User password used when starting the process.
+    /// Password used when starting the process.
     /// </summary>
     /// <remarks>
     /// Only supported on Windows.
@@ -54,7 +54,7 @@ public partial class Credentials
     /// <summary>
     /// Initializes an instance of <see cref="Credentials" />.
     /// </summary>
-    // TODO: (breaking change) remove in favor of other overload
+    // TODO: (breaking change) remove in favor of the other overload
     [ExcludeFromCodeCoverage]
     public Credentials(
         string? domain,

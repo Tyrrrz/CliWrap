@@ -9,7 +9,7 @@ namespace CliWrap.Tests;
 public class BufferedSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_with_buffering_which_yields_a_result_containing_stdout()
+    public async Task I_can_run_a_command_with_buffering_and_get_stdout()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -24,14 +24,12 @@ public class BufferedSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.ExitCode.Should().Be(0);
-        result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
         result.StandardOutput.Trim().Should().Be("Hello stdout");
         result.StandardError.Should().BeEmpty();
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_with_buffering_which_yields_a_result_containing_stderr()
+    public async Task I_can_run_a_command_with_buffering_and_get_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -46,14 +44,12 @@ public class BufferedSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.ExitCode.Should().Be(0);
-        result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
         result.StandardOutput.Should().BeEmpty();
         result.StandardError.Trim().Should().Be("Hello stderr");
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Command_can_be_executed_with_buffering_which_yields_a_result_containing_stdout_and_stderr()
+    public async Task I_can_run_a_command_with_buffering_and_get_stdout_and_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -68,14 +64,12 @@ public class BufferedSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.ExitCode.Should().Be(0);
-        result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
         result.StandardOutput.Trim().Should().Be("Hello stdout and stderr");
         result.StandardError.Trim().Should().Be("Hello stdout and stderr");
     }
 
     [Fact(Timeout = 15000)]
-    public async Task Buffered_command_execution_does_not_deadlock_on_large_stdout_and_stderr()
+    public async Task I_can_run_a_command_with_buffering_and_not_hang_on_large_stdout_and_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")

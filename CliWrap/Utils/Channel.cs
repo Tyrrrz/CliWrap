@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CliWrap.Utils;
 
-// This is a very simple channel implementation used to convert push-based streams into pull-based.
+// This is a very simple channel implementation used to convert push-based streams into pull-based ones.
 // Back-pressure is performed using a write lock. Only one publisher may write at a time.
 // Only one message is buffered and read at a time.
 
@@ -30,7 +30,7 @@ internal class Channel<T> : IDisposable where T : class
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        Debug.Assert(_lastItem is null, "Channel overwriting last item.");
+        Debug.Assert(_lastItem is null, "Channel is overwriting the last item.");
 
         _lastItem = item;
         _readLock.Release();
@@ -40,7 +40,8 @@ internal class Channel<T> : IDisposable where T : class
     {
         while (true)
         {
-            var task = await Task.WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task)
+            var task = await Task
+                .WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task)
                 .ConfigureAwait(false);
 
             // Task.WhenAny() does not throw if the underlying task was cancelled.
@@ -48,7 +49,7 @@ internal class Channel<T> : IDisposable where T : class
             if (task.IsCanceled)
                 await task.ConfigureAwait(false);
 
-            // If the first task to complete was the closing signal, then we will need to break loop.
+            // If the first task to complete was the closing signal, then we will need to break the loop.
             // However, WaitAsync() may have completed asynchronously at this point, so we try to
             // read from the queue one last time anyway.
             var isClosed = task == _closedTcs.Task;
@@ -71,8 +72,6 @@ internal class Channel<T> : IDisposable where T : class
 
     public void Dispose()
     {
-        // Can dispose with an item in queue, in case of exception
-
         Close();
         _writeLock.Dispose();
         _readLock.Dispose();

@@ -1,37 +1,15 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CliWrap.Utils.Extensions;
 
-internal static partial class AsyncExtensions
+internal static partial class AsyncDisposableExtensions
 {
-    public static async Task<TDestination> Select<TSource, TDestination>(
-        this Task<TSource> task,
-        Func<TSource, TDestination> transform)
-    {
-        var result = await task.ConfigureAwait(false);
-        return transform(result);
-    }
-
-    public static async Task WithUncooperativeCancellation(
-        this Task task,
-        CancellationToken cancellationToken)
-    {
-        var cancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
-
-        // Task.WhenAny() doesn't throw if the underlying task wraps an exception
-        var finishedTask = await Task.WhenAny(task, cancellationTask).ConfigureAwait(false);
-
-        // Finalize and propagate exceptions
-        await finishedTask.ConfigureAwait(false);
-    }
-
     public static IAsyncDisposable ToAsyncDisposable(this IDisposable disposable) =>
         new AsyncDisposableAdapter(disposable);
 }
 
-internal static partial class AsyncExtensions
+internal static partial class AsyncDisposableExtensions
 {
     // Provides a dynamic and uniform way to deal with async disposable.
     // Used as an abstraction to polyfill IAsyncDisposable implementations in BCL types. For example:
