@@ -1,3 +1,9 @@
+### v3.6 (21-Dec-2022)
+
+- Added support for graceful cancellation via interrupt signals. The new functionality is accessible using an overload of `ExecuteAsync()` (as well as `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`) that accepts an additional cancellation token. The first cancellation token parameter corresponds to a forceful cancellation request that results in immediate process termination (same as the previously available behavior), while the second cancellation token parameter corresponds to a graceful cancellation request that manifests in an interrupt signal. The underlying process may handle the interrupt signal to perform last-minute critical work before finally exiting on its own terms. Please refer to the updated [Timeout and cancellation](https://github.com/Tyrrrz/CliWrap/blob/3.6/Readme.md#timeout-and-cancellation) section in the readme for more details.
+- Changed how the `CommandExecutionException` is thrown in `ExecuteBufferedAsync()` when the process exits with a non-zero exit code. Now, instead of replacing the underlying exception, the exception contains the standard error data as part of the message and also includes the underlying exception (thrown in `ExecuteAsync()`) as inner exception.
+- Fixed an issue where the command events from the `Observe()` execution model sometimes arrived out of order.
+
 ### v3.5 (25-Aug-2022)
 
 - Added `LoadUserProfile` option to `Credentials` and the corresponding `LoadUserProfile()` method to `CredentialsBuilder`. Setting this option to `true` will load the user profile when starting the process. Only supported on Windows.
