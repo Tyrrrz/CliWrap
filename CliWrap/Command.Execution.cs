@@ -76,7 +76,7 @@ public partial class Command
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            UseShellExecute = false,
+            UseShellExecute = ShellExecute,
             // This option only works on Windows and is required there to prevent the
             // child processes from attaching to the parent console window, if one exists.
             // We need this in order to be able to send signals to one specific child process,

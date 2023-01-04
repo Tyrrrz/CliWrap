@@ -75,4 +75,20 @@ public class ExecutionSpecs
         // https://github.com/Tyrrrz/CliWrap/issues/139
         Assert.ThrowsAny<Win32Exception>(() => cmd.ExecuteAsync());
     }
+
+    [Fact(Timeout = 15000)]
+    public async void I_can_execute_a_command_from_shell()
+    {
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(Dummy.Program.FilePath)
+            .WithShellExecute();
+
+        // Act
+        var task = cmd.ExecuteAsync();
+
+        // Assert
+        task.ProcessId.Should().NotBe(0);
+
+        await task;
+    }
 }

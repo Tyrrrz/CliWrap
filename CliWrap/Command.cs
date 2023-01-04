@@ -18,6 +18,9 @@ public partial class Command : ICommandConfiguration
     /// <inheritdoc />
     public string Arguments { get; }
 
+    /// <inheritdoc>
+    public bool ShellExecute { get; }
+
     /// <inheritdoc />
     public string WorkingDirPath { get; }
 
@@ -45,6 +48,7 @@ public partial class Command : ICommandConfiguration
     public Command(
         string targetFilePath,
         string arguments,
+        bool shellExecute,
         string workingDirPath,
         Credentials credentials,
         IReadOnlyDictionary<string, string?> environmentVariables,
@@ -55,6 +59,7 @@ public partial class Command : ICommandConfiguration
     {
         TargetFilePath = targetFilePath;
         Arguments = arguments;
+        ShellExecute = shellExecute;
         WorkingDirPath = workingDirPath;
         Credentials = credentials;
         EnvironmentVariables = environmentVariables;
@@ -70,6 +75,7 @@ public partial class Command : ICommandConfiguration
     public Command(string targetFilePath) : this(
         targetFilePath,
         string.Empty,
+        false,
         Directory.GetCurrentDirectory(),
         Credentials.Default,
         new Dictionary<string, string?>(),
@@ -87,6 +93,7 @@ public partial class Command : ICommandConfiguration
     public Command WithArguments(string arguments) => new(
         TargetFilePath,
         arguments,
+        ShellExecute,
         WorkingDirPath,
         Credentials,
         EnvironmentVariables,
@@ -126,6 +133,20 @@ public partial class Command : ICommandConfiguration
         return WithArguments(builder.Build());
     }
 
+    [Pure]
+    public Command WithShellExecute() => new(
+         TargetFilePath,
+        Arguments,
+        true,
+        WorkingDirPath,
+        Credentials,
+        EnvironmentVariables,
+        Validation,
+        StandardInputPipe,
+        StandardOutputPipe,
+        StandardErrorPipe
+        );
+
     /// <summary>
     /// Creates a copy of this command, setting the working directory path to the specified value.
     /// </summary>
@@ -133,6 +154,7 @@ public partial class Command : ICommandConfiguration
     public Command WithWorkingDirectory(string workingDirPath) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         workingDirPath,
         Credentials,
         EnvironmentVariables,
@@ -149,6 +171,7 @@ public partial class Command : ICommandConfiguration
     public Command WithCredentials(Credentials credentials) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         WorkingDirPath,
         credentials,
         EnvironmentVariables,
@@ -178,6 +201,7 @@ public partial class Command : ICommandConfiguration
     public Command WithEnvironmentVariables(IReadOnlyDictionary<string, string?> environmentVariables) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         WorkingDirPath,
         Credentials,
         environmentVariables,
@@ -207,6 +231,7 @@ public partial class Command : ICommandConfiguration
     public Command WithValidation(CommandResultValidation validation) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         WorkingDirPath,
         Credentials,
         EnvironmentVariables,
@@ -223,6 +248,7 @@ public partial class Command : ICommandConfiguration
     public Command WithStandardInputPipe(PipeSource source) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         WorkingDirPath,
         Credentials,
         EnvironmentVariables,
@@ -239,6 +265,7 @@ public partial class Command : ICommandConfiguration
     public Command WithStandardOutputPipe(PipeTarget target) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         WorkingDirPath,
         Credentials,
         EnvironmentVariables,
@@ -255,6 +282,7 @@ public partial class Command : ICommandConfiguration
     public Command WithStandardErrorPipe(PipeTarget target) => new(
         TargetFilePath,
         Arguments,
+        ShellExecute,
         WorkingDirPath,
         Credentials,
         EnvironmentVariables,
