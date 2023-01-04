@@ -15,7 +15,12 @@ public interface ICommandConfiguration
     /// <summary>
     /// Command line arguments passed to the underlying process.
     /// </summary>
-    string Arguments { get; }
+    string Arguments { get; }   
+
+    /// <summary>
+    /// Start with shell
+    /// </summary>
+    bool ShellExecute { get; }
 
     /// <summary>
     /// Working directory path set for the underlying process.
