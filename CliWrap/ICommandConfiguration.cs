@@ -13,7 +13,7 @@ public interface ICommandConfiguration
     string TargetFilePath { get; }
 
     /// <summary>
-    /// Command line arguments passed to the underlying process.
+    /// Command-line arguments passed to the underlying process.
     /// </summary>
     string Arguments { get; }
 

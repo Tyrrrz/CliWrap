@@ -11,7 +11,7 @@
 
 > 🟢 **Project status**: active<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/project-status.md)</sup>
 
-**CliWrap** is a library for interacting with external command line interfaces.
+**CliWrap** is a library for interacting with external command-line interfaces.
 It provides a convenient model for launching processes, redirecting input and output streams, awaiting completion, handling cancellation, and more.
 
 ## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
@@ -77,7 +77,7 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-The code above spawns a child process with the configured command line arguments and working directory, and then asynchronously waits for it to exit.
+The code above spawns a child process with the configured command-line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other related information.
 
 > **Warning**:
@@ -148,7 +148,7 @@ This section covers all available configuration methods and their usage.
 
 #### `WithArguments(...)`
 
-Sets the command line arguments passed to the child process.
+Sets the command-line arguments passed to the child process.
 
 **Default**: empty.
 

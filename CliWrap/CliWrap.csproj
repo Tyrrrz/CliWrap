@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <Authors>$(Company)</Authors>
-    <Description>Library for interacting with external command line interfaces</Description>
+    <Description>Library for interacting with external command-line interfaces</Description>
     <PackageTags>shell pipe command line executable interface wrapper standard input output error arguments net core</PackageTags>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/Tyrrrz/CliWrap/blob/master/Changelog.md</PackageReleaseNotes>

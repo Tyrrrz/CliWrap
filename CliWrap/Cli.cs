@@ -9,7 +9,7 @@
 public static class Cli
 {
     /// <summary>
-    /// Creates a new command that targets the specified command line executable, batch file, or script.
+    /// Creates a new command that targets the specified command-line executable, batch file, or script.
     /// </summary>
     public static Command Wrap(string targetFilePath) => new(targetFilePath);
 }
