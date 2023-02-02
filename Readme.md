@@ -135,7 +135,7 @@ var result = await Cli.Wrap("path/to/exe")
 
 > **Warning**:
 > Be mindful when using `ExecuteBufferedAsync()`.
-> Programs can write arbitrary data (including binary) to output and error streams, which may be impractical to store in-memory.
+> Programs can write arbitrary data (including binary) to output and error streams, and storing it in-memory may be impractical.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
 
 ### Command configuration
