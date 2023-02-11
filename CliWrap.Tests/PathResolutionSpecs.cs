@@ -3,20 +3,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Fixtures;
 using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests;
 
-public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
+public class PathResolutionSpecs
 {
-    private readonly TempOutputFixture _tempOutput;
-
-    public PathResolutionSpecs(TempOutputFixture tempOutput) =>
-        _tempOutput = tempOutput;
-
     [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_on_an_executable_using_its_short_name()
     {
@@ -41,7 +35,9 @@ public class PathResolutionSpecs : IClassFixture<TempOutputFixture>
         );
 
         // Arrange
-        var filePath = _tempOutput.GetTempFilePath("test-script.cmd");
+        using var dir = TempDir.Create();
+
+        var filePath = Path.Combine(dir.Path, "test-script.cmd");
         await File.WriteAllTextAsync(filePath, "@echo hello");
 
         var pathValue =

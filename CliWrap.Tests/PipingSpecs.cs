@@ -5,28 +5,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Fixtures;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests;
 
-public class PipingSpecs : IClassFixture<TempOutputFixture>
+public class PipingSpecs
 {
-    private readonly TempOutputFixture _tempOutput;
-
-    public PipingSpecs(TempOutputFixture tempOutputFixture) =>
-        _tempOutput = tempOutputFixture;
-
     [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_stdin_piped_from_an_async_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(async (destination, cancellationToken) =>
-            await destination.WriteAsync(new byte[]
-            {
-                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-            }, cancellationToken)
+            await destination.WriteAsync("Hello world!"u8.ToArray(), cancellationToken)
         );
 
         var cmd = source | Cli.Wrap("dotnet")
@@ -47,10 +39,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     {
         // Arrange
         var source = PipeSource.Create(destination =>
-            destination.Write(new byte[]
-            {
-                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-            })
+            destination.Write("Hello world!"u8)
         );
 
         var cmd = source | Cli.Wrap("dotnet")
@@ -70,10 +59,7 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task I_can_execute_a_command_with_stdin_piped_from_a_stream()
     {
         // Arrange
-        await using var stream = new MemoryStream(new byte[]
-        {
-            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
-        });
+        await using var stream = new MemoryStream("Hello world!"u8.ToArray());
 
         var cmd = stream | Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -92,10 +78,10 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task I_can_execute_a_command_with_stdin_piped_from_a_file()
     {
         // Arrange
-        var filePath = _tempOutput.GetTempFilePath();
-        await File.WriteAllTextAsync(filePath, "Hello world!");
+        using var file = TempFile.Create();
+        await File.WriteAllTextAsync(file.Path, "Hello world!");
 
-        var cmd = PipeSource.FromFile(filePath) | Cli.Wrap("dotnet")
+        var cmd = PipeSource.FromFile(file.Path) | Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
@@ -284,21 +270,21 @@ public class PipingSpecs : IClassFixture<TempOutputFixture>
     public async Task I_can_execute_a_command_with_stdout_piped_into_a_file()
     {
         // Arrange
-        var filePath = _tempOutput.GetTempFilePath();
+        using var file = TempFile.Create();
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
                 .Add("--length").Add(1_000_000)
-            ) | PipeTarget.ToFile(filePath);
+            ) | PipeTarget.ToFile(file.Path);
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        File.Exists(filePath).Should().BeTrue();
-        new FileInfo(filePath).Length.Should().Be(1_000_000);
+        File.Exists(file.Path).Should().BeTrue();
+        new FileInfo(file.Path).Length.Should().Be(1_000_000);
     }
 
     [Fact(Timeout = 15000)]
