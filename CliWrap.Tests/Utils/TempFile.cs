@@ -37,7 +37,7 @@ internal partial class TempFile
 
         var filePath = PathEx.Combine(
             dirPath,
-            $"{Guid.NewGuid().ToString("N")[..5]}.tmp"
+            Guid.NewGuid() + ".tmp"
         );
 
         return new TempFile(filePath);

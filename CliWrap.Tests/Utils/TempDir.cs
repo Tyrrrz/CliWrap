@@ -31,7 +31,7 @@ internal partial class TempDir
         var dirPath = PathEx.Combine(
             PathEx.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? Directory.GetCurrentDirectory(),
             "Temp",
-            Guid.NewGuid().ToString("N")[..5]
+            Guid.NewGuid().ToString()
         );
 
         Directory.CreateDirectory(dirPath);
