@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -36,20 +35,16 @@ public class PathResolutionSpecs
 
         // Arrange
         using var dir = TempDir.Create();
+        await File.WriteAllTextAsync(
+            Path.Combine(dir.Path, "test-script.cmd"),
+            "@echo hello"
+        );
 
-        var filePath = Path.Combine(dir.Path, "test-script.cmd");
-        await File.WriteAllTextAsync(filePath, "@echo hello");
-
-        var pathValue =
-            Environment.GetEnvironmentVariable("PATH") +
-            Path.PathSeparator +
-            Path.GetDirectoryName(filePath);
-
-        var cmd = Cli.Wrap("test-script");
-
-        // Act
-        using (EnvironmentVariable.Set("PATH", pathValue))
+        using (TempEnvironmentVariable.ExtendPath(dir.Path))
         {
+            var cmd = Cli.Wrap("test-script");
+
+            // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert

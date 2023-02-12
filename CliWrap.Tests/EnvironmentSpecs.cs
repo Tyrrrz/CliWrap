@@ -68,21 +68,21 @@ public class EnvironmentSpecs
         var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{key}";
         var variableToUnset = $"CLIWRAP_TEST_UNSET_{key}";
 
-        var cmd = Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("print env")
-            )
-            .WithEnvironmentVariables(e => e
-                .Set(variableToOverwrite, "overwritten")
-                .Set(variableToUnset, null)
-            );
-
-        // Act
-        using (EnvironmentVariable.Set(variableToKeep, "keep")) // will be left unchanged
-        using (EnvironmentVariable.Set(variableToOverwrite, "overwrite")) // will be overwritten
-        using (EnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
+        using (TempEnvironmentVariable.Set(variableToKeep, "keep")) // will be left unchanged
+        using (TempEnvironmentVariable.Set(variableToOverwrite, "overwrite")) // will be overwritten
+        using (TempEnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
         {
+            var cmd = Cli.Wrap("dotnet")
+                .WithArguments(a => a
+                    .Add(Dummy.Program.FilePath)
+                    .Add("print env")
+                )
+                .WithEnvironmentVariables(e => e
+                    .Set(variableToOverwrite, "overwritten")
+                    .Set(variableToUnset, null)
+                );
+
+            // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
