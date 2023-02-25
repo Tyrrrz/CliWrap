@@ -81,6 +81,22 @@ public partial class Command : ICommandConfiguration
     }
 
     /// <summary>
+    /// Creates a copy of this command, setting the target file path to the specified value.
+    /// </summary>
+    [Pure]
+    public Command WithTargetFile(string targetFilePath) => new(
+        targetFilePath,
+        Arguments,
+        WorkingDirPath,
+        Credentials,
+        EnvironmentVariables,
+        Validation,
+        StandardInputPipe,
+        StandardOutputPipe,
+        StandardErrorPipe
+    );
+
+    /// <summary>
     /// Creates a copy of this command, setting the arguments to the specified value.
     /// </summary>
     [Pure]

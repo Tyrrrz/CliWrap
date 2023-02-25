@@ -9,7 +9,7 @@ namespace CliWrap.Tests;
 public class ConfigurationSpecs
 {
     [Fact(Timeout = 15000)]
-    public void I_can_create_a_command_with_a_default_configuration()
+    public void I_can_create_a_command_with_the_default_configuration()
     {
         // Act
         var cmd = Cli.Wrap("foo");
@@ -27,7 +27,22 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_command_line_arguments()
+    public void I_can_configure_the_target_file()
+    {
+        // Arrange
+        var original = Cli.Wrap("foo");
+
+        // Act
+        var modified = original.WithTargetFile("bar");
+
+        // Assert
+        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.TargetFilePath));
+        original.TargetFilePath.Should().NotBe(modified.TargetFilePath);
+        modified.TargetFilePath.Should().Be("bar");
+    }
+
+    [Fact(Timeout = 15000)]
+    public void I_can_configure_the_command_line_arguments()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithArguments("xxx");
@@ -42,7 +57,7 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_command_line_arguments_by_passing_an_array()
+    public void I_can_configure_the_command_line_arguments_by_passing_an_array()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithArguments("xxx");
@@ -57,7 +72,7 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_command_line_arguments_using_a_builder()
+    public void I_can_configure_the_command_line_arguments_using_a_builder()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithArguments("xxx");
@@ -94,7 +109,7 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_user_credentials()
+    public void I_can_configure_the_user_credentials()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
@@ -109,7 +124,7 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_user_credentials_using_a_builder()
+    public void I_can_configure_the_user_credentials_using_a_builder()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
@@ -129,7 +144,7 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_environment_variables()
+    public void I_can_configure_the_environment_variables()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
@@ -152,7 +167,7 @@ public class ConfigurationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_can_configure_environment_variables_using_a_builder()
+    public void I_can_configure_the_environment_variables_using_a_builder()
     {
         // Arrange
         var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
