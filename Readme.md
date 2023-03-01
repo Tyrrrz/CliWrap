@@ -46,7 +46,7 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 
 ### Video guides
 
-You can watch one of these videos to learn more about the library:
+You can watch one of these videos to learn how to use the library:
 
 - [**OSS Power-Ups: CliWrap**](https://youtube.com/watch?v=3_Ucw3Fflmo) by [Oleksii Holub](https://twitter.com/tyrrrz)
 
@@ -66,7 +66,7 @@ Once the command is configured, you can run it by calling `ExecuteAsync()`:
 using CliWrap;
 
 var result = await Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+    .WithArguments(new[] {"--foo", "bar"})
     .WithWorkingDirectory("work/dir/path")
     .ExecuteAsync();
 
@@ -78,7 +78,7 @@ var result = await Cli.Wrap("path/to/exe")
 ```
 
 The code above spawns a child process with the configured command-line arguments and working directory, and then asynchronously waits for it to exit.
-After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other related information.
+After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other relevant information.
 
 > **Warning**:
 > **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
@@ -96,7 +96,7 @@ var stdErrBuffer = new StringBuilder();
 // ⚠ This particular example can also be simplified with ExecuteBufferedAsync().
 // Continue reading below!
 var result = await Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+    .WithArguments(new[] {"--foo", "bar"})
     .WithWorkingDirectory("work/dir/path")
     .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
     .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
@@ -108,7 +108,7 @@ var stdErr = stdErrBuffer.ToString();
 ```
 
 This example command is configured to decode the data written to standard output and error streams as text, and append it to the corresponding `StringBuilder` buffers.
-After the execution is complete, these buffers can be inspected to see what the process has printed to the console.
+Once the execution is complete, these buffers can be inspected to see what the process has printed to the console.
 
 Handling command output is a very common use case, so **CliWrap** offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
 In particular, the same thing shown above can also be achieved more succinctly with the `ExecuteBufferedAsync()` extension method:
@@ -120,7 +120,7 @@ using CliWrap.Buffered;
 // Calling `ExecuteBufferedAsync()` instead of `ExecuteAsync()`
 // implicitly configures pipes that write to in-memory buffers.
 var result = await Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+    .WithArguments(new[] {"--foo", "bar"})
     .WithWorkingDirectory("work/dir/path")
     .ExecuteBufferedAsync();
 
@@ -163,7 +163,7 @@ var cmd = Cli.Wrap("git")
 
 > **Warning**:
 > Unless you absolutely have to, avoid setting command arguments from a string.
-> This method expects that all of the arguments are already escaped and formatted properly — which can be really hard to get right.
+> This method expects that all of the arguments are already escaped and properly formatted — which can be cumbersome and difficult to do correctly.
 
 - Set arguments from an array — each element is treated as a separate argument and special characters are escaped automatically:
 
@@ -172,7 +172,7 @@ var cmd = Cli.Wrap("git")
     .WithArguments(new[] {"commit", "-m", "my commit"});
 ```
 
-- Set arguments using a builder — same as above, but also works with non-string arguments and can be [enhanced with your own extension methods](https://twitter.com/Tyrrrz/status/1409104223753605121):
+- Set arguments using a builder — same as above, but also works with non-string arguments, and can be [enhanced with your own extension methods](https://twitter.com/Tyrrrz/status/1409104223753605121):
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -475,8 +475,8 @@ In order to execute a command with buffering, call the `ExecuteBufferedAsync()` 
 using CliWrap;
 using CliWrap.Buffered;
 
-var result = await Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+var result = await Cli.Wrap("foo")
+    .WithArguments("bar")
     .ExecuteBufferedAsync();
 
 var exitCode = result.ExitCode;
@@ -489,13 +489,13 @@ To override this, specify the encoding explicitly by using one of the available 
 
 ```csharp
 // Treat both stdout and stderr as UTF8-encoded text streams
-var result = await Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+var result = await Cli.Wrap("foo")
+    .WithArguments("bar")
     .ExecuteBufferedAsync(Encoding.UTF8);
 
 // Treat stdout as ASCII-encoded and stderr as UTF8-encoded
-var result = await Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+var result = await Cli.Wrap("foo")
+    .WithArguments("bar")
     .ExecuteBufferedAsync(Encoding.ASCII, Encoding.UTF8);
 ```
 
@@ -553,6 +553,8 @@ Similarly to the pull-based stream, you can also execute a command as a _push-ba
 using System.Reactive;
 using CliWrap;
 using CliWrap.EventStream;
+
+var cmd = Cli.Wrap("foo").WithArguments("bar");
 
 await cmd.Observe().ForEachAsync(cmdEvent =>
 {
@@ -619,7 +621,7 @@ using var cts = new CancellationTokenSource();
 // Cancel after a timeout of 10 seconds
 cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-var result = await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
+var result = await Cli.Wrap("foo").ExecuteAsync(cts.Token);
 ```
 
 In the event of a cancellation request, the underlying process will be killed and `ExecuteAsync()` will throw an exception of type `OperationCanceledException` (or its derivative, `TaskCanceledException`).
@@ -628,7 +630,7 @@ You will need to catch this exception in your code to recover from cancellation:
 ```csharp
 try
 {
-    await Cli.Wrap("path/to/exe").ExecuteAsync(cts.Token);
+    await Cli.Wrap("foo").ExecuteAsync(cts.Token);
 }
 catch (OperationCanceledException)
 {
@@ -647,12 +649,12 @@ using var gracefulCts = new CancellationTokenSource();
 forcefulCts.CancelAfter(TimeSpan.FromSeconds(10));
 
 // Cancel gracefully after a timeout of 7 seconds.
-// If the process takes too long responding to our request,
-// the previously configured cancellation will trigger
-// after 3 seconds and forcefully kill the process.
+// If the process takes too long to respond to graceful
+// cancellation, it will eventually get killed by forceful
+// cancellation configured above.
 gracefulCts.CancelAfter(TimeSpan.FromSeconds(7));
 
-var result = await Cli.Wrap("path/to/exe").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
+var result = await Cli.Wrap("foo").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
 ```
 
 Requesting graceful cancellation in **CliWrap** is functionally equivalent to pressing `Ctrl+C` in the console window.
@@ -661,7 +663,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 Graceful cancellation is inherently cooperative, so it's possible that the process may choose to ignore the request or take too long to fulfill it.
 In the above example, this risk is mitigated by additionally scheduling forceful cancellation that prevents the command from hanging.
 
-If you are executing a command inside a method where you don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a timeout:
+If you are executing a command inside a method where you don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a forceful fallback:
 
 ```csharp
 public async Task GitPushAsync(CancellationToken cancellationToken = default)
@@ -669,7 +671,7 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
     using var forcefulCts = new CancellationTokenSource();
 
     // When the cancellation token is triggered,
-    // schedule forceful cancellation as fallback.
+    // schedule forceful cancellation as a fallback.
     await using var link = cancellationToken.Register(() =>
         forcefulCts.CancelAfter(TimeSpan.FromSeconds(3))
     );
@@ -689,8 +691,8 @@ The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, 
 This is a specialized awaitable object that contains additional information about the process associated with the executing command:
 
 ```csharp
-var task = Cli.Wrap("path/to/exe")
-    .WithArguments("--foo bar")
+var task = Cli.Wrap("foo")
+    .WithArguments("bar")
     .ExecuteAsync();
 
 // Get the process ID
