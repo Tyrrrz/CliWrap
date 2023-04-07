@@ -53,18 +53,18 @@ public partial class Command
     /// specified targets.
     /// </summary>
     [Pure]
-    public static Command operator |(Command source, (PipeTarget, PipeTarget) targets) =>
+    public static Command operator |(Command source, (PipeTarget stdOut, PipeTarget stdErr) targets) =>
         source
-            .WithStandardOutputPipe(targets.Item1)
-            .WithStandardErrorPipe(targets.Item2);
+            .WithStandardOutputPipe(targets.stdOut)
+            .WithStandardErrorPipe(targets.stdErr);
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error to the
     /// specified streams.
     /// </summary>
     [Pure]
-    public static Command operator |(Command source, (Stream, Stream) targets) =>
-        source | (PipeTarget.ToStream(targets.Item1), PipeTarget.ToStream(targets.Item2));
+    public static Command operator |(Command source, (Stream stdOut, Stream stdErr) targets) =>
+        source | (PipeTarget.ToStream(targets.stdOut), PipeTarget.ToStream(targets.stdErr));
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error to the
@@ -72,8 +72,8 @@ public partial class Command
     /// Uses <see cref="Console.OutputEncoding" /> for decoding.
     /// </summary>
     [Pure]
-    public static Command operator |(Command source, (StringBuilder, StringBuilder) targets) =>
-        source | (PipeTarget.ToStringBuilder(targets.Item1), PipeTarget.ToStringBuilder(targets.Item2));
+    public static Command operator |(Command source, (StringBuilder stdOut, StringBuilder stdErr) targets) =>
+        source | (PipeTarget.ToStringBuilder(targets.stdOut), PipeTarget.ToStringBuilder(targets.stdErr));
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line
@@ -81,8 +81,8 @@ public partial class Command
     /// Uses <see cref="Console.OutputEncoding" /> for decoding.
     /// </summary>
     [Pure]
-    public static Command operator |(Command source, (Action<string>, Action<string>) targets) =>
-        source | (PipeTarget.ToDelegate(targets.Item1), PipeTarget.ToDelegate(targets.Item2));
+    public static Command operator |(Command source, (Action<string> stdOut, Action<string> stdErr) targets) =>
+        source | (PipeTarget.ToDelegate(targets.stdOut), PipeTarget.ToDelegate(targets.stdErr));
 
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line
@@ -90,8 +90,8 @@ public partial class Command
     /// Uses <see cref="Console.OutputEncoding" /> for decoding.
     /// </summary>
     [Pure]
-    public static Command operator |(Command source, (Func<string, Task>, Func<string, Task>) targets) =>
-        source | (PipeTarget.ToDelegate(targets.Item1), PipeTarget.ToDelegate(targets.Item2));
+    public static Command operator |(Command source, (Func<string, Task> stdOut, Func<string, Task> stdErr) targets) =>
+        source | (PipeTarget.ToDelegate(targets.stdOut), PipeTarget.ToDelegate(targets.stdErr));
 
     /// <summary>
     /// Creates a new command that pipes its standard input from the specified source.
