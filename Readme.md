@@ -660,8 +660,8 @@ var result = await Cli.Wrap("foo").ExecuteAsync(forcefulCts.Token, gracefulCts.T
 Requesting graceful cancellation in **CliWrap** is functionally equivalent to pressing `Ctrl+C` in the console window.
 The underlying process may handle this signal to perform last-minute critical work before finally exiting on its own terms.
 
-Graceful cancellation is inherently cooperative, so it's possible that the process may choose to ignore the request or take too long to fulfill it.
-In the above example, this risk is mitigated by additionally scheduling forceful cancellation that prevents the command from hanging.
+Graceful cancellation is inherently cooperative, so it's possible that the process may take too long to fulfill the request or choose to ignore it altogether.
+In the above example, this risk is mitigated by additionally scheduling a delayed forceful cancellation that prevents the command from hanging.
 
 If you are executing a command inside a method where you don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a forceful fallback:
 
