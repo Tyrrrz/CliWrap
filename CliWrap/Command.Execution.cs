@@ -141,7 +141,7 @@ public partial class Command
                     // drops the task and returns early.
                     // This is important with stdin because the process might finish before
                     // the pipe has been fully exhausted, and we don't want to wait for it.
-                    .WithUncooperativeCancellation(cancellationToken)
+                    .WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
