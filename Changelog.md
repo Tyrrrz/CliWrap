@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.6.1 (27-Apr-2023)
+
+- Improved support for older target frameworks via polyfills.
+
 ## v3.6 (21-Dec-2022)
 
 - Added support for graceful cancellation via interrupt signals. The new functionality is accessible using an overload of `ExecuteAsync()` (as well as `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`) that accepts an additional cancellation token. The first cancellation token parameter corresponds to a forceful cancellation request that results in immediate process termination (same as the previously available behavior), while the second cancellation token parameter corresponds to a graceful cancellation request that manifests in an interrupt signal. The underlying process may handle the interrupt signal to perform last-minute critical work before finally exiting on its own terms. Please refer to the updated [Timeout and cancellation](https://github.com/Tyrrrz/CliWrap/blob/3.6/Readme.md#timeout-and-cancellation) section in the readme for more details.

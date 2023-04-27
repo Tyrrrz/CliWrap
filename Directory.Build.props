@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <Version>3.6</Version>
+    <Version>3.6.1</Version>
     <Company>Tyrrrz</Company>
     <Copyright>Copyright (C) Oleksii Holub</Copyright>
     <LangVersion>latest</LangVersion>
