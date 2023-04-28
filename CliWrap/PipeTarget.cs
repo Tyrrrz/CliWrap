@@ -168,13 +168,22 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
     /// </summary>
-    public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
+    public static PipeTarget ToDelegate(Func<string, CancellationToken, Task> handleLineAsync, Encoding encoding) =>
         Create(async (origin, cancellationToken) =>
         {
             using var reader = new StreamReader(origin, encoding, false, BufferSizes.StreamReader, true);
             await foreach (var line in reader.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false))
-                await handleLineAsync(line).ConfigureAwait(false);
+                await handleLineAsync(line, cancellationToken).ConfigureAwait(false);
         });
+
+    /// <summary>
+    /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
+    /// </summary>
+    public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
+        ToDelegate(
+            async (line, _) => await handleLineAsync(line).ConfigureAwait(false),
+            encoding
+        );
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.

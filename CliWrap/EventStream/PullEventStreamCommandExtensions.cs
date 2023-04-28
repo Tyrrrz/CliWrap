@@ -33,7 +33,8 @@ public static partial class EventStreamCommandExtensions
         var stdOutPipe = PipeTarget.Merge(
             command.StandardOutputPipe,
             PipeTarget.ToDelegate(
-                s => channel.PublishAsync(new StandardOutputCommandEvent(s), forcefulCancellationToken),
+                (line, innerCancellationToken) =>
+                    channel.PublishAsync(new StandardOutputCommandEvent(line), innerCancellationToken),
                 standardOutputEncoding
             )
         );
@@ -41,7 +42,8 @@ public static partial class EventStreamCommandExtensions
         var stdErrPipe = PipeTarget.Merge(
             command.StandardErrorPipe,
             PipeTarget.ToDelegate(
-                s => channel.PublishAsync(new StandardErrorCommandEvent(s), forcefulCancellationToken),
+                (line, innerCancellationToken) =>
+                    channel.PublishAsync(new StandardErrorCommandEvent(line), innerCancellationToken),
                 standardErrorEncoding
             )
         );

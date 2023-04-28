@@ -32,7 +32,7 @@ public static partial class EventStreamCommandExtensions
             var stdOutPipe = PipeTarget.Merge(
                 command.StandardOutputPipe,
                 PipeTarget.ToDelegate(
-                    s => observer.OnNext(new StandardOutputCommandEvent(s)),
+                    line => observer.OnNext(new StandardOutputCommandEvent(line)),
                     standardOutputEncoding
                 )
             );
@@ -40,7 +40,7 @@ public static partial class EventStreamCommandExtensions
             var stdErrPipe = PipeTarget.Merge(
                 command.StandardErrorPipe,
                 PipeTarget.ToDelegate(
-                    s => observer.OnNext(new StandardErrorCommandEvent(s)),
+                    line => observer.OnNext(new StandardErrorCommandEvent(line)),
                     standardErrorEncoding
                 )
             );
