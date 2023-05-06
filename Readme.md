@@ -499,6 +499,9 @@ var result = await Cli.Wrap("foo")
     .ExecuteBufferedAsync(Encoding.ASCII, Encoding.UTF8);
 ```
 
+> **Note**:
+> If the underlying process returns a non-zero exit code, `ExecuteBufferedAsync()` will throw an exception similarly to `ExecuteAsync()`, but the exception message will also include the standard error data.
+
 #### Pull-based event stream
 
 Besides executing a command as a task, **CliWrap** also supports an alternative model, in which the execution is represented as an event stream.
