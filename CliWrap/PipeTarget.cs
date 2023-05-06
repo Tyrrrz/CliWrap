@@ -34,11 +34,11 @@ file class AnonymousPipeTarget : PipeTarget
         await _copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
 }
 
-file class MergedPipeTarget : PipeTarget
+file class AggregatePipeTarget : PipeTarget
 {
     public IReadOnlyList<PipeTarget> Targets { get; }
 
-    public MergedPipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
+    public AggregatePipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
 
     public override async Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default)
     {
@@ -219,7 +219,7 @@ public partial class PipeTarget
         {
             foreach (var target in targets)
             {
-                if (target is MergedPipeTarget mergedTarget)
+                if (target is AggregatePipeTarget mergedTarget)
                 {
                     FlattenTargets(mergedTarget.Targets, output);
                 }
@@ -254,7 +254,7 @@ public partial class PipeTarget
         if (optimizedTargets.Count == 0)
             return Null;
 
-        return new MergedPipeTarget(optimizedTargets);
+        return new AggregatePipeTarget(optimizedTargets);
     }
 
     /// <summary>
