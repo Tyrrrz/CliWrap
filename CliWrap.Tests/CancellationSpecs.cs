@@ -14,7 +14,7 @@ namespace CliWrap.Tests;
 public class CancellationSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_an_executing_command_immediately()
+    public async Task I_can_execute_a_command_and_cancel_it_immediately()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -42,7 +42,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_an_executing_command_after_a_delay()
+    public async Task I_can_execute_a_command_and_cancel_it_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -70,7 +70,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_an_executing_command_gracefully_after_a_delay()
+    public async Task I_can_execute_a_command_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -112,7 +112,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_with_buffering_immediately()
+    public async Task I_can_execute_a_command_with_buffering_and_cancel_it_immediately()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -134,7 +134,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_with_buffering_after_a_delay()
+    public async Task I_can_execute_a_command_with_buffering_and_cancel_it_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -156,7 +156,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_with_buffering_gracefully_after_a_delay()
+    public async Task I_can_execute_a_command_with_buffering_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -183,7 +183,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_as_a_pull_based_event_stream_immediately()
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_cancel_it_immediately()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -208,7 +208,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_as_a_pull_based_event_stream_after_a_delay()
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_cancel_it_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -233,7 +233,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_as_a_pull_based_event_stream_gracefully_after_a_delay()
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -262,7 +262,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_as_a_push_based_event_stream_immediately()
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_cancel_it_immediately()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -284,7 +284,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_as_a_push_based_event_stream_after_a_delay()
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_cancel_it_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -306,7 +306,7 @@ public class CancellationSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_cancel_a_command_executing_as_a_push_based_event_stream_gracefully_after_a_delay()
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
