@@ -205,6 +205,7 @@ public class PipingSpecs
         await using var stream = new MemoryStream();
 
         var target = PipeTarget.Create(async (origin, cancellationToken) =>
+            // ReSharper disable once AccessToDisposedClosure
             await origin.CopyToAsync(stream, cancellationToken)
         );
 
@@ -229,6 +230,7 @@ public class PipingSpecs
         await using var stream = new MemoryStream();
 
         var target = PipeTarget.Create(origin =>
+            // ReSharper disable once AccessToDisposedClosure
             origin.CopyTo(stream)
         );
 
@@ -334,6 +336,32 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_stdout_piped_into_an_async_delegate_with_cancellation()
+    {
+        // Arrange
+        var stdOutLinesCount = 0;
+
+        async Task HandleStdOutAsync(string s, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
+            stdOutLinesCount++;
+        }
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate text")
+                .Add("--lines").Add(100)
+            ) | HandleStdOutAsync;
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        stdOutLinesCount.Should().Be(100);
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_stdout_piped_into_a_sync_delegate()
     {
         // Arrange
@@ -416,6 +444,41 @@ public class PipingSpecs
         async Task HandleStdErrAsync(string s)
         {
             await Task.Yield();
+            stdErrLinesCount++;
+        }
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate text")
+                .Add("--target").Add("all")
+                .Add("--lines").Add(100)
+            ) | (HandleStdOutAsync, HandleStdErrAsync);
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        stdOutLinesCount.Should().Be(100);
+        stdErrLinesCount.Should().Be(100);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_async_delegates_with_cancellation()
+    {
+        // Arrange
+        var stdOutLinesCount = 0;
+        var stdErrLinesCount = 0;
+
+        async Task HandleStdOutAsync(string s, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
+            stdOutLinesCount++;
+        }
+
+        async Task HandleStdErrAsync(string s, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
             stdErrLinesCount++;
         }
 

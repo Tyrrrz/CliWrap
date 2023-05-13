@@ -178,6 +178,13 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
+    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// </summary>
+    public static PipeTarget ToDelegate(Func<string, CancellationToken, Task> handleLineAsync) =>
+        ToDelegate(handleLineAsync, Console.OutputEncoding);
+
+    /// <summary>
+    /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
         ToDelegate(
