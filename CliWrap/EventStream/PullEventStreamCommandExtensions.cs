@@ -25,8 +25,8 @@ public static partial class EventStreamCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CancellationToken gracefulCancellationToken,
-        [EnumeratorCancellation] CancellationToken forcefulCancellationToken)
+        [EnumeratorCancellation] CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken)
     {
         using var channel = new Channel<CommandEvent>();
 
