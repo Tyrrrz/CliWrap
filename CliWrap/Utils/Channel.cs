@@ -68,18 +68,21 @@ internal class Channel<T> : IDisposable
             if (task.IsCanceled)
                 await task.ConfigureAwait(false);
 
-            // If the channel closed while waiting for the read lock, break
-            if (task == _closedTcs.Task)
-            {
-                Debug.WriteLine("Channel closed while waiting for the write lock.");
-                yield break;
-            }
+            // If the channel closed while waiting for the read lock, we need to break.
+            // But first, yield the last item if it's available.
+            var isClosed = task == _closedTcs.Task;
 
             if (_isItemAvailable)
             {
                 yield return _item;
                 _isItemAvailable = false;
                 _writeLock.Release();
+            }
+
+            if (isClosed)
+            {
+                Debug.WriteLine("Channel closed while waiting for the write lock.");
+                yield break;
             }
         }
     }
