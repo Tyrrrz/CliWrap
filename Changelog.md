@@ -2,6 +2,7 @@
 
 ## v3.6.1 (27-Apr-2023)
 
+- Added the `Command.WithTargetFile(...)` configuration method that can be used to modify the target file path of the command.
 - Improved support for older target frameworks via polyfills.
 
 ## v3.6 (21-Dec-2022)
