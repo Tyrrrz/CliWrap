@@ -26,7 +26,7 @@ internal class Channel<T> : IDisposable
     public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
     {
         if (_closedTcs.Task.IsCompleted)
-            throw new InvalidOperationException("Channel is closed.");
+            return;
 
         var task = await Task
             .WhenAny(_writeLock.WaitAsync(cancellationToken), _closedTcs.Task)
@@ -55,7 +55,7 @@ internal class Channel<T> : IDisposable
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_closedTcs.Task.IsCompleted)
-            throw new InvalidOperationException("Channel is closed.");
+            yield break;
 
         while (true)
         {
