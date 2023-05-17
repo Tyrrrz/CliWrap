@@ -65,7 +65,7 @@ public static class BufferedCommandExtensions
                         ex.Command,
                         ex.ExitCode,
                         $"""
-                        Command execution failed, see inner exception for details.
+                        Command execution failed, see the inner exception for details.
 
                         Standard error:
                         {stdErrBuffer.ToString().Trim()}

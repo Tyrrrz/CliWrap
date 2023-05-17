@@ -145,7 +145,7 @@ public partial class Command
         PipeSource.FromStream(source) | target;
 
     /// <summary>
-    /// Creates a new command that pipes its standard input from the specified memory region.
+    /// Creates a new command that pipes its standard input from the specified memory segment.
     /// </summary>
     [Pure]
     public static Command operator |(ReadOnlyMemory<byte> source, Command target) =>

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reactive.Threading.Tasks;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
@@ -20,14 +20,14 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var stdOutLines = new List<string>();
+        var stdOutBuffer = new StringBuilder();
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
-            ) | stdOutLines.Add;
+            ) | stdOutBuffer;
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
@@ -37,8 +37,7 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
 
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
-
-        stdOutLines.Should().NotContainEquivalentOf("Done.");
+        stdOutBuffer.ToString().Should().NotContain("Done.");
     }
 
     [Fact(Timeout = 15000)]
@@ -46,16 +45,16 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var stdOutLines = new List<string>();
+        var stdOutBuffer = new StringBuilder();
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
-            ) | stdOutLines.Add;
+            ) | stdOutBuffer;
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
@@ -65,8 +64,7 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
 
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
-
-        stdOutLines.Should().NotContainEquivalentOf("Done.");
+        stdOutBuffer.ToString().Should().NotContain("Done.");
     }
 
     [Fact(Timeout = 15000)]
@@ -81,14 +79,14 @@ public class CancellationSpecs
         void HandleStdOut(string line)
         {
             if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
-                cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+                cts.CancelAfter(TimeSpan.FromSeconds(0.2));
         }
 
-        var stdOutLines = new List<string>();
+        var stdOutBuffer = new StringBuilder();
 
         var pipeTarget = PipeTarget.Merge(
             PipeTarget.ToDelegate(HandleStdOut),
-            PipeTarget.ToDelegate(stdOutLines.Add)
+            PipeTarget.ToStringBuilder(stdOutBuffer)
         );
 
         var cmd = Cli.Wrap("dotnet")
@@ -106,9 +104,7 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
 
         ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
-
-        stdOutLines.Should().ContainEquivalentOf("Canceled.");
-        stdOutLines.Should().NotContainEquivalentOf("Done.");
+        stdOutBuffer.ToString().Should().Contain("Canceled.").And.NotContain("Done.");
     }
 
     [Fact(Timeout = 15000)]
@@ -138,7 +134,7 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -160,7 +156,7 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -212,7 +208,7 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -237,7 +233,7 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -288,7 +284,7 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -310,7 +306,7 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.5));
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a

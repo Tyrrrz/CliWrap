@@ -21,11 +21,10 @@ internal partial class WindowsSignaler : IDisposable
             StartInfo = new ProcessStartInfo
             {
                 FileName = _filePath,
-                Arguments = string.Join(
-                    " ",
-                    processId.ToString(CultureInfo.InvariantCulture),
-                    signalId.ToString(CultureInfo.InvariantCulture)
-                ),
+                Arguments =
+                    processId.ToString(CultureInfo.InvariantCulture) +
+                    ' ' +
+                    signalId.ToString(CultureInfo.InvariantCulture),
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 Environment =
@@ -65,7 +64,7 @@ internal partial class WindowsSignaler
     public static WindowsSignaler Deploy()
     {
         // Signaler executable is embedded inside this library as a resource
-        var filePath = Path.ChangeExtension(Path.GetTempFileName(), ".exe");
+        var filePath = Path.ChangeExtension(Path.GetTempFileName(), "exe");
         Assembly.GetExecutingAssembly().ExtractManifestResource("CliWrap.Signaler.exe", filePath);
 
         return new WindowsSignaler(filePath);

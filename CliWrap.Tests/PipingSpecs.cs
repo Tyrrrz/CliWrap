@@ -14,7 +14,7 @@ namespace CliWrap.Tests;
 public class PipingSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_an_async_anonymous_source()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_an_async_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(async (destination, cancellationToken) =>
@@ -35,7 +35,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_a_sync_anonymous_source()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_sync_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(destination =>
@@ -56,7 +56,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_a_stream()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream("Hello world!"u8.ToArray());
@@ -75,7 +75,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_a_file()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_file()
     {
         // Arrange
         using var file = TempFile.Create();
@@ -95,7 +95,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_memory()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_memory()
     {
         // Arrange
         var data = new ReadOnlyMemory<byte>("Hello world!"u8.ToArray());
@@ -114,7 +114,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_a_byte_array()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_byte_array()
     {
         // Arrange
         var data = "Hello world!"u8.ToArray();
@@ -133,7 +133,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_a_string()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_string()
     {
         // Arrange
         var cmd = "Hello world!" | Cli.Wrap("dotnet")
@@ -150,7 +150,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_another_command()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_another_command()
     {
         // Arrange
         var cmd =
@@ -172,7 +172,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdin_piped_from_another_chain_of_commands()
+    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_chain_of_commands()
     {
         // Arrange
         var cmd =
@@ -199,7 +199,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_an_async_anonymous_target()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_an_async_anonymous_target()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -224,7 +224,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_a_sync_anonymous_target()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_sync_anonymous_target()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -249,7 +249,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_a_stream()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -269,7 +269,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_a_file()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_file()
     {
         // Arrange
         using var file = TempFile.Create();
@@ -290,7 +290,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_a_string_builder()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_string_builder()
     {
         // Arrange
         var buffer = new StringBuilder();
@@ -310,7 +310,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_an_async_delegate()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_an_async_delegate()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -336,7 +336,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_an_async_delegate_with_cancellation()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_an_async_delegate_with_cancellation()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -362,7 +362,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_piped_into_a_sync_delegate()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_sync_delegate()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -384,7 +384,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_streams()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_and_stderr_into_separate_streams()
     {
         // Arrange
         await using var stdOut = new MemoryStream();
@@ -407,7 +407,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_string_builders()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_and_stderr_into_string_builders()
     {
         // Arrange
         var stdOutBuffer = new StringBuilder();
@@ -429,7 +429,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_async_delegates()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_and_stderr_into_separate_async_delegates()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -464,7 +464,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_async_delegates_with_cancellation()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_and_stderr_into_separate_async_delegates_with_cancellation()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -499,7 +499,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_stdout_and_stderr_piped_into_separate_sync_delegates()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_and_stderr_into_separate_sync_delegates()
     {
         // Arrange
         var stdOutLinesCount = 0;
@@ -525,7 +525,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_stdout_into_multiple_targets()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets()
     {
         // Arrange
         await using var stream1 = new MemoryStream();
@@ -557,7 +557,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_stdout_into_a_complicated_target_hierarchy()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_complicated_target_hierarchy()
     {
         // Arrange
         await using var stream1 = new MemoryStream();
@@ -596,7 +596,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_stdout_into_multiple_streams_with_a_large_buffer()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_streams_with_a_large_buffer()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/81
 
@@ -630,7 +630,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_also_pipe_stdout_into_a_stream()
+    public async Task I_can_execute_a_command_with_buffering_and_also_pipe_the_stdout_into_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream();
@@ -654,7 +654,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_also_pipe_stdout_into_a_sync_delegate()
+    public async Task I_can_execute_a_command_with_buffering_and_also_pipe_the_stdout_into_a_sync_delegate()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/75
 
@@ -681,7 +681,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_get_an_exception_if_a_pipe_source_throws_an_exception()
+    public async Task I_can_execute_a_command_and_get_an_error_if_the_pipe_source_throws_an_exception()
     {
         // Arrange
         var cmd = PipeSource.FromFile("non-existing-file.txt") | Cli.Wrap("dotnet")
@@ -695,7 +695,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_get_an_exception_if_a_pipe_target_throws_an_exception()
+    public async Task I_can_execute_a_command_and_get_an_error_if_the_pipe_target_throws_an_exception()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -738,7 +738,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_if_the_process_only_partially_consumes_stdin()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_partially_consumes_stdin()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -792,7 +792,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_if_the_process_never_consumes_stdin_even_if_it_cannot_be_canceled()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_never_consumes_stdin_even_if_the_source_cannot_be_canceled()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 

@@ -37,12 +37,8 @@ public class GenerateTextCommand : ICommand
                 );
             }
 
-            var text = buffer.ToString();
-
             foreach (var writer in console.GetWriters(Target))
-            {
-                await writer.WriteLineAsync(text);
-            }
+                await writer.WriteLineAsync(buffer.ToString());
         }
     }
 }

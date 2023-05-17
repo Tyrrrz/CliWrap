@@ -42,7 +42,7 @@ internal class SimplexStream : Stream
         var length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
         Array.Copy(_currentBuffer, _currentBufferBytesRead, buffer, offset, length);
 
-        // Release the write lock if the consumer finished reading the current buffer
+        // Release the write lock if the consumer has finished reading the current buffer
         if ((_currentBufferBytesRead += count) >= _currentBufferBytes)
         {
             _writeLock.Release();

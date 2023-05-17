@@ -34,9 +34,7 @@ public class GenerateBinaryCommand : ICommand
             var bytesToWrite = Math.Min((int)bytesRemaining, buffer.Length);
 
             foreach (var writer in console.GetWriters(Target))
-            {
                 await writer.BaseStream.WriteAsync(buffer.AsMemory(0, bytesToWrite));
-            }
 
             bytesRemaining -= bytesToWrite;
         }

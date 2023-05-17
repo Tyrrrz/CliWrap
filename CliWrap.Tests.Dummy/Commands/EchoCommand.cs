@@ -21,11 +21,7 @@ public class EchoCommand : ICommand
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var joined = string.Join(Separator, Items);
-
         foreach (var writer in console.GetWriters(Target))
-        {
-            await writer.WriteLineAsync(joined);
-        }
+            await writer.WriteLineAsync(string.Join(Separator, Items));
     }
 }

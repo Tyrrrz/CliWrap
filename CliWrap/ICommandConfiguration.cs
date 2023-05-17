@@ -33,22 +33,22 @@ public interface ICommandConfiguration
     IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }
 
     /// <summary>
-    /// Configured result validation strategy.
+    /// Strategy for validating the result of the execution.
     /// </summary>
     CommandResultValidation Validation { get; }
 
     /// <summary>
-    /// Configured standard input pipe source.
+    /// Pipe source for the standard input stream of the underlying process.
     /// </summary>
     PipeSource StandardInputPipe { get; }
 
     /// <summary>
-    /// Configured standard output pipe target.
+    /// Pipe target for the standard output stream of the underlying process.
     /// </summary>
     PipeTarget StandardOutputPipe { get; }
 
     /// <summary>
-    /// Configured standard error pipe target.
+    /// Pipe target for the standard error stream of the underlying process.
     /// </summary>
     PipeTarget StandardErrorPipe { get; }
 }

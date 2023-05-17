@@ -8,36 +8,55 @@ using System.Threading.Tasks;
 namespace CliWrap.Utils;
 
 // This is a very simple channel implementation used to convert push-based streams into pull-based ones.
-// Back-pressure is performed using a write lock. Only one publisher may write at a time.
-// Only one message is buffered and read at a time.
-
 // Flow:
 // - Write lock is released initially, read lock is not
-// - Consumer waits for read lock
-// - Publisher claims write lock, writes a message, releases a read lock
-// - Consumer goes through, claims read lock, reads one message, releases write lock
+// - Consumer waits for the read lock
+// - Publisher claims the write lock, writes a message, releases the read lock
+// - Consumer goes through, claims read the lock, reads one message, releases the write lock
 // - Process repeats until the channel transmission is terminated
-
-internal class Channel<T> : IDisposable where T : class
+internal class Channel<T> : IDisposable
 {
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly SemaphoreSlim _readLock = new(0, 1);
     private readonly TaskCompletionSource<object?> _closedTcs = new();
 
-    private T? _lastItem;
+    private bool _isItemAvailable;
+    private T _item = default!;
 
-    public async Task PublishAsync(T item, CancellationToken cancellationToken)
+    public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
     {
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (_closedTcs.Task.IsCompleted)
+            throw new InvalidOperationException("Channel is closed.");
 
-        Debug.Assert(_lastItem is null, "Channel is overwriting the last item.");
+        var task = await Task
+            .WhenAny(_writeLock.WaitAsync(cancellationToken), _closedTcs.Task)
+            .ConfigureAwait(false);
 
-        _lastItem = item;
+        // Task.WhenAny() does not throw if the underlying task was cancelled.
+        // So we check it ourselves and propagate the cancellation if it was requested.
+        if (task.IsCanceled)
+            await task.ConfigureAwait(false);
+
+        // If the channel closed while waiting for the write lock, just return silently
+        if (task == _closedTcs.Task)
+        {
+            Debug.WriteLine("Channel closed while waiting for the write lock.");
+            return;
+        }
+
+        Debug.Assert(!_isItemAvailable, "Channel is overwriting the last item.");
+
+        _item = item;
+        _isItemAvailable = true;
         _readLock.Release();
     }
 
-    public async IAsyncEnumerable<T> ReceiveAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<T> ReceiveAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        if (_closedTcs.Task.IsCompleted)
+            throw new InvalidOperationException("Channel is closed.");
+
         while (true)
         {
             var task = await Task
@@ -45,26 +64,23 @@ internal class Channel<T> : IDisposable where T : class
                 .ConfigureAwait(false);
 
             // Task.WhenAny() does not throw if the underlying task was cancelled.
-            // So we check it ourselves and propagate cancellation if it was requested.
+            // So we check it ourselves and propagate the cancellation if it was requested.
             if (task.IsCanceled)
                 await task.ConfigureAwait(false);
 
-            // If the first task to complete was the closing signal, then we will need to break the loop.
-            // However, WaitAsync() may have completed asynchronously at this point, so we try to
-            // read from the queue one last time anyway.
-            var isClosed = task == _closedTcs.Task;
-
-            if (_lastItem is not null)
+            // If the channel closed while waiting for the read lock, break
+            if (task == _closedTcs.Task)
             {
-                yield return _lastItem;
-                _lastItem = null;
-
-                if (!isClosed)
-                    _writeLock.Release();
+                Debug.WriteLine("Channel closed while waiting for the write lock.");
+                yield break;
             }
 
-            if (isClosed)
-                yield break;
+            if (_isItemAvailable)
+            {
+                yield return _item;
+                _isItemAvailable = false;
+                _writeLock.Release();
+            }
         }
     }
 

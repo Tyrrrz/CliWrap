@@ -30,9 +30,7 @@ public class EchoStdInCommand : ICommand
                 break;
 
             foreach (var writer in console.GetWriters(Target))
-            {
                 await writer.BaseStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-            }
 
             bytesCopied += bytesRead;
         }

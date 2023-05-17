@@ -11,7 +11,7 @@ public class PipeToMultipleStreamsBenchmark
     private const string FilePath = "dotnet";
     private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate binary";
 
-    [Benchmark(Description = "CliWrap", Baseline = true)]
+    [Benchmark(Baseline = true)]
     public async Task<(Stream, Stream)> CliWrap()
     {
         await using var stream1 = new MemoryStream();

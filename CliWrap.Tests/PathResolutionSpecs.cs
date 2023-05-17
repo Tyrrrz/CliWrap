@@ -14,8 +14,7 @@ public class PathResolutionSpecs
     public async Task I_can_execute_a_command_on_an_executable_using_its_short_name()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet")
-            .WithArguments("--version");
+        var cmd = Cli.Wrap("dotnet").WithArguments("--version");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();

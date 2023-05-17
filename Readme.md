@@ -648,13 +648,15 @@ To do that, pass an additional cancellation token to `ExecuteAsync()` that corre
 using var forcefulCts = new CancellationTokenSource();
 using var gracefulCts = new CancellationTokenSource();
 
-// Cancel forcefully after a timeout of 10 seconds
+// Cancel forcefully after a timeout of 10 seconds.
+// This serves as a fallback in case graceful cancellation
+// takes too long.
 forcefulCts.CancelAfter(TimeSpan.FromSeconds(10));
 
 // Cancel gracefully after a timeout of 7 seconds.
 // If the process takes too long to respond to graceful
-// cancellation, it will eventually get killed by forceful
-// cancellation configured above.
+// cancellation, it will get killed by forceful cancellation
+// 3 seoncds later (configured above).
 gracefulCts.CancelAfter(TimeSpan.FromSeconds(7));
 
 var result = await Cli.Wrap("foo").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);

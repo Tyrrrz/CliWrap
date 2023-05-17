@@ -12,7 +12,7 @@ using CliWrap.Utils.Extensions;
 namespace CliWrap;
 
 /// <summary>
-/// Abstraction that represents an outwards-facing pipe.
+/// Represents a pipe for the process's standard output or standard error stream.
 /// </summary>
 public abstract partial class PipeTarget
 {
@@ -49,20 +49,21 @@ file class AggregatePipeTarget : PipeTarget
 
         try
         {
-            // Start reading from those streams in background
-            var readingTask = Task.WhenAll(
-                targetSubStreams.Select(async targetSubStream =>
-                {
-                    var (target, subStream) = targetSubStream;
-                    await target.CopyFromAsync(subStream, cancellationToken).ConfigureAwait(false);
-                })
-            );
+            // Start piping streams in the background
+            var readingTask = Task.WhenAll(targetSubStreams.Select(async targetSubStream =>
+            {
+                var (target, subStream) = targetSubStream;
+                await target.CopyFromAsync(subStream, cancellationToken).ConfigureAwait(false);
+            }));
 
             // Read from the master stream and replicate the data to each sub-stream
             using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
-            int bytesRead;
-            while ((bytesRead = await origin.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
+            while (true)
             {
+                var bytesRead = await origin.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
+                if (bytesRead <= 0)
+                    break;
+
                 foreach (var (_, subStream) in targetSubStreams)
                 {
                     await subStream.WriteAsync(buffer.Memory[..bytesRead], cancellationToken)
@@ -95,7 +96,7 @@ public partial class PipeTarget
     /// not being opened for the underlying process at all.
     /// In the vast majority of cases, this behavior should be functionally equivalent to piping
     /// to a null stream, but without the performance overhead of consuming and discarding unneeded data.
-    /// This may be undesirable in certain situations — in which case it's recommended to pipe to a
+    /// This may be undesirable in certain situations, in which case it's recommended to pipe to a
     /// null stream explicitly using <see cref="ToStream(Stream)" /> with <see cref="Stream.Null" />.
     /// </remarks>
     public static PipeTarget Null { get; } = Create((_, cancellationToken) =>
@@ -153,9 +154,14 @@ public partial class PipeTarget
             using var reader = new StreamReader(origin, encoding, false, BufferSizes.StreamReader, true);
             using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
 
-            int charsRead;
-            while ((charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
+            while (true)
+            {
+                var charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
+                if (charsRead <= 0)
+                    break;
+
                 stringBuilder.Append(buffer.Memory[..charsRead]);
+            }
         });
 
     /// <summary>

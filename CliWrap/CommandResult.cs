@@ -13,12 +13,12 @@ public class CommandResult
     public int ExitCode { get; }
 
     /// <summary>
-    /// When the command started executing.
+    /// Time at which the command started executing.
     /// </summary>
     public DateTimeOffset StartTime { get; }
 
     /// <summary>
-    /// When the command finished executing.
+    /// Time at which the command finished executing.
     /// </summary>
     public DateTimeOffset ExitTime { get; }
 

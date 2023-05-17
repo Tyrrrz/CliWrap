@@ -41,5 +41,5 @@ public class EnvironmentVariablesBuilder
     /// </summary>
     public IReadOnlyDictionary<string, string?> Build() =>
         // Create a new dictionary instance to prevent the builder from modifying it
-        new Dictionary<string, string?>(_envVars, StringComparer.Ordinal);
+        new Dictionary<string, string?>(_envVars, _envVars.Comparer);
 }

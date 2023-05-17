@@ -14,8 +14,6 @@ public class PrintEnvironmentVariablesCommand : ICommand
     public async ValueTask ExecuteAsync(IConsole console)
     {
         foreach (var (name, value) in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
-        {
             await console.Output.WriteLineAsync($"[{name}] = {value}");
-        }
     }
 }

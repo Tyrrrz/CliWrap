@@ -8,7 +8,7 @@ namespace CliWrap.Tests;
 public class BufferedSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_get_stdout()
+    public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -28,7 +28,7 @@ public class BufferedSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_get_stderr()
+    public async Task I_can_execute_a_command_with_buffering_and_get_the_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")
@@ -48,7 +48,7 @@ public class BufferedSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_get_stdout_and_stderr()
+    public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout_and_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap("dotnet")

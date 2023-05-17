@@ -5,17 +5,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Utils.Extensions;
 
 namespace CliWrap.Utils;
 
 internal class ProcessEx : IDisposable
 {
     private readonly Process _nativeProcess;
-
-    private readonly TaskCompletionSource<object?> _exitTcs =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-    private Timer? _waitForExitTimeoutTimer;
+    private readonly TaskCompletionSource<object?> _exitTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public int Id => _nativeProcess.Id;
 
@@ -86,12 +83,7 @@ internal class ProcessEx : IDisposable
             try
             {
                 // On Windows, we need to launch an external executable that will attach
-                // to the target process's console (or create one if it doesn't exist),
-                // and then send a Ctrl+C event to it. We can guarantee that the target
-                // process doesn't have a console window because we're creating the
-                // process with the CREATE_NO_WINDOW flag set. This ensures that only
-                // the target process will receive the signal, and not any other process
-                // spawned by us.
+                // to the target process's console and then send a Ctrl+C event to it.
                 // https://github.com/Tyrrrz/CliWrap/issues/47
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -138,30 +130,17 @@ internal class ProcessEx : IDisposable
         }
         catch
         {
-            // Either we actually failed to kill the process, or the system hasn't finished processing
-            // the kill request yet. In either case, we can't really do anything about it.
-            // Set up a timeout that will resolve the task after a while, in case the process hasn't exited by then.
-            _waitForExitTimeoutTimer = new Timer(
-                _ =>
-                {
-                    // We don't cancel the task here. Proper exception will be thrown upstream.
-                    if (_exitTcs.TrySetResult(null))
-                        Debug.Fail("Process termination timed out.");
-                },
-                null,
-                // Trigger in X seconds
-                TimeSpan.FromSeconds(3),
-                // Don't repeat
-                Timeout.InfiniteTimeSpan
-            );
+            // The process either failed to exit or is in the process of exiting.
+            // We can't really do anything about it, so just ignore the exception.
+            Debug.Fail("Failed to kill the process.");
         }
     }
 
-    public async Task WaitUntilExitAsync() => await _exitTcs.Task.ConfigureAwait(false);
-
-    public void Dispose()
+    public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)
     {
-        _waitForExitTimeoutTimer?.Dispose();
-        _nativeProcess.Dispose();
+        await using (cancellationToken.Register(() => _exitTcs.TrySetCanceled(cancellationToken)).ToAsyncDisposable())
+            await _exitTcs.Task.ConfigureAwait(false);
     }
+
+    public void Dispose() => _nativeProcess.Dispose();
 }

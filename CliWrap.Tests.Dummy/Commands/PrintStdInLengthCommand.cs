@@ -18,15 +18,16 @@ public class PrintStdInLengthCommand : ICommand
         var length = 0L;
         var buffer = new byte[81920];
 
-        int bytesRead;
-        while ((bytesRead = await console.Input.BaseStream.ReadAsync(buffer)) > 0)
+        while (true)
         {
+            var bytesRead = await console.Input.BaseStream.ReadAsync(buffer);
+            if (bytesRead <= 0)
+                break;
+
             length += bytesRead;
         }
 
         foreach (var writer in console.GetWriters(Target))
-        {
             await writer.WriteLineAsync(length.ToString(CultureInfo.InvariantCulture));
-        }
     }
 }

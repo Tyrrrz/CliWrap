@@ -8,7 +8,7 @@ using CliWrap.Utils.Extensions;
 namespace CliWrap;
 
 /// <summary>
-/// Abstraction that represents an inwards-facing pipe.
+/// Represents a pipe for the process's standard input stream.
 /// </summary>
 public abstract partial class PipeSource
 {
@@ -84,7 +84,7 @@ public partial class PipeSource
     });
 
     /// <summary>
-    /// Creates a pipe source that reads from the specified memory region.
+    /// Creates a pipe source that reads from the specified memory segment.
     /// </summary>
     public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => Create(async (destination, cancellationToken) =>
         await destination.WriteAsync(data, cancellationToken).ConfigureAwait(false)

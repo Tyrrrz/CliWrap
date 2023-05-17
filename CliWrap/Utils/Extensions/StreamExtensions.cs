@@ -17,10 +17,12 @@ internal static class StreamExtensions
         CancellationToken cancellationToken = default)
     {
         using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
-
-        int bytesRead;
-        while ((bytesRead = await source.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) != 0)
+        while (true)
         {
+            var bytesRead = await source.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
+            if (bytesRead <= 0)
+                break;
+
             await destination.WriteAsync(buffer.Memory[..bytesRead], cancellationToken).ConfigureAwait(false);
 
             if (autoFlush)
@@ -33,7 +35,8 @@ internal static class StreamExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         // We could use reader.ReadLineAsync() and loop on it, but that method
-        // does not support cancellation.
+        // only supports cancellation on .NET 7+ and it's impossible to polyfill
+        // it for non-seekable streams. So we have to do it manually.
 
         var lineBuffer = new StringBuilder();
         using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
@@ -43,29 +46,30 @@ internal static class StreamExtensions
         // - \n
         // - \r\n
         // Even though \r and \n are linebreaks on their own, \r\n together
-        // should not yield two lines. To ensure that, we keep track of the
-        // previous char and check if it's part of a sequence.
-        var prevSeqChar = (char?) null;
-
-        int charsRead;
-        while ((charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false)) > 0)
+        // should not yield two lines.
+        var isLastCaretReturn = false;
+        while (true)
         {
+            var charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
+            if (charsRead <= 0)
+                break;
+
             for (var i = 0; i < charsRead; i++)
             {
-                var curChar = buffer.Memory.Span[i];
+                var c = buffer.Memory.Span[i];
 
-                // If current char and last char are part of a line break sequence,
+                // If the current char and the last char are part of a line break sequence,
                 // skip over the current char and move on.
                 // The buffer was already yielded in the previous iteration, so there's
                 // nothing left to do.
-                if (prevSeqChar == '\r' && curChar == '\n')
+                if (isLastCaretReturn && c == '\n')
                 {
-                    prevSeqChar = null;
+                    isLastCaretReturn = false;
                     continue;
                 }
 
-                // If current char is \n or \r, yield the buffer (even if it is empty)
-                if (curChar is '\n' or '\r')
+                // If the current char is \n or \r, yield the buffer (even if it is empty)
+                if (c is '\n' or '\r')
                 {
                     yield return lineBuffer.ToString();
                     lineBuffer.Clear();
@@ -73,10 +77,10 @@ internal static class StreamExtensions
                 // For any other char, just append it to the buffer
                 else
                 {
-                    lineBuffer.Append(curChar);
+                    lineBuffer.Append(c);
                 }
 
-                prevSeqChar = curChar;
+                isLastCaretReturn = c == '\r';
             }
         }
 
