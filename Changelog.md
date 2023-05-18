@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.6.2 (18-May-2023)
+
+- Added an overload of `PipeTarget.ToDelegate(...)` that accepts a `Func<Stream, CancellationToken, Task>` delegate. This is the preferred overload to use with asynchronous delegates, as it allows you to leverage the provided cancellation token to abort the pipe early.
+- Fixed an issue where the `ListenAsync()` method accepted graceful and forceful cancellation tokens in the wrong order.
+
 ## v3.6.1 (27-Apr-2023)
 
 - Added the `Command.WithTargetFile(...)` configuration method that can be used to modify the target file path of the command.
