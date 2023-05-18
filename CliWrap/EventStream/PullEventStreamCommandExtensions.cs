@@ -33,9 +33,9 @@ public static partial class EventStreamCommandExtensions
         var stdOutPipe = PipeTarget.Merge(
             command.StandardOutputPipe,
             PipeTarget.ToDelegate(
-                (line, innerCancellationToken) =>
+                async (line, innerCancellationToken) =>
                     // ReSharper disable once AccessToDisposedClosure
-                    channel.PublishAsync(new StandardOutputCommandEvent(line), innerCancellationToken),
+                    await channel.PublishAsync(new StandardOutputCommandEvent(line), innerCancellationToken),
                 standardOutputEncoding
             )
         );
@@ -43,9 +43,9 @@ public static partial class EventStreamCommandExtensions
         var stdErrPipe = PipeTarget.Merge(
             command.StandardErrorPipe,
             PipeTarget.ToDelegate(
-                (line, innerCancellationToken) =>
+                async (line, innerCancellationToken) =>
                     // ReSharper disable once AccessToDisposedClosure
-                    channel.PublishAsync(new StandardErrorCommandEvent(line), innerCancellationToken),
+                    await channel.PublishAsync(new StandardErrorCommandEvent(line), innerCancellationToken),
                 standardErrorEncoding
             )
         );
