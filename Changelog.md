@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.6.3 (18-May-2023)
+
+- Fixed an issue where `ListenAsync()` missed events when wrapping a process that printed a single line to the console and exited immediately.
+
 ## v3.6.2 (18-May-2023)
 
 - Added an overload of `PipeTarget.ToDelegate(...)` that accepts a `Func<Stream, CancellationToken, Task>` delegate. This is the preferred overload to use with asynchronous delegates, as it allows you to leverage the provided cancellation token to abort the pipe early.
