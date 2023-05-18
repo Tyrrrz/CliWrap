@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,9 +24,6 @@ internal class Channel<T> : IDisposable
 
     public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
     {
-        if (_closedTcs.Task.IsCompleted)
-            return;
-
         var task = await Task
             .WhenAny(_writeLock.WaitAsync(cancellationToken), _closedTcs.Task)
             .ConfigureAwait(false);
@@ -37,14 +33,9 @@ internal class Channel<T> : IDisposable
         if (task.IsCanceled)
             await task.ConfigureAwait(false);
 
-        // If the channel closed while waiting for the write lock, just return silently
+        // If the channel closed while waiting for the write lock, throw
         if (task == _closedTcs.Task)
-        {
-            Debug.WriteLine("Channel closed while waiting for the write lock.");
-            return;
-        }
-
-        Debug.Assert(!_isItemAvailable, "Channel is overwriting the last item.");
+            throw new InvalidOperationException("Channel is closed.");
 
         _item = item;
         _isItemAvailable = true;
@@ -54,22 +45,19 @@ internal class Channel<T> : IDisposable
     public async IAsyncEnumerable<T> ReceiveAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (_closedTcs.Task.IsCompleted)
-            yield break;
-
         while (true)
         {
             var task = await Task
                 .WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task)
                 .ConfigureAwait(false);
 
-            // Task.WhenAny() does not throw if the underlying task was cancelled.
-            // So we check it ourselves and propagate the cancellation if it was requested.
+            // Task.WhenAny() does not throw if the underlying task was cancelled,
+            // so we check it ourselves to propagate the cancellation.
             if (task.IsCanceled)
                 await task.ConfigureAwait(false);
 
-            // If the channel closed while waiting for the read lock, we need to break.
-            // But first, yield the last item if it's available.
+            // If the channel closed while waiting for the read lock, yield the item
+            // if it's available and then break the loop.
             var isClosed = task == _closedTcs.Task;
 
             if (_isItemAvailable)
@@ -80,10 +68,7 @@ internal class Channel<T> : IDisposable
             }
 
             if (isClosed)
-            {
-                Debug.WriteLine("Channel closed while waiting for the write lock.");
                 yield break;
-            }
         }
     }
 
