@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -86,14 +87,18 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the specified memory buffer.
     /// </summary>
-    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => Create(async (destination, cancellationToken) =>
+    public static PipeSource FromBytes(ReadOnlyMemory<byte> data) => Create(async (destination, cancellationToken) =>
         await destination.WriteAsync(data, cancellationToken).ConfigureAwait(false)
     );
 
     /// <summary>
     /// Creates a pipe source that reads from the specified byte array.
     /// </summary>
-    public static PipeSource FromBytes(byte[] data) => FromMemory(data);
+    public static PipeSource FromBytes(byte[] data) => FromBytes((ReadOnlyMemory<byte>)data);
+
+    /// <inheritdoc cref="FromBytes(System.ReadOnlyMemory{byte})" />
+    [Obsolete("Use FromBytes(ReadOnlyMemory<byte>) instead"), ExcludeFromCodeCoverage]
+    public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => FromBytes(data);
 
     /// <summary>
     /// Creates a pipe source that reads from the specified string.

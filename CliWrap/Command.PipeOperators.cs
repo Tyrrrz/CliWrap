@@ -149,7 +149,7 @@ public partial class Command
     /// </summary>
     [Pure]
     public static Command operator |(ReadOnlyMemory<byte> source, Command target) =>
-        PipeSource.FromMemory(source) | target;
+        PipeSource.FromBytes(source) | target;
 
     /// <summary>
     /// Creates a new command that pipes its standard input from the specified byte array.

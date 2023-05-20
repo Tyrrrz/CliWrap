@@ -355,7 +355,6 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeSource.Null` — represents an empty pipe source
   - `PipeSource.FromStream(...)` — pipes data from any readable stream
   - `PipeSource.FromFile(...)` — pipes data from a file
-  - `PipeSource.FromMemory(...)` — pipes data from a memory buffer
   - `PipeSource.FromBytes(...)` — pipes data from a byte array
   - `PipeSource.FromString(...)` — pipes data from a text string
   - `PipeSource.FromCommand(...)` — pipes data from the standard output of another command
