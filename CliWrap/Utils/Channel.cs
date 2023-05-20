@@ -6,39 +6,21 @@ using System.Threading.Tasks;
 
 namespace CliWrap.Utils;
 
-// This is a very simple channel implementation used to convert push-based streams into pull-based ones.
-// Flow:
-// - Write lock is released initially, read lock is not
-// - Consumer waits for the read lock
-// - Publisher claims the write lock, writes a message, releases the read lock
-// - Consumer goes through, claims read the lock, reads one message, releases the write lock
-// - Process repeats until the channel transmission is terminated
 internal class Channel<T> : IDisposable
 {
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly SemaphoreSlim _readLock = new(0, 1);
-    private readonly TaskCompletionSource<object?> _closedTcs = new();
 
     private bool _isItemAvailable;
     private T _item = default!;
 
     public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
     {
-        var task = await Task
-            .WhenAny(_writeLock.WaitAsync(cancellationToken), _closedTcs.Task)
-            .ConfigureAwait(false);
-
-        // Task.WhenAny() does not throw if the underlying task was cancelled.
-        // So we check it ourselves and propagate the cancellation if it was requested.
-        if (task.IsCanceled)
-            await task.ConfigureAwait(false);
-
-        // If the channel closed while waiting for the write lock, throw
-        if (task == _closedTcs.Task)
-            throw new InvalidOperationException("Channel is closed.");
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         _item = item;
         _isItemAvailable = true;
+
         _readLock.Release();
     }
 
@@ -47,36 +29,36 @@ internal class Channel<T> : IDisposable
     {
         while (true)
         {
-            var task = await Task
-                .WhenAny(_readLock.WaitAsync(cancellationToken), _closedTcs.Task)
-                .ConfigureAwait(false);
-
-            // Task.WhenAny() does not throw if the underlying task was cancelled,
-            // so we check it ourselves to propagate the cancellation.
-            if (task.IsCanceled)
-                await task.ConfigureAwait(false);
-
-            // If the channel closed while waiting for the read lock, yield the item
-            // if it's available and then break the loop.
-            var isClosed = task == _closedTcs.Task;
+            await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             if (_isItemAvailable)
             {
                 yield return _item;
                 _isItemAvailable = false;
-                _writeLock.Release();
+            }
+            // If the read lock was released but the item is not available,
+            // then the channel has been closed.
+            else
+            {
+                break;
             }
 
-            if (isClosed)
-                yield break;
+            _writeLock.Release();
         }
     }
 
-    public void Close() => _closedTcs.TrySetResult(null);
+    public async Task ReportCompletionAsync(CancellationToken cancellationToken = default)
+    {
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        _item = default!;
+        _isItemAvailable = false;
+
+        _readLock.Release();
+    }
 
     public void Dispose()
     {
-        Close();
         _writeLock.Dispose();
         _readLock.Dispose();
     }

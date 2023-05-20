@@ -31,6 +31,29 @@ internal class SimplexStream : Stream
     [ExcludeFromCodeCoverage]
     public override long Length => throw new NotSupportedException();
 
+    public override async Task WriteAsync(
+        byte[] buffer,
+        int offset,
+        int count,
+        CancellationToken cancellationToken)
+    {
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        // Reset the buffer if the current one is too small for the incoming data
+        if (_sharedBuffer.Memory.Length < count)
+        {
+            _sharedBuffer.Dispose();
+            _sharedBuffer = MemoryPool<byte>.Shared.Rent(count);
+        }
+
+        buffer.AsSpan(offset, count).CopyTo(_sharedBuffer.Memory.Span);
+
+        _sharedBufferBytes = count;
+        _sharedBufferBytesRead = 0;
+
+        _readLock.Release();
+    }
+
     public override async Task<int> ReadAsync(
         byte[] buffer,
         int offset,
@@ -62,29 +85,6 @@ internal class SimplexStream : Stream
         }
 
         return length;
-    }
-
-    public override async Task WriteAsync(
-        byte[] buffer,
-        int offset,
-        int count,
-        CancellationToken cancellationToken)
-    {
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        // Reset the buffer if the current one is too small for the incoming data
-        if (_sharedBuffer.Memory.Length < count)
-        {
-            _sharedBuffer.Dispose();
-            _sharedBuffer = MemoryPool<byte>.Shared.Rent(count);
-        }
-
-        buffer.AsSpan(offset, count).CopyTo(_sharedBuffer.Memory.Span);
-
-        _sharedBufferBytes = count;
-        _sharedBufferBytesRead = 0;
-
-        _readLock.Release();
     }
 
     public async Task ReportCompletionAsync(CancellationToken cancellationToken = default) =>

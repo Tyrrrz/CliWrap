@@ -29,12 +29,13 @@ public partial class CommandTask<TResult> : IDisposable
         ProcessId = processId;
     }
 
-    internal CommandTask<T> Bind<T>(Func<Task<TResult>, Task<T>> selector) =>
-        new(selector(Task), ProcessId);
+    internal CommandTask<T> Bind<T>(Func<Task<TResult>, Task<T>> transform) =>
+        new(transform(Task), ProcessId);
 
     /// <summary>
     /// Lazily maps the result of the task using the specified transform.
     /// </summary>
+    // TODO: (breaking change) this should not be publicly exposed
     public CommandTask<T> Select<T>(Func<TResult, T> transform) =>
         Bind(task => task.Select(transform));
 

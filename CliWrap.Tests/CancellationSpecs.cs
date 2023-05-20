@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Reactive.Threading.Tasks;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -195,8 +195,10 @@ public class CancellationSpecs
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
-            await foreach (var _ in cmd.ListenAsync(cts.Token))
+            await foreach (var cmdEvent in cmd.ListenAsync(cts.Token))
             {
+                if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+                    stdOutEvent.Text.Should().NotContain("Done.");
             }
         });
 
@@ -220,8 +222,10 @@ public class CancellationSpecs
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
-            await foreach (var _ in cmd.ListenAsync(cts.Token))
+            await foreach (var cmdEvent in cmd.ListenAsync(cts.Token))
             {
+                if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+                    stdOutEvent.Text.Should().NotContain("Done.");
             }
         });
 
@@ -245,12 +249,14 @@ public class CancellationSpecs
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
-            await foreach (var _ in cmd.ListenAsync(
+            await foreach (var cmdEvent in cmd.ListenAsync(
                                Console.OutputEncoding,
                                Console.OutputEncoding,
                                CancellationToken.None,
                                cts.Token))
             {
+                if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+                    stdOutEvent.Text.Should().NotContain("Done.");
             }
         });
 
@@ -273,7 +279,11 @@ public class CancellationSpecs
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await cmd.Observe(cts.Token).ToTask(CancellationToken.None)
+            await cmd.Observe(cts.Token).ForEachAsync(cmdEvent =>
+            {
+                if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+                    stdOutEvent.Text.Should().NotContain("Done.");
+            }, CancellationToken.None)
         );
 
         ex.CancellationToken.Should().Be(cts.Token);
@@ -295,7 +305,11 @@ public class CancellationSpecs
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await cmd.Observe(cts.Token).ToTask(CancellationToken.None)
+            await cmd.Observe(cts.Token).ForEachAsync(cmdEvent =>
+            {
+                if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+                    stdOutEvent.Text.Should().NotContain("Done.");
+            }, CancellationToken.None)
         );
 
         ex.CancellationToken.Should().Be(cts.Token);
@@ -317,13 +331,18 @@ public class CancellationSpecs
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await cmd.Observe(
+            await cmd
+                .Observe(
                     Console.OutputEncoding,
                     Console.OutputEncoding,
                     CancellationToken.None,
                     cts.Token
                 )
-                .ToTask(CancellationToken.None)
+                .ForEachAsync(cmdEvent =>
+                {
+                    if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+                        stdOutEvent.Text.Should().NotContain("Done.");
+                }, CancellationToken.None)
         );
 
         ex.CancellationToken.Should().Be(cts.Token);

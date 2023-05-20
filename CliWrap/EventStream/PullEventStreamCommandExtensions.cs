@@ -32,22 +32,24 @@ public static partial class EventStreamCommandExtensions
 
         var stdOutPipe = PipeTarget.Merge(
             command.StandardOutputPipe,
-            PipeTarget.ToDelegate(
-                async (line, innerCancellationToken) =>
-                    // ReSharper disable once AccessToDisposedClosure
-                    await channel.PublishAsync(new StandardOutputCommandEvent(line), innerCancellationToken),
-                standardOutputEncoding
-            )
+            PipeTarget.ToDelegate(async (line, innerCancellationToken) =>
+            {
+                // ReSharper disable once AccessToDisposedClosure
+                await channel
+                    .PublishAsync(new StandardOutputCommandEvent(line), innerCancellationToken)
+                    .ConfigureAwait(false);
+            }, standardOutputEncoding)
         );
 
         var stdErrPipe = PipeTarget.Merge(
             command.StandardErrorPipe,
-            PipeTarget.ToDelegate(
-                async (line, innerCancellationToken) =>
-                    // ReSharper disable once AccessToDisposedClosure
-                    await channel.PublishAsync(new StandardErrorCommandEvent(line), innerCancellationToken),
-                standardErrorEncoding
-            )
+            PipeTarget.ToDelegate(async (line, innerCancellationToken) =>
+            {
+                // ReSharper disable once AccessToDisposedClosure
+                await channel
+                    .PublishAsync(new StandardErrorCommandEvent(line), innerCancellationToken)
+                    .ConfigureAwait(false);
+            }, standardErrorEncoding)
         );
 
         var commandWithPipes = command
@@ -57,11 +59,13 @@ public static partial class EventStreamCommandExtensions
         var commandTask = commandWithPipes.ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
-        // Close the channel when the command completes, so that ReceiveAsync() can finish.
-        // Don't pass cancellation token to the continuation because we need it to
-        // trigger regardless of how the task completed.
-        // ReSharper disable once AccessToDisposedClosure
-        _ = commandTask.Task.ContinueWith(_ => channel.Close(), TaskContinuationOptions.None);
+        // Close the channel once the command completes, so that ReceiveAsync() can finish
+        _ = commandTask.Task.ContinueWith(async _ =>
+            // ReSharper disable once AccessToDisposedClosure
+            await channel.ReportCompletionAsync(forcefulCancellationToken).ConfigureAwait(false),
+            // Run the continuation even if the parent task failed
+            TaskContinuationOptions.None
+        );
 
         await foreach (var cmdEvent in channel.ReceiveAsync(forcefulCancellationToken).ConfigureAwait(false))
             yield return cmdEvent;
