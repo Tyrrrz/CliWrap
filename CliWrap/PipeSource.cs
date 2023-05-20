@@ -84,7 +84,7 @@ public partial class PipeSource
     });
 
     /// <summary>
-    /// Creates a pipe source that reads from the specified memory segment.
+    /// Creates a pipe source that reads from the specified memory buffer.
     /// </summary>
     public static PipeSource FromMemory(ReadOnlyMemory<byte> data) => Create(async (destination, cancellationToken) =>
         await destination.WriteAsync(data, cancellationToken).ConfigureAwait(false)

@@ -107,7 +107,7 @@ var stdOut = stdOutBuffer.ToString();
 var stdErr = stdErrBuffer.ToString();
 ```
 
-This example command is configured to decode the data written to standard output and error streams as text, and append it to the corresponding `StringBuilder` buffers.
+This example command is configured to decode the data written to the standard output and error streams as text, and append it to the corresponding `StringBuilder` buffers.
 Once the execution is complete, these buffers can be inspected to see what the process has printed to the console.
 
 Handling command output is a very common use case, so **CliWrap** offers a few high-level [execution models](#execution-models) to make these scenarios simpler.
@@ -135,7 +135,7 @@ var result = await Cli.Wrap("path/to/exe")
 
 > **Warning**:
 > Be mindful when using `ExecuteBufferedAsync()`.
-> Programs can write arbitrary data (including binary) to output and error streams, and storing it in-memory may be impractical.
+> Programs can write arbitrary data (including binary) to the output and error streams, and storing it in-memory may be impractical.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
 
 ### Command configuration
@@ -325,7 +325,7 @@ _Read more about this method in the [piping section](#piping)._
 **CliWrap** provides a very powerful and flexible piping model that allows you to redirect process's streams, transform input and output data, and even chain multiple commands together with minimal effort.
 At its core, it's based on two abstractions: `PipeSource` which provides data for the standard input stream, and `PipeTarget` which reads data coming from the standard output stream or the standard error stream.
 
-By default, command's input pipe is set to `PipeSource.Null` and the output and error pipes are set to `PipeTarget.Null`.
+By default, a command's input pipe is set to `PipeSource.Null` and the output and error pipes are set to `PipeTarget.Null`.
 These objects effectively represent no-op stubs that provide empty input and discard all output respectively.
 
 You can specify your own `PipeSource` and `PipeTarget` instances by calling the corresponding configuration methods on the command:
@@ -355,15 +355,16 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeSource.Null` — represents an empty pipe source
   - `PipeSource.FromStream(...)` — pipes data from any readable stream
   - `PipeSource.FromFile(...)` — pipes data from a file
+  - `PipeSource.FromMemory(...)` — pipes data from a memory buffer
   - `PipeSource.FromBytes(...)` — pipes data from a byte array
-  - `PipeSource.FromString(...)` — pipes from a text string
+  - `PipeSource.FromString(...)` — pipes data from a text string
   - `PipeSource.FromCommand(...)` — pipes data from the standard output of another command
 - `PipeTarget`:
   - `PipeTarget.Null` — represents a pipe target that discards all data
-  - `PipeTarget.ToStream(...)` — pipes data into any writable stream
-  - `PipeTarget.ToFile(...)` — pipes data into a file
+  - `PipeTarget.ToStream(...)` — pipes data to any writable stream
+  - `PipeTarget.ToFile(...)` — pipes data to a file
   - `PipeTarget.ToStringBuilder(...)` — pipes data as text into a `StringBuilder`
-  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>` or a `Func<string, Task>`
+  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>`, or a `Func<string, Task>`, or a `Func<string, CancellationToken, Task>` delegate
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
 
 > **Warning**:
@@ -509,10 +510,10 @@ This lets you start a process and react to the events it produces in real-time.
 
 Those events are:
 
-- `StartedCommandEvent` — received just once, when the command starts executing (contains process ID)
+- `StartedCommandEvent` — received just once, when the command starts executing (contains the process ID)
 - `StandardOutputCommandEvent` — received every time the underlying process writes a new line to the output stream (contains the text as a string)
 - `StandardErrorCommandEvent` — received every time the underlying process writes a new line to the error stream (contains the text as a string)
-- `ExitedCommandEvent` — received just once, when the command finishes executing (contains exit code)
+- `ExitedCommandEvent` — received just once, when the command finishes executing (contains the exit code)
 
 To execute a command as a _pull-based_ event stream, use the `ListenAsync()` extension method:
 
@@ -582,7 +583,7 @@ await cmd.Observe().ForEachAsync(cmdEvent =>
 In this case, `Observe()` returns a cold `IObservable<CommandEvent>` that represents an observable stream of command events.
 You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet/reactive) to transform, filter, throttle, or otherwise manipulate this stream.
 
-Unlike the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate it becomes available.
+Unlike the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate that it becomes available.
 
 > **Note**:
 > Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
