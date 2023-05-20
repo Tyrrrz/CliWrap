@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -11,9 +12,9 @@ internal class SimplexStream : Stream
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly SemaphoreSlim _readLock = new(0, 1);
 
-    private byte[] _currentBuffer = Array.Empty<byte>();
-    private int _currentBufferBytes;
-    private int _currentBufferBytesRead;
+    private IMemoryOwner<byte> _sharedBuffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
+    private int _sharedBufferBytes;
+    private int _sharedBufferBytesRead;
 
     [ExcludeFromCodeCoverage]
     public override bool CanRead => true;
@@ -38,16 +39,23 @@ internal class SimplexStream : Stream
     {
         await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        // Take a portion of the buffer that the consumer is interested in
-        var length = Math.Min(count, _currentBufferBytes - _currentBufferBytesRead);
-        Array.Copy(_currentBuffer, _currentBufferBytesRead, buffer, offset, length);
+        var length = Math.Min(count, _sharedBufferBytes - _sharedBufferBytesRead);
 
-        // Release the write lock if the consumer has finished reading the current buffer
-        if ((_currentBufferBytesRead += count) >= _currentBufferBytes)
+        _sharedBuffer
+            .Memory
+            .Slice(_sharedBufferBytesRead, length)
+            .CopyTo(buffer.AsMemory(offset, length));
+
+        _sharedBufferBytesRead += length;
+
+        // Release the write lock if the consumer has finished reading all of
+        // the previously written data.
+        if (_sharedBufferBytesRead >= _sharedBufferBytes)
         {
             _writeLock.Release();
         }
-        // Otherwise, release the read lock again so that the consumer can finish reading
+        // Otherwise, release the read lock again so that the consumer can finish
+        // reading the data.
         else
         {
             _readLock.Release();
@@ -64,25 +72,24 @@ internal class SimplexStream : Stream
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        // Attempt to reuse the existing buffer as long as it has enough capacity
-        if (_currentBuffer.Length < count)
-            _currentBuffer = new byte[count];
+        // Reset the buffer if the current one is too small for the incoming data
+        if (_sharedBuffer.Memory.Length < count)
+        {
+            _sharedBuffer.Dispose();
+            _sharedBuffer = MemoryPool<byte>.Shared.Rent(count);
+        }
 
-        Array.Copy(buffer, offset, _currentBuffer, 0, count);
-        _currentBufferBytes = count;
-        _currentBufferBytesRead = 0;
+        buffer.AsSpan(offset, count).CopyTo(_sharedBuffer.Memory.Span);
+
+        _sharedBufferBytes = count;
+        _sharedBufferBytesRead = 0;
+
         _readLock.Release();
     }
 
-    public async Task ReportCompletionAsync(CancellationToken cancellationToken = default)
-    {
-        // Write an empty buffer that will make ReadAsync(...) return 0, which signifies end-of-stream
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        _currentBuffer = Array.Empty<byte>();
-        _currentBufferBytes = 0;
-        _currentBufferBytesRead = 0;
-        _readLock.Release();
-    }
+    public async Task ReportCompletionAsync(CancellationToken cancellationToken = default) =>
+        // Write an empty buffer that will make ReadAsync(...) return 0, which signifies the end of stream
+        await WriteAsync(Array.Empty<byte>(), 0, 0, cancellationToken).ConfigureAwait(false);
 
     protected override void Dispose(bool disposing)
     {
@@ -90,6 +97,7 @@ internal class SimplexStream : Stream
         {
             _readLock.Dispose();
             _writeLock.Dispose();
+            _sharedBuffer.Dispose();
         }
 
         base.Dispose(disposing);
