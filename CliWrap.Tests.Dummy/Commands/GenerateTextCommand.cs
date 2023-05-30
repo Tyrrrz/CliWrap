@@ -30,6 +30,7 @@ public class GenerateTextCommand : ICommand
         for (var line = 0; line < LinesCount; line++)
         {
             var buffer = new StringBuilder(Length);
+
             for (var i = 0; i < Length; i++)
             {
                 buffer.Append(

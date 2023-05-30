@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Threading.Tasks;
 using CliFx;
 using CliFx.Attributes;
@@ -18,21 +19,21 @@ public class EchoStdInCommand : ICommand
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var buffer = new byte[81920];
-        var bytesCopied = 0L;
+        using var buffer = MemoryPool<byte>.Shared.Rent(81920);
 
-        while (bytesCopied < Length)
+        var totalBytesRead = 0L;
+        while (totalBytesRead < Length)
         {
-            var bytesToRead = (int)Math.Min(buffer.Length, Length - bytesCopied);
+            var bytesWanted = (int)Math.Min(buffer.Memory.Length, Length - totalBytesRead);
 
-            var bytesRead = await console.Input.BaseStream.ReadAsync(buffer.AsMemory(0, bytesToRead));
+            var bytesRead = await console.Input.BaseStream.ReadAsync(buffer.Memory[..bytesWanted]);
             if (bytesRead <= 0)
                 break;
 
             foreach (var writer in console.GetWriters(Target))
-                await writer.BaseStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                await writer.BaseStream.WriteAsync(buffer.Memory[..bytesRead]);
 
-            bytesCopied += bytesRead;
+            totalBytesRead += bytesRead;
         }
     }
 }

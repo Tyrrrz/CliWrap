@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Buffers;
+using System.Globalization;
 using System.Threading.Tasks;
 using CliFx;
 using CliFx.Attributes;
@@ -15,19 +16,19 @@ public class PrintStdInLengthCommand : ICommand
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var length = 0L;
-        var buffer = new byte[81920];
+        using var buffer = MemoryPool<byte>.Shared.Rent(81920);
 
+        var totalBytesRead = 0L;
         while (true)
         {
-            var bytesRead = await console.Input.BaseStream.ReadAsync(buffer);
+            var bytesRead = await console.Input.BaseStream.ReadAsync(buffer.Memory);
             if (bytesRead <= 0)
                 break;
 
-            length += bytesRead;
+            totalBytesRead += bytesRead;
         }
 
         foreach (var writer in console.GetWriters(Target))
-            await writer.WriteLineAsync(length.ToString(CultureInfo.InvariantCulture));
+            await writer.WriteLineAsync(totalBytesRead.ToString(CultureInfo.InvariantCulture));
     }
 }
