@@ -97,11 +97,10 @@ using CliWrap;
 var stdOutBuffer = new StringBuilder();
 var stdErrBuffer = new StringBuilder();
 
-// ⚠ This particular example can also be simplified with ExecuteBufferedAsync().
-// Continue reading below!
 var result = await Cli.Wrap("path/to/exe")
     .WithArguments(new[] {"--foo", "bar"})
     .WithWorkingDirectory("work/dir/path")
+    // This can be simplified with ExecuteBufferedAsync()
     .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
     .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
     .ExecuteAsync();
@@ -158,28 +157,21 @@ Sets the command-line arguments passed to the child process.
 
 **Examples**:
 
-- Set arguments from a string:
+- Set arguments using an array:
 
 ```csharp
 var cmd = Cli.Wrap("git")
-    .WithArguments("commit -m \"my commit\"");
-```
-
-> **Warning**:
-> Unless you absolutely have to, avoid setting command arguments from a string.
-> This method expects that all of the arguments are already escaped and properly formatted — which can be cumbersome and difficult to do correctly.
-
-- Set arguments from an array — each element is treated as a separate argument and special characters are escaped automatically:
-
-```csharp
-var cmd = Cli.Wrap("git")
+    // Each element is formatted as a separate argument.
+    // Equivalent to: git commit -m "my commit"
     .WithArguments(new[] {"commit", "-m", "my commit"});
 ```
 
-- Set arguments using a builder — same as above, but also works with non-string arguments, and can be [enhanced with your own extension methods](https://twitter.com/Tyrrrz/status/1409104223753605121):
+- Set arguments using a builder:
 
 ```csharp
 var cmd = Cli.Wrap("git")
+    // Each Add(...) call takes care of formatting automatically.
+    // Equivalent to: git clone https://github.com/Tyrrrz/CliWrap --depth 20
     .WithArguments(args => args
         .Add("clone")
         .Add("https://github.com/Tyrrrz/CliWrap")
@@ -188,9 +180,35 @@ var cmd = Cli.Wrap("git")
     );
 ```
 
+```csharp
+var cmd = Cli.Wrap("git")
+    // Arguments can also be constructed in an imperative fashion.
+    // Equivalent to: git push --force
+    .WithArguments(args => 
+    {
+        args.Add("push");
+
+        if (forcePush)
+            args.Add("--force");
+    });
+```
+
 > **Note**:
-> You can also manually instantiate `ArgumentsBuilder` to help with the formatting and escaping of arguments.
-> This may be useful if you need to generate an argument string outside of the `WithArguments(...)` method.
+> The builder overload allows you to define custom extension methods for reusable argument patterns.
+> [Learn more](https://twitter.com/Tyrrrz/status/1409104223753605121).
+
+- Set arguments directly:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    // Avoid using this overload
+    .WithArguments("commit -m \"my commit\"");
+```
+
+> **Warning**:
+> Unless you absolutely have to, avoid setting command line arguments directly from a string.
+> This method expects all arguments to be correctly escaped and formatted ahead of time — which can be cumbersome to do yourself.
+> Formatting errors may result in unexpected bugs and security vulnerabilities.
 
 #### `WithWorkingDirectory(...)`
 
@@ -240,7 +258,7 @@ var cmd = Cli.Wrap("git")
 
 #### `WithCredentials(...)`
 
-Sets domain, name and password of the user, under whom the child process is started.
+Sets domain, name and password of the user, under whom the child process should be started.
 
 **Default**: no credentials.
 
@@ -286,7 +304,7 @@ Sets the strategy for validating the result of an execution.
 
 **Examples**:
 
-- Enable validation — will throw an exception if the process exits with a non-zero exit code:
+- Enable validation:
 
 ```csharp
 var cmd = Cli.Wrap("git")
@@ -456,8 +474,8 @@ await cmd.ExecuteAsync();
 ```csharp
 var cmd =
     "Hello world" |
-    Cli.Wrap("foo").WithArguments("aaa") |
-    Cli.Wrap("bar").WithArguments("bbb") |
+    Cli.Wrap("foo").WithArguments(new[] {"aaa"}) |
+    Cli.Wrap("bar").WithArguments(new[] {"bbb"}) |
     (Console.WriteLine, Console.Error.WriteLine);
 
 await cmd.ExecuteAsync();
@@ -480,7 +498,7 @@ using CliWrap;
 using CliWrap.Buffered;
 
 var result = await Cli.Wrap("foo")
-    .WithArguments("bar")
+    .WithArguments(new[] {"bar"})
     .ExecuteBufferedAsync();
 
 var exitCode = result.ExitCode;
@@ -494,12 +512,12 @@ To override this, specify the encoding explicitly by using one of the available 
 ```csharp
 // Treat both stdout and stderr as UTF8-encoded text streams
 var result = await Cli.Wrap("foo")
-    .WithArguments("bar")
+    .WithArguments(new[] {"bar"})
     .ExecuteBufferedAsync(Encoding.UTF8);
 
 // Treat stdout as ASCII-encoded and stderr as UTF8-encoded
 var result = await Cli.Wrap("foo")
-    .WithArguments("bar")
+    .WithArguments(new[] {"bar"})
     .ExecuteBufferedAsync(Encoding.ASCII, Encoding.UTF8);
 ```
 
@@ -524,7 +542,7 @@ To execute a command as a _pull-based_ event stream, use the `ListenAsync()` ext
 using CliWrap;
 using CliWrap.EventStream;
 
-var cmd = Cli.Wrap("foo").WithArguments("bar");
+var cmd = Cli.Wrap("foo").WithArguments(new[] {"bar"});
 
 await foreach (var cmdEvent in cmd.ListenAsync())
 {
@@ -561,7 +579,7 @@ using System.Reactive;
 using CliWrap;
 using CliWrap.EventStream;
 
-var cmd = Cli.Wrap("foo").WithArguments("bar");
+var cmd = Cli.Wrap("foo").WithArguments(new[] {"bar"});
 
 await cmd.Observe().ForEachAsync(cmdEvent =>
 {
@@ -686,7 +704,7 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
     );
 
     await Cli.Wrap("git")
-        .WithArguments("push")
+        .WithArguments(new[] {"push"})
         .ExecuteAsync(forcefulCts.Token, cancellationToken);
 }
 ```
@@ -701,7 +719,7 @@ This is a specialized awaitable object that contains additional information abou
 
 ```csharp
 var task = Cli.Wrap("foo")
-    .WithArguments("bar")
+    .WithArguments(new[] {"bar"})
     .ExecuteAsync();
 
 // Get the process ID

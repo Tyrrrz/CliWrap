@@ -99,6 +99,10 @@ public partial class Command : ICommandConfiguration
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the specified value.
     /// </summary>
+    /// <remarks>
+    /// Avoid using this overload, as it requires the arguments to be escaped manually.
+    /// Formatting errors may lead to unexpected bugs and security vulnerabilities.
+    /// </remarks>
     [Pure]
     public Command WithArguments(string arguments) => new(
         TargetFilePath,
