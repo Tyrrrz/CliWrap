@@ -231,7 +231,7 @@ Sets additional environment variables exposed to the child process.
 
 **Examples**:
 
-- Set environment variables from a dictionary:
+- Set environment variables directly:
 
 ```csharp
 var cmd = Cli.Wrap("git")
