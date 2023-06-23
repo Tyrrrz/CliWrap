@@ -580,7 +580,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_complicated_target_hierarchy()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_hierarchical_targets()
     {
         // Arrange
         await using var stream1 = new MemoryStream();
