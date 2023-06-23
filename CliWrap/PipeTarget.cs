@@ -42,6 +42,9 @@ file class AggregatePipeTarget : PipeTarget
 
     public override async Task CopyFromAsync(Stream origin, CancellationToken cancellationToken = default)
     {
+        // Cancellation to abort the pipe if any of the underlying targets fail
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
         // Create a separate sub-stream for each target
         var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
         foreach (var target in Targets)
@@ -49,33 +52,49 @@ file class AggregatePipeTarget : PipeTarget
 
         try
         {
-            // Start piping streams in the background
+            // Start piping in the background
             var readingTask = Task.WhenAll(targetSubStreams.Select(async targetSubStream =>
             {
                 var (target, subStream) = targetSubStream;
-                await target.CopyFromAsync(subStream, cancellationToken).ConfigureAwait(false);
+
+                try
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    await target.CopyFromAsync(subStream, cts.Token).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Abort the operation if any of the targets fail
+                    // ReSharper disable once AccessToDisposedClosure
+                    cts.Cancel();
+
+                    throw;
+                }
             }));
 
-            // Read from the master stream and replicate the data to each sub-stream
-            using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
-            while (true)
+            try
             {
-                var bytesRead = await origin.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
-                if (bytesRead <= 0)
-                    break;
-
-                foreach (var (_, subStream) in targetSubStreams)
+                // Read from the master stream and replicate the data to each sub-stream
+                using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
+                while (true)
                 {
-                    await subStream.WriteAsync(buffer.Memory[..bytesRead], cancellationToken)
-                        .ConfigureAwait(false);
+                    var bytesRead = await origin.ReadAsync(buffer.Memory, cts.Token).ConfigureAwait(false);
+                    if (bytesRead <= 0)
+                        break;
+
+                    foreach (var (_, subStream) in targetSubStreams)
+                        await subStream.WriteAsync(buffer.Memory[..bytesRead], cts.Token).ConfigureAwait(false);
                 }
+
+                // Report that transmission is complete
+                foreach (var (_, subStream) in targetSubStreams)
+                    await subStream.ReportCompletionAsync(cts.Token).ConfigureAwait(false);
             }
-
-            // Report that transmission is complete
-            foreach (var (_, subStream) in targetSubStreams)
-                await subStream.ReportCompletionAsync(cancellationToken).ConfigureAwait(false);
-
-            await readingTask.ConfigureAwait(false);
+            finally
+            {
+                // Wait for all targets to finish and propagate potential exceptions
+                await readingTask.ConfigureAwait(false);
+            }
         }
         finally
         {

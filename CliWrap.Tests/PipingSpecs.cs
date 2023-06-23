@@ -557,6 +557,29 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets_and_not_hang_on_large_stdout_if_one_of_the_targets_throws_an_exception()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/212
+
+        // Arrange
+        var target = PipeTarget.Merge(
+            PipeTarget.ToStream(Stream.Null),
+            PipeTarget.ToDelegate(_ => throw new Exception("Expected exception."))
+        );
+
+        var cmd = Cli.Wrap("dotnet")
+            .WithArguments(a => a
+                .Add(Dummy.Program.FilePath)
+                .Add("generate binary")
+                .Add("--length").Add(100_000)
+            ) | target;
+
+        // Act & assert
+        var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
+        ex.Message.Should().Contain("Expected exception.");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_complicated_target_hierarchy()
     {
         // Arrange

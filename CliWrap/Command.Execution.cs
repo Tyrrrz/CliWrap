@@ -216,7 +216,7 @@ public partial class Command
         {
             // Wait until the process exits normally or gets killed.
             // The timeout is started after the execution is forcefully canceled and ensures
-            // that we don't wait forever in case an attempt to kill the process fails.
+            // that we don't wait forever in case the attempt to kill the process failed.
             await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
 
             // Send the cancellation signal to the stdin pipe since the process has exited
