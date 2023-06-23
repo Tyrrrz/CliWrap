@@ -14,7 +14,7 @@ namespace CliWrap.Tests;
 public class PipingSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_an_async_anonymous_source()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_an_async_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(async (destination, cancellationToken) =>
@@ -35,7 +35,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_sync_anonymous_source()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_sync_anonymous_source()
     {
         // Arrange
         var source = PipeSource.Create(destination =>
@@ -56,7 +56,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_stream()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_stream()
     {
         // Arrange
         await using var stream = new MemoryStream("Hello world!"u8.ToArray());
@@ -75,7 +75,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_file()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_file()
     {
         // Arrange
         using var file = TempFile.Create();
@@ -95,7 +95,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_memory()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_memory()
     {
         // Arrange
         var data = new ReadOnlyMemory<byte>("Hello world!"u8.ToArray());
@@ -114,7 +114,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_byte_array()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_byte_array()
     {
         // Arrange
         var data = "Hello world!"u8.ToArray();
@@ -133,7 +133,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_string()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_string()
     {
         // Arrange
         var cmd = "Hello world!" | Cli.Wrap("dotnet")
@@ -150,7 +150,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_another_command()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_another_command()
     {
         // Arrange
         var cmd =
@@ -172,7 +172,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_the_stdin_piped_from_a_chain_of_commands()
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_chain_of_commands()
     {
         // Arrange
         var cmd =
