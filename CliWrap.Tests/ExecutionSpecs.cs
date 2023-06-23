@@ -54,9 +54,9 @@ public class ExecutionSpecs
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
-                .Add("generate text")
+                .Add("generate binary")
                 .Add("--target").Add("all")
-                .Add("--lines").Add(100_000)
+                .Add("--length").Add(100_000)
             );
 
         // Act & assert

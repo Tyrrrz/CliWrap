@@ -20,7 +20,7 @@ public class GenerateTextCommand : ICommand
     public OutputTarget Target { get; init; } = OutputTarget.StdOut;
 
     [CommandOption("length")]
-    public int Length { get; init; } = 1000;
+    public int Length { get; init; } = 100_000;
 
     [CommandOption("lines")]
     public int LinesCount { get; init; } = 1;

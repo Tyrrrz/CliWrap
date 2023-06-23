@@ -225,7 +225,7 @@ public partial class Command
             // If the pipe is still trying to transfer data, this will cause it to abort.
             stdInCts.Cancel();
 
-            // Wait until the piping is done and propagate exceptions
+            // Wait until piping is done and propagate exceptions
             await pipingTask.ConfigureAwait(false);
         }
         // Swallow exceptions caused by internal and user-provided cancellations,

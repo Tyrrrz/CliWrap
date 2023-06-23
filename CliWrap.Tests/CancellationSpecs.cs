@@ -84,7 +84,7 @@ public class CancellationSpecs
 
         var stdOutBuffer = new StringBuilder();
 
-        var pipeTarget = PipeTarget.Merge(
+        var target = PipeTarget.Merge(
             PipeTarget.ToDelegate(HandleStdOut),
             PipeTarget.ToStringBuilder(stdOutBuffer)
         );
@@ -94,7 +94,7 @@ public class CancellationSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
-            ) | pipeTarget;
+            ) | target;
 
         // Act
         var task = cmd.ExecuteAsync(CancellationToken.None, cts.Token);

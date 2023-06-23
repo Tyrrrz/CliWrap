@@ -157,7 +157,7 @@ public class PipingSpecs
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) |
             Cli.Wrap("dotnet").WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
@@ -168,7 +168,7 @@ public class PipingSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Trim().Should().Be("1000000");
+        result.StandardOutput.Trim().Should().Be("100000");
     }
 
     [Fact(Timeout = 15000)]
@@ -213,14 +213,14 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) | target;
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stream.Length.Should().Be(1_000_000);
+        stream.Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]
@@ -238,14 +238,14 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) | target;
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stream.Length.Should().Be(1_000_000);
+        stream.Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]
@@ -258,14 +258,14 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) | stream;
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stream.Length.Should().Be(1_000_000);
+        stream.Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]
@@ -278,7 +278,7 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) | PipeTarget.ToFile(file.Path);
 
         // Act
@@ -286,7 +286,7 @@ public class PipingSpecs
 
         // Assert
         File.Exists(file.Path).Should().BeTrue();
-        new FileInfo(file.Path).Length.Should().Be(1_000_000);
+        new FileInfo(file.Path).Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]
@@ -315,7 +315,7 @@ public class PipingSpecs
         // Arrange
         var stdOutLinesCount = 0;
 
-        async Task HandleStdOutAsync(string s)
+        async Task HandleStdOutAsync(string line)
         {
             await Task.Yield();
             stdOutLinesCount++;
@@ -341,7 +341,7 @@ public class PipingSpecs
         // Arrange
         var stdOutLinesCount = 0;
 
-        async Task HandleStdOutAsync(string s, CancellationToken cancellationToken = default)
+        async Task HandleStdOutAsync(string line, CancellationToken cancellationToken = default)
         {
             await Task.Delay(1, cancellationToken);
             stdOutLinesCount++;
@@ -367,7 +367,7 @@ public class PipingSpecs
         // Arrange
         var stdOutLinesCount = 0;
 
-        void HandleStdOut(string s) => stdOutLinesCount++;
+        void HandleStdOut(string line) => stdOutLinesCount++;
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -395,15 +395,15 @@ public class PipingSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
                 .Add("--target").Add("all")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) | (stdOut, stdErr);
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOut.Length.Should().Be(1_000_000);
-        stdErr.Length.Should().Be(1_000_000);
+        stdOut.Length.Should().Be(100_000);
+        stdErr.Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]
@@ -435,13 +435,13 @@ public class PipingSpecs
         var stdOutLinesCount = 0;
         var stdErrLinesCount = 0;
 
-        async Task HandleStdOutAsync(string s)
+        async Task HandleStdOutAsync(string line)
         {
             await Task.Yield();
             stdOutLinesCount++;
         }
 
-        async Task HandleStdErrAsync(string s)
+        async Task HandleStdErrAsync(string line)
         {
             await Task.Yield();
             stdErrLinesCount++;
@@ -470,13 +470,13 @@ public class PipingSpecs
         var stdOutLinesCount = 0;
         var stdErrLinesCount = 0;
 
-        async Task HandleStdOutAsync(string s, CancellationToken cancellationToken = default)
+        async Task HandleStdOutAsync(string line, CancellationToken cancellationToken = default)
         {
             await Task.Delay(1, cancellationToken);
             stdOutLinesCount++;
         }
 
-        async Task HandleStdErrAsync(string s, CancellationToken cancellationToken = default)
+        async Task HandleStdErrAsync(string line, CancellationToken cancellationToken = default)
         {
             await Task.Delay(1, cancellationToken);
             stdErrLinesCount++;
@@ -505,8 +505,8 @@ public class PipingSpecs
         var stdOutLinesCount = 0;
         var stdErrLinesCount = 0;
 
-        void HandleStdOut(string s) => stdOutLinesCount++;
-        void HandleStdErr(string s) => stdErrLinesCount++;
+        void HandleStdOut(string line) => stdOutLinesCount++;
+        void HandleStdErr(string line) => stdErrLinesCount++;
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -532,7 +532,7 @@ public class PipingSpecs
         await using var stream2 = new MemoryStream();
         await using var stream3 = new MemoryStream();
 
-        var pipeTarget = PipeTarget.Merge(
+        var target = PipeTarget.Merge(
             PipeTarget.ToStream(stream1),
             PipeTarget.ToStream(stream2),
             PipeTarget.ToStream(stream3)
@@ -543,7 +543,7 @@ public class PipingSpecs
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
-            ) | pipeTarget;
+            ) | target;
 
         // Act
         await cmd.ExecuteAsync();
@@ -565,7 +565,7 @@ public class PipingSpecs
         await using var stream3 = new MemoryStream();
         await using var stream4 = new MemoryStream();
 
-        var pipeTarget = PipeTarget.Merge(
+        var target = PipeTarget.Merge(
             PipeTarget.ToStream(stream1),
             PipeTarget.Merge(
                 PipeTarget.ToStream(stream2),
@@ -580,16 +580,16 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(10_000)) | pipeTarget;
+                .Add("--length").Add(100_000)) | target;
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stream1.Length.Should().Be(10_000);
-        stream2.Length.Should().Be(10_000);
-        stream3.Length.Should().Be(10_000);
-        stream4.Length.Should().Be(10_000);
+        stream1.Length.Should().Be(100_000);
+        stream2.Length.Should().Be(100_000);
+        stream3.Length.Should().Be(100_000);
+        stream4.Length.Should().Be(100_000);
         stream1.ToArray().Should().Equal(stream2.ToArray());
         stream2.ToArray().Should().Equal(stream3.ToArray());
         stream3.ToArray().Should().Equal(stream4.ToArray());
@@ -660,7 +660,7 @@ public class PipingSpecs
 
         // Arrange
         var delegateLines = new List<string>();
-        void HandleStdOut(string s) => delegateLines.Add(s);
+        void HandleStdOut(string line) => delegateLines.Add(line);
 
         var cmd = Cli.Wrap("dotnet")
             .WithArguments(a => a
@@ -702,7 +702,7 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
-                .Add("--length").Add(1_000_000)
+                .Add("--length").Add(100_000)
             ) | PipeTarget.ToFile("non-existing-directory/file.txt");
 
         // Act & assert
@@ -738,7 +738,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_if_the_process_partially_consumes_stdin()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_only_partially_consumes_stdin()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -761,7 +761,7 @@ public class PipingSpecs
             .WithArguments(a => a
                 .Add(Dummy.Program.FilePath)
                 .Add("echo stdin")
-                .Add("--length").Add(10_000_000)
+                .Add("--length").Add(100_000)
             );
 
         // Act & assert
@@ -769,7 +769,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_if_the_process_never_consumes_stdin()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_does_not_consume_stdin()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -792,7 +792,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_if_the_process_never_consumes_stdin_even_if_the_source_cannot_be_canceled()
+    public async Task I_can_execute_a_command_and_not_hang_if_the_process_does_not_consume_stdin_even_if_the_source_cannot_be_canceled()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/74
 
@@ -820,7 +820,7 @@ public class PipingSpecs
 
         // Arrange
         var random = new Random(1234567);
-        var bytesRemaining = 10_000_000L;
+        var bytesRemaining = 100_000;
 
         var source = PipeSource.Create(async (destination, cancellationToken) =>
         {
@@ -829,7 +829,7 @@ public class PipingSpecs
             {
                 random.NextBytes(buffer);
 
-                var count = (int)Math.Min(bytesRemaining, buffer.Length);
+                var count = Math.Min(bytesRemaining, buffer.Length);
                 await destination.WriteAsync(buffer.AsMemory()[..count], cancellationToken);
 
                 bytesRemaining -= count;

@@ -18,7 +18,7 @@ public class GenerateBinaryCommand : ICommand
     public OutputTarget Target { get; init; } = OutputTarget.StdOut;
 
     [CommandOption("length")]
-    public long Length { get; init; } = 1_000_000;
+    public long Length { get; init; } = 100_000;
 
     [CommandOption("buffer")]
     public int BufferSize { get; init; } = 1024;
