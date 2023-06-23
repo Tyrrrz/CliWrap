@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.6.4 (23-Jun-2023)
+
+- Renamed `PipeSource.FromMemory(...)` to `PipeSource.FromBytes(...)` for consistency with similar methods in .NET. The old method is still available, but is marked as obsolete.
+- Fixed an issue where piping very large output through `PipeTarget.Merge(...)` could result in a deadlock if one of the underlying targets failed with an exception.
+
 ## v3.6.3 (18-May-2023)
 
 - Fixed an issue where `ListenAsync()` missed events when wrapping a process that printed a single line to the console and exited immediately.
