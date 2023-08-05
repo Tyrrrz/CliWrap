@@ -18,6 +18,11 @@ internal static class DummyScript
     static DummyScript()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            File.SetUnixFileMode(FilePath, UnixFileMode.UserExecute);
+        {
+            File.SetUnixFileMode(
+                FilePath,
+                File.GetUnixFileMode(FilePath) | UnixFileMode.UserExecute
+            );
+        }
     }
 }
