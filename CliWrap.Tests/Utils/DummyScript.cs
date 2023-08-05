@@ -14,4 +14,10 @@ internal static class DummyScript
     public static string FilePath { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? Path.Combine(DirPath, "run-dummy.bat")
         : Path.Combine(DirPath, "run-dummy.sh");
+
+    static DummyScript()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            File.SetUnixFileMode(FilePath, UnixFileMode.UserExecute);
+    }
 }
