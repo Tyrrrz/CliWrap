@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CliWrap.EventStream;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -14,9 +15,8 @@ public class EventStreamSpecs
     public async Task I_can_execute_a_command_as_a_pull_based_event_stream()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet")
+        var cmd = Cli.Wrap(DummyScript.FilePath)
             .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--target").Add("all")
                 .Add("--lines").Add(100)
@@ -40,9 +40,8 @@ public class EventStreamSpecs
     public async Task I_can_execute_a_command_as_a_push_based_event_stream()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet")
+        var cmd = Cli.Wrap(DummyScript.FilePath)
             .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
                 .Add("generate text")
                 .Add("--target").Add("all")
                 .Add("--lines").Add(100)

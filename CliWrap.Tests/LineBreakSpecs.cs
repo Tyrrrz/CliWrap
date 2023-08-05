@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -15,11 +16,10 @@ public class LineBreakSpecs
 
         var stdOutLines = new List<string>();
 
-        var cmd = data | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-            ) | stdOutLines.Add;
+        var cmd =
+            data |
+            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
@@ -40,11 +40,10 @@ public class LineBreakSpecs
 
         var stdOutLines = new List<string>();
 
-        var cmd = data | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-            ) | stdOutLines.Add;
+        var cmd =
+            data |
+            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
@@ -65,11 +64,10 @@ public class LineBreakSpecs
 
         var stdOutLines = new List<string>();
 
-        var cmd = data | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-            ) | stdOutLines.Add;
+        var cmd =
+            data |
+            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();
@@ -90,11 +88,10 @@ public class LineBreakSpecs
 
         var stdOutLines = new List<string>();
 
-        var cmd = data | Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("echo stdin")
-            ) | stdOutLines.Add;
+        var cmd =
+            data |
+            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            stdOutLines.Add;
 
         // Act
         await cmd.ExecuteAsync();

@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="run-dummy.bat" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="run-dummy.sh" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

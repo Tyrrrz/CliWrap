@@ -16,11 +16,8 @@ public class EnvironmentSpecs
         // Arrange
         using var dir = TempDir.Create();
 
-        var cmd = Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("print cwd")
-            )
+        var cmd = Cli.Wrap(DummyScript.FilePath)
+            .WithArguments("print cwd")
             .WithWorkingDirectory(dir.Path);
 
         // Act
@@ -37,15 +34,11 @@ public class EnvironmentSpecs
         var env = new Dictionary<string, string?>
         {
             ["foo"] = "bar",
-            ["hello"] = "world",
-            ["Path"] = "there"
+            ["hello"] = "world"
         };
 
-        var cmd = Cli.Wrap("dotnet")
-            .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
-                .Add("print env")
-            )
+        var cmd = Cli.Wrap(DummyScript.FilePath)
+            .WithArguments("print env")
             .WithEnvironmentVariables(env);
 
         // Act
@@ -54,8 +47,7 @@ public class EnvironmentSpecs
         // Assert
         result.StandardOutput.Trim().Should().ContainAll(
             "[foo] = bar",
-            "[hello] = world",
-            "[Path] = there"
+            "[hello] = world"
         );
     }
 
@@ -72,11 +64,8 @@ public class EnvironmentSpecs
         using (TempEnvironmentVariable.Set(variableToOverwrite, "overwrite")) // will be overwritten
         using (TempEnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
         {
-            var cmd = Cli.Wrap("dotnet")
-                .WithArguments(a => a
-                    .Add(Dummy.Program.FilePath)
-                    .Add("print env")
-                )
+            var cmd = Cli.Wrap(DummyScript.FilePath)
+                .WithArguments("print env")
                 .WithEnvironmentVariables(e => e
                     .Set(variableToOverwrite, "overwritten")
                     .Set(variableToUnset, null)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -12,7 +13,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_and_get_the_exit_code_and_execution_time()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.FilePath);
+        var cmd = Cli.Wrap(DummyScript.FilePath);
 
         // Act
         var result = await cmd.ExecuteAsync();
@@ -26,7 +27,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_and_get_the_associated_process_ID()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.FilePath);
+        var cmd = Cli.Wrap(DummyScript.FilePath);
 
         // Act
         var task = cmd.ExecuteAsync();
@@ -41,7 +42,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_with_a_configured_awaiter()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet").WithArguments(Dummy.Program.FilePath);
+        var cmd = Cli.Wrap(DummyScript.FilePath);
 
         // Act & assert
         await cmd.ExecuteAsync().ConfigureAwait(false);
@@ -51,9 +52,8 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_and_not_hang_on_large_stdout_and_stderr()
     {
         // Arrange
-        var cmd = Cli.Wrap("dotnet")
+        var cmd = Cli.Wrap(DummyScript.FilePath)
             .WithArguments(a => a
-                .Add(Dummy.Program.FilePath)
                 .Add("generate binary")
                 .Add("--target").Add("all")
                 .Add("--length").Add(100_000)
