@@ -55,7 +55,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_stream()
     {
         // Arrange
-        await using var stream = new MemoryStream("Hello world!"u8.ToArray());
+        using var stream = new MemoryStream("Hello world!"u8.ToArray());
 
         var cmd =
             stream |
@@ -73,7 +73,7 @@ public class PipingSpecs
     {
         // Arrange
         using var file = TempFile.Create();
-        await File.WriteAllTextAsync(file.Path, "Hello world!");
+        File.WriteAllText(file.Path, "Hello world!");
 
         var cmd =
             PipeSource.FromFile(file.Path) |
@@ -183,7 +183,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_an_async_anonymous_target()
     {
         // Arrange
-        await using var stream = new MemoryStream();
+        using var stream = new MemoryStream();
 
         var target = PipeTarget.Create(async (origin, cancellationToken) =>
             // ReSharper disable once AccessToDisposedClosure
@@ -207,7 +207,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_sync_anonymous_target()
     {
         // Arrange
-        await using var stream = new MemoryStream();
+        using var stream = new MemoryStream();
 
         var target = PipeTarget.Create(origin =>
             // ReSharper disable once AccessToDisposedClosure
@@ -231,7 +231,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_stream()
     {
         // Arrange
-        await using var stream = new MemoryStream();
+        using var stream = new MemoryStream();
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
@@ -360,8 +360,8 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_and_stderr_into_separate_streams()
     {
         // Arrange
-        await using var stdOut = new MemoryStream();
-        await using var stdErr = new MemoryStream();
+        using var stdOut = new MemoryStream();
+        using var stdErr = new MemoryStream();
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
@@ -496,9 +496,9 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets()
     {
         // Arrange
-        await using var stream1 = new MemoryStream();
-        await using var stream2 = new MemoryStream();
-        await using var stream3 = new MemoryStream();
+        using var stream1 = new MemoryStream();
+        using var stream2 = new MemoryStream();
+        using var stream3 = new MemoryStream();
 
         var target = PipeTarget.Merge(
             PipeTarget.ToStream(stream1),
@@ -549,10 +549,10 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_hierarchical_targets()
     {
         // Arrange
-        await using var stream1 = new MemoryStream();
-        await using var stream2 = new MemoryStream();
-        await using var stream3 = new MemoryStream();
-        await using var stream4 = new MemoryStream();
+        using var stream1 = new MemoryStream();
+        using var stream2 = new MemoryStream();
+        using var stream3 = new MemoryStream();
+        using var stream4 = new MemoryStream();
 
         var target = PipeTarget.Merge(
             PipeTarget.ToStream(stream1),
@@ -598,8 +598,8 @@ public class PipingSpecs
             );
 
         // Act
-        await using var mergedStream1 = new MemoryStream();
-        await using var mergedStream2 = new MemoryStream();
+        using var mergedStream1 = new MemoryStream();
+        using var mergedStream2 = new MemoryStream();
         await (cmd | PipeTarget.Merge(
                 PipeTarget.ToStream(mergedStream1),
                 PipeTarget.ToStream(mergedStream2))
@@ -608,7 +608,7 @@ public class PipingSpecs
         // Assert
 
         // Run without merging to get the expected byte array (random seed is constant)
-        await using var unmergedStream = new MemoryStream();
+        using var unmergedStream = new MemoryStream();
         await (cmd | PipeTarget.ToStream(unmergedStream)).ExecuteAsync();
 
         unmergedStream.Length.Should().Be(1_000_000);
@@ -620,7 +620,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_with_buffering_and_also_pipe_the_stdout_into_a_stream()
     {
         // Arrange
-        await using var stream = new MemoryStream();
+        using var stream = new MemoryStream();
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a

@@ -34,10 +34,7 @@ public class PathResolutionSpecs
 
         // Arrange
         using var dir = TempDir.Create();
-        await File.WriteAllTextAsync(
-            Path.Combine(dir.Path, "test-script.cmd"),
-            "@echo hello"
-        );
+        File.WriteAllText(Path.Combine(dir.Path, "test-script.cmd"), "@echo hello");
 
         using (TempEnvironmentVariable.ExtendPath(dir.Path))
         {
