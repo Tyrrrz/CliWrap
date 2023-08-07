@@ -16,7 +16,7 @@ public class EnvironmentSpecs
         // Arrange
         using var dir = TempDir.Create();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments("print cwd")
             .WithWorkingDirectory(dir.Path);
 
@@ -37,7 +37,7 @@ public class EnvironmentSpecs
             ["hello"] = "world"
         };
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments("print env")
             .WithEnvironmentVariables(env);
 
@@ -64,7 +64,7 @@ public class EnvironmentSpecs
         using (TempEnvironmentVariable.Set(variableToOverwrite, "overwrite")) // will be overwritten
         using (TempEnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
         {
-            var cmd = Cli.Wrap(DummyScript.FilePath)
+            var cmd = Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments("print env")
                 .WithEnvironmentVariables(e => e
                     .Set(variableToOverwrite, "overwritten")

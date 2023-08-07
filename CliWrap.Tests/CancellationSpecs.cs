@@ -22,7 +22,7 @@ public class CancellationSpecs
 
         var stdOutBuffer = new StringBuilder();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -48,7 +48,7 @@ public class CancellationSpecs
 
         var stdOutBuffer = new StringBuilder();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -87,7 +87,7 @@ public class CancellationSpecs
             PipeTarget.ToStringBuilder(stdOutBuffer)
         );
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -111,7 +111,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -132,7 +132,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -153,7 +153,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -179,7 +179,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -205,7 +205,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -231,7 +231,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -261,7 +261,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -286,7 +286,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")
@@ -311,7 +311,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("sleep")
                 .Add("--duration").Add("00:00:20")

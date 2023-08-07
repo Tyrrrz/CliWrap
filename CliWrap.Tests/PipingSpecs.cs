@@ -23,7 +23,7 @@ public class PipingSpecs
 
         var cmd =
             source |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -42,7 +42,7 @@ public class PipingSpecs
 
         var cmd =
             source |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -59,7 +59,7 @@ public class PipingSpecs
 
         var cmd =
             stream |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -77,7 +77,7 @@ public class PipingSpecs
 
         var cmd =
             PipeSource.FromFile(file.Path) |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -94,7 +94,7 @@ public class PipingSpecs
 
         var cmd =
             data |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -111,7 +111,7 @@ public class PipingSpecs
 
         var cmd =
             data |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -126,7 +126,7 @@ public class PipingSpecs
         // Arrange
         var cmd =
             "Hello world!" |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -140,11 +140,11 @@ public class PipingSpecs
     {
         // Arrange
         var cmd =
-            Cli.Wrap(DummyScript.FilePath).WithArguments(a => a
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
             ) |
-            Cli.Wrap(DummyScript.FilePath).WithArguments(
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(
                 "print length stdin"
             );
 
@@ -161,14 +161,14 @@ public class PipingSpecs
         // Arrange
         var cmd =
             "Hello world" |
-            Cli.Wrap(DummyScript.FilePath).WithArguments(
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(
                 "echo stdin"
             ) |
-            Cli.Wrap(DummyScript.FilePath).WithArguments(a => a
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(a => a
                 .Add("echo stdin")
                 .Add("--length").Add(5)
             ) |
-            Cli.Wrap(DummyScript.FilePath).WithArguments(
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(
                 "print length stdin"
             );
 
@@ -190,7 +190,7 @@ public class PipingSpecs
             await origin.CopyToAsync(stream, cancellationToken)
         );
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -214,7 +214,7 @@ public class PipingSpecs
             origin.CopyTo(stream)
         );
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -233,7 +233,7 @@ public class PipingSpecs
         // Arrange
         await using var stream = new MemoryStream();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -252,7 +252,7 @@ public class PipingSpecs
         // Arrange
         using var file = TempFile.Create();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -272,7 +272,7 @@ public class PipingSpecs
         // Arrange
         var buffer = new StringBuilder();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo")
                 .Add("Hello world!")
@@ -297,7 +297,7 @@ public class PipingSpecs
             stdOutLinesCount++;
         }
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--lines").Add(100)
@@ -322,7 +322,7 @@ public class PipingSpecs
             stdOutLinesCount++;
         }
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--lines").Add(100)
@@ -343,7 +343,7 @@ public class PipingSpecs
 
         void HandleStdOut(string line) => stdOutLinesCount++;
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--lines").Add(100)
@@ -363,7 +363,7 @@ public class PipingSpecs
         await using var stdOut = new MemoryStream();
         await using var stdErr = new MemoryStream();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--target").Add("all")
@@ -385,7 +385,7 @@ public class PipingSpecs
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo").Add("Hello world!")
                 .Add("--target").Add("all")
@@ -418,7 +418,7 @@ public class PipingSpecs
             stdErrLinesCount++;
         }
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--target").Add("all")
@@ -452,7 +452,7 @@ public class PipingSpecs
             stdErrLinesCount++;
         }
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--target").Add("all")
@@ -477,7 +477,7 @@ public class PipingSpecs
         void HandleStdOut(string line) => stdOutLinesCount++;
         void HandleStdErr(string line) => stdErrLinesCount++;
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--target").Add("all")
@@ -506,7 +506,7 @@ public class PipingSpecs
             PipeTarget.ToStream(stream3)
         );
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -534,7 +534,7 @@ public class PipingSpecs
             PipeTarget.ToDelegate(_ => throw new Exception("Expected exception."))
         );
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -565,7 +565,7 @@ public class PipingSpecs
             )
         );
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)) | target;
@@ -589,7 +589,7 @@ public class PipingSpecs
         // https://github.com/Tyrrrz/CliWrap/issues/81
 
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(1_000_000)
@@ -622,7 +622,7 @@ public class PipingSpecs
         // Arrange
         await using var stream = new MemoryStream();
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--length").Add(100_000)
@@ -648,7 +648,7 @@ public class PipingSpecs
         var delegateLines = new List<string>();
         void HandleStdOut(string line) => delegateLines.Add(line);
 
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--lines").Add(100)
@@ -671,7 +671,7 @@ public class PipingSpecs
         // Arrange
         var cmd =
             PipeSource.FromFile("non-existing-file.txt") |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act & assert
         await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
@@ -681,7 +681,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_get_an_error_if_the_pipe_target_throws_an_exception()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate binary")
                 .Add("--length").Add(100_000)
@@ -695,7 +695,7 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_not_hang_if_the_process_expects_stdin_but_none_is_provided()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         await cmd.ExecuteAsync();
@@ -707,7 +707,7 @@ public class PipingSpecs
         // Arrange
         var cmd =
             Array.Empty<byte>() |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
         await cmd.ExecuteAsync();
@@ -733,7 +733,7 @@ public class PipingSpecs
             // ReSharper disable once FunctionNeverReturns
         });
 
-        var cmd = source | Cli.Wrap(DummyScript.FilePath)
+        var cmd = source | Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo stdin")
                 .Add("--length").Add(100_000)
@@ -755,7 +755,7 @@ public class PipingSpecs
             await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
         });
 
-        var cmd = source | Cli.Wrap(DummyScript.FilePath)
+        var cmd = source | Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo stdin")
                 .Add("--length").Add(0)
@@ -776,7 +776,7 @@ public class PipingSpecs
             await Task.Delay(TimeSpan.FromSeconds(20), CancellationToken.None)
         );
 
-        var cmd = source | Cli.Wrap(DummyScript.FilePath)
+        var cmd = source | Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo stdin")
                 .Add("--length").Add(0)
@@ -809,7 +809,7 @@ public class PipingSpecs
             }
         });
 
-        var cmd = source | Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin");
+        var cmd = source | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act & assert
         await cmd.ExecuteAsync();

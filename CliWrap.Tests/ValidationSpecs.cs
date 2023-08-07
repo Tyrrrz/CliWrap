@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
-using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,7 +17,7 @@ public class ValidationSpecs
     public async Task I_can_execute_a_command_and_get_an_error_if_it_returns_a_non_zero_exit_code()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("exit")
                 .Add("--code").Add(1)
@@ -39,7 +38,7 @@ public class ValidationSpecs
     public async Task I_can_execute_a_command_with_buffering_and_get_a_detailed_exception_if_it_returns_a_non_zero_exit_code()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("exit")
                 .Add("--code").Add(1)
@@ -61,7 +60,7 @@ public class ValidationSpecs
     public async Task I_can_execute_a_command_without_validating_the_exit_code()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("exit")
                 .Add("--code").Add(1)

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -18,7 +17,7 @@ public class LineBreakSpecs
 
         var cmd =
             data |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin") |
             stdOutLines.Add;
 
         // Act
@@ -42,7 +41,7 @@ public class LineBreakSpecs
 
         var cmd =
             data |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin") |
             stdOutLines.Add;
 
         // Act
@@ -66,7 +65,7 @@ public class LineBreakSpecs
 
         var cmd =
             data |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin") |
             stdOutLines.Add;
 
         // Act
@@ -90,7 +89,7 @@ public class LineBreakSpecs
 
         var cmd =
             data |
-            Cli.Wrap(DummyScript.FilePath).WithArguments("echo stdin") |
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin") |
             stdOutLines.Add;
 
         // Act

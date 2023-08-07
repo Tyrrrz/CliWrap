@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
@@ -12,7 +11,7 @@ public class BufferedSpecs
     public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo")
                 .Add("Hello stdout")
@@ -31,7 +30,7 @@ public class BufferedSpecs
     public async Task I_can_execute_a_command_with_buffering_and_get_the_stderr()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo")
                 .Add("Hello stderr")
@@ -50,7 +49,7 @@ public class BufferedSpecs
     public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout_and_stderr()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("echo")
                 .Add("Hello stdout and stderr")
@@ -69,7 +68,7 @@ public class BufferedSpecs
     public async Task I_can_execute_a_command_with_buffering_and_not_hang_on_large_stdout_and_stderr()
     {
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(a => a
                 .Add("generate text")
                 .Add("--target").Add("all")

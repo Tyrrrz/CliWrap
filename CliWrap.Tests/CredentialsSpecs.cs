@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using CliWrap.Tests.Utils;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -21,7 +20,7 @@ public class CredentialsSpecs
         // that the credentials have been passed by getting an exception.
 
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithCredentials(c => c
                 .SetUserName("user123")
                 .SetPassword("pass123")
@@ -44,7 +43,7 @@ public class CredentialsSpecs
         // that the credentials have been passed by getting an exception.
 
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithCredentials(c => c
                 .SetDomain("domain123")
                 .SetUserName("user123")
@@ -65,7 +64,7 @@ public class CredentialsSpecs
         );
 
         // Arrange
-        var cmd = Cli.Wrap(DummyScript.FilePath)
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithCredentials(c => c
                 .SetUserName("user123")
                 .SetPassword("pass123")

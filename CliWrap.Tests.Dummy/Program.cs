@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliFx;
 
@@ -7,7 +9,11 @@ namespace CliWrap.Tests.Dummy;
 
 public static class Program
 {
-    public static string FilePath { get; } = Assembly.GetExecutingAssembly().Location;
+    // Path to the apphost
+    public static string FilePath { get; } = Path.ChangeExtension(
+        Assembly.GetExecutingAssembly().Location,
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "exe" : null
+    );
 
     public static async Task<int> Main(string[] args)
     {
