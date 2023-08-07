@@ -264,7 +264,7 @@ public partial class Command
                 Command:
                 {TargetFilePath} {Arguments}
 
-                You can suppress this validation by calling `WithValidation(CommandResultValidation.None)` on the command.
+                You can suppress this validation by calling `{nameof(WithValidation)}({nameof(CommandResultValidation)}.{nameof(CommandResultValidation.None)})` on the command.
                 """
             );
         }
