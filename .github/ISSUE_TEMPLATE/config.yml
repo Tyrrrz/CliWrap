@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Discord server
-    url: https://discord.gg/2SUWKFnHSm
-    about: Chat with the project community.
   - name: 🗨 Discussions
     url: https://github.com/Tyrrrz/CliWrap/discussions/new
     about: Ask and answer questions.
+  - name: 💬 Discord server
+    url: https://discord.gg/2SUWKFnHSm
+    about: Chat with the community.
