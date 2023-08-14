@@ -104,7 +104,7 @@ var stdErrBuffer = new StringBuilder();
 var result = await Cli.Wrap("path/to/exe")
     .WithArguments(new[] {"--foo", "bar"})
     .WithWorkingDirectory("work/dir/path")
-    // This can be simplified with ExecuteBufferedAsync()
+    // This can be simplified with `ExecuteBufferedAsync()`
     .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
     .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
     .ExecuteAsync();
@@ -166,7 +166,7 @@ Sets the command-line arguments passed to the child process.
 ```csharp
 var cmd = Cli.Wrap("git")
     // Each element is formatted as a separate argument.
-    // Equivalent to: git commit -m "my commit"
+    // Equivalent to: `git commit -m "my commit"`
     .WithArguments(new[] {"commit", "-m", "my commit"});
 ```
 
@@ -175,7 +175,7 @@ var cmd = Cli.Wrap("git")
 ```csharp
 var cmd = Cli.Wrap("git")
     // Each Add(...) call takes care of formatting automatically.
-    // Equivalent to: git clone https://github.com/Tyrrrz/CliWrap --depth 20
+    // Equivalent to: `git clone https://github.com/Tyrrrz/CliWrap --depth 20`
     .WithArguments(args => args
         .Add("clone")
         .Add("https://github.com/Tyrrrz/CliWrap")
@@ -187,7 +187,7 @@ var cmd = Cli.Wrap("git")
 ```csharp
 var cmd = Cli.Wrap("git")
     // Arguments can also be constructed in an imperative fashion.
-    // Equivalent to: git push --force
+    // Equivalent to: `git push --force`
     .WithArguments(args => 
     {
         args.Add("push");
@@ -205,7 +205,8 @@ var cmd = Cli.Wrap("git")
 
 ```csharp
 var cmd = Cli.Wrap("git")
-    // Avoid using this overload
+    // Avoid using this overload unless you really have to.
+    // Equivalent to: `git commit -m "my commit"`
     .WithArguments("commit -m \"my commit\"");
 ```
 
@@ -682,7 +683,7 @@ forcefulCts.CancelAfter(TimeSpan.FromSeconds(10));
 // Cancel gracefully after a timeout of 7 seconds.
 // If the process takes too long to respond to graceful
 // cancellation, it will get killed by forceful cancellation
-// 3 seoncds later (configured above).
+// 3 seoncds later (as configured above).
 gracefulCts.CancelAfter(TimeSpan.FromSeconds(7));
 
 var result = await Cli.Wrap("foo").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
