@@ -9,8 +9,6 @@ internal static class ExceptionExtensions
     {
         var exceptions = exception.Flatten().InnerExceptions;
 
-        return exceptions.Count == 1
-            ? exceptions.Single()
-            : null;
+        return exceptions.Count == 1 ? exceptions.Single() : null;
     }
 }

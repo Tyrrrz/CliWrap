@@ -58,10 +58,5 @@ public class CredentialsBuilder
     /// <summary>
     /// Builds the resulting credentials.
     /// </summary>
-    public Credentials Build() => new(
-        _domain,
-        _userName,
-        _password,
-        _loadUserProfile
-    );
+    public Credentials Build() => new(_domain, _userName, _password, _loadUserProfile);
 }

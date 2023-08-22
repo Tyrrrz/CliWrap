@@ -24,7 +24,8 @@ public static class BufferedCommandExtensions
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
         CancellationToken forcefulCancellationToken,
-        CancellationToken gracefulCancellationToken)
+        CancellationToken gracefulCancellationToken
+    )
     {
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
@@ -88,7 +89,8 @@ public static class BufferedCommandExtensions
         this Command command,
         Encoding standardOutputEncoding,
         Encoding standardErrorEncoding,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return command.ExecuteBufferedAsync(
             standardOutputEncoding,
@@ -109,13 +111,10 @@ public static class BufferedCommandExtensions
     public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
         this Command command,
         Encoding encoding,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        return command.ExecuteBufferedAsync(
-            encoding,
-            encoding,
-            cancellationToken
-        );
+        return command.ExecuteBufferedAsync(encoding, encoding, cancellationToken);
     }
 
     /// <summary>
@@ -129,11 +128,9 @@ public static class BufferedCommandExtensions
     /// </remarks>
     public static CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
         this Command command,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        return command.ExecuteBufferedAsync(
-            Console.OutputEncoding,
-            cancellationToken
-        );
+        return command.ExecuteBufferedAsync(Console.OutputEncoding, cancellationToken);
     }
 }

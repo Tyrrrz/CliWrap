@@ -35,7 +35,8 @@ internal class SimplexStream : Stream
         byte[] buffer,
         int offset,
         int count,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -58,14 +59,14 @@ internal class SimplexStream : Stream
         byte[] buffer,
         int offset,
         int count,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         var length = Math.Min(count, _sharedBufferBytes - _sharedBufferBytesRead);
 
-        _sharedBuffer
-            .Memory
+        _sharedBuffer.Memory
             .Slice(_sharedBufferBytesRead, length)
             .CopyTo(buffer.AsMemory(offset, length));
 

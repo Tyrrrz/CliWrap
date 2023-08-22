@@ -25,7 +25,8 @@ public class BufferedCommandResult : CommandResult
         DateTimeOffset startTime,
         DateTimeOffset exitTime,
         string standardOutput,
-        string standardError)
+        string standardError
+    )
         : base(exitCode, startTime, exitTime)
     {
         StandardOutput = standardOutput;

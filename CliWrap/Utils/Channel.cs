@@ -25,7 +25,8 @@ internal class Channel<T> : IDisposable
     }
 
     public async IAsyncEnumerable<T> ReceiveAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         while (true)
         {

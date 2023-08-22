@@ -11,8 +11,7 @@ internal partial class WindowsSignaler : IDisposable
 {
     private readonly string _filePath;
 
-    public WindowsSignaler(string filePath) =>
-        _filePath = filePath;
+    public WindowsSignaler(string filePath) => _filePath = filePath;
 
     public bool TrySend(int processId, int signalId)
     {
@@ -22,9 +21,9 @@ internal partial class WindowsSignaler : IDisposable
             {
                 FileName = _filePath,
                 Arguments =
-                    processId.ToString(CultureInfo.InvariantCulture) +
-                    ' ' +
-                    signalId.ToString(CultureInfo.InvariantCulture),
+                    processId.ToString(CultureInfo.InvariantCulture)
+                    + ' '
+                    + signalId.ToString(CultureInfo.InvariantCulture),
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 Environment =

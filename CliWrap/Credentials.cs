@@ -43,7 +43,8 @@ public partial class Credentials
         string? domain = null,
         string? userName = null,
         string? password = null,
-        bool loadUserProfile = false)
+        bool loadUserProfile = false
+    )
     {
         Domain = domain;
         UserName = userName;
@@ -56,13 +57,8 @@ public partial class Credentials
     /// </summary>
     // TODO: (breaking change) remove in favor of the other overload
     [ExcludeFromCodeCoverage]
-    public Credentials(
-        string? domain,
-        string? username,
-        string? password)
-        : this(domain, username, password, false)
-    {
-    }
+    public Credentials(string? domain, string? username, string? password)
+        : this(domain, username, password, false) { }
 }
 
 public partial class Credentials

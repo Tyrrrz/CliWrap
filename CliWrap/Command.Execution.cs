@@ -30,7 +30,10 @@ public partial class Command
         // Note that IsPathRooted(...) doesn't check if the path is absolute, as it also returns true for
         // strings like 'c:foo.txt' (which is relative to the current directory on drive C), but it's good
         // enough for our purposes and the alternative is only available on .NET Standard 2.1+.
-        if (Path.IsPathRooted(TargetFilePath) || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath)))
+        if (
+            Path.IsPathRooted(TargetFilePath)
+            || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath))
+        )
             return TargetFilePath;
 
         static IEnumerable<string> GetProbeDirectoryPaths()
@@ -59,13 +62,12 @@ public partial class Command
         }
 
         return (
-            from probeDirPath in GetProbeDirectoryPaths()
-            where Directory.Exists(probeDirPath)
-            select Path.Combine(probeDirPath, TargetFilePath)
-            into baseFilePath
-            from extension in new[] {"exe", "cmd", "bat"}
-            select Path.ChangeExtension(baseFilePath, extension)
-        ).FirstOrDefault(File.Exists) ?? TargetFilePath;
+                from probeDirPath in GetProbeDirectoryPaths()
+                where Directory.Exists(probeDirPath)
+                select Path.Combine(probeDirPath, TargetFilePath) into baseFilePath
+                from extension in new[] { "exe", "cmd", "bat" }
+                select Path.ChangeExtension(baseFilePath, extension)
+            ).FirstOrDefault(File.Exists) ?? TargetFilePath;
     }
 
     private ProcessStartInfo CreateStartInfo()
@@ -105,8 +107,8 @@ public partial class Command
         catch (NotSupportedException ex)
         {
             throw new NotSupportedException(
-                "Cannot start a process using the provided credentials. " +
-                "Setting custom domain, password, or loading user profile is only supported on Windows.",
+                "Cannot start a process using the provided credentials. "
+                    + "Setting custom domain, password, or loading user profile is only supported on Windows.",
                 ex
             );
         }
@@ -132,13 +134,15 @@ public partial class Command
 
     private async Task PipeStandardInputAsync(
         ProcessEx process,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         await using (process.StandardInput.ToAsyncDisposable())
         {
             try
             {
-                await StandardInputPipe.CopyToAsync(process.StandardInput, cancellationToken)
+                await StandardInputPipe
+                    .CopyToAsync(process.StandardInput, cancellationToken)
                     // Some streams do not support cancellation, so we add a fallback that
                     // drops the task and returns early.
                     // This is important with stdin because the process might finish before
@@ -152,30 +156,32 @@ public partial class Command
             // stdin to complete successfully.
             // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
             // We also can't rely on process.HasExited here because of potential race conditions.
-            catch (IOException ex) when (ex.GetType() == typeof(IOException))
-            {
-            }
+            catch (IOException ex) when (ex.GetType() == typeof(IOException)) { }
         }
     }
 
     private async Task PipeStandardOutputAsync(
         ProcessEx process,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         await using (process.StandardOutput.ToAsyncDisposable())
         {
-            await StandardOutputPipe.CopyFromAsync(process.StandardOutput, cancellationToken)
+            await StandardOutputPipe
+                .CopyFromAsync(process.StandardOutput, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 
     private async Task PipeStandardErrorAsync(
         ProcessEx process,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         await using (process.StandardError.ToAsyncDisposable())
         {
-            await StandardErrorPipe.CopyFromAsync(process.StandardError, cancellationToken)
+            await StandardErrorPipe
+                .CopyFromAsync(process.StandardError, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
@@ -183,7 +189,8 @@ public partial class Command
     private async Task<CommandResult> ExecuteAsync(
         ProcessEx process,
         CancellationToken forcefulCancellationToken = default,
-        CancellationToken gracefulCancellationToken = default)
+        CancellationToken gracefulCancellationToken = default
+    )
     {
         using var _ = process;
 
@@ -193,17 +200,24 @@ public partial class Command
         // exits, but it's theoretically possible that an attempt to kill the process may fail,
         // so we need a fallback.
         using var waitTimeoutCts = new CancellationTokenSource();
-        await using var _1 = forcefulCancellationToken.Register(() =>
-            // ReSharper disable once AccessToDisposedClosure
-            waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
-        ).ToAsyncDisposable();
+        await using var _1 = forcefulCancellationToken
+            .Register(
+                () =>
+                    // ReSharper disable once AccessToDisposedClosure
+                    waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
+            )
+            .ToAsyncDisposable();
 
         // Additional cancellation for the stdin pipe in case the process exits without fully exhausting it
-        using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken);
+        using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(
+            forcefulCancellationToken
+        );
 
         // Bind user-provided cancellation tokens to the process
         await using var _2 = forcefulCancellationToken.Register(process.Kill).ToAsyncDisposable();
-        await using var _3 = gracefulCancellationToken.Register(process.Interrupt).ToAsyncDisposable();
+        await using var _3 = gracefulCancellationToken
+            .Register(process.Interrupt)
+            .ToAsyncDisposable();
 
         // Start piping streams in the background
         var pipingTask = Task.WhenAll(
@@ -230,26 +244,25 @@ public partial class Command
         }
         // Swallow exceptions caused by internal and user-provided cancellations,
         // because we have a separate mechanism for handling them below.
-        catch (OperationCanceledException ex) when (
-            ex.CancellationToken == forcefulCancellationToken ||
-            ex.CancellationToken == gracefulCancellationToken ||
-            ex.CancellationToken == waitTimeoutCts.Token ||
-            ex.CancellationToken == stdInCts.Token)
-        {
-        }
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == forcefulCancellationToken
+                || ex.CancellationToken == gracefulCancellationToken
+                || ex.CancellationToken == waitTimeoutCts.Token
+                || ex.CancellationToken == stdInCts.Token
+            ) { }
 
         // Throw if forceful cancellation was requested.
         // This needs to be checked first because it effectively overrides graceful cancellation
         // by outright killing the process, even if graceful cancellation was requested earlier.
         forcefulCancellationToken.ThrowIfCancellationRequested(
-            "Command execution canceled. " +
-            $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated."
+            "Command execution canceled. "
+                + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated."
         );
 
         // Throw if graceful cancellation was requested
         gracefulCancellationToken.ThrowIfCancellationRequested(
-            "Command execution canceled. " +
-            $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated."
+            "Command execution canceled. "
+                + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated."
         );
 
         // Validate the exit code if required
@@ -269,11 +282,7 @@ public partial class Command
             );
         }
 
-        return new CommandResult(
-            process.ExitCode,
-            process.StartTime,
-            process.ExitTime
-        );
+        return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
     }
 
     /// <summary>
@@ -285,7 +294,8 @@ public partial class Command
     // TODO: (breaking change) use optional parameters and remove the other overload
     public CommandTask<CommandResult> ExecuteAsync(
         CancellationToken forcefulCancellationToken,
-        CancellationToken gracefulCancellationToken)
+        CancellationToken gracefulCancellationToken
+    )
     {
         var process = new ProcessEx(CreateStartInfo());
 

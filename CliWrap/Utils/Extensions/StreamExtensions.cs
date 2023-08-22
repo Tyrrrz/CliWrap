@@ -14,16 +14,22 @@ internal static class StreamExtensions
         this Stream source,
         Stream destination,
         bool autoFlush,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
         while (true)
         {
-            var bytesRead = await source.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
+            var bytesRead = await source
+                .ReadAsync(buffer.Memory, cancellationToken)
+                .ConfigureAwait(false);
+
             if (bytesRead <= 0)
                 break;
 
-            await destination.WriteAsync(buffer.Memory[..bytesRead], cancellationToken).ConfigureAwait(false);
+            await destination
+                .WriteAsync(buffer.Memory[..bytesRead], cancellationToken)
+                .ConfigureAwait(false);
 
             if (autoFlush)
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -32,7 +38,8 @@ internal static class StreamExtensions
 
     public static async IAsyncEnumerable<string> ReadAllLinesAsync(
         this StreamReader reader,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         // We could use reader.ReadLineAsync() and loop on it, but that method
         // only supports cancellation on .NET 7+ and it's impossible to polyfill
@@ -50,7 +57,9 @@ internal static class StreamExtensions
         var isLastCaretReturn = false;
         while (true)
         {
-            var charsRead = await reader.ReadAsync(buffer.Memory, cancellationToken).ConfigureAwait(false);
+            var charsRead = await reader
+                .ReadAsync(buffer.Memory, cancellationToken)
+                .ConfigureAwait(false);
             if (charsRead <= 0)
                 break;
 

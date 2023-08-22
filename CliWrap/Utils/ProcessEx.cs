@@ -12,7 +12,8 @@ namespace CliWrap.Utils;
 internal class ProcessEx : IDisposable
 {
     private readonly Process _nativeProcess;
-    private readonly TaskCompletionSource<object?> _exitTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource<object?> _exitTcs =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public int Id => _nativeProcess.Id;
 
@@ -58,8 +59,8 @@ internal class ProcessEx : IDisposable
             if (!_nativeProcess.Start())
             {
                 throw new InvalidOperationException(
-                    $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. " +
-                    "Target file is not an executable or lacks execute permissions."
+                    $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
+                        + "Target file is not an executable or lacks execute permissions."
                 );
             }
 
@@ -68,8 +69,8 @@ internal class ProcessEx : IDisposable
         catch (Win32Exception ex)
         {
             throw new Win32Exception(
-                $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. " +
-                "Target file or working directory doesn't exist, or the provided credentials are invalid.",
+                $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
+                    + "Target file or working directory doesn't exist, or the provided credentials are invalid.",
                 ex
             );
         }
@@ -92,8 +93,10 @@ internal class ProcessEx : IDisposable
                 }
 
                 // On Unix, we can just send the signal to the process directly
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                if (
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                    || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                )
                 {
                     return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
                 }
@@ -138,7 +141,11 @@ internal class ProcessEx : IDisposable
 
     public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)
     {
-        await using (cancellationToken.Register(() => _exitTcs.TrySetCanceled(cancellationToken)).ToAsyncDisposable())
+        await using (
+            cancellationToken
+                .Register(() => _exitTcs.TrySetCanceled(cancellationToken))
+                .ToAsyncDisposable()
+        )
             await _exitTcs.Task.ConfigureAwait(false);
     }
 

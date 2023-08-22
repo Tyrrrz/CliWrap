@@ -25,7 +25,8 @@ public class CommandExecutionException : CliWrapException
         ICommandConfiguration command,
         int exitCode,
         string message,
-        Exception? innerException)
+        Exception? innerException
+    )
         : base(message, innerException)
     {
         Command = command;
@@ -37,11 +38,6 @@ public class CommandExecutionException : CliWrapException
     /// </summary>
     // TODO: (breaking change) remove in favor of an optional parameter in the constructor above
     [ExcludeFromCodeCoverage]
-    public CommandExecutionException(
-        ICommandConfiguration command,
-        int exitCode,
-        string message)
-        : this(command, exitCode, message, null)
-    {
-    }
+    public CommandExecutionException(ICommandConfiguration command, int exitCode, string message)
+        : this(command, exitCode, message, null) { }
 }

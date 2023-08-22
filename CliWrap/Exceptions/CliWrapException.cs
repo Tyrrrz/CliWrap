@@ -12,9 +12,7 @@ public abstract class CliWrapException : Exception
     /// Initializes an instance of <see cref="CliWrapException" />.
     /// </summary>
     protected CliWrapException(string message, Exception? innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     /// <summary>
     /// Initializes an instance of <see cref="CliWrapException" />.
@@ -22,7 +20,5 @@ public abstract class CliWrapException : Exception
     // TODO: (breaking change) remove in favor of an optional parameter in the constructor above
     [ExcludeFromCodeCoverage]
     protected CliWrapException(string message)
-        : this(message, null)
-    {
-    }
+        : this(message, null) { }
 }

@@ -60,5 +60,6 @@ public partial class CommandTask<TResult>
     /// <summary>
     /// Casts the command task into a regular task.
     /// </summary>
-    public static implicit operator Task<TResult>(CommandTask<TResult> commandTask) => commandTask.Task;
+    public static implicit operator Task<TResult>(CommandTask<TResult> commandTask) =>
+        commandTask.Task;
 }
