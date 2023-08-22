@@ -15,9 +15,7 @@ public class EventStreamSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(
-                a => a.Add("generate text").Add("--target").Add("all").Add("--lines").Add(100)
-            );
+            .WithArguments(new[] { "generate text", "--target", "all", "--lines", "100" });
 
         // Act
         var events = new List<CommandEvent>();
@@ -38,9 +36,7 @@ public class EventStreamSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(
-                a => a.Add("generate text").Add("--target").Add("all").Add("--lines").Add(100)
-            );
+            .WithArguments(new[] { "generate text", "--target", "all", "--lines", "100" });
 
         // Act
         var events = await cmd.Observe().ToArray();

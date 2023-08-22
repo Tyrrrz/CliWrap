@@ -12,7 +12,7 @@ public class BufferedSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(a => a.Add("echo").Add("Hello stdout").Add("--target").Add("stdout"));
+            .WithArguments(new[] { "echo", "Hello stdout", "--target", "stdout" });
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -27,7 +27,7 @@ public class BufferedSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(a => a.Add("echo").Add("Hello stderr").Add("--target").Add("stderr"));
+            .WithArguments(new[] { "echo", "Hello stderr", "--target", "stderr" });
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -42,9 +42,7 @@ public class BufferedSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(
-                a => a.Add("echo").Add("Hello stdout and stderr").Add("--target").Add("all")
-            );
+            .WithArguments(new[] { "echo", "Hello stdout and stderr", "--target", "all" });
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -59,9 +57,7 @@ public class BufferedSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(
-                a => a.Add("generate text").Add("--target").Add("all").Add("--length").Add(100_000)
-            );
+            .WithArguments(new[] { "generate text", "--target", "all", "--length", "100000" });
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
