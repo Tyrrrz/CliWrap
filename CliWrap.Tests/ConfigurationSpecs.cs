@@ -78,19 +78,22 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var modified = original.WithArguments(b => b
-            .Add("-a")
-            .Add("foo bar")
-            .Add("\"foo\\\\bar\"")
-            .Add(3.14)
-            .Add(new[] { "foo", "bar" })
-            .Add(new IFormattable[] { -5, 89.13 })
+        var modified = original.WithArguments(
+            b =>
+                b.Add("-a")
+                    .Add("foo bar")
+                    .Add("\"foo\\\\bar\"")
+                    .Add(3.14)
+                    .Add(new[] { "foo", "bar" })
+                    .Add(new IFormattable[] { -5, 89.13 })
         );
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
         original.Arguments.Should().NotBe(modified.Arguments);
-        modified.Arguments.Should().Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
+        modified.Arguments
+            .Should()
+            .Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
     }
 
     [Fact(Timeout = 15000)]
@@ -115,12 +118,16 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
         // Act
-        var modified = original.WithCredentials(new Credentials("domain", "username", "password", true));
+        var modified = original.WithCredentials(
+            new Credentials("domain", "username", "password", true)
+        );
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
         original.Credentials.Should().NotBe(modified.Credentials);
-        modified.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
+        modified.Credentials
+            .Should()
+            .BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
     [Fact(Timeout = 15000)]
@@ -130,17 +137,20 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
         // Act
-        var modified = original.WithCredentials(c => c
-            .SetDomain("domain")
-            .SetUserName("username")
-            .SetPassword("password")
-            .LoadUserProfile()
+        var modified = original.WithCredentials(
+            c =>
+                c.SetDomain("domain")
+                    .SetUserName("username")
+                    .SetPassword("password")
+                    .LoadUserProfile()
         );
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
         original.Credentials.Should().NotBe(modified.Credentials);
-        modified.Credentials.Should().BeEquivalentTo(new Credentials("domain", "username", "password", true));
+        modified.Credentials
+            .Should()
+            .BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
     [Fact(Timeout = 15000)]
@@ -150,20 +160,18 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
         // Act
-        var modified = original.WithEnvironmentVariables(new Dictionary<string, string?>
-        {
-            ["name"] = "value",
-            ["key"] = "door"
-        });
+        var modified = original.WithEnvironmentVariables(
+            new Dictionary<string, string?> { ["name"] = "value", ["key"] = "door" }
+        );
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
         original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
-        modified.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
-        {
-            ["name"] = "value",
-            ["key"] = "door"
-        });
+        modified.EnvironmentVariables
+            .Should()
+            .BeEquivalentTo(
+                new Dictionary<string, string?> { ["name"] = "value", ["key"] = "door" }
+            );
     }
 
     [Fact(Timeout = 15000)]
@@ -173,26 +181,27 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
         // Act
-        var modified = original.WithEnvironmentVariables(b => b
-            .Set("name", "value")
-            .Set("key", "door")
-            .Set(new Dictionary<string, string?>
-            {
-                ["zzz"] = "yyy",
-                ["aaa"] = "bbb"
-            })
+        var modified = original.WithEnvironmentVariables(
+            b =>
+                b.Set("name", "value")
+                    .Set("key", "door")
+                    .Set(new Dictionary<string, string?> { ["zzz"] = "yyy", ["aaa"] = "bbb" })
         );
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
         original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
-        modified.EnvironmentVariables.Should().BeEquivalentTo(new Dictionary<string, string?>
-        {
-            ["name"] = "value",
-            ["key"] = "door",
-            ["zzz"] = "yyy",
-            ["aaa"] = "bbb"
-        });
+        modified.EnvironmentVariables
+            .Should()
+            .BeEquivalentTo(
+                new Dictionary<string, string?>
+                {
+                    ["name"] = "value",
+                    ["key"] = "door",
+                    ["zzz"] = "yyy",
+                    ["aaa"] = "bbb"
+                }
+            );
     }
 
     [Fact(Timeout = 15000)]

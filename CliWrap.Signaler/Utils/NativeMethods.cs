@@ -15,7 +15,10 @@ internal static class NativeMethods
         public delegate bool ConsoleCtrlDelegate(uint dwCtrlEvent);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate? handlerRoutine, bool add);
+        public static extern bool SetConsoleCtrlHandler(
+            ConsoleCtrlDelegate? handlerRoutine,
+            bool add
+        );
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool GenerateConsoleCtrlEvent(uint dwCtrlEvent, uint dwProcessGroupId);

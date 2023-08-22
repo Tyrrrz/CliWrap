@@ -52,10 +52,9 @@ public class ExecutionSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(a => a
-                .Add("generate binary")
-                .Add("--target").Add("all")
-                .Add("--length").Add(100_000)
+            .WithArguments(
+                a =>
+                    a.Add("generate binary").Add("--target").Add("all").Add("--length").Add(100_000)
             );
 
         // Act & assert
@@ -72,11 +71,12 @@ public class ExecutionSpecs
 
         // Should throw synchronously
         // https://github.com/Tyrrrz/CliWrap/issues/139
-        Assert.ThrowsAny<Win32Exception>(() =>
-            // xUnit tells us to use ThrowsAnyAsync(...) instead for async methods,
-            // but we're actually interested in the sync portion of this method.
-            // So cast the result to object to avoid the warning.
-            (object)cmd.ExecuteAsync()
+        Assert.ThrowsAny<Win32Exception>(
+            () =>
+                // xUnit tells us to use ThrowsAnyAsync(...) instead for async methods,
+                // but we're actually interested in the sync portion of this method.
+                // So cast the result to object to avoid the warning.
+                (object)cmd.ExecuteAsync()
         );
     }
 }

@@ -33,9 +33,7 @@ public class GenerateTextCommand : ICommand
 
             for (var i = 0; i < Length; i++)
             {
-                buffer.Append(
-                    _allowedChars[_random.Next(0, _allowedChars.Length)]
-                );
+                buffer.Append(_allowedChars[_random.Next(0, _allowedChars.Length)]);
             }
 
             foreach (var writer in console.GetWriters(Target))

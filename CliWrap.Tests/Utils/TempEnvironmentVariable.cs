@@ -11,9 +11,7 @@ internal static class TempEnvironmentVariable
         var lastValue = Environment.GetEnvironmentVariable(name);
         Environment.SetEnvironmentVariable(name, value);
 
-        return Disposable.Create(() =>
-            Environment.SetEnvironmentVariable(name, lastValue)
-        );
+        return Disposable.Create(() => Environment.SetEnvironmentVariable(name, lastValue));
     }
 
     public static IDisposable ExtendPath(string path) =>

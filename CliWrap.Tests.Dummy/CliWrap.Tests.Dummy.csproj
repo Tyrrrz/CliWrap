@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CliFx" Version="2.3.4" />
+    <PackageReference Include="CSharpier.MsBuild" Version="0.25.0" PrivateAssets="all" />
     <PackageReference Include="PolyShim" Version="1.7.0" PrivateAssets="all" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>

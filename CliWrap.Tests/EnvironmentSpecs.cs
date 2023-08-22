@@ -31,11 +31,7 @@ public class EnvironmentSpecs
     public async Task I_can_execute_a_command_with_additional_environment_variables()
     {
         // Arrange
-        var env = new Dictionary<string, string?>
-        {
-            ["foo"] = "bar",
-            ["hello"] = "world"
-        };
+        var env = new Dictionary<string, string?> { ["foo"] = "bar", ["hello"] = "world" };
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments("print env")
@@ -45,10 +41,7 @@ public class EnvironmentSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Trim().Should().ContainAll(
-            "[foo] = bar",
-            "[hello] = world"
-        );
+        result.StandardOutput.Trim().Should().ContainAll("[foo] = bar", "[hello] = world");
     }
 
     [Fact(Timeout = 15000)]
@@ -66,24 +59,26 @@ public class EnvironmentSpecs
         {
             var cmd = Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments("print env")
-                .WithEnvironmentVariables(e => e
-                    .Set(variableToOverwrite, "overwritten")
-                    .Set(variableToUnset, null)
+                .WithEnvironmentVariables(
+                    e => e.Set(variableToOverwrite, "overwritten").Set(variableToUnset, null)
                 );
 
             // Act
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput.Trim().Should().ContainAll(
-                $"[{variableToKeep}] = keep",
-                $"[{variableToOverwrite}] = overwritten"
-            );
+            result.StandardOutput
+                .Trim()
+                .Should()
+                .ContainAll($"[{variableToKeep}] = keep", $"[{variableToOverwrite}] = overwritten");
 
-            result.StandardOutput.Trim().Should().NotContainAny(
-                $"[{variableToOverwrite}] = overwrite",
-                $"[{variableToUnset}] = unset"
-            );
+            result.StandardOutput
+                .Trim()
+                .Should()
+                .NotContainAny(
+                    $"[{variableToOverwrite}] = overwrite",
+                    $"[{variableToUnset}] = unset"
+                );
         }
     }
 }

@@ -10,10 +10,11 @@ namespace CliWrap.Tests.Dummy;
 public static class Program
 {
     // Path to the apphost
-    public static string FilePath { get; } = Path.ChangeExtension(
-        Assembly.GetExecutingAssembly().Location,
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "exe" : null
-    );
+    public static string FilePath { get; } =
+        Path.ChangeExtension(
+            Assembly.GetExecutingAssembly().Location,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "exe" : null
+        );
 
     public static async Task<int> Main(string[] args)
     {

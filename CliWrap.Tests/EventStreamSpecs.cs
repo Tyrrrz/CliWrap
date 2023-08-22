@@ -15,10 +15,8 @@ public class EventStreamSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(a => a
-                .Add("generate text")
-                .Add("--target").Add("all")
-                .Add("--lines").Add(100)
+            .WithArguments(
+                a => a.Add("generate text").Add("--target").Add("all").Add("--lines").Add(100)
             );
 
         // Act
@@ -40,10 +38,8 @@ public class EventStreamSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(a => a
-                .Add("generate text")
-                .Add("--target").Add("all")
-                .Add("--lines").Add(100)
+            .WithArguments(
+                a => a.Add("generate text").Add("--target").Add("all").Add("--lines").Add(100)
             );
 
         // Act

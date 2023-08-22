@@ -21,14 +21,14 @@ public static class Program
 
         var isSuccess =
             // Attach to the target process's console
-            NativeMethods.Windows.AttachConsole((uint) processId) &&
+            NativeMethods.Windows.AttachConsole((uint)processId)
+            &&
             // Ignore signals on ourselves so we can return a proper exit code
-            NativeMethods.Windows.SetConsoleCtrlHandler(null, true) &&
+            NativeMethods.Windows.SetConsoleCtrlHandler(null, true)
+            &&
             // Send the signal to the console
-            NativeMethods.Windows.GenerateConsoleCtrlEvent((uint) signalId, 0);
+            NativeMethods.Windows.GenerateConsoleCtrlEvent((uint)signalId, 0);
 
-        return isSuccess
-            ? 0
-            : Marshal.GetLastWin32Error();
+        return isSuccess ? 0 : Marshal.GetLastWin32Error();
     }
 }

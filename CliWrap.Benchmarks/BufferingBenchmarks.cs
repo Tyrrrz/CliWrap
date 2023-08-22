@@ -11,7 +11,8 @@ namespace CliWrap.Benchmarks;
 public class BufferingBenchmarks
 {
     private const string FilePath = "dotnet";
-    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
+    private static readonly string Args =
+        $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
 
     [Benchmark(Baseline = true)]
     public async Task<(string, string)> CliWrap()
@@ -41,8 +42,10 @@ public class BufferingBenchmarks
     [Benchmark]
     public async Task<(string, string)> ProcessX()
     {
-        var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX
-            .GetDualAsyncEnumerable(FilePath, arguments: Args);
+        var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX.GetDualAsyncEnumerable(
+            FilePath,
+            arguments: Args
+        );
 
         var stdOutTask = stdOutStream.ToTask();
         var stdErrTask = stdErrStream.ToTask();

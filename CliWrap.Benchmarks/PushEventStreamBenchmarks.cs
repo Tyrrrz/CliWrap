@@ -10,25 +10,29 @@ namespace CliWrap.Benchmarks;
 public class PushEventStreamBenchmarks
 {
     private const string FilePath = "dotnet";
-    private static readonly string Args = $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
+    private static readonly string Args =
+        $"{Tests.Dummy.Program.FilePath} generate text --lines 1000";
 
     [Benchmark(Baseline = true)]
     public async Task<int> CliWrap()
     {
         var counter = 0;
 
-        await Cli.Wrap(FilePath).WithArguments(Args).Observe().ForEachAsync(cmdEvent =>
-        {
-            switch (cmdEvent)
+        await Cli.Wrap(FilePath)
+            .WithArguments(Args)
+            .Observe()
+            .ForEachAsync(cmdEvent =>
             {
-                case StandardOutputCommandEvent:
-                    counter++;
-                    break;
-                case StandardErrorCommandEvent:
-                    counter++;
-                    break;
-            }
-        });
+                switch (cmdEvent)
+                {
+                    case StandardOutputCommandEvent:
+                        counter++;
+                        break;
+                    case StandardErrorCommandEvent:
+                        counter++;
+                        break;
+                }
+            });
 
         return counter;
     }
