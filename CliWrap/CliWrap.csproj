@@ -33,7 +33,6 @@
   <ItemGroup>
     <PackageReference Include="CSharpier.MsBuild" Version="0.25.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'net462'" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all" />
     <PackageReference Include="PolyShim" Version="1.7.0" PrivateAssets="all" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'net462'" />
