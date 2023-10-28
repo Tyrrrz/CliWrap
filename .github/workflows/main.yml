@@ -1,12 +1,28 @@
 name: main
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+    inputs:
+      package-version:
+        type: string
+        description: Package version
+        required: false
+      deploy:
+        type: boolean
+        description: Deploy package
+        required: false
+        default: false
+  push:
+  pull_request:
 
 jobs:
   main:
     uses: Tyrrrz/.github/.github/workflows/nuget.yml@master
     with:
       dotnet-version: 7.0.x
+      package-version: ${{ inputs.package-version }}
+      # Deploy only on tags by default, unless deploy is explicitly requested
+      deploy-on-tags-only: ${{ !(github.event_name == 'workflow_dispatch' && inputs.deploy) }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
