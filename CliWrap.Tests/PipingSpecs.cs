@@ -620,7 +620,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_get_an_error_if_the_pipe_source_throws_an_exception()
+    public async Task I_can_try_to_execute_a_command_and_get_an_error_if_the_pipe_source_throws_an_exception()
     {
         // Arrange
         var cmd =
@@ -632,7 +632,7 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_get_an_error_if_the_pipe_target_throws_an_exception()
+    public async Task I_can_try_to_execute_a_command_and_get_an_error_if_the_pipe_target_throws_an_exception()
     {
         // Arrange
         var cmd =
