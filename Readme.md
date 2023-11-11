@@ -325,13 +325,29 @@ var cmd = Cli.Wrap("git")
     .WithValidation(CommandResultValidation.None);
 ```
 
+If you want to throw a custom exception when the process exits with a non-zero exit code, don't disable the result validation, but instead catch the `CommandExecutionException` and rethrow it as part of your own exception.
+This way you can preserve additional information provided by the original exception, while extending it with your own context:
+
+```csharp
+try
+{
+    await Cli.Wrap("git").ExecuteAsync();
+}
+catch (CommandExecutionException ex)
+{
+    // Re-throw the original exception to preserve additional information
+    // about the command that failed (exit code, arguments, etc.).
+    throw new MyException("Failed to run the git command-line tool.", ex);
+}
+```
+
 #### `WithStandardInputPipe(...)`
 
 Sets the pipe source that will be used for the standard _input_ stream of the process.
 
 **Default**: `PipeSource.Null`.
 
-_Read more about this method in the [piping section](#piping)._
+Read more about this method in the [piping section](#piping).
 
 #### `WithStandardOutputPipe(...)`
 
@@ -339,7 +355,7 @@ Sets the pipe target that will be used for the standard _output_ stream of the p
 
 **Default**: `PipeTarget.Null`.
 
-_Read more about this method in the [piping section](#piping)._
+Read more about this method in the [piping section](#piping).
 
 #### `WithStandardErrorPipe(...)`
 
@@ -347,7 +363,7 @@ Sets the pipe target that will be used for the standard _error_ stream of the pr
 
 **Default**: `PipeTarget.Null`.
 
-_Read more about this method in the [piping section](#piping)._
+Read more about this method in the [piping section](#piping).
 
 ### Piping
 
