@@ -185,6 +185,8 @@ var cmd = Cli.Wrap("git")
 ```
 
 ```csharp
+var forcePush = true;
+
 var cmd = Cli.Wrap("git")
     // Arguments can also be constructed in an imperative fashion.
     // Equivalent to: `git push --force`
@@ -236,6 +238,16 @@ Sets additional environment variables exposed to the child process.
 
 **Examples**:
 
+- Set environment variables using a builder:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithEnvironmentVariables(env => env
+        .Set("GIT_AUTHOR_NAME", "John")
+        .Set("GIT_AUTHOR_EMAIL", "john@email.com")
+    );
+```
+
 - Set environment variables directly:
 
 ```csharp
@@ -245,16 +257,6 @@ var cmd = Cli.Wrap("git")
         ["GIT_AUTHOR_NAME"] = "John",
         ["GIT_AUTHOR_EMAIL"] = "john@email.com"
     });
-```
-
-- Set environment variables using a builder:
-
-```csharp
-var cmd = Cli.Wrap("git")
-    .WithEnvironmentVariables(env => env
-        .Set("GIT_AUTHOR_NAME", "John")
-        .Set("GIT_AUTHOR_EMAIL", "john@email.com")
-    );
 ```
 
 > **Note**:
@@ -269,18 +271,6 @@ Sets domain, name and password of the user, under whom the child process should 
 
 **Examples**:
 
-- Set credentials directly:
-
-```csharp
-var cmd = Cli.Wrap("git")
-    .WithCredentials(new Credentials(
-        domain: "some_workspace",
-        userName: "johndoe",
-        password: "securepassword123",
-        loadUserProfile: true
-    ));
-```
-
 - Set credentials using a builder:
 
 ```csharp
@@ -291,6 +281,18 @@ var cmd = Cli.Wrap("git")
        .SetPassword("securepassword123")
        .LoadUserProfile()
     );
+```
+
+- Set credentials directly:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithCredentials(new Credentials(
+        domain: "some_workspace",
+        userName: "johndoe",
+        password: "securepassword123",
+        loadUserProfile: true
+    ));
 ```
 
 > **Warning**:
@@ -683,7 +685,7 @@ forcefulCts.CancelAfter(TimeSpan.FromSeconds(10));
 // Cancel gracefully after a timeout of 7 seconds.
 // If the process takes too long to respond to graceful
 // cancellation, it will get killed by forceful cancellation
-// 3 seoncds later (as configured above).
+// 3 seconds later (as configured above).
 gracefulCts.CancelAfter(TimeSpan.FromSeconds(7));
 
 var result = await Cli.Wrap("foo").ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
@@ -695,7 +697,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 Graceful cancellation is inherently cooperative, so it's possible that the process may take too long to fulfill the request or choose to ignore it altogether.
 In the above example, this risk is mitigated by additionally scheduling a delayed forceful cancellation that prevents the command from hanging.
 
-If you are executing a command inside a method where you don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a forceful fallback:
+If you are executing a command inside a method and don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a forceful fallback:
 
 ```csharp
 public async Task GitPushAsync(CancellationToken cancellationToken = default)
