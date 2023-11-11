@@ -59,7 +59,7 @@ public class ExecutionSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public void I_cannot_execute_a_command_on_a_file_that_does_not_exist()
+    public void I_can_try_to_execute_a_command_and_get_an_error_if_the_target_file_does_not_exist()
     {
         // Arrange
         var cmd = Cli.Wrap("I_do_not_exist.exe");
