@@ -19,10 +19,9 @@ jobs:
   main:
     uses: Tyrrrz/.github/.github/workflows/nuget.yml@master
     with:
-      dotnet-version: 8.0.x
+      deploy: ${{ inputs.deploy || github.ref_type == 'tag' }}
       package-version: ${{ inputs.package-version }}
-      # Deploy only on tags by default, unless deploy is explicitly requested
-      deploy-on-tags-only: ${{ !(github.event_name == 'workflow_dispatch' && inputs.deploy) }}
+      dotnet-version: 8.0.x
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
