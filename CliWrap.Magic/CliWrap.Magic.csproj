@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>Extension for CliWrap that provides a shell-like experience for working with external command-line interfaces</Description>
+    <Description>Extension for CliWrap that provides a shell-like experience for executing commands</Description>
     <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap/tree/master/CliWrap.Magic</PackageProjectUrl>
     <PackageIcon>favicon.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

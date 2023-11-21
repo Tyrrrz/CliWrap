@@ -22,6 +22,10 @@
 **CliWrap** is a library for interacting with external command-line interfaces.
 It provides a convenient model for launching processes, redirecting input and output streams, awaiting completion, handling cancellation, and more.
 
+**Extension packages**:
+
+- [CliWrap.Magic](CliWrap.Magic) — provides a shell-like experience for executing commands
+
 ## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
 
 By using this project or its source code, for any purpose and in any shape or form, you grant your **implicit agreement** to all the following statements:
