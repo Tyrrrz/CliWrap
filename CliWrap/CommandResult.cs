@@ -41,4 +41,10 @@ public class CommandResult
         StartTime = startTime;
         ExitTime = exitTime;
     }
+
+    /// <summary>
+    /// Converts the result to a boolean value indicating whether the command execution was successful.
+    /// </summary>
+    // This is only needed by CliWrap.Magic, but we can't implement this operator in another assembly
+    public static implicit operator bool(CommandResult result) => result.IsSuccess;
 }

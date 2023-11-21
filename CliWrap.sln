@@ -20,6 +20,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Benchmarks", "CliWr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Signaler", "CliWrap.Signaler\CliWrap.Signaler.csproj", "{A0E41A11-D314-45C4-890B-831385450DF8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Magic", "CliWrap.Magic\CliWrap.Magic.csproj", "{4759BBA0-54AF-438B-B858-FD550CB459D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliWrap.Magic.Tests", "CliWrap.Magic.Tests\CliWrap.Magic.Tests.csproj", "{39060B45-181E-4160-ADCF-6CEC548C2CB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +50,14 @@ Global
 		{A0E41A11-D314-45C4-890B-831385450DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0E41A11-D314-45C4-890B-831385450DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0E41A11-D314-45C4-890B-831385450DF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4759BBA0-54AF-438B-B858-FD550CB459D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4759BBA0-54AF-438B-B858-FD550CB459D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4759BBA0-54AF-438B-B858-FD550CB459D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4759BBA0-54AF-438B-B858-FD550CB459D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39060B45-181E-4160-ADCF-6CEC548C2CB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39060B45-181E-4160-ADCF-6CEC548C2CB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39060B45-181E-4160-ADCF-6CEC548C2CB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39060B45-181E-4160-ADCF-6CEC548C2CB8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
