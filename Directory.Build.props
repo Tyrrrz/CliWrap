@@ -16,4 +16,13 @@
     <Nullable>annotations</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Authors>$(Company)</Authors>
+    <Description>Library for interacting with external command-line interfaces</Description>
+    <PackageTags>yshell pipe command line executable interface wrapper standard input output error arguments net core</PackageTags>
+    <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/Tyrrrz/CliWrap/blob/master/Changelog.md</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
 </Project>

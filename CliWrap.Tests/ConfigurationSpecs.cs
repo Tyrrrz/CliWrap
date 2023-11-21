@@ -91,7 +91,8 @@ public class ConfigurationSpecs
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
         original.Arguments.Should().NotBe(modified.Arguments);
-        modified.Arguments
+        modified
+            .Arguments
             .Should()
             .Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
     }
@@ -125,7 +126,8 @@ public class ConfigurationSpecs
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
         original.Credentials.Should().NotBe(modified.Credentials);
-        modified.Credentials
+        modified
+            .Credentials
             .Should()
             .BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
@@ -148,7 +150,8 @@ public class ConfigurationSpecs
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
         original.Credentials.Should().NotBe(modified.Credentials);
-        modified.Credentials
+        modified
+            .Credentials
             .Should()
             .BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
@@ -167,7 +170,8 @@ public class ConfigurationSpecs
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
         original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
-        modified.EnvironmentVariables
+        modified
+            .EnvironmentVariables
             .Should()
             .BeEquivalentTo(
                 new Dictionary<string, string?> { ["name"] = "value", ["key"] = "door" }
@@ -191,7 +195,8 @@ public class ConfigurationSpecs
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
         original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
-        modified.EnvironmentVariables
+        modified
+            .EnvironmentVariables
             .Should()
             .BeEquivalentTo(
                 new Dictionary<string, string?>

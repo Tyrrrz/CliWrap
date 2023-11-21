@@ -66,7 +66,8 @@ internal class SimplexStream : Stream
 
         var length = Math.Min(count, _sharedBufferBytes - _sharedBufferBytesRead);
 
-        _sharedBuffer.Memory
+        _sharedBuffer
+            .Memory
             .Slice(_sharedBufferBytesRead, length)
             .CopyTo(buffer.AsMemory(offset, length));
 

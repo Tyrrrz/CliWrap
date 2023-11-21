@@ -67,12 +67,14 @@ public class EnvironmentSpecs
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result.StandardOutput
+            result
+                .StandardOutput
                 .Trim()
                 .Should()
                 .ContainAll($"[{variableToKeep}] = keep", $"[{variableToOverwrite}] = overwritten");
 
-            result.StandardOutput
+            result
+                .StandardOutput
                 .Trim()
                 .Should()
                 .NotContainAny(

@@ -38,10 +38,10 @@ public class PullEventStreamBenchmarks
     {
         var counter = 0;
 
-        var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX.GetDualAsyncEnumerable(
-            FilePath,
-            arguments: Args
-        );
+        var (_, stdOutStream, stdErrStream) = Cysharp
+            .Diagnostics
+            .ProcessX
+            .GetDualAsyncEnumerable(FilePath, arguments: Args);
 
         var consumeStdOutTask = Task.Run(async () =>
         {

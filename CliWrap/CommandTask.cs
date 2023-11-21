@@ -58,7 +58,7 @@ public partial class CommandTask<TResult> : IDisposable
 public partial class CommandTask<TResult>
 {
     /// <summary>
-    /// Casts the command task into a regular task.
+    /// Converts the command task into a regular task.
     /// </summary>
     public static implicit operator Task<TResult>(CommandTask<TResult> commandTask) =>
         commandTask.Task;

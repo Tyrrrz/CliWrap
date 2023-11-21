@@ -42,10 +42,10 @@ public class BufferingBenchmarks
     [Benchmark]
     public async Task<(string, string)> ProcessX()
     {
-        var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX.GetDualAsyncEnumerable(
-            FilePath,
-            arguments: Args
-        );
+        var (_, stdOutStream, stdErrStream) = Cysharp
+            .Diagnostics
+            .ProcessX
+            .GetDualAsyncEnumerable(FilePath, arguments: Args);
 
         var stdOutTask = stdOutStream.ToTask();
         var stdErrTask = stdErrStream.ToTask();

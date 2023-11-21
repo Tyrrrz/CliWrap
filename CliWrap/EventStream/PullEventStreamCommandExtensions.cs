@@ -70,15 +70,17 @@ public static partial class EventStreamCommandExtensions
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
         // Close the channel once the command completes, so that ReceiveAsync() can finish
-        _ = commandTask.Task.ContinueWith(
-            async _ =>
-                // ReSharper disable once AccessToDisposedClosure
-                await channel
-                    .ReportCompletionAsync(forcefulCancellationToken)
-                    .ConfigureAwait(false),
-            // Run the continuation even if the parent task failed
-            TaskContinuationOptions.None
-        );
+        _ = commandTask
+            .Task
+            .ContinueWith(
+                async _ =>
+                    // ReSharper disable once AccessToDisposedClosure
+                    await channel
+                        .ReportCompletionAsync(forcefulCancellationToken)
+                        .ConfigureAwait(false),
+                // Run the continuation even if the parent task failed
+                TaskContinuationOptions.None
+            );
 
         await foreach (
             var cmdEvent in channel.ReceiveAsync(forcefulCancellationToken).ConfigureAwait(false)
