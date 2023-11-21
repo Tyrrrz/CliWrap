@@ -19,6 +19,7 @@ public class ExecutionSpecs
 
         // Assert
         result.ExitCode.Should().Be(0);
+        result.IsSuccess.Should().BeTrue();
         result.RunTime.Should().BeGreaterThan(TimeSpan.Zero);
     }
 

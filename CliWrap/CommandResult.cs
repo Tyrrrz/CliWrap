@@ -13,6 +13,11 @@ public class CommandResult
     public int ExitCode { get; }
 
     /// <summary>
+    /// Whether the command execution was successful (i.e. exit code is zero).
+    /// </summary>
+    public bool IsSuccess => ExitCode == 0;
+
+    /// <summary>
     /// Time at which the command started executing.
     /// </summary>
     public DateTimeOffset StartTime { get; }

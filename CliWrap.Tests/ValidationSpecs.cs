@@ -61,5 +61,6 @@ public class ValidationSpecs
 
         // Assert
         result.ExitCode.Should().Be(1);
+        result.IsSuccess.Should().BeFalse();
     }
 }
