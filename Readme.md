@@ -79,6 +79,7 @@ var result = await Cli.Wrap("path/to/exe")
     .ExecuteAsync();
 
 // Result contains:
+// -- result.IsSuccess       (bool)
 // -- result.ExitCode        (int)
 // -- result.StartTime       (DateTimeOffset)
 // -- result.ExitTime        (DateTimeOffset)
@@ -132,6 +133,7 @@ var result = await Cli.Wrap("path/to/exe")
     .ExecuteBufferedAsync();
 
 // Result contains:
+// -- result.IsSuccess       (bool)
 // -- result.StandardOutput  (string)
 // -- result.StandardError   (string)
 // -- result.ExitCode        (int)
