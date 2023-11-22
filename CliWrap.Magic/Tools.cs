@@ -1,25 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using CliWrap.Magic.Contexts;
-using Contextual;
+using System.IO;
+using CliWrap.Magic.Utils;
 
 namespace CliWrap.Magic;
 
 /// <summary>
 /// Utility methods for working with the shell environment.
 /// </summary>
-public static class Tools
+public static partial class Tools
 {
     /// <summary>
     /// Creates a new command that targets the specified command-line executable, batch file, or script.
     /// </summary>
     public static Command Run(string targetFilePath) =>
         Cli.Wrap(targetFilePath)
-            .WithWorkingDirectory(Context.Use<WorkingDirectoryContext>().Path)
-            .WithEnvironmentVariables(Context.Use<EnvironmentVariablesContext>().Variables)
-            .WithStandardInputPipe(Context.Use<StandardInputPipeContext>().Pipe)
-            .WithStandardOutputPipe(Context.Use<StandardOutputPipeContext>().Pipe)
-            .WithStandardErrorPipe(Context.Use<StandardErrorPipeContext>().Pipe);
+            .WithStandardInputPipe(DefaultStandardInputPipe)
+            .WithStandardOutputPipe(DefaultStandardOutputPipe)
+            .WithStandardErrorPipe(DefaultStandardErrorPipe);
+
+    /// <summary>
+    /// Creates a new command that targets the specified command-line executable, batch file, or script,
+    /// with the provided command-line arguments.
+    /// </summary>
+    public static Command Run(string targetFilePath, string arguments) =>
+        Run(targetFilePath).WithArguments(arguments);
 
     /// <summary>
     /// Creates a new command that targets the specified command-line executable, batch file, or script,
@@ -32,53 +37,62 @@ public static class Tools
     ) => Run(targetFilePath).WithArguments(arguments, escape);
 
     /// <summary>
+    /// Gets the current working directory.
+    /// </summary>
+    public static string WorkingDirectory() => Directory.GetCurrentDirectory();
+
+    /// <summary>
     /// Changes the current working directory to the specified path.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// This method only affects commands created by <see cref="Run(string)" />.
-    /// It does not change the working directory of the current process.
-    /// </para>
-    /// <para>
-    /// In order to reset the working directory to its original value, dispose the returned object.
-    /// </para>
+    /// You can dispose the returned object to reset the path back to its previous value.
     /// </remarks>
-    public static IDisposable ChangeDirectory(string workingDirPath) =>
-        Context.Provide(new WorkingDirectoryContext(workingDirPath));
+    public static IDisposable WorkingDirectory(string path)
+    {
+        var lastPath = WorkingDirectory();
+        Directory.SetCurrentDirectory(path);
+
+        return Disposable.Create(() => Directory.SetCurrentDirectory(lastPath));
+    }
 
     /// <summary>
     /// Gets the value of the specified environment variable.
     /// </summary>
-    /// <remarks>
-    /// This method reads environment variables both from the context created by <see cref="Environment(string, string?)" />,
-    /// as well as from the current process.
-    /// </remarks>
     public static string? Environment(string name) =>
-        Context.Use<EnvironmentVariablesContext>().Variables.TryGetValue(name, out var value)
-            ? value
-            : System.Environment.GetEnvironmentVariable(name);
+        System.Environment.GetEnvironmentVariable(name);
 
     /// <summary>
     /// Sets the value of the specified environment variable.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// This method only affects commands created by <see cref="Run(string)" />.
-    /// It does not change the environment variables of the current process.
-    /// </para>
-    /// <para>
-    /// In order to reset the environment variables to their original state, dispose the returned object.
-    /// </para>
+    /// You can dispose the returned object to reset the environment variable back to its previous value.
     /// </remarks>
     public static IDisposable Environment(string name, string? value)
     {
-        var variables = new Dictionary<string, string?>(StringComparer.Ordinal);
+        var lastValue = System.Environment.GetEnvironmentVariable(name);
+        System.Environment.SetEnvironmentVariable(name, value);
 
-        foreach (var (lastKey, lastValue) in Context.Use<EnvironmentVariablesContext>().Variables)
-            variables[lastKey] = lastValue;
-
-        variables[name] = value;
-
-        return Context.Provide(new EnvironmentVariablesContext(variables));
+        return Disposable.Create(() => System.Environment.SetEnvironmentVariable(name, lastValue));
     }
+}
+
+public partial class Tools
+{
+    /// <summary>
+    /// Default standard input pipe used for commands created by <see cref="Run(string)" />.
+    /// </summary>
+    public static PipeSource DefaultStandardInputPipe { get; set; } =
+        PipeSource.FromStream(Console.OpenStandardInput());
+
+    /// <summary>
+    /// Default standard output pipe used for commands created by <see cref="Run(string)" />.
+    /// </summary>
+    public static PipeTarget DefaultStandardOutputPipe { get; set; } =
+        PipeTarget.ToStream(Console.OpenStandardOutput());
+
+    /// <summary>
+    /// Default standard error pipe used for commands created by <see cref="Run(string)" />.
+    /// </summary>
+    public static PipeTarget DefaultStandardErrorPipe { get; set; } =
+        PipeTarget.ToStream(Console.OpenStandardError());
 }

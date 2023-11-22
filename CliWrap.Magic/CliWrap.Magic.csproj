@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <PackageReference Include="CSharpier.MsBuild" Version="0.26.2" PrivateAssets="all" />
-    <PackageReference Include="Contextual" Version="1.0.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="PolyShim" Version="1.8.0" PrivateAssets="all" />
   </ItemGroup>
