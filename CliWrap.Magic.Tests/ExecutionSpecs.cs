@@ -12,7 +12,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_with_magic_and_get_the_stdout_and_stderr()
     {
         // Arrange
-        var cmd = Run(
+        var cmd = Command(
             Dummy.Program.FilePath,
             new[] { "echo", "Hello stdout and stderr", "--target", "all" }
         );

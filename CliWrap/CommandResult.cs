@@ -5,7 +5,7 @@ namespace CliWrap;
 /// <summary>
 /// Result of a command execution.
 /// </summary>
-public partial class CommandResult
+public class CommandResult
 {
     /// <summary>
     /// Exit code set by the underlying process.
@@ -41,18 +41,4 @@ public partial class CommandResult
         StartTime = startTime;
         ExitTime = exitTime;
     }
-}
-
-// This stuff is only needed by CliWrap.Magic, but we can't implement operators for this type in another assembly
-public partial class CommandResult
-{
-    /// <summary>
-    /// Converts the result to an integer value that corresponds to the <see cref="ExitCode" /> property.
-    /// </summary>
-    public static implicit operator int(CommandResult result) => result.ExitCode;
-
-    /// <summary>
-    /// Converts the result to a boolean value that corresponds to the <see cref="IsSuccess" /> property.
-    /// </summary>
-    public static implicit operator bool(CommandResult result) => result.IsSuccess;
 }

@@ -13,7 +13,7 @@ public static partial class Tools
     /// <summary>
     /// Creates a new command that targets the specified command-line executable, batch file, or script.
     /// </summary>
-    public static Command Run(string targetFilePath) =>
+    public static Command Command(string targetFilePath) =>
         Cli.Wrap(targetFilePath)
             .WithStandardInputPipe(DefaultStandardInputPipe)
             .WithStandardOutputPipe(DefaultStandardOutputPipe)
@@ -23,18 +23,18 @@ public static partial class Tools
     /// Creates a new command that targets the specified command-line executable, batch file, or script,
     /// with the provided command-line arguments.
     /// </summary>
-    public static Command Run(string targetFilePath, string arguments) =>
-        Run(targetFilePath).WithArguments(arguments);
+    public static Command Command(string targetFilePath, string arguments) =>
+        Command(targetFilePath).WithArguments(arguments);
 
     /// <summary>
     /// Creates a new command that targets the specified command-line executable, batch file, or script,
     /// with the provided command-line arguments.
     /// </summary>
-    public static Command Run(
+    public static Command Command(
         string targetFilePath,
         IEnumerable<string> arguments,
         bool escape = true
-    ) => Run(targetFilePath).WithArguments(arguments, escape);
+    ) => Command(targetFilePath).WithArguments(arguments, escape);
 
     /// <summary>
     /// Gets the current working directory.
@@ -79,19 +79,19 @@ public static partial class Tools
 public partial class Tools
 {
     /// <summary>
-    /// Default standard input pipe used for commands created by <see cref="Run(string)" />.
+    /// Default standard input pipe used for commands created by <see cref="Command" />.
     /// </summary>
     public static PipeSource DefaultStandardInputPipe { get; set; } =
         PipeSource.FromStream(Console.OpenStandardInput());
 
     /// <summary>
-    /// Default standard output pipe used for commands created by <see cref="Run(string)" />.
+    /// Default standard output pipe used for commands created by <see cref="Command" />.
     /// </summary>
     public static PipeTarget DefaultStandardOutputPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardOutput());
 
     /// <summary>
-    /// Default standard error pipe used for commands created by <see cref="Run(string)" />.
+    /// Default standard error pipe used for commands created by <see cref="Command" />.
     /// </summary>
     public static PipeTarget DefaultStandardErrorPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardError());
