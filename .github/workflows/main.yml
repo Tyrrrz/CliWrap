@@ -20,7 +20,7 @@ jobs:
     uses: Tyrrrz/.github/.github/workflows/nuget.yml@master
     with:
       deploy: ${{ inputs.deploy || github.ref_type == 'tag' }}
-      package-version: ${{ inputs.package-version }}
+      package-version: ${{ inputs.package-version || (github.ref_type == 'tag' && github.ref_name) || '0.0.0' }}
       dotnet-version: 8.0.x
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
