@@ -5,7 +5,7 @@ using Xunit;
 
 namespace CliWrap.Tests;
 
-public class BufferedSpecs
+public class BufferingSpecs
 {
     [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout()
