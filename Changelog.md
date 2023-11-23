@@ -1,5 +1,9 @@
 # Changelog
 
+> **Important**:
+> This changelog is no longer maintained and will be removed in the future.
+> Going forward, new versions of this package will have the corresponding release notes published on [GitHub Releases](https://github.com/Tyrrrz/CliWrap/releases).
+
 ## v3.6.4 (23-Jun-2023)
 
 - Renamed `PipeSource.FromMemory(...)` to `PipeSource.FromBytes(...)` for consistency with similar methods in the wider .NET framework. The old method is still available but marked as obsolete.

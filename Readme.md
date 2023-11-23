@@ -331,8 +331,8 @@ var cmd = Cli.Wrap("git")
     .WithValidation(CommandResultValidation.None);
 ```
 
-If you want to throw a custom exception when the process exits with a non-zero exit code, don't disable the result validation, but instead catch the `CommandExecutionException` and rethrow it as part of your own exception.
-This way you can preserve additional information provided by the original exception, while extending it with your own context:
+If you want to throw a custom exception when the process exits with a non-zero exit code, don't disable result validation, but instead catch the default `CommandExecutionException` and re-throw it inside your own exception.
+This way you can preserve the information provided by the original exception, while extending it with additional context:
 
 ```csharp
 try
