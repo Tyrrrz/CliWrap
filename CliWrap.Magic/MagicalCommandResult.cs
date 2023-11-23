@@ -29,4 +29,9 @@ public class MagicalCommandResult : BufferedCommandResult
     /// Converts the result to a boolean value that corresponds to the <see cref="CommandResult.IsSuccess" /> property.
     /// </summary>
     public static implicit operator bool(MagicalCommandResult result) => result.IsSuccess;
+
+    /// <summary>
+    /// Converts the result to a string value that corresponds to the <see cref="BufferedCommandResult.StandardOutput" /> property.
+    /// </summary>
+    public static implicit operator string(MagicalCommandResult result) => result.StandardOutput;
 }

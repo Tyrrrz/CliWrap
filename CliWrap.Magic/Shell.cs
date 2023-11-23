@@ -8,33 +8,46 @@ namespace CliWrap.Magic;
 /// <summary>
 /// Utility methods for working with the shell environment.
 /// </summary>
-public static partial class Tools
+public static class Shell
 {
     /// <summary>
-    /// Creates a new command that targets the specified command-line executable, batch file, or script.
+    /// Default standard input pipe used for commands created by <see cref="Command(string)" />.
     /// </summary>
-    public static Command Command(string targetFilePath) =>
+    public static PipeSource DefaultStandardInputPipe { get; set; } =
+        PipeSource.FromStream(Console.OpenStandardInput());
+
+    /// <summary>
+    /// Default standard output pipe used for commands created by <see cref="Command(string)" />.
+    /// </summary>
+    public static PipeTarget DefaultStandardOutputPipe { get; set; } =
+        PipeTarget.ToStream(Console.OpenStandardOutput());
+
+    /// <summary>
+    /// Default standard error pipe used for commands created by <see cref="Command(string)" />.
+    /// </summary>
+    public static PipeTarget DefaultStandardErrorPipe { get; set; } =
+        PipeTarget.ToStream(Console.OpenStandardError());
+
+    /// <summary>
+    /// Creates a new command with the specified target file path.
+    /// </summary>
+    public static Command _(string targetFilePath) =>
         Cli.Wrap(targetFilePath)
             .WithStandardInputPipe(DefaultStandardInputPipe)
             .WithStandardOutputPipe(DefaultStandardOutputPipe)
             .WithStandardErrorPipe(DefaultStandardErrorPipe);
 
     /// <summary>
-    /// Creates a new command that targets the specified command-line executable, batch file, or script,
-    /// with the provided command-line arguments.
+    /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command Command(string targetFilePath, string arguments) =>
-        Command(targetFilePath).WithArguments(arguments);
+    public static Command _(string targetFilePath, IEnumerable<string> arguments) =>
+        _(targetFilePath).WithArguments(arguments);
 
     /// <summary>
-    /// Creates a new command that targets the specified command-line executable, batch file, or script,
-    /// with the provided command-line arguments.
+    /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command Command(
-        string targetFilePath,
-        IEnumerable<string> arguments,
-        bool escape = true
-    ) => Command(targetFilePath).WithArguments(arguments, escape);
+    public static Command _(string targetFilePath, params string[] arguments) =>
+        _(targetFilePath, (IEnumerable<string>)arguments);
 
     /// <summary>
     /// Gets the current working directory.
@@ -74,25 +87,4 @@ public static partial class Tools
 
         return Disposable.Create(() => System.Environment.SetEnvironmentVariable(name, lastValue));
     }
-}
-
-public partial class Tools
-{
-    /// <summary>
-    /// Default standard input pipe used for commands created by <see cref="Command(string)" />.
-    /// </summary>
-    public static PipeSource DefaultStandardInputPipe { get; set; } =
-        PipeSource.FromStream(Console.OpenStandardInput());
-
-    /// <summary>
-    /// Default standard output pipe used for commands created by <see cref="Command(string)" />.
-    /// </summary>
-    public static PipeTarget DefaultStandardOutputPipe { get; set; } =
-        PipeTarget.ToStream(Console.OpenStandardOutput());
-
-    /// <summary>
-    /// Default standard error pipe used for commands created by <see cref="Command(string)" />.
-    /// </summary>
-    public static PipeTarget DefaultStandardErrorPipe { get; set; } =
-        PipeTarget.ToStream(Console.OpenStandardError());
 }
