@@ -79,19 +79,19 @@ public static partial class Tools
 public partial class Tools
 {
     /// <summary>
-    /// Default standard input pipe used for commands created by <see cref="Command" />.
+    /// Default standard input pipe used for commands created by <see cref="Command(string)" />.
     /// </summary>
     public static PipeSource DefaultStandardInputPipe { get; set; } =
         PipeSource.FromStream(Console.OpenStandardInput());
 
     /// <summary>
-    /// Default standard output pipe used for commands created by <see cref="Command" />.
+    /// Default standard output pipe used for commands created by <see cref="Command(string)" />.
     /// </summary>
     public static PipeTarget DefaultStandardOutputPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardOutput());
 
     /// <summary>
-    /// Default standard error pipe used for commands created by <see cref="Command" />.
+    /// Default standard error pipe used for commands created by <see cref="Command(string)" />.
     /// </summary>
     public static PipeTarget DefaultStandardErrorPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardError());
