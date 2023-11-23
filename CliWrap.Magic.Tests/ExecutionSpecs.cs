@@ -15,7 +15,7 @@ public class ExecutionSpecs
         var cmd = _(Dummy.Program.FilePath);
 
         // Act
-        var result = (int)await cmd;
+        int result = await cmd;
 
         // Assert
         result.Should().Be(0);
@@ -28,7 +28,7 @@ public class ExecutionSpecs
         var cmd = _(Dummy.Program.FilePath);
 
         // Act
-        var result = (bool)await cmd;
+        bool result = await cmd;
 
         // Assert
         result.Should().BeTrue();
@@ -41,7 +41,7 @@ public class ExecutionSpecs
         var cmd = _(Dummy.Program.FilePath, "echo", "Hello stdout");
 
         // Act
-        var result = (string)await cmd;
+        string result = await cmd;
 
         // Assert
         result.Trim().Should().Be("Hello stdout");
