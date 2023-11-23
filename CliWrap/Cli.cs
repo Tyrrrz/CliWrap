@@ -1,7 +1,6 @@
-﻿namespace CliWrap;
+﻿using System.Runtime.InteropServices;
 
-// The only reason this entry point exists is because it looks cool to have
-// an expression that matches the library name -- Cli.Wrap().
+namespace CliWrap;
 
 /// <summary>
 /// Main entry point for creating new commands.
@@ -12,4 +11,16 @@ public static class Cli
     /// Creates a new command that targets the specified command-line executable, batch file, or script.
     /// </summary>
     public static Command Wrap(string targetFilePath) => new(targetFilePath);
+
+    /// <summary>
+    /// Creates a new command that wraps the default system shell with the specified input.
+    /// </summary>
+    /// <remarks>
+    /// On Windows, it uses <c>cmd.exe</c>.
+    /// On Linux and macOS, it uses <c>/bin/sh</c>.
+    /// </remarks>
+    public static Command WrapShell(string input) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Wrap("cmd.exe").WithArguments(new[] { "/c", input })
+            : Wrap("/bin/sh").WithArguments(new[] { "-c", input });
 }
