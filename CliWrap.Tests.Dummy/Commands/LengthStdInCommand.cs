@@ -4,16 +4,12 @@ using System.Threading.Tasks;
 using CliFx;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
-using CliWrap.Tests.Dummy.Commands.Shared;
 
 namespace CliWrap.Tests.Dummy.Commands;
 
-[Command("print length stdin")]
-public class PrintStdInLengthCommand : ICommand
+[Command("length stdin")]
+public class LengthStdInCommand : ICommand
 {
-    [CommandOption("target")]
-    public OutputTarget Target { get; init; } = OutputTarget.StdOut;
-
     public async ValueTask ExecuteAsync(IConsole console)
     {
         using var buffer = MemoryPool<byte>.Shared.Rent(81920);
@@ -28,7 +24,6 @@ public class PrintStdInLengthCommand : ICommand
             totalBytesRead += bytesRead;
         }
 
-        foreach (var writer in console.GetWriters(Target))
-            await writer.WriteLineAsync(totalBytesRead.ToString(CultureInfo.InvariantCulture));
+        await console.Output.WriteLineAsync(totalBytesRead.ToString(CultureInfo.InvariantCulture));
     }
 }

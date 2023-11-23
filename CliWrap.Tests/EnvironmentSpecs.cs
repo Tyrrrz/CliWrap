@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils;
+using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
 using Xunit;
 
@@ -17,7 +18,7 @@ public class EnvironmentSpecs
         using var dir = TempDir.Create();
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments("print cwd")
+            .WithArguments("cwd")
             .WithWorkingDirectory(dir.Path);
 
         // Act
@@ -34,14 +35,14 @@ public class EnvironmentSpecs
         var env = new Dictionary<string, string?> { ["foo"] = "bar", ["hello"] = "world" };
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments("print env")
+            .WithArguments(new[] { "env", "foo", "hello" })
             .WithEnvironmentVariables(env);
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Trim().Should().ContainAll("[foo] = bar", "[hello] = world");
+        result.StandardOutput.Should().ConsistOfLines("bar", "world");
     }
 
     [Fact(Timeout = 15000)]
@@ -58,7 +59,9 @@ public class EnvironmentSpecs
         using (TempEnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
         {
             var cmd = Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments("print env")
+                .WithArguments(
+                    new[] { "env", variableToKeep, variableToOverwrite, variableToUnset }
+                )
                 .WithEnvironmentVariables(
                     e => e.Set(variableToOverwrite, "overwritten").Set(variableToUnset, null)
                 );
@@ -67,20 +70,7 @@ public class EnvironmentSpecs
             var result = await cmd.ExecuteBufferedAsync();
 
             // Assert
-            result
-                .StandardOutput
-                .Trim()
-                .Should()
-                .ContainAll($"[{variableToKeep}] = keep", $"[{variableToOverwrite}] = overwritten");
-
-            result
-                .StandardOutput
-                .Trim()
-                .Should()
-                .NotContainAny(
-                    $"[{variableToOverwrite}] = overwrite",
-                    $"[{variableToUnset}] = unset"
-                );
+            result.StandardOutput.Should().ConsistOfLines("keep", "overwritten");
         }
     }
 }

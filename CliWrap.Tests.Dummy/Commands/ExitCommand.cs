@@ -9,7 +9,7 @@ namespace CliWrap.Tests.Dummy.Commands;
 [Command("exit")]
 public class ExitCommand : ICommand
 {
-    [CommandOption("code")]
+    [CommandParameter(0)]
     public int ExitCode { get; init; }
 
     public ValueTask ExecuteAsync(IConsole console)

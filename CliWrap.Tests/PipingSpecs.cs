@@ -129,7 +129,7 @@ public class PipingSpecs
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments(new[] { "generate binary", "--length", "100000" })
-            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("print length stdin");
+            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("length stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
@@ -147,7 +147,7 @@ public class PipingSpecs
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin")
             | Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments(new[] { "echo stdin", "--length", "5" })
-            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("print length stdin");
+            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("length stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();

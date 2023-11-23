@@ -9,7 +9,7 @@ namespace CliWrap.Tests.Dummy.Commands;
 [Command("sleep")]
 public class SleepCommand : ICommand
 {
-    [CommandOption("duration")]
+    [CommandParameter(0)]
     public TimeSpan Duration { get; init; } = TimeSpan.FromSeconds(1);
 
     public async ValueTask ExecuteAsync(IConsole console)
