@@ -9,6 +9,45 @@ namespace CliWrap.Magic.Tests;
 public class ExecutionSpecs
 {
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_magic_and_get_the_exit_code()
+    {
+        // Arrange
+        var cmd = _(Dummy.Program.FilePath);
+
+        // Act
+        var result = (int)await cmd;
+
+        // Assert
+        result.Should().Be(0);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_magic_and_verify_that_it_succeeded()
+    {
+        // Arrange
+        var cmd = _(Dummy.Program.FilePath);
+
+        // Act
+        var result = (bool)await cmd;
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_magic_and_get_the_stdout()
+    {
+        // Arrange
+        var cmd = _(Dummy.Program.FilePath, "echo", "Hello stdout");
+
+        // Act
+        var result = (string)await cmd;
+
+        // Assert
+        result.Trim().Should().Be("Hello stdout");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_magic_and_get_the_stdout_and_stderr()
     {
         // Arrange
@@ -19,7 +58,7 @@ public class ExecutionSpecs
 
         // Assert
         exitCode.Should().Be(0);
-        stdOut.Should().Be("Hello stdout and stderr");
-        stdErr.Should().Be("Hello stdout and stderr");
+        stdOut.Trim().Should().Be("Hello stdout and stderr");
+        stdErr.Trim().Should().Be("Hello stdout and stderr");
     }
 }
