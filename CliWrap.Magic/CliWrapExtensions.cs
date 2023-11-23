@@ -9,21 +9,6 @@ namespace CliWrap.Magic;
 public static class CliWrapExtensions
 {
     /// <summary>
-    /// Deconstructs the result into its components.
-    /// </summary>
-    public static void Deconstruct(
-        this BufferedCommandResult result,
-        out int exitCode,
-        out string standardOutput,
-        out string standardError
-    )
-    {
-        exitCode = result.ExitCode;
-        standardOutput = result.StandardOutput;
-        standardError = result.StandardError;
-    }
-
-    /// <summary>
     /// Executes the command with magic.
     /// </summary>
     public static CommandTask<MagicalCommandResult> ExecuteMagicalAsync(this Command command) =>

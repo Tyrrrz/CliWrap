@@ -6,7 +6,7 @@ namespace CliWrap.Magic;
 /// <summary>
 /// Result of a command execution, with buffered text data from standard output and standard error streams.
 /// </summary>
-public class MagicalCommandResult : BufferedCommandResult
+public partial class MagicalCommandResult : BufferedCommandResult
 {
     /// <summary>
     /// Initializes an instance of <see cref="MagicalCommandResult" />.
@@ -20,6 +20,19 @@ public class MagicalCommandResult : BufferedCommandResult
     )
         : base(exitCode, startTime, exitTime, standardOutput, standardError) { }
 
+    /// <summary>
+    /// Deconstructs the result into its components.
+    /// </summary>
+    public void Deconstruct(out int exitCode, out string standardOutput, out string standardError)
+    {
+        exitCode = ExitCode;
+        standardOutput = StandardOutput;
+        standardError = StandardError;
+    }
+}
+
+public partial class MagicalCommandResult
+{
     /// <summary>
     /// Converts the result to an integer value that corresponds to the <see cref="CommandResult.ExitCode" /> property.
     /// </summary>
