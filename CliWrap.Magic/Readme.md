@@ -13,10 +13,10 @@
 
 ### Quick overview
 
-Add `using static CliWrap.Magic.Shell;` to your file and start writing scripts like this:
+Add `using static CliWrap.Magic.Prelude;` to your file and start writing scripts like this:
 
 ```csharp
-using static CliWrap.Magic.Shell;
+using static CliWrap.Magic.Prelude;
 
 // Create commands using the _() method, execute them simply by awaiting.
 // Check for exit code directly in if statements.
@@ -42,9 +42,10 @@ await _("git", "clone", "https://github.com/Tyrrrz/CliWrap", "--depth", 0);
 // Resolve environment variables easily with the Environment() method.
 var commit = Environment("HEAD_SHA");
 
-// Prompt the user for additional input with the Prompt() method.
-if (string.IsNullOrWhiteSpace(commit))
-    commit = Prompt("Enter commit hash");
+// Prompt the user for additional input with the ReadLine() method.
+// Check for truthy values using the IsTruthy() method.
+if (!IsTruthy(commit))
+    commit = ReadLine("Enter commit hash");
 
 // Just like with regular CliWrap, arguments are automatically
 // escaped to form a well-formed command line string.
@@ -53,12 +54,20 @@ await _("git", "checkout", commit);
 // Set environment variables using the Environment() method.
 // This returns an object that you can dispose to restore the original value.
 using (Environment("HEAD_SHA", "deadbeef"))
+{
     await _("/bin/sh", "-c", "echo $HEAD_SHA"); // deadbeef
+    
+    // You can also run commands in the default system shell directly
+    // using the Shell() method.
+    await Shell("echo $HEAD_SHA"); // deadbeef
+}
 
 // Same with the WorkingDirectory() method.
 using (WorkingDirectory("/tmp/my-script/"))
+{
     // Get the current working directory using the same method.
     var cwd = WorkingDirectory();
+}
 
 // Magic also supports CliWrap's piping syntax.
 var commits = new List<string>(); // this will contain commit hashes
