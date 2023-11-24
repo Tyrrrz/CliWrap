@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using CliWrap.Magic.Utils;
 
 namespace CliWrap.Magic;
@@ -53,14 +54,32 @@ public static class Shell
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command _(string targetFilePath, IEnumerable<FormattedToString> arguments) =>
+    public static Command _(string targetFilePath, IEnumerable<Stringish> arguments) =>
         _(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.Value)));
     
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command _(string targetFilePath, params FormattedToString[] arguments) =>
-        _(targetFilePath, (IEnumerable<FormattedToString>)arguments);
+    public static Command _(string targetFilePath, params Stringish[] arguments) =>
+        _(targetFilePath, (IEnumerable<Stringish>)arguments);
+
+    private static Command _sh(Command command) => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? Cli.Wrap("cmd").WithArguments(new[] { "/c", command.TargetFilePath, command.Arguments })
+        : Cli.Wrap("sh").WithArguments(new[] { "-c", command.TargetFilePath, command.Arguments });
+    
+    public static Command _sh(string targetFilePath) => _sh(_(targetFilePath, "-c"));
+    
+    public static Command _sh(string targetFilePath, IEnumerable<string> arguments) =>
+        _sh(_(targetFilePath).WithArguments(arguments));
+
+    public static Command _sh(string targetFilePath, params string[] arguments) =>
+        _sh(_(targetFilePath, (IEnumerable<string>)arguments));
+    
+    public static Command _sh(string targetFilePath, IEnumerable<Stringish> arguments) =>
+        _sh(_(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.Value))));
+    
+    public static Command _sh(string targetFilePath, params Stringish[] arguments) =>
+        _sh(_(targetFilePath, (IEnumerable<Stringish>)arguments));
 
     /// <summary>
     /// Gets the current working directory.
