@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CliWrap.Magic.Utils;
 
 namespace CliWrap.Magic;
@@ -48,6 +49,18 @@ public static class Shell
     /// </summary>
     public static Command _(string targetFilePath, params string[] arguments) =>
         _(targetFilePath, (IEnumerable<string>)arguments);
+    
+    /// <summary>
+    /// Creates a new command with the specified target file path and command-line arguments.
+    /// </summary>
+    public static Command _(string targetFilePath, IEnumerable<FormattedToString> arguments) =>
+        _(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.Value)));
+    
+    /// <summary>
+    /// Creates a new command with the specified target file path and command-line arguments.
+    /// </summary>
+    public static Command _(string targetFilePath, params FormattedToString[] arguments) =>
+        _(targetFilePath, (IEnumerable<FormattedToString>)arguments);
 
     /// <summary>
     /// Gets the current working directory.
@@ -87,4 +100,40 @@ public static class Shell
 
         return Disposable.Create(() => System.Environment.SetEnvironmentVariable(name, lastValue));
     }
+
+    /// <summary>
+    /// Terminates the current process with the specified exit code.
+    /// </summary>
+    public static void Exit(int exitCode = 0) => System.Environment.Exit(exitCode);
+    
+    /// <summary>
+    /// Prompt the user for input, with an optional message.
+    /// </summary>
+    public static string? Prompt(string? message = null)
+    {
+        if (!string.IsNullOrWhiteSpace(message))
+            Console.Write(message);
+        
+        return Console.ReadLine();
+    }
+    
+    /// <summary>
+    /// Writes the specified text to the standard output stream.
+    /// </summary>
+    public static void Write(string text) => Console.Write(text);
+    
+    /// <summary>
+    /// Writes the specified text to the standard output stream, followed by a line terminator.
+    /// </summary>
+    public static void WriteLine(string text) => Write(text + System.Environment.NewLine);
+    
+    /// <summary>
+    /// Writes the specified text to the standard error stream.
+    /// </summary>
+    public static void WriteError(string text) => Console.Error.Write(text);
+    
+    /// <summary>
+    /// Writes the specified text to the standard error stream, followed by a line terminator.
+    /// </summary>
+    public static void WriteErrorLine(string text) => WriteError(text + System.Environment.NewLine);
 }

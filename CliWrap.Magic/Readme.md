@@ -11,14 +11,60 @@
 
 ## Usage
 
-**CliWrap.Magic** provides a static `Shell` class that contains a various methods for creating and executing commands.
-The recommended way to use it is by statically importing the class:
+### Quick overview
+
+Add `using static CliWrap.Magic.Shell;` to your file and start writing scripts like this:
 
 ```csharp
-using CliWrap.Magic;
 using static CliWrap.Magic.Shell;
 
-// ...
+// Create commands using the _() method, execute them simply by awaiting.
+// Check for exit code directly in if statements.
+if (!await _("git"))
+{
+    WriteErrorLine("Git is not installed");
+    Exit(1);
+    return;
+}
+
+// Executing a command returns an object which has implicit conversions to:
+// - int (exit code)
+// - bool (exit code == 0)
+// - string (standard output)
+string version = await _("git", "--version"); // git version 2.43.0.windows.1
+WriteLine($"Git version: {version}");
+
+// Just like with regular CliWrap, arguments are automatically
+// escaped to form a well-formed command line string.
+// Non-string arguments of many different types can also be passed directly.
+await _("git", "clone", "https://github.com/Tyrrrz/CliWrap", "--depth", 0);
+
+// Resolve environment variables easily with the Environment() method.
+var commit = Environment("HEAD_SHA");
+
+// Prompt the user for additional input with the Prompt() method.
+if (string.IsNullOrWhiteSpace(commit))
+    commit = Prompt("Enter commit hash");
+
+// Just like with regular CliWrap, arguments are automatically
+// escaped to form a well-formed command line string.
+await _("git", "checkout", commit);
+
+// Set environment variables using the Environment() method.
+// This returns an object that you can dispose to restore the original value.
+using (Environment("HEAD_SHA", "deadbeef"))
+    await _("/bin/sh", "-c", "echo $HEAD_SHA"); // deadbeef
+
+// Same with the WorkingDirectory() method.
+using (WorkingDirectory("/tmp/my-script/"))
+    // Get the current working directory using the same method.
+    var cwd = WorkingDirectory();
+
+// Magic also supports CliWrap's piping syntax.
+var commits = new List<string>(); // this will contain commit hashes
+await (
+    _("git", "log", "--pretty=format:%H") | commits.Add
+);
 ```
 
 ### Executing commands
@@ -38,5 +84,3 @@ Piping works the same way as it does in regular **CliWrap**:
 ```csharp
 await ("standard input" | _("dotnet", "run"));
 ```
-
-### Tools
