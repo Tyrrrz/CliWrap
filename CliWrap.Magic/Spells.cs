@@ -10,7 +10,7 @@ namespace CliWrap.Magic;
 /// <summary>
 /// Utility methods for working with the shell environment.
 /// </summary>
-public static class Prelude
+public static class Spells
 {
     /// <summary>
     /// Default standard input pipe used for commands created by <see cref="Command(string)" />.

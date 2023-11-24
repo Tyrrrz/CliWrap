@@ -13,10 +13,10 @@
 
 ### Quick overview
 
-Add `using static CliWrap.Magic.Prelude;` to your file and start writing scripts like this:
+Add `using static CliWrap.Magic.Spells;` to your file and start writing scripts like this:
 
 ```csharp
-using static CliWrap.Magic.Prelude;
+using static CliWrap.Magic.Spells;
 
 // Create commands using the _() method, execute them simply by awaiting.
 // Check for exit code directly in if statements.

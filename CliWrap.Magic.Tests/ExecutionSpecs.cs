@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
-using static CliWrap.Magic.Prelude;
+using static CliWrap.Magic.Spells;
 using Dummy = CliWrap.Tests.Dummy;
 
 namespace CliWrap.Magic.Tests;
