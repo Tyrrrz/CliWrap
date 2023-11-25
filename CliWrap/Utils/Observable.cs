@@ -2,54 +2,22 @@
 
 namespace CliWrap.Utils;
 
-file class SynchronizedObserver<T> : IObserver<T>
-{
-    private readonly IObserver<T> _observer;
-    private readonly object _syncRoot;
-
-    public SynchronizedObserver(IObserver<T> observer, object? syncRoot = null)
-    {
-        _observer = observer;
-        _syncRoot = syncRoot ?? new object();
-    }
-
-    public void OnCompleted()
-    {
-        lock (_syncRoot)
-        {
-            _observer.OnCompleted();
-        }
-    }
-
-    public void OnError(Exception error)
-    {
-        lock (_syncRoot)
-        {
-            _observer.OnError(error);
-        }
-    }
-
-    public void OnNext(T value)
-    {
-        lock (_syncRoot)
-        {
-            _observer.OnNext(value);
-        }
-    }
-}
-
-file class Observable<T> : IObservable<T>
+internal class Observable<T> : IObservable<T>
 {
     private readonly Func<IObserver<T>, IDisposable> _subscribe;
 
     public Observable(Func<IObserver<T>, IDisposable> subscribe) => _subscribe = subscribe;
 
-    public IDisposable Subscribe(IObserver<T> observer) =>
-        _subscribe(new SynchronizedObserver<T>(observer));
+    public IDisposable Subscribe(IObserver<T> observer) => _subscribe(observer);
 }
 
 internal static class Observable
 {
     public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe) =>
         new Observable<T>(subscribe);
+
+    public static IObservable<T> CreateSynchronized<T>(
+        Func<IObserver<T>, IDisposable> subscribe,
+        object? syncRoot = null
+    ) => Create<T>(observer => subscribe(new SynchronizedObserver<T>(observer, syncRoot)));
 }

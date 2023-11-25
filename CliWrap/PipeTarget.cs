@@ -26,94 +26,98 @@ public abstract partial class PipeTarget
     );
 }
 
-file class AnonymousPipeTarget : PipeTarget
+public partial class PipeTarget
 {
-    private readonly Func<Stream, CancellationToken, Task> _copyFromAsync;
-
-    public AnonymousPipeTarget(Func<Stream, CancellationToken, Task> copyFromAsync) =>
-        _copyFromAsync = copyFromAsync;
-
-    public override async Task CopyFromAsync(
-        Stream origin,
-        CancellationToken cancellationToken = default
-    ) => await _copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
-}
-
-file class AggregatePipeTarget : PipeTarget
-{
-    public IReadOnlyList<PipeTarget> Targets { get; }
-
-    public AggregatePipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
-
-    public override async Task CopyFromAsync(
-        Stream origin,
-        CancellationToken cancellationToken = default
-    )
+    private class AnonymousPipeTarget : PipeTarget
     {
-        // Cancellation to abort the pipe if any of the underlying targets fail
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        private readonly Func<Stream, CancellationToken, Task> _copyFromAsync;
 
-        // Create a separate sub-stream for each target
-        var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
-        foreach (var target in Targets)
-            targetSubStreams[target] = new SimplexStream();
+        public AnonymousPipeTarget(Func<Stream, CancellationToken, Task> copyFromAsync) =>
+            _copyFromAsync = copyFromAsync;
 
-        try
+        public override async Task CopyFromAsync(
+            Stream origin,
+            CancellationToken cancellationToken = default
+        ) => await _copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
+    }
+
+    private class AggregatePipeTarget : PipeTarget
+    {
+        public IReadOnlyList<PipeTarget> Targets { get; }
+
+        public AggregatePipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
+
+        public override async Task CopyFromAsync(
+            Stream origin,
+            CancellationToken cancellationToken = default
+        )
         {
-            // Start piping in the background
-            var readingTask = Task.WhenAll(
-                targetSubStreams.Select(async targetSubStream =>
-                {
-                    var (target, subStream) = targetSubStream;
+            // Cancellation to abort the pipe if any of the underlying targets fail
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-                    try
-                    {
-                        // ReSharper disable once AccessToDisposedClosure
-                        await target.CopyFromAsync(subStream, cts.Token).ConfigureAwait(false);
-                    }
-                    catch
-                    {
-                        // Abort the operation if any of the targets fail
-                        // ReSharper disable once AccessToDisposedClosure
-                        cts.Cancel();
-
-                        throw;
-                    }
-                })
-            );
+            // Create a separate sub-stream for each target
+            var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
+            foreach (var target in Targets)
+                targetSubStreams[target] = new SimplexStream();
 
             try
             {
-                // Read from the master stream and replicate the data to each sub-stream
-                using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
-                while (true)
+                // Start piping in the background
+                var readingTask = Task.WhenAll(
+                    targetSubStreams.Select(async targetSubStream =>
+                    {
+                        var (target, subStream) = targetSubStream;
+
+                        try
+                        {
+                            // ReSharper disable once AccessToDisposedClosure
+                            await target.CopyFromAsync(subStream, cts.Token).ConfigureAwait(false);
+                        }
+                        catch
+                        {
+                            // Abort the operation if any of the targets fail
+                            // ReSharper disable once AccessToDisposedClosure
+                            cts.Cancel();
+
+                            throw;
+                        }
+                    })
+                );
+
+                try
                 {
-                    var bytesRead = await origin
-                        .ReadAsync(buffer.Memory, cts.Token)
-                        .ConfigureAwait(false);
-                    if (bytesRead <= 0)
-                        break;
-
-                    foreach (var (_, subStream) in targetSubStreams)
-                        await subStream
-                            .WriteAsync(buffer.Memory[..bytesRead], cts.Token)
+                    // Read from the master stream and replicate the data to each sub-stream
+                    using var buffer = MemoryPool<byte>.Shared.Rent(BufferSizes.Stream);
+                    while (true)
+                    {
+                        var bytesRead = await origin
+                            .ReadAsync(buffer.Memory, cts.Token)
                             .ConfigureAwait(false);
-                }
 
-                // Report that transmission is complete
-                foreach (var (_, subStream) in targetSubStreams)
-                    await subStream.ReportCompletionAsync(cts.Token).ConfigureAwait(false);
+                        if (bytesRead <= 0)
+                            break;
+
+                        foreach (var (_, subStream) in targetSubStreams)
+                            await subStream
+                                .WriteAsync(buffer.Memory[..bytesRead], cts.Token)
+                                .ConfigureAwait(false);
+                    }
+
+                    // Report that transmission is complete
+                    foreach (var (_, subStream) in targetSubStreams)
+                        await subStream.ReportCompletionAsync(cts.Token).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // Wait for all targets to finish and propagate potential exceptions
+                    await readingTask.ConfigureAwait(false);
+                }
             }
             finally
             {
-                // Wait for all targets to finish and propagate potential exceptions
-                await readingTask.ConfigureAwait(false);
+                foreach (var (_, subStream) in targetSubStreams)
+                    await subStream.ToAsyncDisposable().DisposeAsync().ConfigureAwait(false);
             }
-        }
-        finally
-        {
-            foreach (var (_, subStream) in targetSubStreams)
-                await subStream.ToAsyncDisposable().DisposeAsync().ConfigureAwait(false);
         }
     }
 }

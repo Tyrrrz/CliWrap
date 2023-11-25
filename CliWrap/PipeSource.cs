@@ -23,17 +23,20 @@ public abstract partial class PipeSource
     );
 }
 
-file class AnonymousPipeSource : PipeSource
+public partial class PipeSource
 {
-    private readonly Func<Stream, CancellationToken, Task> _copyToAsync;
+    private class AnonymousPipeSource : PipeSource
+    {
+        private readonly Func<Stream, CancellationToken, Task> _copyToAsync;
 
-    public AnonymousPipeSource(Func<Stream, CancellationToken, Task> copyToAsync) =>
-        _copyToAsync = copyToAsync;
+        public AnonymousPipeSource(Func<Stream, CancellationToken, Task> copyToAsync) =>
+            _copyToAsync = copyToAsync;
 
-    public override async Task CopyToAsync(
-        Stream destination,
-        CancellationToken cancellationToken = default
-    ) => await _copyToAsync(destination, cancellationToken).ConfigureAwait(false);
+        public override async Task CopyToAsync(
+            Stream destination,
+            CancellationToken cancellationToken = default
+        ) => await _copyToAsync(destination, cancellationToken).ConfigureAwait(false);
+    }
 }
 
 public partial class PipeSource
