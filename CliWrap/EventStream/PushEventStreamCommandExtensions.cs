@@ -28,7 +28,7 @@ public static partial class EventStreamCommandExtensions
         CancellationToken gracefulCancellationToken
     )
     {
-        return Observable.Create<CommandEvent>(observer =>
+        return Observable.CreateSynchronized<CommandEvent>(observer =>
         {
             var stdOutPipe = PipeTarget.Merge(
                 command.StandardOutputPipe,
@@ -54,6 +54,7 @@ public static partial class EventStreamCommandExtensions
                 forcefulCancellationToken,
                 gracefulCancellationToken
             );
+
             observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
             // Don't pass cancellation token to the continuation because we need it to
