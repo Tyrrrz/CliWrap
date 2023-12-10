@@ -7,12 +7,8 @@ using Xunit.Abstractions;
 
 namespace CliWrap.Tests;
 
-public class ValidationSpecs
+public class ValidationSpecs(ITestOutputHelper testOutput)
 {
-    private readonly ITestOutputHelper _testOutput;
-
-    public ValidationSpecs(ITestOutputHelper testOutput) => _testOutput = testOutput;
-
     [Fact(Timeout = 15000)]
     public async Task I_can_try_to_execute_a_command_and_get_an_error_if_it_returns_a_non_zero_exit_code()
     {
@@ -27,7 +23,7 @@ public class ValidationSpecs
         ex.ExitCode.Should().Be(1);
         ex.Command.Should().BeEquivalentTo(cmd);
 
-        _testOutput.WriteLine(ex.ToString());
+        testOutput.WriteLine(ex.ToString());
     }
 
     [Fact(Timeout = 15000)]
@@ -45,7 +41,7 @@ public class ValidationSpecs
         ex.ExitCode.Should().Be(1);
         ex.Command.Should().BeEquivalentTo(cmd);
 
-        _testOutput.WriteLine(ex.ToString());
+        testOutput.WriteLine(ex.ToString());
     }
 
     [Fact(Timeout = 15000)]

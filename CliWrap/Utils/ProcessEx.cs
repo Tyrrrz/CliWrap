@@ -9,9 +9,9 @@ using CliWrap.Utils.Extensions;
 
 namespace CliWrap.Utils;
 
-internal class ProcessEx : IDisposable
+internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
 {
-    private readonly Process _nativeProcess;
+    private readonly Process _nativeProcess = new() { StartInfo = startInfo };
     private readonly TaskCompletionSource<object?> _exitTcs =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -39,9 +39,6 @@ internal class ProcessEx : IDisposable
     public DateTimeOffset ExitTime { get; private set; }
 
     public int ExitCode => _nativeProcess.ExitCode;
-
-    public ProcessEx(ProcessStartInfo startInfo) =>
-        _nativeProcess = new Process { StartInfo = startInfo };
 
     public void Start()
     {
