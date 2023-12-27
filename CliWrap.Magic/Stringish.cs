@@ -25,7 +25,7 @@ public partial struct Stringish
     /// Converts a <see cref="string" /> value into <see cref="Stringish" />.
     /// </summary>
     public static implicit operator Stringish(string value) => new(value);
-    
+
     /// <summary>
     /// Converts a <see cref="bool" /> value into <see cref="Stringish" />.
     /// </summary>
@@ -36,7 +36,7 @@ public partial struct Stringish
     /// </summary>
     public static implicit operator Stringish(IFormattable value) =>
         new(value.ToString(null, CultureInfo.InvariantCulture));
-    
+
     /// <summary>
     /// Converts a <see cref="Stringish" /> value into <see cref="string" />.
     /// </summary>
