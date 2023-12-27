@@ -2,22 +2,16 @@
 
 namespace CliWrap.Utils;
 
-internal class SynchronizedObserver<T> : IObserver<T>
+internal class SynchronizedObserver<T>(IObserver<T> observer, object? syncRoot = null)
+    : IObserver<T>
 {
-    private readonly IObserver<T> _observer;
-    private readonly object _syncRoot;
-
-    public SynchronizedObserver(IObserver<T> observer, object? syncRoot = null)
-    {
-        _observer = observer;
-        _syncRoot = syncRoot ?? new object();
-    }
+    private readonly object _syncRoot = syncRoot ?? new object();
 
     public void OnCompleted()
     {
         lock (_syncRoot)
         {
-            _observer.OnCompleted();
+            observer.OnCompleted();
         }
     }
 
@@ -25,7 +19,7 @@ internal class SynchronizedObserver<T> : IObserver<T>
     {
         lock (_syncRoot)
         {
-            _observer.OnError(error);
+            observer.OnError(error);
         }
     }
 
@@ -33,7 +27,7 @@ internal class SynchronizedObserver<T> : IObserver<T>
     {
         lock (_syncRoot)
         {
-            _observer.OnNext(value);
+            observer.OnNext(value);
         }
     }
 }

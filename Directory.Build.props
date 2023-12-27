@@ -1,6 +1,7 @@
 <Project>
 
   <PropertyGroup>
+    <Version>0.0.0-dev</Version>
     <Company>Tyrrrz</Company>
     <Copyright>Copyright (C) Oleksii Holub</Copyright>
     <LangVersion>latest</LangVersion>

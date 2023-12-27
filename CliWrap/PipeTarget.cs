@@ -28,24 +28,18 @@ public abstract partial class PipeTarget
 
 public partial class PipeTarget
 {
-    private class AnonymousPipeTarget : PipeTarget
+    private class AnonymousPipeTarget(Func<Stream, CancellationToken, Task> copyFromAsync)
+        : PipeTarget
     {
-        private readonly Func<Stream, CancellationToken, Task> _copyFromAsync;
-
-        public AnonymousPipeTarget(Func<Stream, CancellationToken, Task> copyFromAsync) =>
-            _copyFromAsync = copyFromAsync;
-
         public override async Task CopyFromAsync(
             Stream origin,
             CancellationToken cancellationToken = default
-        ) => await _copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
+        ) => await copyFromAsync(origin, cancellationToken).ConfigureAwait(false);
     }
 
-    private class AggregatePipeTarget : PipeTarget
+    private class AggregatePipeTarget(IReadOnlyList<PipeTarget> targets) : PipeTarget
     {
-        public IReadOnlyList<PipeTarget> Targets { get; }
-
-        public AggregatePipeTarget(IReadOnlyList<PipeTarget> targets) => Targets = targets;
+        public IReadOnlyList<PipeTarget> Targets { get; } = targets;
 
         public override async Task CopyFromAsync(
             Stream origin,

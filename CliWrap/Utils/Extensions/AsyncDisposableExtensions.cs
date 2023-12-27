@@ -16,21 +16,17 @@ internal static partial class AsyncDisposableExtensions
     // - Stream class on .NET Framework 4.6.1 -> calls Dispose()
     // - Stream class on .NET Core 3.0 -> calls DisposeAsync()
     // - Stream class on .NET Standard 2.0 -> calls DisposeAsync() or Dispose(), depending on the runtime
-    private readonly struct AsyncDisposableAdapter : IAsyncDisposable
+    private readonly struct AsyncDisposableAdapter(IDisposable target) : IAsyncDisposable
     {
-        private readonly IDisposable _target;
-
-        public AsyncDisposableAdapter(IDisposable target) => _target = target;
-
         public async ValueTask DisposeAsync()
         {
-            if (_target is IAsyncDisposable asyncDisposable)
+            if (target is IAsyncDisposable asyncDisposable)
             {
                 await asyncDisposable.DisposeAsync().ConfigureAwait(false);
             }
             else
             {
-                _target.Dispose();
+                target.Dispose();
             }
         }
     }
