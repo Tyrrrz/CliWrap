@@ -55,25 +55,16 @@ public static class Spells
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command Command(string targetFilePath, IEnumerable<object> arguments) =>
-        Command(targetFilePath)
-            .WithArguments(
-                a =>
-                    a.Add(
-                        arguments.Select(
-                            x =>
-                                x is IFormattable formattable
-                                    ? formattable.ToString(null, CultureInfo.InvariantCulture)
-                                    : x.ToString()
-                        )
-                    )
-            );
+    public static Command Command(
+        string targetFilePath,
+        IEnumerable<CommandLineArgument> arguments
+    ) => Command(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.ToString())));
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command Command(string targetFilePath, params object[] arguments) =>
-        Command(targetFilePath, (IEnumerable<object>)arguments);
+    public static Command Command(string targetFilePath, params CommandLineArgument[] arguments) =>
+        Command(targetFilePath, (IEnumerable<CommandLineArgument>)arguments);
 
     private static Command Shell(Command command) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -81,15 +72,6 @@ public static class Spells
                 .WithArguments(new[] { "/c", command.TargetFilePath, command.Arguments })
             : Cli.Wrap("/bin/sh")
                 .WithArguments(new[] { "-c", command.TargetFilePath, command.Arguments });
-
-    /// <summary>
-    /// Creates a new command with the specified target file path, wrapped in the default system shell.
-    /// </summary>
-    /// <remarks>
-    /// The default system shell is determined based on the current operating system:
-    /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
-    /// </remarks>
-    public static Command Shell(string targetFilePath) => Shell(Command(targetFilePath, "-c"));
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments,
@@ -121,8 +103,13 @@ public static class Spells
     /// The default system shell is determined based on the current operating system:
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
-    public static Command Shell(string targetFilePath, IEnumerable<Stringish> arguments) =>
-        Shell(Command(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.Value))));
+    public static Command Shell(
+        string targetFilePath,
+        IEnumerable<CommandLineArgument> arguments
+    ) =>
+        Shell(
+            Command(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.ToString())))
+        );
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments,
@@ -132,8 +119,8 @@ public static class Spells
     /// The default system shell is determined based on the current operating system:
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
-    public static Command Shell(string targetFilePath, params Stringish[] arguments) =>
-        Shell(Command(targetFilePath, (IEnumerable<Stringish>)arguments));
+    public static Command Shell(string targetFilePath, params CommandLineArgument[] arguments) =>
+        Shell(Command(targetFilePath, (IEnumerable<CommandLineArgument>)arguments));
 
     /// <summary>
     /// Gets the current working directory.
