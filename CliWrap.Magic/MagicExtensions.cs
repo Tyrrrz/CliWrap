@@ -6,7 +6,7 @@ namespace CliWrap.Magic;
 /// <summary>
 /// Extensions for <see cref="CliWrap" /> types.
 /// </summary>
-public static class CliWrapExtensions
+public static class MagicExtensions
 {
     /// <summary>
     /// Executes the command with magic.

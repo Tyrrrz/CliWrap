@@ -12,7 +12,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_with_magic_and_get_the_exit_code()
     {
         // Arrange
-        var cmd = _(Dummy.Program.FilePath);
+        var cmd = Command(Dummy.Program.FilePath);
 
         // Act
         int result = await cmd;
@@ -25,7 +25,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_with_magic_and_verify_that_it_succeeded()
     {
         // Arrange
-        var cmd = _(Dummy.Program.FilePath);
+        var cmd = Command(Dummy.Program.FilePath);
 
         // Act
         bool result = await cmd;
@@ -38,7 +38,7 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_with_magic_and_get_the_stdout()
     {
         // Arrange
-        var cmd = _(Dummy.Program.FilePath, "echo", "Hello stdout");
+        var cmd = Command(Dummy.Program.FilePath, "echo", "Hello stdout");
 
         // Act
         string result = await cmd;
@@ -51,7 +51,13 @@ public class ExecutionSpecs
     public async Task I_can_execute_a_command_with_magic_and_get_the_stdout_and_stderr()
     {
         // Arrange
-        var cmd = _(Dummy.Program.FilePath, "echo", "Hello stdout and stderr", "--target", "all");
+        var cmd = Command(
+            Dummy.Program.FilePath,
+            "echo",
+            "Hello stdout and stderr",
+            "--target",
+            "all"
+        );
 
         // Act
         var (exitCode, stdOut, stdErr) = await cmd;

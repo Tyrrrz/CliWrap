@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,19 +14,19 @@ namespace CliWrap.Magic;
 public static class Spells
 {
     /// <summary>
-    /// Default standard input pipe used for commands created by <see cref="Command(string)" />.
+    /// Default standard input pipe used for commands created by <see cref="CliWrap.Command(string)" />.
     /// </summary>
     public static PipeSource DefaultStandardInputPipe { get; set; } =
         PipeSource.FromStream(Console.OpenStandardInput());
 
     /// <summary>
-    /// Default standard output pipe used for commands created by <see cref="Command(string)" />.
+    /// Default standard output pipe used for commands created by <see cref="CliWrap.Command(string)" />.
     /// </summary>
     public static PipeTarget DefaultStandardOutputPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardOutput());
 
     /// <summary>
-    /// Default standard error pipe used for commands created by <see cref="Command(string)" />.
+    /// Default standard error pipe used for commands created by <see cref="CliWrap.Command(string)" />.
     /// </summary>
     public static PipeTarget DefaultStandardErrorPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardError());
@@ -33,7 +34,7 @@ public static class Spells
     /// <summary>
     /// Creates a new command with the specified target file path.
     /// </summary>
-    public static Command _(string targetFilePath) =>
+    public static Command Command(string targetFilePath) =>
         Cli.Wrap(targetFilePath)
             .WithStandardInputPipe(DefaultStandardInputPipe)
             .WithStandardOutputPipe(DefaultStandardOutputPipe)
@@ -42,26 +43,37 @@ public static class Spells
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command _(string targetFilePath, IEnumerable<string> arguments) =>
-        _(targetFilePath).WithArguments(arguments);
+    public static Command Command(string targetFilePath, IEnumerable<string> arguments) =>
+        Command(targetFilePath).WithArguments(arguments);
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command _(string targetFilePath, params string[] arguments) =>
-        _(targetFilePath, (IEnumerable<string>)arguments);
+    public static Command Command(string targetFilePath, params string[] arguments) =>
+        Command(targetFilePath, (IEnumerable<string>)arguments);
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command _(string targetFilePath, IEnumerable<Stringish> arguments) =>
-        _(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.ToString())));
+    public static Command Command(string targetFilePath, IEnumerable<object> arguments) =>
+        Command(targetFilePath)
+            .WithArguments(
+                a =>
+                    a.Add(
+                        arguments.Select(
+                            x =>
+                                x is IFormattable formattable
+                                    ? formattable.ToString(null, CultureInfo.InvariantCulture)
+                                    : x.ToString()
+                        )
+                    )
+            );
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments.
     /// </summary>
-    public static Command _(string targetFilePath, params Stringish[] arguments) =>
-        _(targetFilePath, (IEnumerable<Stringish>)arguments);
+    public static Command Command(string targetFilePath, params object[] arguments) =>
+        Command(targetFilePath, (IEnumerable<object>)arguments);
 
     private static Command Shell(Command command) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -77,7 +89,7 @@ public static class Spells
     /// The default system shell is determined based on the current operating system:
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
-    public static Command Shell(string targetFilePath) => Shell(_(targetFilePath, "-c"));
+    public static Command Shell(string targetFilePath) => Shell(Command(targetFilePath, "-c"));
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments,
@@ -88,7 +100,7 @@ public static class Spells
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
     public static Command Shell(string targetFilePath, IEnumerable<string> arguments) =>
-        Shell(_(targetFilePath).WithArguments(arguments));
+        Shell(Command(targetFilePath).WithArguments(arguments));
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments,
@@ -99,7 +111,7 @@ public static class Spells
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
     public static Command Shell(string targetFilePath, params string[] arguments) =>
-        Shell(_(targetFilePath, (IEnumerable<string>)arguments));
+        Shell(Command(targetFilePath, (IEnumerable<string>)arguments));
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments,
@@ -110,7 +122,7 @@ public static class Spells
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
     public static Command Shell(string targetFilePath, IEnumerable<Stringish> arguments) =>
-        Shell(_(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.Value))));
+        Shell(Command(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.Value))));
 
     /// <summary>
     /// Creates a new command with the specified target file path and command-line arguments,
@@ -121,7 +133,7 @@ public static class Spells
     /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
     /// </remarks>
     public static Command Shell(string targetFilePath, params Stringish[] arguments) =>
-        Shell(_(targetFilePath, (IEnumerable<Stringish>)arguments));
+        Shell(Command(targetFilePath, (IEnumerable<Stringish>)arguments));
 
     /// <summary>
     /// Gets the current working directory.
