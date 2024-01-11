@@ -5,53 +5,13 @@ namespace CliWrap;
 /// <summary>
 /// User credentials used for starting a process.
 /// </summary>
-public partial class Credentials
+public partial class Credentials(
+    string? domain = null,
+    string? userName = null,
+    string? password = null,
+    bool loadUserProfile = false
+)
 {
-    /// <summary>
-    /// Active Directory domain used for starting the process.
-    /// </summary>
-    /// <remarks>
-    /// Only supported on Windows.
-    /// </remarks>
-    public string? Domain { get; }
-
-    /// <summary>
-    /// Username used for starting the process.
-    /// </summary>
-    public string? UserName { get; }
-
-    /// <summary>
-    /// Password used for starting the process.
-    /// </summary>
-    /// <remarks>
-    /// Only supported on Windows.
-    /// </remarks>
-    public string? Password { get; }
-
-    /// <summary>
-    /// Whether to load the user profile when starting the process.
-    /// </summary>
-    /// <remarks>
-    /// Only supported on Windows.
-    /// </remarks>
-    public bool LoadUserProfile { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="Credentials" />.
-    /// </summary>
-    public Credentials(
-        string? domain = null,
-        string? userName = null,
-        string? password = null,
-        bool loadUserProfile = false
-    )
-    {
-        Domain = domain;
-        UserName = userName;
-        Password = password;
-        LoadUserProfile = loadUserProfile;
-    }
-
     /// <summary>
     /// Initializes an instance of <see cref="Credentials" />.
     /// </summary>
@@ -59,6 +19,35 @@ public partial class Credentials
     [ExcludeFromCodeCoverage]
     public Credentials(string? domain, string? username, string? password)
         : this(domain, username, password, false) { }
+
+    /// <summary>
+    /// Active Directory domain used for starting the process.
+    /// </summary>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
+    public string? Domain { get; } = domain;
+
+    /// <summary>
+    /// Username used for starting the process.
+    /// </summary>
+    public string? UserName { get; } = userName;
+
+    /// <summary>
+    /// Password used for starting the process.
+    /// </summary>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
+    public string? Password { get; } = password;
+
+    /// <summary>
+    /// Whether to load the user profile when starting the process.
+    /// </summary>
+    /// <remarks>
+    /// Only supported on Windows.
+    /// </remarks>
+    public bool LoadUserProfile { get; } = loadUserProfile;
 }
 
 public partial class Credentials

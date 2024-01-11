@@ -10,61 +10,18 @@ namespace CliWrap;
 /// <summary>
 /// Instructions for running a process.
 /// </summary>
-public partial class Command : ICommandConfiguration
+public partial class Command(
+    string targetFilePath,
+    string arguments,
+    string workingDirPath,
+    Credentials credentials,
+    IReadOnlyDictionary<string, string?> environmentVariables,
+    CommandResultValidation validation,
+    PipeSource standardInputPipe,
+    PipeTarget standardOutputPipe,
+    PipeTarget standardErrorPipe
+) : ICommandConfiguration
 {
-    /// <inheritdoc />
-    public string TargetFilePath { get; }
-
-    /// <inheritdoc />
-    public string Arguments { get; }
-
-    /// <inheritdoc />
-    public string WorkingDirPath { get; }
-
-    /// <inheritdoc />
-    public Credentials Credentials { get; }
-
-    /// <inheritdoc />
-    public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }
-
-    /// <inheritdoc />
-    public CommandResultValidation Validation { get; }
-
-    /// <inheritdoc />
-    public PipeSource StandardInputPipe { get; }
-
-    /// <inheritdoc />
-    public PipeTarget StandardOutputPipe { get; }
-
-    /// <inheritdoc />
-    public PipeTarget StandardErrorPipe { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="Command" />.
-    /// </summary>
-    public Command(
-        string targetFilePath,
-        string arguments,
-        string workingDirPath,
-        Credentials credentials,
-        IReadOnlyDictionary<string, string?> environmentVariables,
-        CommandResultValidation validation,
-        PipeSource standardInputPipe,
-        PipeTarget standardOutputPipe,
-        PipeTarget standardErrorPipe
-    )
-    {
-        TargetFilePath = targetFilePath;
-        Arguments = arguments;
-        WorkingDirPath = workingDirPath;
-        Credentials = credentials;
-        EnvironmentVariables = environmentVariables;
-        Validation = validation;
-        StandardInputPipe = standardInputPipe;
-        StandardOutputPipe = standardOutputPipe;
-        StandardErrorPipe = standardErrorPipe;
-    }
-
     /// <summary>
     /// Initializes an instance of <see cref="Command" />.
     /// </summary>
@@ -80,6 +37,34 @@ public partial class Command : ICommandConfiguration
             PipeTarget.Null,
             PipeTarget.Null
         ) { }
+
+    /// <inheritdoc />
+    public string TargetFilePath { get; } = targetFilePath;
+
+    /// <inheritdoc />
+    public string Arguments { get; } = arguments;
+
+    /// <inheritdoc />
+    public string WorkingDirPath { get; } = workingDirPath;
+
+    /// <inheritdoc />
+    public Credentials Credentials { get; } = credentials;
+
+    /// <inheritdoc />
+    public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; } =
+        environmentVariables;
+
+    /// <inheritdoc />
+    public CommandResultValidation Validation { get; } = validation;
+
+    /// <inheritdoc />
+    public PipeSource StandardInputPipe { get; } = standardInputPipe;
+
+    /// <inheritdoc />
+    public PipeTarget StandardOutputPipe { get; } = standardOutputPipe;
+
+    /// <inheritdoc />
+    public PipeTarget StandardErrorPipe { get; } = standardErrorPipe;
 
     /// <summary>
     /// Creates a copy of this command, setting the target file path to the specified value.

@@ -23,17 +23,12 @@ public abstract class CommandEvent;
 /// Event triggered when the command starts executing.
 /// May only appear once in the event stream.
 /// </summary>
-public class StartedCommandEvent : CommandEvent
+public class StartedCommandEvent(int processId) : CommandEvent
 {
     /// <summary>
     /// Underlying process ID.
     /// </summary>
-    public int ProcessId { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="StartedCommandEvent" />.
-    /// </summary>
-    public StartedCommandEvent(int processId) => ProcessId = processId;
+    public int ProcessId { get; } = processId;
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]
@@ -43,17 +38,12 @@ public class StartedCommandEvent : CommandEvent
 /// <summary>
 /// Event triggered when the underlying process writes a line of text to the standard output stream.
 /// </summary>
-public class StandardOutputCommandEvent : CommandEvent
+public class StandardOutputCommandEvent(string text) : CommandEvent
 {
     /// <summary>
     /// Line of text written to the standard output stream.
     /// </summary>
-    public string Text { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="StandardOutputCommandEvent" />.
-    /// </summary>
-    public StandardOutputCommandEvent(string text) => Text = text;
+    public string Text { get; } = text;
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]
@@ -63,17 +53,12 @@ public class StandardOutputCommandEvent : CommandEvent
 /// <summary>
 /// Event triggered when the underlying process writes a line of text to the standard error stream.
 /// </summary>
-public class StandardErrorCommandEvent : CommandEvent
+public class StandardErrorCommandEvent(string text) : CommandEvent
 {
     /// <summary>
     /// Line of text written to the standard error stream.
     /// </summary>
-    public string Text { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="StandardErrorCommandEvent" />.
-    /// </summary>
-    public StandardErrorCommandEvent(string text) => Text = text;
+    public string Text { get; } = text;
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]
@@ -84,17 +69,12 @@ public class StandardErrorCommandEvent : CommandEvent
 /// Event triggered when the command finishes executing.
 /// May only appear once in the event stream.
 /// </summary>
-public class ExitedCommandEvent : CommandEvent
+public class ExitedCommandEvent(int exitCode) : CommandEvent
 {
     /// <summary>
     /// Exit code set by the underlying process.
     /// </summary>
-    public int ExitCode { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="ExitedCommandEvent" />.
-    /// </summary>
-    public ExitedCommandEvent(int exitCode) => ExitCode = exitCode;
+    public int ExitCode { get; } = exitCode;
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]
