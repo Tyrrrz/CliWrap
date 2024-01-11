@@ -12,8 +12,7 @@ internal static class AssertionExtensions
         IEnumerable<string> lines
     ) =>
         assertions
-            .Subject
-            .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Subject.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
             .Should()
             .Equal(lines);
 

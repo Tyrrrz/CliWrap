@@ -608,9 +608,10 @@ public class PipingSpecs
         delegateLines
             .Should()
             .Equal(
-                result
-                    .StandardOutput
-                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+                result.StandardOutput.Split(
+                    Environment.NewLine,
+                    StringSplitOptions.RemoveEmptyEntries
+                )
             );
     }
 

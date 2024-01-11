@@ -59,28 +59,26 @@ public static partial class EventStreamCommandExtensions
 
             // Don't pass cancellation token to the continuation because we need it to
             // trigger regardless of how the task completed.
-            _ = commandTask
-                .Task
-                .ContinueWith(
-                    t =>
+            _ = commandTask.Task.ContinueWith(
+                t =>
+                {
+                    // Canceled tasks don't have exceptions
+                    if (t.IsCanceled)
                     {
-                        // Canceled tasks don't have exceptions
-                        if (t.IsCanceled)
-                        {
-                            observer.OnError(new TaskCanceledException(t));
-                        }
-                        else if (t.Exception is not null)
-                        {
-                            observer.OnError(t.Exception.TryGetSingle() ?? t.Exception);
-                        }
-                        else
-                        {
-                            observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
-                            observer.OnCompleted();
-                        }
-                    },
-                    TaskContinuationOptions.None
-                );
+                        observer.OnError(new TaskCanceledException(t));
+                    }
+                    else if (t.Exception is not null)
+                    {
+                        observer.OnError(t.Exception.TryGetSingle() ?? t.Exception);
+                    }
+                    else
+                    {
+                        observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
+                        observer.OnCompleted();
+                    }
+                },
+                TaskContinuationOptions.None
+            );
 
             return Disposable.Null;
         });
