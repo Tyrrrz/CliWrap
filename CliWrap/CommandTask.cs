@@ -8,26 +8,17 @@ namespace CliWrap;
 /// <summary>
 /// Represents an asynchronous execution of a command.
 /// </summary>
-public partial class CommandTask<TResult> : IDisposable
+public partial class CommandTask<TResult>(Task<TResult> task, int processId) : IDisposable
 {
     /// <summary>
     /// Underlying task.
     /// </summary>
-    public Task<TResult> Task { get; }
+    public Task<TResult> Task { get; } = task;
 
     /// <summary>
     /// Underlying process ID.
     /// </summary>
-    public int ProcessId { get; }
-
-    /// <summary>
-    /// Initializes an instance of <see cref="CommandTask{TResult}" />.
-    /// </summary>
-    public CommandTask(Task<TResult> task, int processId)
-    {
-        Task = task;
-        ProcessId = processId;
-    }
+    public int ProcessId { get; } = processId;
 
     internal CommandTask<T> Bind<T>(Func<Task<TResult>, Task<T>> transform) =>
         new(transform(Task), ProcessId);

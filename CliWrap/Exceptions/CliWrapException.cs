@@ -6,14 +6,9 @@ namespace CliWrap.Exceptions;
 /// <summary>
 /// Parent class for exceptions thrown by <see cref="CliWrap" />.
 /// </summary>
-public abstract class CliWrapException : Exception
+public abstract class CliWrapException(string message, Exception? innerException = null)
+    : Exception(message, innerException)
 {
-    /// <summary>
-    /// Initializes an instance of <see cref="CliWrapException" />.
-    /// </summary>
-    protected CliWrapException(string message, Exception? innerException)
-        : base(message, innerException) { }
-
     /// <summary>
     /// Initializes an instance of <see cref="CliWrapException" />.
     /// </summary>
