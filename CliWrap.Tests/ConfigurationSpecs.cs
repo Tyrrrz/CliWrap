@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Xunit;
@@ -63,7 +62,7 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var modified = original.WithArguments(new[] { "-a", "foo bar" });
+        var modified = original.WithArguments(["-a", "foo bar"]);
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
@@ -84,16 +83,15 @@ public class ConfigurationSpecs
                     .Add("foo bar")
                     .Add("\"foo\\\\bar\"")
                     .Add(3.14)
-                    .Add(new[] { "foo", "bar" })
-                    .Add(new IFormattable[] { -5, 89.13 })
+                    .Add(["foo", "bar"])
+                    .Add([-5, 89.13])
         );
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
         original.Arguments.Should().NotBe(modified.Arguments);
         modified
-            .Arguments
-            .Should()
+            .Arguments.Should()
             .Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
     }
 
@@ -127,8 +125,7 @@ public class ConfigurationSpecs
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
         original.Credentials.Should().NotBe(modified.Credentials);
         modified
-            .Credentials
-            .Should()
+            .Credentials.Should()
             .BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
@@ -151,8 +148,7 @@ public class ConfigurationSpecs
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
         original.Credentials.Should().NotBe(modified.Credentials);
         modified
-            .Credentials
-            .Should()
+            .Credentials.Should()
             .BeEquivalentTo(new Credentials("domain", "username", "password", true));
     }
 
@@ -171,8 +167,7 @@ public class ConfigurationSpecs
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
         original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
         modified
-            .EnvironmentVariables
-            .Should()
+            .EnvironmentVariables.Should()
             .BeEquivalentTo(
                 new Dictionary<string, string?> { ["name"] = "value", ["key"] = "door" }
             );
@@ -196,8 +191,7 @@ public class ConfigurationSpecs
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
         original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
         modified
-            .EnvironmentVariables
-            .Should()
+            .EnvironmentVariables.Should()
             .BeEquivalentTo(
                 new Dictionary<string, string?>
                 {

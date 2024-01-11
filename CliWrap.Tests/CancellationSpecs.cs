@@ -18,13 +18,12 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         var stdOutBuffer = new StringBuilder();
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" })
-            | stdOutBuffer;
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | stdOutBuffer;
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
@@ -47,8 +46,7 @@ public class CancellationSpecs
         var stdOutBuffer = new StringBuilder();
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" })
-            | stdOutBuffer;
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | stdOutBuffer;
 
         // Act
         var task = cmd.ExecuteAsync(cts.Token);
@@ -83,8 +81,7 @@ public class CancellationSpecs
             PipeTarget.ToStringBuilder(stdOutBuffer)
         );
 
-        var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" }) | target;
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | target;
 
         // Act
         var task = cmd.ExecuteAsync(CancellationToken.None, cts.Token);
@@ -102,9 +99,9 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -121,7 +118,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -138,7 +135,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -159,9 +156,9 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -183,7 +180,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -205,7 +202,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -232,9 +229,9 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -260,7 +257,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -286,7 +283,7 @@ public class CancellationSpecs
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(0.2));
 
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(new[] { "sleep", "00:00:20" });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(

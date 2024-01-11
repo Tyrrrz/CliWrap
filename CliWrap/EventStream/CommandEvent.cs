@@ -17,7 +17,7 @@ namespace CliWrap.EventStream;
 ///     </list>
 /// </para>
 /// </summary>
-public abstract class CommandEvent { }
+public abstract class CommandEvent;
 
 /// <summary>
 /// Event triggered when the command starts executing.

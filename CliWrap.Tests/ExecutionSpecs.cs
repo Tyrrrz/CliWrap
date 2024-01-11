@@ -53,7 +53,7 @@ public class ExecutionSpecs
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(new[] { "generate binary", "--target", "all", "--length", "100000" });
+            .WithArguments(["generate binary", "--target", "all", "--length", "100000"]);
 
         // Act & assert
         await cmd.ExecuteAsync();

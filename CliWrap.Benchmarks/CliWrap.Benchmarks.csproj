@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.11" />
-    <PackageReference Include="CSharpier.MsBuild" Version="0.26.5" PrivateAssets="all" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+    <PackageReference Include="CSharpier.MsBuild" Version="0.26.7" PrivateAssets="all" />
     <PackageReference Include="ProcessX" Version="1.5.5" />
     <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />

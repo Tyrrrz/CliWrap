@@ -237,7 +237,7 @@ public partial class Command
             // and won't need it anymore.
             // If the pipe has already been exhausted (most likely), this won't do anything.
             // If the pipe is still trying to transfer data, this will cause it to abort.
-            stdInCts.Cancel();
+            await stdInCts.CancelAsync();
 
             // Wait until piping is done and propagate exceptions
             await pipingTask.ConfigureAwait(false);

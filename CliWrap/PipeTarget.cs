@@ -71,7 +71,7 @@ public partial class PipeTarget
                         {
                             // Abort the operation if any of the targets fail
                             // ReSharper disable once AccessToDisposedClosure
-                            cts.Cancel();
+                            await cts.CancelAsync();
 
                             throw;
                         }
