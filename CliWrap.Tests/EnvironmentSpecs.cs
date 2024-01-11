@@ -35,7 +35,7 @@ public class EnvironmentSpecs
         var env = new Dictionary<string, string?> { ["foo"] = "bar", ["hello"] = "world" };
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(new[] { "env", "foo", "hello" })
+            .WithArguments(["env", "foo", "hello"])
             .WithEnvironmentVariables(env);
 
         // Act
@@ -59,9 +59,7 @@ public class EnvironmentSpecs
         using (TempEnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
         {
             var cmd = Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(
-                    new[] { "env", variableToKeep, variableToOverwrite, variableToUnset }
-                )
+                .WithArguments(["env", variableToKeep, variableToOverwrite, variableToUnset])
                 .WithEnvironmentVariables(
                     e => e.Set(variableToOverwrite, "overwritten").Set(variableToUnset, null)
                 );

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Xunit;
@@ -63,7 +62,7 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var modified = original.WithArguments(new[] { "-a", "foo bar" });
+        var modified = original.WithArguments(["-a", "foo bar"]);
 
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
@@ -84,8 +83,8 @@ public class ConfigurationSpecs
                     .Add("foo bar")
                     .Add("\"foo\\\\bar\"")
                     .Add(3.14)
-                    .Add(new[] { "foo", "bar" })
-                    .Add(new IFormattable[] { -5, 89.13 })
+                    .Add(["foo", "bar"])
+                    .Add([-5, 89.13])
         );
 
         // Assert
