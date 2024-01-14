@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
-using static CliWrap.Magic.Spells;
+using static CliWrap.Immersive.Spells;
 using Dummy = CliWrap.Tests.Dummy;
 
-namespace CliWrap.Magic.Tests;
+namespace CliWrap.Immersive.Tests;
 
 public class ExecutionSpecs
 {

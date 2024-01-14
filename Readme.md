@@ -24,7 +24,7 @@ It provides a convenient model for launching processes, redirecting input and ou
 
 **Extension packages**:
 
-- [CliWrap.Magic](CliWrap.Magic) — provides a shell-like experience for executing commands
+- [CliWrap.Immersive](CliWrap.Immersive) — provides a shell-like experience for executing commands
 
 ## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
 

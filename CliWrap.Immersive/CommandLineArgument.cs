@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace CliWrap.Magic;
+namespace CliWrap.Immersive;
 
 public readonly partial struct CommandLineArgument(string value)
 {

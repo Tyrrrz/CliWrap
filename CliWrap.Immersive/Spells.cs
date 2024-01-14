@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using CliWrap.Magic.Utils;
+using CliWrap.Immersive.Utils;
 
-namespace CliWrap.Magic;
+namespace CliWrap.Immersive;
 
 /// <summary>
 /// Utility methods for working with the shell environment.
@@ -14,19 +14,19 @@ namespace CliWrap.Magic;
 public static class Spells
 {
     /// <summary>
-    /// Default standard input pipe used for commands created by <see cref="CliWrap.Command(string)" />.
+    /// Default standard input pipe used for commands created by <see cref="CliWrap.Command" />.
     /// </summary>
     public static PipeSource DefaultStandardInputPipe { get; set; } =
         PipeSource.FromStream(Console.OpenStandardInput());
 
     /// <summary>
-    /// Default standard output pipe used for commands created by <see cref="CliWrap.Command(string)" />.
+    /// Default standard output pipe used for commands created by <see cref="CliWrap.Command" />.
     /// </summary>
     public static PipeTarget DefaultStandardOutputPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardOutput());
 
     /// <summary>
-    /// Default standard error pipe used for commands created by <see cref="CliWrap.Command(string)" />.
+    /// Default standard error pipe used for commands created by <see cref="CliWrap.Command" />.
     /// </summary>
     public static PipeTarget DefaultStandardErrorPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardError());

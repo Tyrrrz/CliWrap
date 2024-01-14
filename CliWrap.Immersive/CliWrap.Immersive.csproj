@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <Description>Extension for CliWrap that provides a shell-like experience for executing commands</Description>
-    <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap/tree/master/CliWrap.Magic</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Tyrrrz/CliWrap/tree/master/CliWrap.Immersive</PackageProjectUrl>
     <PackageIcon>favicon.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using CliWrap.Buffered;
 
-namespace CliWrap.Magic;
+namespace CliWrap.Immersive;
 
 /// <summary>
 /// Extensions for <see cref="CliWrap" /> types.

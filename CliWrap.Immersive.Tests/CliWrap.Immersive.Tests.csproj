@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CliWrap.Magic\CliWrap.Magic.csproj" />
+    <ProjectReference Include="..\CliWrap.Immersive\CliWrap.Immersive.csproj" />
     <ProjectReference Include="..\CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj" />
   </ItemGroup>
 

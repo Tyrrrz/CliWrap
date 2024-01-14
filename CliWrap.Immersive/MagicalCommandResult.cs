@@ -1,7 +1,7 @@
 ﻿using System;
 using CliWrap.Buffered;
 
-namespace CliWrap.Magic;
+namespace CliWrap.Immersive;
 
 /// <summary>
 /// Result of a command execution, with buffered text data from standard output and standard error streams.

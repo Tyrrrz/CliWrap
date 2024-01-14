@@ -1,22 +1,22 @@
-﻿# CliWrap.Magic
+﻿# CliWrap.Immersive
 
-[![Version](https://img.shields.io/nuget/v/CliWrap.Magic.svg)](https://nuget.org/packages/CliWrap.Magic)
-[![Downloads](https://img.shields.io/nuget/dt/CliWrap.Magic.svg)](https://nuget.org/packages/CliWrap.Magic)
+[![Version](https://img.shields.io/nuget/v/CliWrap.Immersive.svg)](https://nuget.org/packages/CliWrap.Immersive)
+[![Downloads](https://img.shields.io/nuget/dt/CliWrap.Immersive.svg)](https://nuget.org/packages/CliWrap.Immersive)
 
-**CliWrap.Magic** is an extension package for **CliWrap** that provides a shell-like experience for executing commands.
+**CliWrap.Immersive** is an extension package for **CliWrap** that provides a shell-like experience for executing commands.
 
 ## Install
 
-- 📦 [NuGet](https://nuget.org/packages/CliWrap.Magic): `dotnet add package CliWrap.Magic`
+- 📦 [NuGet](https://nuget.org/packages/CliWrap.Immersive): `dotnet add package CliWrap.Immersive`
 
 ## Usage
 
 ### Quick overview
 
-Add `using static CliWrap.Magic.Spells;` to your file and start writing scripts like this:
+Add `using static CliWrap.Immersive.Spells;` to your file and start writing scripts like this:
 
 ```csharp
-using static CliWrap.Magic.Spells;
+using static CliWrap.Immersive.Spells;
 
 // Create commands using the _() method, execute them simply by awaiting.
 // Check for exit code directly in if statements.
@@ -78,11 +78,11 @@ await (
 
 ### Executing commands
 
-In order to run a command with **CliWrap.Magic**, use the `_` method with the target file path:
+In order to run a command with **CliWrap.Immersive**, use the `_` method with the target file path:
 
 ```csharp
-using CliWrap.Magic;
-using static CliWrap.Magic.Shell;
+using CliWrap.Immersive;
+using static CliWrap.Immersive.Shell;
 
 await _("dotnet");
 var version = await _("dotnet", "--version");

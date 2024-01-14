@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CliWrap.Magic.Utils;
+namespace CliWrap.Immersive.Utils;
 
 internal partial class Disposable : IDisposable
 {
