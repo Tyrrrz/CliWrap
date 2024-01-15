@@ -184,10 +184,9 @@ public class PipingSpecs
         // Arrange
         using var stream = new MemoryStream();
 
-        var target = PipeTarget.Create(
-            origin =>
-                // ReSharper disable once AccessToDisposedClosure
-                origin.CopyTo(stream)
+        var target = PipeTarget.Create(origin =>
+            // ReSharper disable once AccessToDisposedClosure
+            origin.CopyTo(stream)
         );
 
         var cmd =

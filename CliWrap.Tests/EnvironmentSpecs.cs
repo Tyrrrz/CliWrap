@@ -60,8 +60,8 @@ public class EnvironmentSpecs
         {
             var cmd = Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments(["env", variableToKeep, variableToOverwrite, variableToUnset])
-                .WithEnvironmentVariables(
-                    e => e.Set(variableToOverwrite, "overwritten").Set(variableToUnset, null)
+                .WithEnvironmentVariables(e =>
+                    e.Set(variableToOverwrite, "overwritten").Set(variableToUnset, null)
                 );
 
             // Act
