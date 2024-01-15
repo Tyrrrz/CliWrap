@@ -11,12 +11,12 @@ public static class MagicExtensions
     /// <summary>
     /// Executes the command with magic.
     /// </summary>
-    public static CommandTask<MagicalCommandResult> ExecuteMagicalAsync(this Command command) =>
+    public static CommandTask<ImmersiveCommandResult> ExecuteMagicalAsync(this Command command) =>
         command
             .ExecuteBufferedAsync()
             .Select(
                 r =>
-                    new MagicalCommandResult(
+                    new ImmersiveCommandResult(
                         r.ExitCode,
                         r.StartTime,
                         r.ExitTime,
@@ -28,6 +28,6 @@ public static class MagicExtensions
     /// <summary>
     /// Executes the command with buffering and returns the awaiter for the result.
     /// </summary>
-    public static TaskAwaiter<MagicalCommandResult> GetAwaiter(this Command command) =>
+    public static TaskAwaiter<ImmersiveCommandResult> GetAwaiter(this Command command) =>
         command.ExecuteMagicalAsync().GetAwaiter();
 }

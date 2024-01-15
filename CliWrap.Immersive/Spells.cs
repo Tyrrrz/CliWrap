@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -14,19 +13,19 @@ namespace CliWrap.Immersive;
 public static class Spells
 {
     /// <summary>
-    /// Default standard input pipe used for commands created by <see cref="CliWrap.Command" />.
+    /// Default standard input pipe used for commands created by methods in this class.
     /// </summary>
     public static PipeSource DefaultStandardInputPipe { get; set; } =
         PipeSource.FromStream(Console.OpenStandardInput());
 
     /// <summary>
-    /// Default standard output pipe used for commands created by <see cref="CliWrap.Command" />.
+    /// Default standard output pipe used for commands created by methods in this class.
     /// </summary>
     public static PipeTarget DefaultStandardOutputPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardOutput());
 
     /// <summary>
-    /// Default standard error pipe used for commands created by <see cref="CliWrap.Command" />.
+    /// Default standard error pipe used for commands created by methods in this class.
     /// </summary>
     public static PipeTarget DefaultStandardErrorPipe { get; set; } =
         PipeTarget.ToStream(Console.OpenStandardError());
@@ -46,26 +45,6 @@ public static class Spells
     public static Command Command(string targetFilePath, IEnumerable<string> arguments) =>
         Command(targetFilePath).WithArguments(arguments);
 
-    /// <summary>
-    /// Creates a new command with the specified target file path and command-line arguments.
-    /// </summary>
-    public static Command Command(string targetFilePath, params string[] arguments) =>
-        Command(targetFilePath, (IEnumerable<string>)arguments);
-
-    /// <summary>
-    /// Creates a new command with the specified target file path and command-line arguments.
-    /// </summary>
-    public static Command Command(
-        string targetFilePath,
-        IEnumerable<CommandLineArgument> arguments
-    ) => Command(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.ToString())));
-
-    /// <summary>
-    /// Creates a new command with the specified target file path and command-line arguments.
-    /// </summary>
-    public static Command Command(string targetFilePath, params CommandLineArgument[] arguments) =>
-        Command(targetFilePath, (IEnumerable<CommandLineArgument>)arguments);
-
     private static Command Shell(Command command) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Cli.Wrap("cmd.exe")
@@ -83,44 +62,6 @@ public static class Spells
     /// </remarks>
     public static Command Shell(string targetFilePath, IEnumerable<string> arguments) =>
         Shell(Command(targetFilePath).WithArguments(arguments));
-
-    /// <summary>
-    /// Creates a new command with the specified target file path and command-line arguments,
-    /// wrapped in the default system shell.
-    /// </summary>
-    /// <remarks>
-    /// The default system shell is determined based on the current operating system:
-    /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
-    /// </remarks>
-    public static Command Shell(string targetFilePath, params string[] arguments) =>
-        Shell(Command(targetFilePath, (IEnumerable<string>)arguments));
-
-    /// <summary>
-    /// Creates a new command with the specified target file path and command-line arguments,
-    /// wrapped in the default system shell.
-    /// </summary>
-    /// <remarks>
-    /// The default system shell is determined based on the current operating system:
-    /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
-    /// </remarks>
-    public static Command Shell(
-        string targetFilePath,
-        IEnumerable<CommandLineArgument> arguments
-    ) =>
-        Shell(
-            Command(targetFilePath).WithArguments(a => a.Add(arguments.Select(x => x.ToString())))
-        );
-
-    /// <summary>
-    /// Creates a new command with the specified target file path and command-line arguments,
-    /// wrapped in the default system shell.
-    /// </summary>
-    /// <remarks>
-    /// The default system shell is determined based on the current operating system:
-    /// <c>cmd.exe</c> on Windows, <c>/bin/sh</c> on Linux and macOS.
-    /// </remarks>
-    public static Command Shell(string targetFilePath, params CommandLineArgument[] arguments) =>
-        Shell(Command(targetFilePath, (IEnumerable<CommandLineArgument>)arguments));
 
     /// <summary>
     /// Gets the current working directory.
