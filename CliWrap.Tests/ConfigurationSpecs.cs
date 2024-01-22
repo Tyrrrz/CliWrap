@@ -77,14 +77,13 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithArguments("xxx");
 
         // Act
-        var modified = original.WithArguments(
-            b =>
-                b.Add("-a")
-                    .Add("foo bar")
-                    .Add("\"foo\\\\bar\"")
-                    .Add(3.14)
-                    .Add(["foo", "bar"])
-                    .Add([-5, 89.13])
+        var modified = original.WithArguments(b =>
+            b.Add("-a")
+                .Add("foo bar")
+                .Add("\"foo\\\\bar\"")
+                .Add(3.14)
+                .Add(["foo", "bar"])
+                .Add([-5, 89.13])
         );
 
         // Assert
@@ -136,12 +135,8 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithCredentials(new Credentials("xxx", "xxx", "xxx"));
 
         // Act
-        var modified = original.WithCredentials(
-            c =>
-                c.SetDomain("domain")
-                    .SetUserName("username")
-                    .SetPassword("password")
-                    .LoadUserProfile()
+        var modified = original.WithCredentials(c =>
+            c.SetDomain("domain").SetUserName("username").SetPassword("password").LoadUserProfile()
         );
 
         // Assert
@@ -180,11 +175,10 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithEnvironmentVariables(e => e.Set("xxx", "xxx"));
 
         // Act
-        var modified = original.WithEnvironmentVariables(
-            b =>
-                b.Set("name", "value")
-                    .Set("key", "door")
-                    .Set(new Dictionary<string, string?> { ["zzz"] = "yyy", ["aaa"] = "bbb" })
+        var modified = original.WithEnvironmentVariables(b =>
+            b.Set("name", "value")
+                .Set("key", "door")
+                .Set(new Dictionary<string, string?> { ["zzz"] = "yyy", ["aaa"] = "bbb" })
         );
 
         // Assert

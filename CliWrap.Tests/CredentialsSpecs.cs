@@ -21,8 +21,8 @@ public class CredentialsSpecs
 
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithCredentials(
-                c => c.SetUserName("user123").SetPassword("pass123").LoadUserProfile()
+            .WithCredentials(c =>
+                c.SetUserName("user123").SetPassword("pass123").LoadUserProfile()
             );
 
         // Act & assert
@@ -42,12 +42,11 @@ public class CredentialsSpecs
 
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithCredentials(
-                c =>
-                    c.SetDomain("domain123")
-                        .SetUserName("user123")
-                        .SetPassword("pass123")
-                        .LoadUserProfile()
+            .WithCredentials(c =>
+                c.SetDomain("domain123")
+                    .SetUserName("user123")
+                    .SetPassword("pass123")
+                    .LoadUserProfile()
             );
 
         // Act & assert
