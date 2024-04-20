@@ -234,34 +234,27 @@ public partial class Command
 
         try
         {
-            // Wait until the process is finished and the output is fully disposed
+            // Wait until the process exits normally or gets killed.
+            // The timeout is started after the execution is forcefully canceled and ensures
+            // that we don't wait forever in case the attempt to kill the process failed.
+            await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
+
+            // Send the cancellation signal to the stdin pipe since the process has exited
+            // and won't need it anymore.
+            // If the pipe has already been exhausted (most likely), this won't do anything.
+            // If the pipe is still trying to transfer data, this will cause it to abort.
+            await stdInCts.CancelAsync();
+
             if (WaitForOutputProcessing)
             {
-                // Wait until the process exits normally or gets killed.
-                // The timeout is started after the execution is forcefully canceled and ensures
-                // that we don't wait forever in case the attempt to kill the process failed.
-                await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
-
-                // Send the cancellation signal to the stdin pipe since the process has exited
-                // and won't need it anymore.
-                // If the pipe has already been exhausted (most likely), this won't do anything.
-                // If the pipe is still trying to transfer data, this will cause it to abort.
-                await stdInCts.CancelAsync();
-
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
             else
             {
-                // Wait until the process exits normally or gets killed, but ignore the output streams.
-                await process
-                    .WaitUntilExitNoOutputProcessingAsync(waitTimeoutCts.Token)
-                    .ConfigureAwait(false);
-
-                await stdInCts.CancelAsync();
-
                 try
                 {
+                    // Cancel piping if we don't need to wait for it
                     await outputProcessingCts.CancelAsync();
                     await pipingTask.ConfigureAwait(false);
                 }
