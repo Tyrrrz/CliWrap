@@ -219,28 +219,54 @@ public partial class Command
             .Register(process.Interrupt)
             .ToAsyncDisposable();
 
+        // Create token to cancel piping when process is finished and we don't need to finish piping
+        using var outputProcessingCts = new CancellationTokenSource();
+        using var pipeStdOutErrCts = CancellationTokenSource.CreateLinkedTokenSource(
+            forcefulCancellationToken,
+            outputProcessingCts.Token
+        );
         // Start piping streams in the background
         var pipingTask = Task.WhenAll(
             PipeStandardInputAsync(process, stdInCts.Token),
-            PipeStandardOutputAsync(process, forcefulCancellationToken),
-            PipeStandardErrorAsync(process, forcefulCancellationToken)
+            PipeStandardOutputAsync(process, pipeStdOutErrCts.Token),
+            PipeStandardErrorAsync(process, pipeStdOutErrCts.Token)
         );
 
         try
         {
-            // Wait until the process exits normally or gets killed.
-            // The timeout is started after the execution is forcefully canceled and ensures
-            // that we don't wait forever in case the attempt to kill the process failed.
-            await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
+            // Wait until the process is finished and the output is fully disposed
+            if (WaitForOutputProcessing)
+            {
+                // Wait until the process exits normally or gets killed.
+                // The timeout is started after the execution is forcefully canceled and ensures
+                // that we don't wait forever in case the attempt to kill the process failed.
+                await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
 
-            // Send the cancellation signal to the stdin pipe since the process has exited
-            // and won't need it anymore.
-            // If the pipe has already been exhausted (most likely), this won't do anything.
-            // If the pipe is still trying to transfer data, this will cause it to abort.
-            await stdInCts.CancelAsync();
+                // Send the cancellation signal to the stdin pipe since the process has exited
+                // and won't need it anymore.
+                // If the pipe has already been exhausted (most likely), this won't do anything.
+                // If the pipe is still trying to transfer data, this will cause it to abort.
+                await stdInCts.CancelAsync();
 
-            // Wait until piping is done and propagate exceptions
-            await pipingTask.ConfigureAwait(false);
+                // Wait until piping is done and propagate exceptions
+                await pipingTask.ConfigureAwait(false);
+            }
+            else
+            {
+                // Wait until the process exits normally or gets killed, but ignore the output streams.
+                await process
+                    .WaitUntilExitNoOutputProcessingAsync(waitTimeoutCts.Token)
+                    .ConfigureAwait(false);
+
+                await stdInCts.CancelAsync();
+
+                try
+                {
+                    await outputProcessingCts.CancelAsync();
+                    await pipingTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+            }
         }
         // Swallow exceptions caused by internal and user-provided cancellations,
         // because we have a separate mechanism for handling them below.
