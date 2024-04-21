@@ -250,7 +250,7 @@ public partial class Command
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);
             }
-            else
+            else if (CommandExitCondition == CommandExitCondition.ProcessExited)
             {
                 try
                 {
@@ -259,6 +259,10 @@ public partial class Command
                     await pipingTask.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
+            }
+            else
+            {
+                throw new NotImplementedException($"{CommandExitCondition} is not implemented.");
             }
         }
         // Swallow exceptions caused by internal and user-provided cancellations,
