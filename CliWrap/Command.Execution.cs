@@ -247,8 +247,17 @@ public partial class Command
 
             if (CommandExitCondition == CommandExitCondition.PipesClosed)
             {
-                // Wait until piping is done and propagate exceptions
-                await pipingTask.ConfigureAwait(false);
+                try
+                {
+                    // Wait until piping is done and propagate exceptions
+                    await pipingTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // throw original token if it was the source of cancel
+                    forcefulCancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
             }
             else if (CommandExitCondition == CommandExitCondition.ProcessExited)
             {
