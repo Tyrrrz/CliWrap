@@ -245,7 +245,7 @@ public partial class Command
             // If the pipe is still trying to transfer data, this will cause it to abort.
             await stdInCts.CancelAsync();
 
-            if (WaitForOutputProcessing)
+            if (CommandExitCondition == CommandExitCondition.PipesClosed)
             {
                 // Wait until piping is done and propagate exceptions
                 await pipingTask.ConfigureAwait(false);

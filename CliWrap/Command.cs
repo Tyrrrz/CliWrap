@@ -20,7 +20,7 @@ public partial class Command(
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
     PipeTarget standardErrorPipe,
-    bool waitForOutputProcessing
+    CommandExitCondition commandExitCondition
 ) : ICommandConfiguration
 {
     /// <summary>
@@ -37,7 +37,7 @@ public partial class Command(
             PipeSource.Null,
             PipeTarget.Null,
             PipeTarget.Null,
-            true
+            CommandExitCondition.PipesClosed
         ) { }
 
     /// <inheritdoc />
@@ -53,7 +53,7 @@ public partial class Command(
     public Credentials Credentials { get; } = credentials;
 
     /// <inheritdoc />
-    public bool WaitForOutputProcessing { get; } = waitForOutputProcessing;
+    public CommandExitCondition CommandExitCondition { get; } = commandExitCondition;
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; } =
@@ -86,7 +86,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -108,7 +108,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -155,7 +155,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -173,7 +173,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -206,7 +206,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -237,14 +237,14 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
-    /// Creates a copy of this command, setting the waiting for output processing flag to the specified value.
+    /// Creates a copy of this command, setting the exit condition to the specified value.
     /// </summary>
     [Pure]
-    public Command WithWaitingForOutputProcessing(bool waitForOutputProcessing = true) =>
+    public Command WithExitCondition(CommandExitCondition commandExitCondition) =>
         new(
             TargetFilePath,
             Arguments,
@@ -255,7 +255,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             StandardErrorPipe,
-            waitForOutputProcessing
+            commandExitCondition
         );
 
     /// <summary>
@@ -273,7 +273,7 @@ public partial class Command(
             source,
             StandardOutputPipe,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -291,7 +291,7 @@ public partial class Command(
             StandardInputPipe,
             target,
             StandardErrorPipe,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <summary>
@@ -309,7 +309,7 @@ public partial class Command(
             StandardInputPipe,
             StandardOutputPipe,
             target,
-            WaitForOutputProcessing
+            CommandExitCondition
         );
 
     /// <inheritdoc />
