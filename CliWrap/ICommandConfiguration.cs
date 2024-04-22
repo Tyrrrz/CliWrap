@@ -28,6 +28,11 @@ public interface ICommandConfiguration
     Credentials Credentials { get; }
 
     /// <summary>
+    /// Strategy used for veryfing the end of command exectuion.
+    /// </summary>
+    public CommandExitCondition CommandExitCondition { get; }
+
+    /// <summary>
     /// Environment variables set for the underlying process.
     /// </summary>
     IReadOnlyDictionary<string, string?> EnvironmentVariables { get; }

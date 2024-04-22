@@ -1,21 +1,18 @@
-﻿using System;
-
-namespace CliWrap;
+﻿namespace CliWrap;
 
 /// <summary>
-/// Strategy used for veryfing the end of command exectuion.
+/// Strategy used for identifying the end of command exectuion.
 /// </summary>
-[Flags]
 public enum CommandExitCondition
 {
     /// <summary>
-    /// Command is finished when process is finished and all pipes are closed.
+    /// Command execution is considered finished when the process exits and all standard input and output streams are closed.
     /// </summary>
     PipesClosed = 0,
 
     /// <summary>
-    /// Command is finished when the main process exits,
-    /// even if they are child processes still running, which are reusing the same output/error streams.
+    /// Command execution is considered finished when the process exits, even if the process's standard input and output streams are still open,
+    /// for example after being inherited by a grandchild process.
     /// </summary>
     ProcessExited = 1
 }
