@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
@@ -9,10 +10,24 @@ namespace CliWrap.Tests;
 public class ExitConditionSpecs()
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_that_creates_child_process_resuing_standard_output_and_finish_after_child_process_exits()
+    public async Task I_can_execute_a_command_that_creates_child_process_reusing_standard_output_and_finish_after_child_process_exits()
     {
         // Arrange
-        var cmd = this.PrepareCommand(line => { });
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(
+                [
+                    "run",
+                    "process",
+                    "--path",
+                    Dummy.Program.FilePath,
+                    "--arguments",
+                    "sleep 00:00:03"
+                ]
+            )
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(_ => { }))
+            .WithStandardErrorPipe(
+                PipeTarget.ToDelegate(line => Console.WriteLine($"Error: {line}"))
+            );
 
         // Act
         var executionStart = DateTime.UtcNow;
@@ -31,7 +46,23 @@ public class ExitConditionSpecs()
     {
         // Arrange
         int childProcessId = -1;
-        var cmd = this.PrepareCommand(line => childProcessId = Convert.ToInt32(line.Trim()))
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(
+                [
+                    "run",
+                    "process",
+                    "--path",
+                    Dummy.Program.FilePath,
+                    "--arguments",
+                    "sleep 00:00:03"
+                ]
+            )
+            .WithStandardOutputPipe(
+                PipeTarget.ToDelegate(line => int.TryParse(line, out childProcessId))
+            )
+            .WithStandardErrorPipe(
+                PipeTarget.ToDelegate(line => Console.WriteLine($"Error: {line}"))
+            )
             .WithExitCondition(CommandExitCondition.ProcessExited);
 
         // Act
@@ -45,29 +76,5 @@ public class ExitConditionSpecs()
         executionFinish.Subtract(executionStart).Should().BeLessThan(TimeSpan.FromSeconds(3));
 
         process.HasExited.Should().BeFalse();
-    }
-
-    /// <summary>
-    /// Prepares a command that will create a sleeping child process and return its id via standard output.
-    /// </summary>
-    private Command PrepareCommand(Action<string> onStandardOutput)
-    {
-        var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(
-                [
-                    "run",
-                    "process",
-                    "--path",
-                    Dummy.Program.FilePath,
-                    "--arguments",
-                    "sleep 00:00:03"
-                ]
-            )
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(line => onStandardOutput(line)))
-            .WithStandardErrorPipe(
-                PipeTarget.ToDelegate(line => Console.WriteLine($"Error: {line}"))
-            );
-
-        return cmd;
     }
 }
