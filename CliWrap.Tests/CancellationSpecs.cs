@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.EventStream;
+using CliWrap.Exceptions;
 using CliWrap.Tests.Utils;
 using FluentAssertions;
 using Xunit;
@@ -109,6 +110,39 @@ public class CancellationSpecs
         );
 
         ex.CancellationToken.Should().Be(cts.Token);
+    }
+
+    [Fact(Timeout = 10000)]
+    public async Task I_can_execute_a_command_and_cancel_piping_when_command_is_finished_but_child_process_remains_running()
+    {
+        // Arrange
+        var pipesCts = new CancellationTokenSource();
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(
+                [
+                    "run",
+                    "process",
+                    "--path",
+                    Dummy.Program.FilePath,
+                    "--arguments",
+                    "sleep 00:00:15"
+                ]
+            )
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(_ => { }))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_ => { }));
+
+        // Act
+        pipesCts.CancelAfter(TimeSpan.FromSeconds(1));
+        var executeAsync = async () =>
+            await cmd.ExecuteAsync(CancellationToken.None, CancellationToken.None, pipesCts.Token);
+
+        // Assert
+        var ex = await Assert.ThrowsAnyAsync<PipesCancelledException>(
+            async () => await executeAsync()
+        );
+
+        ex.CancellationToken.Should().Be(pipesCts.Token);
+        ex.ExitCode.Should().Be(0);
     }
 
     [Fact(Timeout = 15000)]
