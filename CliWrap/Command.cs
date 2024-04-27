@@ -19,7 +19,8 @@ public partial class Command(
     CommandResultValidation validation,
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
-    PipeTarget standardErrorPipe
+    PipeTarget standardErrorPipe,
+    TimeSpan pipingTimeout
 ) : ICommandConfiguration
 {
     /// <summary>
@@ -35,7 +36,8 @@ public partial class Command(
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
-            PipeTarget.Null
+            PipeTarget.Null,
+            TimeSpan.FromMilliseconds(int.MaxValue)
         ) { }
 
     /// <inheritdoc />
@@ -49,6 +51,9 @@ public partial class Command(
 
     /// <inheritdoc />
     public Credentials Credentials { get; } = credentials;
+
+    /// <inheritdoc />
+    public TimeSpan PipingTimeout { get; } = pipingTimeout;
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; } =
@@ -80,7 +85,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -101,7 +107,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -147,7 +154,25 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
+        );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the piping timeout to the specified value.
+    /// </summary>
+    public Command WithPipingTimeout(TimeSpan pipingTimeout) =>
+        new(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            Credentials,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            pipingTimeout
         );
 
     /// <summary>
@@ -164,7 +189,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -196,7 +222,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -226,7 +253,8 @@ public partial class Command(
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -243,7 +271,8 @@ public partial class Command(
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -260,7 +289,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PipingTimeout
         );
 
     /// <summary>
@@ -277,7 +307,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            target
+            target,
+            PipingTimeout
         );
 
     /// <inheritdoc />

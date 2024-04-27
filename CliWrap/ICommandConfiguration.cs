@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CliWrap;
 
@@ -36,6 +37,11 @@ public interface ICommandConfiguration
     /// Strategy for validating the result of the execution.
     /// </summary>
     CommandResultValidation Validation { get; }
+
+    /// <summary>
+    /// How long to wait for piping to be finished after the process exits.
+    /// </summary>
+    public TimeSpan PipingTimeout { get; }
 
     /// <summary>
     /// Pipe source for the standard input stream of the underlying process.

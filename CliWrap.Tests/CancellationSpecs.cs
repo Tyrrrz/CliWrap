@@ -112,11 +112,12 @@ public class CancellationSpecs
         ex.CancellationToken.Should().Be(cts.Token);
     }
 
+#if (NETCOREAPP || NETSTANDARD2_0_OR_GREATER)
+
     [Fact(Timeout = 10000)]
     public async Task I_can_execute_a_command_and_cancel_piping_when_command_is_finished_but_child_process_remains_running()
     {
         // Arrange
-        var pipesCts = new CancellationTokenSource();
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(
                 [
@@ -129,21 +130,20 @@ public class CancellationSpecs
                 ]
             )
             .WithStandardOutputPipe(PipeTarget.ToDelegate(_ => { }))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(_ => { }));
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_ => { }))
+            .WithPipingTimeout(TimeSpan.FromSeconds(1));
 
         // Act
-        pipesCts.CancelAfter(TimeSpan.FromSeconds(1));
-        var executeAsync = async () =>
-            await cmd.ExecuteAsync(CancellationToken.None, CancellationToken.None, pipesCts.Token);
+        var executeAsync = async () => await cmd.ExecuteAsync();
 
         // Assert
         var ex = await Assert.ThrowsAnyAsync<PipesCancelledException>(
             async () => await executeAsync()
         );
 
-        ex.CancellationToken.Should().Be(pipesCts.Token);
         ex.ExitCode.Should().Be(0);
     }
+#endif
 
     [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_buffering_and_cancel_it_after_a_delay()

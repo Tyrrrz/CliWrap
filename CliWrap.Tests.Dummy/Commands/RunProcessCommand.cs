@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using CliFx;
 using CliFx.Attributes;
@@ -29,8 +28,6 @@ public class RunProcessCommand : ICommand
         var process = new Process();
         process.StartInfo = startInfo;
         process.Start();
-
-        console.Output.WriteLine(process.Id);
 
         return default;
     }

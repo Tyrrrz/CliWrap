@@ -10,9 +10,8 @@ public class PipesCancelledException(
     int exitCode,
     DateTimeOffset startTime,
     DateTimeOffset exitTime,
-    string message,
-    CancellationToken token
-) : OperationCanceledException(message, token)
+    string message
+) : OperationCanceledException(message)
 {
     /// <summary>
     /// Exit code returned by the process.

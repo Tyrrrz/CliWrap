@@ -189,8 +189,7 @@ public partial class Command
     private async Task<CommandResult> ExecuteAsync(
         ProcessEx process,
         CancellationToken forcefulCancellationToken = default,
-        CancellationToken gracefulCancellationToken = default,
-        CancellationToken pipesCancellationToken = default
+        CancellationToken gracefulCancellationToken = default
     )
     {
         using var _ = process;
@@ -221,8 +220,7 @@ public partial class Command
             .ToAsyncDisposable();
 
         using var pipeStdOutErrCts = CancellationTokenSource.CreateLinkedTokenSource(
-            forcefulCancellationToken,
-            pipesCancellationToken
+            forcefulCancellationToken
         );
         // Start piping streams in the background
         var pipingTask = Task.WhenAll(
@@ -244,7 +242,10 @@ public partial class Command
             // If the pipe is still trying to transfer data, this will cause it to abort.
             await stdInCts.CancelAsync();
 
-            // Wait until piping is done and propagate exceptions
+            // Cancel piping after specified time.
+            pipeStdOutErrCts.CancelAfter(PipingTimeout);
+
+            // Wait until piping is done or cancelled and propagate exceptions
             await pipingTask.ConfigureAwait(false);
         }
         // Swallow exceptions caused by internal and user-provided cancellations,
@@ -271,14 +272,13 @@ public partial class Command
                 + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated."
         );
 
-        if (pipesCancellationToken.IsCancellationRequested)
+        if (pipeStdOutErrCts.IsCancellationRequested)
         {
             throw new PipesCancelledException(
                 process.ExitCode,
                 process.StartTime,
                 process.ExitTime,
-                $"Process ({process.Name}#{process.Id}) has exited, but piping was terminated due to timeout.",
-                pipesCancellationToken
+                $"Process ({process.Name}#{process.Id}) has exited, but piping was terminated due to timeout."
             );
         }
 
@@ -313,8 +313,7 @@ public partial class Command
     // TODO: (breaking change) use optional parameters and remove the other overload
     public CommandTask<CommandResult> ExecuteAsync(
         CancellationToken forcefulCancellationToken,
-        CancellationToken gracefulCancellationToken,
-        CancellationToken pipesCancellationToken = default
+        CancellationToken gracefulCancellationToken
     )
     {
         var process = new ProcessEx(CreateStartInfo());
@@ -329,12 +328,7 @@ public partial class Command
         var processId = process.Id;
 
         return new CommandTask<CommandResult>(
-            ExecuteAsync(
-                process,
-                forcefulCancellationToken,
-                gracefulCancellationToken,
-                pipesCancellationToken
-            ),
+            ExecuteAsync(process, forcefulCancellationToken, gracefulCancellationToken),
             processId
         );
     }
