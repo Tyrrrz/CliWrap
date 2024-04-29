@@ -41,7 +41,7 @@ public interface ICommandConfiguration
     /// <summary>
     /// How long to wait for piping to be finished after the process exits.
     /// </summary>
-    public TimeSpan PipingTimeout { get; }
+    TimeSpan? PipingTimeout { get; }
 
     /// <summary>
     /// Pipe source for the standard input stream of the underlying process.

@@ -20,7 +20,7 @@ public partial class Command(
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
     PipeTarget standardErrorPipe,
-    TimeSpan pipingTimeout
+    TimeSpan? pipingTimeout
 ) : ICommandConfiguration
 {
     /// <summary>
@@ -37,7 +37,7 @@ public partial class Command(
             PipeSource.Null,
             PipeTarget.Null,
             PipeTarget.Null,
-            TimeSpan.FromMilliseconds(int.MaxValue)
+            null
         ) { }
 
     /// <inheritdoc />
@@ -53,7 +53,7 @@ public partial class Command(
     public Credentials Credentials { get; } = credentials;
 
     /// <inheritdoc />
-    public TimeSpan PipingTimeout { get; } = pipingTimeout;
+    public TimeSpan? PipingTimeout { get; } = pipingTimeout;
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; } =

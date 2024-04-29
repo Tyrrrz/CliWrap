@@ -242,8 +242,11 @@ public partial class Command
             // If the pipe is still trying to transfer data, this will cause it to abort.
             await stdInCts.CancelAsync();
 
-            // Cancel piping after specified time.
-            pipeStdOutErrCts.CancelAfter(PipingTimeout);
+            if (PipingTimeout != null)
+            {
+                // Cancel piping after specified time.
+                pipeStdOutErrCts.CancelAfter(PipingTimeout.Value);
+            }
 
             // Wait until piping is done or cancelled and propagate exceptions
             await pipingTask.ConfigureAwait(false);
