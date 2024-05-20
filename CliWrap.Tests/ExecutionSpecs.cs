@@ -59,7 +59,7 @@ public class ExecutionSpecs
         await cmd.ExecuteAsync();
     }
 
-    [Fact(Timeout = 15000)]
+    [Fact]
     public void I_can_try_to_execute_a_command_and_get_an_error_if_the_target_file_does_not_exist()
     {
         // Arrange
