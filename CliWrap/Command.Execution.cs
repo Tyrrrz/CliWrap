@@ -92,6 +92,8 @@ public partial class Command
         // Set credentials
         try
         {
+            // Disable CA1416 because we're handling an exception that is thrown by the property setters
+#pragma warning disable CA1416
             if (Credentials.Domain is not null)
                 startInfo.Domain = Credentials.Domain;
 
@@ -103,6 +105,7 @@ public partial class Command
 
             if (Credentials.LoadUserProfile)
                 startInfo.LoadUserProfile = Credentials.LoadUserProfile;
+#pragma warning restore CA1416
         }
         catch (NotSupportedException ex)
         {
