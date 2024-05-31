@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels:
+      - enhancement
+    groups:
+      actions:
+        patterns:
+          - "*"
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels:
+      - enhancement
+    groups:
+      nuget:
+        patterns:
+          - "*"
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels:
+      - enhancement
+    groups:
+      npm:
+        patterns:
+          - "*"
