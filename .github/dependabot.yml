@@ -20,13 +20,3 @@ updates:
       nuget:
         patterns:
           - "*"
-  - package-ecosystem: npm
-    directory: "/"
-    schedule:
-      interval: monthly
-    labels:
-      - enhancement
-    groups:
-      npm:
-        patterns:
-          - "*"
