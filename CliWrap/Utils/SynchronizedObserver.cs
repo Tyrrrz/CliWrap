@@ -1,15 +1,15 @@
 ﻿using System;
+using System.Threading;
 
 namespace CliWrap.Utils;
 
-internal class SynchronizedObserver<T>(IObserver<T> observer, object? syncRoot = null)
-    : IObserver<T>
+internal class SynchronizedObserver<T>(IObserver<T> observer) : IObserver<T>
 {
-    private readonly object _syncRoot = syncRoot ?? new object();
+    private readonly Lock _lock = new();
 
     public void OnCompleted()
     {
-        lock (_syncRoot)
+        using (_lock.EnterScope())
         {
             observer.OnCompleted();
         }
@@ -17,7 +17,7 @@ internal class SynchronizedObserver<T>(IObserver<T> observer, object? syncRoot =
 
     public void OnError(Exception error)
     {
-        lock (_syncRoot)
+        using (_lock.EnterScope())
         {
             observer.OnError(error);
         }
@@ -25,7 +25,7 @@ internal class SynchronizedObserver<T>(IObserver<T> observer, object? syncRoot =
 
     public void OnNext(T value)
     {
-        lock (_syncRoot)
+        using (_lock.EnterScope())
         {
             observer.OnNext(value);
         }

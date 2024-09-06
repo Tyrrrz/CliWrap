@@ -192,7 +192,7 @@ public class ConfigurationSpecs
                     ["name"] = "value",
                     ["key"] = "door",
                     ["zzz"] = "yyy",
-                    ["aaa"] = "bbb"
+                    ["aaa"] = "bbb",
                 }
             );
     }

@@ -23,7 +23,9 @@ public partial class Command
         // Currently, we only need this workaround for script files on Windows, so short-circuit
         // if we are on a different platform.
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
             return TargetFilePath;
+        }
 
         // Don't do anything for fully qualified paths or paths that already have an extension specified.
         // System.Diagnostics.Process knows how to handle those without our help.
@@ -34,7 +36,9 @@ public partial class Command
             Path.IsPathRooted(TargetFilePath)
             || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath))
         )
+        {
             return TargetFilePath;
+        }
 
         static IEnumerable<string> GetProbeDirectoryPaths()
         {
@@ -86,7 +90,7 @@ public partial class Command
             // We need this in order to be able to send signals to one specific child process,
             // without affecting any others that may also be running in parallel.
             // https://github.com/Tyrrrz/CliWrap/issues/47
-            CreateNoWindow = true
+            CreateNoWindow = true,
         };
 
         // Set credentials

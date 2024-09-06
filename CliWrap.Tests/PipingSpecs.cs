@@ -540,7 +540,7 @@ public class PipingSpecs
                     "1000000",
                     // Buffer needs to be >= BufferSizes.Stream to fail
                     "--buffer",
-                    "100000"
+                    "100000",
                 ]
             );
 
