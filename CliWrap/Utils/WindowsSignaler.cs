@@ -59,7 +59,7 @@ internal partial class WindowsSignaler
     public static WindowsSignaler Deploy()
     {
         // Signaler executable is embedded inside this library as a resource
-        var filePath = Path.ChangeExtension(Path.GetTempFileName(), "exe");
+        var filePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.exe");
         Assembly.GetExecutingAssembly().ExtractManifestResource("CliWrap.Signaler.exe", filePath);
 
         return new WindowsSignaler(filePath);
