@@ -121,7 +121,7 @@ public static class BufferedCommandExtensions
     /// Executes the command asynchronously with buffering.
     /// Data written to the standard output and standard error streams is decoded as text
     /// and returned as part of the result object.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.
@@ -131,6 +131,6 @@ public static class BufferedCommandExtensions
         CancellationToken cancellationToken = default
     )
     {
-        return command.ExecuteBufferedAsync(Console.OutputEncoding, cancellationToken);
+        return command.ExecuteBufferedAsync(Encoding.Default, cancellationToken);
     }
 }

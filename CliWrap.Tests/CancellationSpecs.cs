@@ -141,8 +141,8 @@ public class CancellationSpecs
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
             async () =>
                 await cmd.ExecuteBufferedAsync(
-                    Console.OutputEncoding,
-                    Console.OutputEncoding,
+                    Encoding.Default,
+                    Encoding.Default,
                     CancellationToken.None,
                     cts.Token
                 )
@@ -209,8 +209,8 @@ public class CancellationSpecs
         {
             await foreach (
                 var cmdEvent in cmd.ListenAsync(
-                    Console.OutputEncoding,
-                    Console.OutputEncoding,
+                    Encoding.Default,
+                    Encoding.Default,
                     CancellationToken.None,
                     cts.Token
                 )
@@ -289,8 +289,8 @@ public class CancellationSpecs
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(
             async () =>
                 await cmd.Observe(
-                        Console.OutputEncoding,
-                        Console.OutputEncoding,
+                        Encoding.Default,
+                        Encoding.Default,
                         CancellationToken.None,
                         cts.Token
                     )

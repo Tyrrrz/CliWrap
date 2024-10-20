@@ -67,6 +67,7 @@ public static partial class EventStreamCommandExtensions
             forcefulCancellationToken,
             gracefulCancellationToken
         );
+
         yield return new StartedCommandEvent(commandTask.ProcessId);
 
         // Close the channel once the command completes, so that ReceiveAsync() can finish
@@ -83,7 +84,9 @@ public static partial class EventStreamCommandExtensions
         await foreach (
             var cmdEvent in channel.ReceiveAsync(forcefulCancellationToken).ConfigureAwait(false)
         )
+        {
             yield return cmdEvent;
+        }
 
         var exitCode = await commandTask.Select(r => r.ExitCode).ConfigureAwait(false);
         yield return new ExitedCommandEvent(exitCode);
@@ -127,7 +130,7 @@ public static partial class EventStreamCommandExtensions
 
     /// <summary>
     /// Executes the command as a pull-based event stream.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     /// <remarks>
     /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
@@ -137,6 +140,6 @@ public static partial class EventStreamCommandExtensions
         CancellationToken cancellationToken = default
     )
     {
-        return command.ListenAsync(Console.OutputEncoding, cancellationToken);
+        return command.ListenAsync(Encoding.Default, cancellationToken);
     }
 }
