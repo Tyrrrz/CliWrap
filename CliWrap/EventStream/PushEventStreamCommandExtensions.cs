@@ -122,7 +122,7 @@ public static partial class EventStreamCommandExtensions
 
     /// <summary>
     /// Executes the command as a push-based event stream.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     /// <remarks>
     /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
@@ -132,6 +132,6 @@ public static partial class EventStreamCommandExtensions
         CancellationToken cancellationToken = default
     )
     {
-        return command.Observe(Console.OutputEncoding, cancellationToken);
+        return command.Observe(Encoding.Default, cancellationToken);
     }
 }

@@ -25,7 +25,7 @@ public partial class Command
 
     /// <summary>
     /// Creates a new command that pipes its standard output to the specified string builder.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, StringBuilder target) =>
@@ -34,7 +34,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output line-by-line to the specified
     /// asynchronous delegate.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(
@@ -45,7 +45,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output line-by-line to the specified
     /// asynchronous delegate.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, Func<string, Task> target) =>
@@ -54,7 +54,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output line-by-line to the specified
     /// synchronous delegate.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(Command source, Action<string> target) =>
@@ -81,7 +81,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error to the
     /// specified string builders.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(
@@ -94,7 +94,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line
     /// to the specified asynchronous delegates.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(
@@ -108,7 +108,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line
     /// to the specified asynchronous delegates.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(
@@ -119,7 +119,7 @@ public partial class Command
     /// <summary>
     /// Creates a new command that pipes its standard output and standard error line-by-line
     /// to the specified synchronous delegates.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     [Pure]
     public static Command operator |(

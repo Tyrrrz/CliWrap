@@ -531,7 +531,7 @@ var stdOut = result.StandardOutput;
 var stdErr = result.StandardError;
 ```
 
-By default, `ExecuteBufferedAsync()` assumes that the underlying process uses the default encoding (`Console.OutputEncoding`) for writing text to the console.
+By default, `ExecuteBufferedAsync()` assumes that the underlying process uses the default encoding (`Encoding.Default`) for writing text to the console.
 To override this, specify the encoding explicitly by using one of the available overloads:
 
 ```csharp
