@@ -215,7 +215,7 @@ var cmd = Cli.Wrap("git")
 ```
 
 > **Warning**:
-> Unless you absolutely have to, avoid setting command line arguments directly from a string.
+> Unless you absolutely have to, avoid setting command-line arguments directly from a string.
 > This method expects all arguments to be correctly escaped and formatted ahead of time — which can be cumbersome to do yourself.
 > Formatting errors may result in unexpected bugs and security vulnerabilities.
 
