@@ -27,7 +27,7 @@ jobs:
     with:
       deploy: ${{ inputs.deploy || github.ref_type == 'tag' }}
       package-version: ${{ inputs.package-version || (github.ref_type == 'tag' && github.ref_name) || format('0.0.0-ci-{0}', github.sha) }}
-      dotnet-version: 8.0.x
+      dotnet-version: 9.0.x
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}

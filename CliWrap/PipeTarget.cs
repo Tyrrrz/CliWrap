@@ -292,7 +292,7 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
     /// </summary>
-    public static PipeTarget Merge(IEnumerable<PipeTarget> targets)
+    public static PipeTarget Merge(params IEnumerable<PipeTarget> targets)
     {
         // This function needs to take output as a parameter because it's recursive
         static void FlattenTargets(IEnumerable<PipeTarget> targets, ICollection<PipeTarget> output)
@@ -340,6 +340,7 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
     /// </summary>
+    // TODO: (breaking change) remove the other overload
     public static PipeTarget Merge(params PipeTarget[] targets) =>
         Merge((IEnumerable<PipeTarget>)targets);
 }

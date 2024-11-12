@@ -9,13 +9,10 @@ internal static class AssertionExtensions
 {
     public static void ConsistOfLines(
         this StringAssertions assertions,
-        IEnumerable<string> lines
+        params IEnumerable<string> lines
     ) =>
         assertions
             .Subject.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
             .Should()
             .Equal(lines);
-
-    public static void ConsistOfLines(this StringAssertions assertions, params string[] lines) =>
-        assertions.ConsistOfLines((IEnumerable<string>)lines);
 }
