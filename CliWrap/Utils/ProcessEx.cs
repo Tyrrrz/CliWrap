@@ -12,8 +12,10 @@ namespace CliWrap.Utils;
 internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
 {
     private readonly Process _nativeProcess = new() { StartInfo = startInfo };
-    private readonly TaskCompletionSource<object?> _exitTcs =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private readonly TaskCompletionSource<object?> _exitTcs = new(
+        TaskCreationOptions.RunContinuationsAsynchronously
+    );
 
     public int Id => _nativeProcess.Id;
 
