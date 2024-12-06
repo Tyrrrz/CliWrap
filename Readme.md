@@ -219,6 +219,10 @@ var cmd = Cli.Wrap("git")
 > This method expects all arguments to be correctly escaped and formatted ahead of time — which can be cumbersome to do yourself.
 > Formatting errors may result in unexpected bugs and security vulnerabilities.
 
+> **Note**:
+> There are some [obscure scenarios](https://github.com/Tyrrrz/CliWrap/issues/263), where you may need to assemble the command-line arguments yourself.
+> In such cases, you can use the `ArgumentsBuilder.Escape(...)` method to escape individual arguments manually.
+
 #### `WithWorkingDirectory(...)`
 
 Sets the working directory of the child process.
