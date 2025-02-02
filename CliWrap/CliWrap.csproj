@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.1" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="PolyShim" Version="1.14.0" PrivateAssets="all" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true" />
     <PackageReference Include="System.Management" Version="9.0.1" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
     <PackageReference Include="System.Memory" Version="4.6.0" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true" />
   </ItemGroup>
