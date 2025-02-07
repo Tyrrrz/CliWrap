@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -136,6 +137,42 @@ public class PipingSpecs
 
         // Assert
         result.StandardOutput.Trim().Should().Be("100000");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_another_command_with_a_transform()
+    {
+        // Arrange
+        var cmdInput = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["generate binary", "--length", "100000"]);
+
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments("length stdin")
+            .WithStandardInputPipe(
+                PipeSource.FromCommand(
+                    cmdInput,
+                    // Take only the first 5000 bytes
+                    async (source, destination, cancellationToken) =>
+                    {
+                        using var buffer = MemoryPool<byte>.Shared.Rent(5000);
+
+                        await source.ReadAtLeastAsync(
+                            buffer.Memory,
+                            5000,
+                            false,
+                            cancellationToken
+                        );
+
+                        await destination.WriteAsync(buffer.Memory[..5000], cancellationToken);
+                    }
+                )
+            );
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Trim().Should().Be("5000");
     }
 
     [Fact(Timeout = 15000)]
