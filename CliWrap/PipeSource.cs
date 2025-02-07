@@ -136,18 +136,17 @@ public partial class PipeSource
         Command command,
         Func<Stream, Stream, CancellationToken, Task> copyStreamAsync
     ) =>
+        // cmdA | <transform> | cmdB
         Create(
-            // Destination -> outer command's standard input
+            // Destination -> cmdB's standard input
             async (destination, destinationCancellationToken) =>
                 await command
                     .WithStandardOutputPipe(
                         PipeTarget.Create(
-                            // Source -> inner command's standard output
+                            // Source -> cmdA's standard output
                             async (source, sourceCancellationToken) =>
-                            {
                                 await copyStreamAsync(source, destination, sourceCancellationToken)
-                                    .ConfigureAwait(false);
-                            }
+                                    .ConfigureAwait(false)
                         )
                     )
                     .ExecuteAsync(destinationCancellationToken)
@@ -161,8 +160,6 @@ public partial class PipeSource
         FromCommand(
             command,
             async (source, destination, cancellationToken) =>
-            {
-                await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
-            }
+                await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false)
         );
 }
