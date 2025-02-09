@@ -31,12 +31,12 @@ public class ResourcePolicySpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_a_custom_affinity_mask()
+    public async Task I_can_execute_a_command_with_a_custom_core_affinity()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 || RuntimeInformation.IsOSPlatform(OSPlatform.Linux),
-            "Starting a process with a custom affinity mask is only supported on Windows and Linux."
+            "Starting a process with a custom core affinity is only supported on Windows and Linux."
         );
 
         // Arrange
