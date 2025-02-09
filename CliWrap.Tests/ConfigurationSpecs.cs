@@ -120,12 +120,7 @@ public class ConfigurationSpecs
 
         // Act
         var modified = original.WithResourcePolicy(
-            new ResourcePolicyBuilder()
-                .SetPriority(ProcessPriorityClass.High)
-                .SetAffinity(0x1)
-                .SetMinWorkingSet(1024)
-                .SetMaxWorkingSet(2048)
-                .Build()
+            new ResourcePolicy(ProcessPriorityClass.High, 0x1, 1024, 2048)
         );
 
         // Assert
