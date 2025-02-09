@@ -14,6 +14,7 @@ public partial class Command(
     string targetFilePath,
     string arguments,
     string workingDirPath,
+    ResourcePolicy resourcePolicy,
     Credentials credentials,
     IReadOnlyDictionary<string, string?> environmentVariables,
     CommandResultValidation validation,
@@ -30,6 +31,7 @@ public partial class Command(
             targetFilePath,
             string.Empty,
             Directory.GetCurrentDirectory(),
+            ResourcePolicy.Default,
             Credentials.Default,
             new Dictionary<string, string?>(),
             CommandResultValidation.ZeroExitCode,
@@ -46,6 +48,9 @@ public partial class Command(
 
     /// <inheritdoc />
     public string WorkingDirPath { get; } = workingDirPath;
+
+    /// <inheritdoc />
+    public ResourcePolicy ResourcePolicy { get; } = resourcePolicy;
 
     /// <inheritdoc />
     public Credentials Credentials { get; } = credentials;
@@ -75,6 +80,7 @@ public partial class Command(
             targetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             Validation,
@@ -96,6 +102,7 @@ public partial class Command(
             TargetFilePath,
             arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             Validation,
@@ -142,6 +149,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             workingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             Validation,
@@ -149,6 +157,37 @@ public partial class Command(
             StandardOutputPipe,
             StandardErrorPipe
         );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the resource policy to the specified value.
+    /// </summary>
+    [Pure]
+    public Command WithResourcePolicy(ResourcePolicy resourcePolicy) =>
+        new(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            resourcePolicy,
+            Credentials,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe
+        );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the resource policy to the value
+    /// configured by the specified delegate.
+    /// </summary>
+    [Pure]
+    public Command WithResourcePolicy(Action<ResourcePolicyBuilder> configure)
+    {
+        var builder = new ResourcePolicyBuilder();
+        configure(builder);
+
+        return WithResourcePolicy(builder.Build());
+    }
 
     /// <summary>
     /// Creates a copy of this command, setting the user credentials to the specified value.
@@ -159,6 +198,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             credentials,
             EnvironmentVariables,
             Validation,
@@ -191,6 +231,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             environmentVariables,
             Validation,
@@ -221,6 +262,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             validation,
@@ -238,6 +280,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             Validation,
@@ -255,6 +298,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             Validation,
@@ -272,6 +316,7 @@ public partial class Command(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
+            ResourcePolicy,
             Credentials,
             EnvironmentVariables,
             Validation,

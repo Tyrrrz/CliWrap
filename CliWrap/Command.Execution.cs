@@ -308,10 +308,36 @@ public partial class Command
     {
         var process = new ProcessEx(CreateStartInfo());
 
-        // This method may fail and we want to propagate the exceptions immediately instead
+        // This method may fail, and we want to propagate the exceptions immediately instead
         // of wrapping them in a task, so it needs to be executed in a synchronous context.
         // https://github.com/Tyrrrz/CliWrap/issues/139
-        process.Start();
+        process.Start(p =>
+        {
+            p.PriorityClass = ResourcePolicy.Priority;
+
+            try
+            {
+                // Disable CA1416 because we're handling an exception that is thrown by the property setters
+#pragma warning disable CA1416
+                if (ResourcePolicy.Affinity is not null)
+                    p.ProcessorAffinity = ResourcePolicy.Affinity.Value;
+
+                if (ResourcePolicy.MinWorkingSet is not null)
+                    p.MinWorkingSet = ResourcePolicy.MinWorkingSet.Value;
+
+                if (ResourcePolicy.MaxWorkingSet is not null)
+                    p.MaxWorkingSet = ResourcePolicy.MaxWorkingSet.Value;
+#pragma warning restore CA1416
+            }
+            catch (PlatformNotSupportedException ex)
+            {
+                throw new PlatformNotSupportedException(
+                    "Cannot set resource policy for the process. "
+                        + "Setting custom priority, affinity, or working set limits is only supported on Windows.",
+                    ex
+                );
+            }
+        });
 
         // Extract the process ID before calling ExecuteAsync(), because the process may
         // already be disposed by then.

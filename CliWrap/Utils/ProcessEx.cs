@@ -42,7 +42,7 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
 
     public int ExitCode => _nativeProcess.ExitCode;
 
-    public void Start()
+    public void Start(Action<Process>? configureProcess = null)
     {
         // Hook up events
         _nativeProcess.EnableRaisingEvents = true;
@@ -64,6 +64,9 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
             }
 
             StartTime = DateTimeOffset.Now;
+
+            // Apply custom configurations
+            configureProcess?.Invoke(_nativeProcess);
         }
         catch (Win32Exception ex)
         {

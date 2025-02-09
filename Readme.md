@@ -269,6 +269,38 @@ var cmd = Cli.Wrap("git")
 > Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
 > If you need to remove an inherited variable, set the corresponding value to `null`.
 
+#### `WithResourcePolicy(...)`
+
+Sets the system resource management policy for the child process.
+
+**Default**: default policy.
+
+**Examples**:
+
+- Set resource policy using a builder:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithResourcePolicy(policy => policy
+        .SetPriority(ProcessPriorityClass.High)
+        .SetAffinity(0b1010)
+        .SetMinWorkingSet(1024)
+        .SetMaxWorkingSet(4096)
+    );
+```
+
+- Set resource policy directly:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithResourcePolicy(new ResourcePolicy(
+        priority: ProcessPriorityClass.High,
+        affinity: 0b1010,
+        minWorkingSet: 1024,
+        maxWorkingSet: 4096
+    ));
+```
+
 #### `WithCredentials(...)`
 
 Sets domain, name and password of the user, under whom the child process should be started.
