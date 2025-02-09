@@ -143,30 +143,18 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdin_from_another_command_with_a_transform()
     {
         // Arrange
-        var cmdInput = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(["generate binary", "--length", "100000"]);
-
-        var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments("length stdin")
-            .WithStandardInputPipe(
-                PipeSource.FromCommand(
-                    cmdInput,
-                    // Take only the first 5000 bytes
-                    async (source, destination, cancellationToken) =>
-                    {
-                        using var buffer = MemoryPool<byte>.Shared.Rent(5000);
-
-                        await source.ReadAtLeastAsync(
-                            buffer.Memory,
-                            5000,
-                            false,
-                            cancellationToken
-                        );
-
-                        await destination.WriteAsync(buffer.Memory[..5000], cancellationToken);
-                    }
-                )
-            );
+        var cmd =
+            PipeSource.FromCommand(
+                Cli.Wrap(Dummy.Program.FilePath)
+                    .WithArguments(["generate binary", "--length", "100000"]),
+                // Transform: take the first 5000 bytes and discard the rest
+                async (source, destination, cancellationToken) =>
+                {
+                    using var buffer = MemoryPool<byte>.Shared.Rent(5000);
+                    await source.ReadAtLeastAsync(buffer.Memory, 5000, false, cancellationToken);
+                    await destination.WriteAsync(buffer.Memory[..5000], cancellationToken);
+                }
+            ) | Cli.Wrap(Dummy.Program.FilePath).WithArguments("length stdin");
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
