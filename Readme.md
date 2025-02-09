@@ -301,6 +301,9 @@ var cmd = Cli.Wrap("git")
     ));
 ```
 
+> **Warning**:
+> Resource policy options have varying support across different platforms.
+
 #### `WithCredentials(...)`
 
 Sets domain, name and password of the user, under whom the child process should be started.
