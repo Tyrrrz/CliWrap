@@ -14,7 +14,7 @@ public class ResourcePolicySpecs
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Starting a process with custom priority is only supported on Windows."
+            "Starting a process with a custom priority is only supported on Windows."
         );
 
         // Arrange
@@ -34,7 +34,7 @@ public class ResourcePolicySpecs
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 || RuntimeInformation.IsOSPlatform(OSPlatform.Linux),
-            "Starting a process with custom affinity is only supported on Windows and Linux."
+            "Starting a process with a custom affinity mask is only supported on Windows and Linux."
         );
 
         // Arrange
@@ -52,7 +52,7 @@ public class ResourcePolicySpecs
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Starting a process with custom priority is only supported on Windows."
+            "Starting a process with a custom working set limit is only supported on Windows."
         );
 
         // Arrange
