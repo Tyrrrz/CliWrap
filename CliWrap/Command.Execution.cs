@@ -115,7 +115,7 @@ public partial class Command
         {
             throw new NotSupportedException(
                 "Cannot start a process using the provided credentials. "
-                    + "Setting custom domain, password, or loading user profile is only supported on Windows.",
+                    + "Setting custom domain, username, password, and/or loading the user profile is not supported on this platform.",
                 ex
             );
         }
@@ -308,10 +308,36 @@ public partial class Command
     {
         var process = new ProcessEx(CreateStartInfo());
 
-        // This method may fail and we want to propagate the exceptions immediately instead
+        // This method may fail, and we want to propagate the exceptions immediately instead
         // of wrapping them in a task, so it needs to be executed in a synchronous context.
         // https://github.com/Tyrrrz/CliWrap/issues/139
-        process.Start();
+        process.Start(p =>
+        {
+            try
+            {
+                // Disable CA1416 because we're handling an exception that is thrown by the property setters
+#pragma warning disable CA1416
+                p.PriorityClass = ResourcePolicy.Priority;
+
+                if (ResourcePolicy.Affinity is not null)
+                    p.ProcessorAffinity = ResourcePolicy.Affinity.Value;
+
+                if (ResourcePolicy.MinWorkingSet is not null)
+                    p.MinWorkingSet = ResourcePolicy.MinWorkingSet.Value;
+
+                if (ResourcePolicy.MaxWorkingSet is not null)
+                    p.MaxWorkingSet = ResourcePolicy.MaxWorkingSet.Value;
+#pragma warning restore CA1416
+            }
+            catch (NotSupportedException ex)
+            {
+                throw new NotSupportedException(
+                    "Cannot set resource policy for the process. "
+                        + "Setting custom priority, affinity, and/or working set limits is not supported on this platform.",
+                    ex
+                );
+            }
+        });
 
         // Extract the process ID before calling ExecuteAsync(), because the process may
         // already be disposed by then.
