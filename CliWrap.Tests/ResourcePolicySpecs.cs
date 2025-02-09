@@ -12,6 +12,8 @@ public class ResourcePolicySpecs
     [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_a_custom_process_priority()
     {
+        // Process priority is supported on other platforms, but setting it requires elevated permissions,
+        // which we cannot guarantee in a CI environment. Therefore, we only test this on Windows.
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
             "Starting a process with a custom priority is only supported on Windows."
@@ -79,7 +81,7 @@ public class ResourcePolicySpecs
 
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithResourcePolicy(p => p.SetPriority(ProcessPriorityClass.High).SetAffinity(0b1010));
+            .WithResourcePolicy(p => p.SetMinWorkingSet(1024 * 1024));
 
         // Act & assert
         await Assert.ThrowsAsync<NotSupportedException>(() => cmd.ExecuteAsync());

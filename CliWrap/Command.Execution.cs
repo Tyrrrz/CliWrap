@@ -329,9 +329,9 @@ public partial class Command
                     p.MaxWorkingSet = ResourcePolicy.MaxWorkingSet.Value;
 #pragma warning restore CA1416
             }
-            catch (PlatformNotSupportedException ex)
+            catch (NotSupportedException ex)
             {
-                throw new PlatformNotSupportedException(
+                throw new NotSupportedException(
                     "Cannot set resource policy for the process. "
                         + "Setting custom priority, affinity, and/or working set limits is not supported on this platform.",
                     ex
