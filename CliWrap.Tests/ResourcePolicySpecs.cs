@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -9,7 +10,7 @@ namespace CliWrap.Tests;
 public class ResourcePolicySpecs
 {
     [SkippableFact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_custom_process_priority()
+    public async Task I_can_execute_a_command_with_a_custom_process_priority()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
@@ -28,7 +29,7 @@ public class ResourcePolicySpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_custom_affinity_mask()
+    public async Task I_can_execute_a_command_with_a_custom_affinity_mask()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -47,7 +48,7 @@ public class ResourcePolicySpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_custom_working_set_limits()
+    public async Task I_can_execute_a_command_with_a_custom_working_set_limit()
     {
         Skip.IfNot(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
@@ -66,5 +67,21 @@ public class ResourcePolicySpecs
 
         // Assert
         result.ExitCode.Should().Be(0);
+    }
+
+    [SkippableFact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_a_custom_resource_policy_and_get_an_error_if_the_operating_system_does_not_support_it()
+    {
+        Skip.If(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            "Starting a process with a custom resource policy is fully supported on Windows."
+        );
+
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithResourcePolicy(p => p.SetPriority(ProcessPriorityClass.High).SetAffinity(0b1010));
+
+        // Act & assert
+        await Assert.ThrowsAsync<NotSupportedException>(() => cmd.ExecuteAsync());
     }
 }

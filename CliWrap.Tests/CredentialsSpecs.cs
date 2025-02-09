@@ -58,7 +58,7 @@ public class CredentialsSpecs
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
-            "Starting a process as another user is only supported on Windows."
+            "Starting a process as another user is fully supported on Windows."
         );
 
         // Arrange
