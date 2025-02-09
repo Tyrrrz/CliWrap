@@ -18,7 +18,7 @@ public partial class ResourcePolicy(
     public ProcessPriorityClass Priority { get; } = priority;
 
     /// <summary>
-    /// Processor affinity mask of the process.
+    /// Processor core affinity mask of the process.
     /// </summary>
     public nint? Affinity { get; } = affinity;
 
