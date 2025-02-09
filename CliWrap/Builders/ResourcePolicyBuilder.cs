@@ -22,8 +22,8 @@ public class ResourcePolicyBuilder
     }
 
     /// <summary>
-    /// Sets the processor affinity mask of the process.
-    /// For example, to set the affinity to cores 1 and 3, pass 0b1010.
+    /// Sets the processor core affinity mask of the process.
+    /// For example, to set the affinity to cores 1 and 3 out of 4, pass 0b1010.
     /// </summary>
     public ResourcePolicyBuilder SetAffinity(nint? affinity)
     {
