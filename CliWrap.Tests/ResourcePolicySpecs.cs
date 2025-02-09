@@ -72,7 +72,7 @@ public class ResourcePolicySpecs
     }
 
     [SkippableFact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_a_custom_resource_policy_and_get_an_error_if_the_operating_system_does_not_support_it()
+    public async Task I_can_try_to_execute_a_command_with_a_custom_resource_policy_and_get_an_error_if_the_operating_system_does_not_support_it()
     {
         Skip.If(
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
