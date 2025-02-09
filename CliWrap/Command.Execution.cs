@@ -115,7 +115,7 @@ public partial class Command
         {
             throw new NotSupportedException(
                 "Cannot start a process using the provided credentials. "
-                    + "Setting custom domain, password, or loading user profile is only supported on Windows.",
+                    + "Setting custom domain, username, password, and/or loading the user profile is not supported on this platform.",
                 ex
             );
         }
@@ -313,12 +313,12 @@ public partial class Command
         // https://github.com/Tyrrrz/CliWrap/issues/139
         process.Start(p =>
         {
-            p.PriorityClass = ResourcePolicy.Priority;
-
             try
             {
                 // Disable CA1416 because we're handling an exception that is thrown by the property setters
 #pragma warning disable CA1416
+                p.PriorityClass = ResourcePolicy.Priority;
+
                 if (ResourcePolicy.Affinity is not null)
                     p.ProcessorAffinity = ResourcePolicy.Affinity.Value;
 
@@ -333,7 +333,7 @@ public partial class Command
             {
                 throw new PlatformNotSupportedException(
                     "Cannot set resource policy for the process. "
-                        + "Setting custom priority, affinity, or working set limits is only supported on Windows.",
+                        + "Setting custom priority, affinity, and/or working set limits is not supported on this platform.",
                     ex
                 );
             }

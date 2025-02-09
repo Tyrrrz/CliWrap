@@ -31,7 +31,8 @@ public class ResourcePolicySpecs
     public async Task I_can_execute_a_command_with_custom_affinity_mask()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux),
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                || RuntimeInformation.IsOSPlatform(OSPlatform.Linux),
             "Starting a process with custom affinity is only supported on Windows and Linux."
         );
 
