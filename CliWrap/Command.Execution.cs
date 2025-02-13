@@ -337,6 +337,11 @@ public partial class Command
                     ex
                 );
             }
+            catch (InvalidOperationException)
+            {
+                // This exception could indicate that the process has exited before we had a chance to set the policy.
+                // This is not an exceptional situation, so we don't need to do anything here.
+            }
         });
 
         // Extract the process ID before calling ExecuteAsync(), because the process may
