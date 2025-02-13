@@ -64,24 +64,21 @@ public class CancellationSpecs
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-
-        // We need to send the cancellation request right after the process has registered
-        // a handler for the interrupt signal, otherwise the default handler will trigger
-        // and just kill the process.
-        void HandleStdOut(string line)
-        {
-            if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
-                cts.CancelAfter(TimeSpan.FromSeconds(0.2));
-        }
-
         var stdOutBuffer = new StringBuilder();
 
-        var target = PipeTarget.Merge(
-            PipeTarget.ToDelegate(HandleStdOut),
-            PipeTarget.ToStringBuilder(stdOutBuffer)
-        );
-
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | target;
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"])
+            | PipeTarget.Merge(
+                PipeTarget.ToDelegate(line =>
+                {
+                    // We need to send the cancellation request right after the process has registered
+                    // a handler for the interrupt signal, otherwise the default handler will trigger
+                    // and just kill the process.
+                    if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
+                        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+                }),
+                PipeTarget.ToStringBuilder(stdOutBuffer)
+            );
 
         // Act
         var task = cmd.ExecuteAsync(CancellationToken.None, cts.Token);
