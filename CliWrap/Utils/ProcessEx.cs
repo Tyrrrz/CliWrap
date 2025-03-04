@@ -70,7 +70,8 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
         {
             throw new Win32Exception(
                 $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
-                    + "Target file or working directory doesn't exist, the provided credentials are invalid, or the resource policy cannot be set due to insufficient permissions.",
+                    + "Target file or working directory doesn't exist, the provided credentials are invalid, or the resource policy cannot be set due to insufficient permissions. "
+                    + "See the inner exception for more information.",
                 ex
             );
         }
