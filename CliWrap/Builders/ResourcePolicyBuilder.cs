@@ -7,7 +7,7 @@ namespace CliWrap.Builders;
 /// </summary>
 public class ResourcePolicyBuilder
 {
-    private ProcessPriorityClass _priority = ProcessPriorityClass.Normal;
+    private ProcessPriorityClass? _priority;
     private nint? _affinity;
     private nint? _minWorkingSet;
     private nint? _maxWorkingSet;
@@ -15,7 +15,7 @@ public class ResourcePolicyBuilder
     /// <summary>
     /// Sets the priority class of the process.
     /// </summary>
-    public ResourcePolicyBuilder SetPriority(ProcessPriorityClass priority)
+    public ResourcePolicyBuilder SetPriority(ProcessPriorityClass? priority)
     {
         _priority = priority;
         return this;
