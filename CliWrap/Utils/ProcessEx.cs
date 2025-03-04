@@ -48,7 +48,10 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
         _nativeProcess.EnableRaisingEvents = true;
         _nativeProcess.Exited += (_, _) =>
         {
+            // Record exit time
             ExitTime = DateTimeOffset.Now;
+
+            // Release the waiting task
             _exitTcs.TrySetResult(null);
         };
 
@@ -59,23 +62,25 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
             {
                 throw new InvalidOperationException(
                     $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
-                        + "Target file is not an executable or lacks execute permissions."
+                        + "Target file is not an executable or lacks the 'execute' permission."
                 );
             }
-
-            StartTime = DateTimeOffset.Now;
-
-            // Apply custom configurations
-            configureProcess?.Invoke(_nativeProcess);
         }
         catch (Win32Exception ex)
         {
             throw new Win32Exception(
                 $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
-                    + "Target file or working directory doesn't exist, or the provided credentials are invalid.",
+                    + "Target file or working directory doesn't exist, the provided credentials are invalid, or the resource policy cannot be set due to insufficient permissions. "
+                    + "See the inner exception for more information.",
                 ex
             );
         }
+
+        // Record start time
+        StartTime = DateTimeOffset.Now;
+
+        // Apply custom configurations
+        configureProcess?.Invoke(_nativeProcess);
     }
 
     // Sends SIGINT
@@ -148,7 +153,9 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
                 .Register(() => _exitTcs.TrySetCanceled(cancellationToken))
                 .ToAsyncDisposable()
         )
+        {
             await _exitTcs.Task.ConfigureAwait(false);
+        }
     }
 
     public void Dispose() => _nativeProcess.Dispose();

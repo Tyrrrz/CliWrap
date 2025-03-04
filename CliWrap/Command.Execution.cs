@@ -317,7 +317,8 @@ public partial class Command
             {
                 // Disable CA1416 because we're handling an exception that is thrown by the property setters
 #pragma warning disable CA1416
-                p.PriorityClass = ResourcePolicy.Priority;
+                if (ResourcePolicy.Priority is not null)
+                    p.PriorityClass = ResourcePolicy.Priority.Value;
 
                 if (ResourcePolicy.Affinity is not null)
                     p.ProcessorAffinity = ResourcePolicy.Affinity.Value;
@@ -332,7 +333,7 @@ public partial class Command
             catch (NotSupportedException ex)
             {
                 throw new NotSupportedException(
-                    "Cannot set resource policy for the process. "
+                    "Cannot start a process with the provided resource policy. "
                         + "Setting custom priority, affinity, and/or working set limits is not supported on this platform.",
                     ex
                 );

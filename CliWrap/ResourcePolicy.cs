@@ -6,7 +6,7 @@ namespace CliWrap;
 /// Resource policy assigned to a process.
 /// </summary>
 public partial class ResourcePolicy(
-    ProcessPriorityClass priority = ProcessPriorityClass.Normal,
+    ProcessPriorityClass? priority = null,
     nint? affinity = null,
     nint? minWorkingSet = null,
     nint? maxWorkingSet = null
@@ -15,7 +15,7 @@ public partial class ResourcePolicy(
     /// <summary>
     /// Priority class of the process.
     /// </summary>
-    public ProcessPriorityClass Priority { get; } = priority;
+    public ProcessPriorityClass? Priority { get; } = priority;
 
     /// <summary>
     /// Processor core affinity mask of the process.
