@@ -1,10 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CliWrap;
 
 /// <summary>
 /// User credentials used for starting a process.
 /// </summary>
+/// <remarks>
+/// For information on platform support, see attributes on <see cref="ProcessStartInfo.Domain" />,
+/// <see cref="ProcessStartInfo.UserName" />, <see cref="ProcessStartInfo.Password" /> and
+/// <see cref="ProcessStartInfo.LoadUserProfile" />.
+/// </remarks>
 public partial class Credentials(
     string? domain = null,
     string? userName = null,

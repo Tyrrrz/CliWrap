@@ -5,6 +5,11 @@ namespace CliWrap;
 /// <summary>
 /// Resource policy assigned to a process.
 /// </summary>
+/// <remarks>
+/// For information on platform support, see attributes on <see cref="Process.PriorityClass" />,
+/// <see cref="Process.ProcessorAffinity" />, <see cref="Process.MinWorkingSet" /> and
+/// <see cref="Process.MaxWorkingSet" />.
+/// </remarks>
 public partial class ResourcePolicy(
     ProcessPriorityClass? priority = null,
     nint? affinity = null,
