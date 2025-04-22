@@ -77,7 +77,7 @@ public partial class Command
 	/// <summary>
 	/// Creates and configures a new <see cref="ProcessStartInfo" /> instance for executing the command.
 	/// </summary>
-    protected ProcessStartInfo CreateStartInfo()
+    protected virtual ProcessStartInfo CreateStartInfo()
     {
         var startInfo = new ProcessStartInfo
         {
