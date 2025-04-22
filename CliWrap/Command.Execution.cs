@@ -74,7 +74,10 @@ public partial class Command
             ).FirstOrDefault(File.Exists) ?? TargetFilePath;
     }
 
-    private ProcessStartInfo CreateStartInfo()
+	/// <summary>
+	/// Creates and configures a new <see cref="ProcessStartInfo" /> instance for executing the command.
+	/// </summary>
+    protected ProcessStartInfo CreateStartInfo()
     {
         var startInfo = new ProcessStartInfo
         {
