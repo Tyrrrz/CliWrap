@@ -26,11 +26,11 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
 
-    public Stream StandardInput => _nativeProcess.StandardInput.BaseStream;
+    public Stream StandardInput => _nativeProcess.StartInfo.RedirectStandardInput ? _nativeProcess.StandardInput.BaseStream : Stream.Null;
 
-    public Stream StandardOutput => _nativeProcess.StandardOutput.BaseStream;
+    public Stream StandardOutput => _nativeProcess.StartInfo.RedirectStandardOutput ? _nativeProcess.StandardOutput.BaseStream : Stream.Null;
 
-    public Stream StandardError => _nativeProcess.StandardError.BaseStream;
+    public Stream StandardError => _nativeProcess.StartInfo.RedirectStandardError ? _nativeProcess.StandardError.BaseStream : Stream.Null;
 
     // We have to keep track of StartTime ourselves because it becomes inaccessible after the process exits
     // https://github.com/Tyrrrz/CliWrap/issues/93
