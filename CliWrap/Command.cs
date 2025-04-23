@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.IO;
 using CliWrap.Builders;
 
 namespace CliWrap;
@@ -10,128 +8,141 @@ namespace CliWrap;
 /// <summary>
 /// Instructions for running a process.
 /// </summary>
-public partial class Command(
-    string targetFilePath,
-    string arguments,
-    string workingDirPath,
-    ResourcePolicy resourcePolicy,
-    Credentials credentials,
-    IReadOnlyDictionary<string, string?> environmentVariables,
-    CommandResultValidation validation,
-    PipeSource standardInputPipe,
-    PipeTarget standardOutputPipe,
-    PipeTarget standardErrorPipe
-) : ICommandConfiguration
+public partial class Command : ICommandConfiguration
 {
+    private CommandConfiguration _configuration;
+
     /// <summary>
-    /// Initializes an instance of <see cref="Command" />.
+    /// Initializes an instance of <see cref="Command" /> using the specified configuration values.
     /// </summary>
-    public Command(string targetFilePath)
+    public Command(
+        string targetFilePath,
+        string arguments,
+        string workingDirPath,
+        ResourcePolicy resourcePolicy,
+        Credentials credentials,
+        IReadOnlyDictionary<string, string?> environmentVariables,
+        CommandResultValidation validation,
+        PipeSource standardInputPipe,
+        PipeTarget standardOutputPipe,
+        PipeTarget standardErrorPipe
+    )
         : this(
-            targetFilePath,
-            string.Empty,
-            Directory.GetCurrentDirectory(),
-            ResourcePolicy.Default,
-            Credentials.Default,
-            new Dictionary<string, string?>(),
-            CommandResultValidation.ZeroExitCode,
-            PipeSource.Null,
-            PipeTarget.Null,
-            PipeTarget.Null
+            new CommandConfiguration(
+                targetFilePath,
+                arguments,
+                workingDirPath,
+                resourcePolicy,
+                credentials,
+                environmentVariables,
+                validation,
+                standardInputPipe,
+                standardOutputPipe,
+                standardErrorPipe
+            )
         ) { }
 
-    /// <inheritdoc />
-    public string TargetFilePath { get; } = targetFilePath;
-
-    /// <inheritdoc />
-    public string Arguments { get; } = arguments;
-
-    /// <inheritdoc />
-    public string WorkingDirPath { get; } = workingDirPath;
-
-    /// <inheritdoc />
-    public ResourcePolicy ResourcePolicy { get; } = resourcePolicy;
-
-    /// <inheritdoc />
-    public Credentials Credentials { get; } = credentials;
-
-    /// <inheritdoc />
-    public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; } =
-        environmentVariables;
-
-    /// <inheritdoc />
-    public CommandResultValidation Validation { get; } = validation;
-
-    /// <inheritdoc />
-    public PipeSource StandardInputPipe { get; } = standardInputPipe;
-
-    /// <inheritdoc />
-    public PipeTarget StandardOutputPipe { get; } = standardOutputPipe;
-
-    /// <inheritdoc />
-    public PipeTarget StandardErrorPipe { get; } = standardErrorPipe;
-
     /// <summary>
-    /// Creates a copy of this command, setting the target file path to the specified value.
+    /// Initializes an instance of <see cref="Command" /> using the default configuration.
     /// </summary>
-    [Pure]
-    public Command WithTargetFile(string targetFilePath) =>
-        new(
-            targetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command(string targetFilePath)
+        : this(new CommandConfiguration(targetFilePath)) { }
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the specified value.
+    /// Initializes an instance of <see cref="Command" /> using the configuration from
+    /// the specified <see cref="ICommandConfiguration"/> instance.
+    /// </summary>
+    public Command(ICommandConfiguration configuration)
+    {
+        _configuration = new(
+            configuration.TargetFilePath,
+            configuration.Arguments,
+            configuration.WorkingDirPath,
+            configuration.ResourcePolicy,
+            configuration.Credentials,
+            configuration.EnvironmentVariables,
+            configuration.Validation,
+            configuration.StandardInputPipe,
+            configuration.StandardOutputPipe,
+            configuration.StandardErrorPipe
+        );
+    }
+
+    /// <summary>
+    /// Gets the <see cref="ICommandConfiguration"/>  instance that contains the configuration values for this command.
+    /// </summary>
+    public ICommandConfiguration Configuration => _configuration;
+
+    // TODO: (breaking change) remove below delegating implementation of ICommandConfiguration
+
+    /// <inheritdoc/>
+    public string TargetFilePath => _configuration.TargetFilePath;
+
+    /// <inheritdoc/>
+    public string Arguments => _configuration.Arguments;
+
+    /// <inheritdoc/>
+    public string WorkingDirPath => _configuration.WorkingDirPath;
+
+    /// <inheritdoc/>
+    public ResourcePolicy ResourcePolicy => _configuration.ResourcePolicy;
+
+    /// <inheritdoc/>
+    public Credentials Credentials => _configuration.Credentials;
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string?> EnvironmentVariables =>
+        _configuration.EnvironmentVariables;
+
+    /// <inheritdoc/>
+    public CommandResultValidation Validation => _configuration.Validation;
+
+    /// <inheritdoc/>
+    public PipeSource StandardInputPipe => _configuration.StandardInputPipe;
+
+    /// <inheritdoc/>
+    public PipeTarget StandardOutputPipe => _configuration.StandardOutputPipe;
+
+    /// <inheritdoc/>
+    public PipeTarget StandardErrorPipe => _configuration.StandardErrorPipe;
+
+    /// <summary>
+    /// Sets the target file path to the specified value.
+    /// </summary>
+    public Command WithTargetFile(string targetFilePath)
+    {
+        _configuration = _configuration with { TargetFilePath = targetFilePath };
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the arguments to the specified value.
     /// </summary>
     /// <remarks>
     /// Avoid using this overload, as it requires the arguments to be escaped manually.
     /// Formatting errors may lead to unexpected bugs and security vulnerabilities.
     /// </remarks>
-    [Pure]
-    public Command WithArguments(string arguments) =>
-        new(
-            TargetFilePath,
-            arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command WithArguments(string arguments)
+    {
+        _configuration = _configuration with { Arguments = arguments };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value
-    /// obtained by formatting the specified enumeration.
+    /// Sets the arguments to the value obtained by formatting the specified enumeration.
     /// </summary>
-    [Pure]
     public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
         WithArguments(args => args.Add(arguments, escape));
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value
-    /// obtained by formatting the specified enumeration.
+    /// Sets the arguments to the value obtained by formatting the specified enumeration.
     /// </summary>
     // TODO: (breaking change) remove in favor of optional parameter
-    [Pure]
     public Command WithArguments(IEnumerable<string> arguments) => WithArguments(arguments, true);
 
     /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value
-    /// configured by the specified delegate.
+    /// Sets the arguments to the value configured by the specified delegate.
     /// </summary>
-    [Pure]
     public Command WithArguments(Action<ArgumentsBuilder> configure)
     {
         var builder = new ArgumentsBuilder();
@@ -141,46 +152,26 @@ public partial class Command(
     }
 
     /// <summary>
-    /// Creates a copy of this command, setting the working directory path to the specified value.
+    /// Sets the working directory path to the specified value.
     /// </summary>
-    [Pure]
-    public Command WithWorkingDirectory(string workingDirPath) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            workingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command WithWorkingDirectory(string workingDirPath)
+    {
+        _configuration = _configuration with { WorkingDirPath = workingDirPath };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the resource policy to the specified value.
+    /// Sets the resource policy to the specified value.
     /// </summary>
-    [Pure]
-    public Command WithResourcePolicy(ResourcePolicy resourcePolicy) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            resourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command WithResourcePolicy(ResourcePolicy resourcePolicy)
+    {
+        _configuration = _configuration with { ResourcePolicy = resourcePolicy };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the resource policy to the value
-    /// configured by the specified delegate.
+    /// Sets the resource policy to the value configured by the specified delegate.
     /// </summary>
-    [Pure]
     public Command WithResourcePolicy(Action<ResourcePolicyBuilder> configure)
     {
         var builder = new ResourcePolicyBuilder();
@@ -190,28 +181,17 @@ public partial class Command(
     }
 
     /// <summary>
-    /// Creates a copy of this command, setting the user credentials to the specified value.
+    /// Sets the user credentials to the specified value.
     /// </summary>
-    [Pure]
-    public Command WithCredentials(Credentials credentials) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command WithCredentials(Credentials credentials)
+    {
+        _configuration = _configuration with { Credentials = credentials };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the user credentials to the value
-    /// configured by the specified delegate.
+    /// Sets the user credentials to the value configured by the specified delegate.
     /// </summary>
-    [Pure]
     public Command WithCredentials(Action<CredentialsBuilder> configure)
     {
         var builder = new CredentialsBuilder();
@@ -221,30 +201,19 @@ public partial class Command(
     }
 
     /// <summary>
-    /// Creates a copy of this command, setting the environment variables to the specified value.
+    /// Sets the environment variables to the specified value.
     /// </summary>
-    [Pure]
     public Command WithEnvironmentVariables(
         IReadOnlyDictionary<string, string?> environmentVariables
-    ) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            environmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    )
+    {
+        _configuration = _configuration with { EnvironmentVariables = environmentVariables };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the environment variables to the value
-    /// configured by the specified delegate.
+    /// Sets the environment variables to the value configured by the specified delegate.
     /// </summary>
-    [Pure]
     public Command WithEnvironmentVariables(Action<EnvironmentVariablesBuilder> configure)
     {
         var builder = new EnvironmentVariablesBuilder();
@@ -254,78 +223,46 @@ public partial class Command(
     }
 
     /// <summary>
-    /// Creates a copy of this command, setting the validation options to the specified value.
+    /// Sets the validation options to the specified value.
     /// </summary>
-    [Pure]
-    public Command WithValidation(CommandResultValidation validation) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command WithValidation(CommandResultValidation validation)
+    {
+        _configuration = _configuration with { Validation = validation };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the standard input pipe to the specified source.
+    /// Sets the standard input pipe to the specified source.
     /// </summary>
-    [Pure]
-    public Command WithStandardInputPipe(PipeSource source) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            source,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
+    public Command WithStandardInputPipe(PipeSource source)
+    {
+        _configuration = _configuration with { StandardInputPipe = source };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the standard output pipe to the specified target.
+    /// Sets the standard output pipe to the specified target.
     /// </summary>
-    [Pure]
-    public Command WithStandardOutputPipe(PipeTarget target) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            target,
-            StandardErrorPipe
-        );
+    public Command WithStandardOutputPipe(PipeTarget target)
+    {
+        _configuration = _configuration with { StandardOutputPipe = target };
+        return this;
+    }
 
     /// <summary>
-    /// Creates a copy of this command, setting the standard error pipe to the specified target.
+    /// Sets the standard error pipe to the specified target.
     /// </summary>
-    [Pure]
-    public Command WithStandardErrorPipe(PipeTarget target) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            target
-        );
+    public Command WithStandardErrorPipe(PipeTarget target)
+    {
+        _configuration = _configuration with { StandardErrorPipe = target };
+        return this;
+    }
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]
-    public override string ToString() => $"{TargetFilePath} {Arguments}";
+    public override string ToString()
+    {
+        var configuration = _configuration; // Snapshot to avoid race conditions
+        return $"{configuration.TargetFilePath} {configuration.Arguments}";
+    }
 }

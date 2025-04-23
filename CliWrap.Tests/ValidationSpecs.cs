@@ -21,7 +21,7 @@ public class ValidationSpecs(ITestOutputHelper testOutput)
         );
 
         ex.ExitCode.Should().Be(1);
-        ex.Command.Should().BeEquivalentTo(cmd);
+        ex.Command.Should().BeEquivalentTo(cmd.Configuration);
 
         testOutput.WriteLine(ex.ToString());
     }
@@ -39,7 +39,7 @@ public class ValidationSpecs(ITestOutputHelper testOutput)
 
         ex.Message.Should().Contain("Exit code set to 1"); // expected stderr
         ex.ExitCode.Should().Be(1);
-        ex.Command.Should().BeEquivalentTo(cmd);
+        ex.Command.Should().BeEquivalentTo(cmd.Configuration);
 
         testOutput.WriteLine(ex.ToString());
     }

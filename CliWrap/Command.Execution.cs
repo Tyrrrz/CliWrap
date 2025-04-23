@@ -20,11 +20,13 @@ public partial class Command
     // BAT or CMD file, even if it's on the PATH. If the extension is specified, it will work in both cases.
     private string GetOptimallyQualifiedTargetFilePath()
     {
+        var configuration = _configuration; // Snapshot to avoid race conditions
+
         // Currently, we only need this workaround for script files on Windows, so short-circuit
         // if we are on a different platform.
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            return TargetFilePath;
+            return configuration.TargetFilePath;
         }
 
         // Don't do anything for fully qualified paths or paths that already have an extension specified.
@@ -33,11 +35,11 @@ public partial class Command
         // strings like 'c:foo.txt' (which is relative to the current directory on drive C), but it's good
         // enough for our purposes and the alternative is only available on .NET Standard 2.1+.
         if (
-            Path.IsPathRooted(TargetFilePath)
-            || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath))
+            Path.IsPathRooted(configuration.TargetFilePath)
+            || !string.IsNullOrWhiteSpace(Path.GetExtension(configuration.TargetFilePath))
         )
         {
-            return TargetFilePath;
+            return configuration.TargetFilePath;
         }
 
         static IEnumerable<string> GetProbeDirectoryPaths()
@@ -68,22 +70,22 @@ public partial class Command
         return (
                 from probeDirPath in GetProbeDirectoryPaths()
                 where Directory.Exists(probeDirPath)
-                select Path.Combine(probeDirPath, TargetFilePath) into baseFilePath
+                select Path.Combine(probeDirPath, configuration.TargetFilePath) into baseFilePath
                 from extension in new[] { "exe", "cmd", "bat" }
                 select Path.ChangeExtension(baseFilePath, extension)
-            ).FirstOrDefault(File.Exists) ?? TargetFilePath;
+            ).FirstOrDefault(File.Exists) ?? configuration.TargetFilePath;
     }
 
     /// <summary>
     /// Creates and configures a new <see cref="ProcessStartInfo" /> instance for executing the command.
     /// </summary>
-    protected virtual ProcessStartInfo CreateStartInfo()
+    protected virtual ProcessStartInfo CreateStartInfo(ICommandConfiguration configuration)
     {
         var startInfo = new ProcessStartInfo
         {
             FileName = GetOptimallyQualifiedTargetFilePath(),
-            Arguments = Arguments,
-            WorkingDirectory = WorkingDirPath,
+            Arguments = configuration.Arguments,
+            WorkingDirectory = configuration.WorkingDirPath,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -101,17 +103,17 @@ public partial class Command
         {
             // Disable CA1416 because we're handling an exception that is thrown by the property setters
 #pragma warning disable CA1416
-            if (Credentials.Domain is not null)
-                startInfo.Domain = Credentials.Domain;
+            if (configuration.Credentials.Domain is not null)
+                startInfo.Domain = configuration.Credentials.Domain;
 
-            if (Credentials.UserName is not null)
-                startInfo.UserName = Credentials.UserName;
+            if (configuration.Credentials.UserName is not null)
+                startInfo.UserName = configuration.Credentials.UserName;
 
-            if (Credentials.Password is not null)
-                startInfo.Password = Credentials.Password.ToSecureString();
+            if (configuration.Credentials.Password is not null)
+                startInfo.Password = configuration.Credentials.Password.ToSecureString();
 
-            if (Credentials.LoadUserProfile)
-                startInfo.LoadUserProfile = Credentials.LoadUserProfile;
+            if (configuration.Credentials.LoadUserProfile)
+                startInfo.LoadUserProfile = configuration.Credentials.LoadUserProfile;
 #pragma warning restore CA1416
         }
         catch (NotSupportedException ex)
@@ -124,7 +126,7 @@ public partial class Command
         }
 
         // Set environment variables
-        foreach (var (key, value) in EnvironmentVariables)
+        foreach (var (key, value) in configuration.EnvironmentVariables)
         {
             if (value is not null)
             {
@@ -151,8 +153,8 @@ public partial class Command
         {
             try
             {
-                await StandardInputPipe
-                    .CopyToAsync(process.StandardInput, cancellationToken)
+                await _configuration
+                    .StandardInputPipe.CopyToAsync(process.StandardInput, cancellationToken)
                     // Some streams do not support cancellation, so we add a fallback that
                     // drops the task and returns early.
                     // This is important with stdin because the process might finish before
@@ -177,8 +179,8 @@ public partial class Command
     {
         await using (process.StandardOutput.ToAsyncDisposable())
         {
-            await StandardOutputPipe
-                .CopyFromAsync(process.StandardOutput, cancellationToken)
+            await _configuration
+                .StandardOutputPipe.CopyFromAsync(process.StandardOutput, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
@@ -190,8 +192,8 @@ public partial class Command
     {
         await using (process.StandardError.ToAsyncDisposable())
         {
-            await StandardErrorPipe
-                .CopyFromAsync(process.StandardError, cancellationToken)
+            await _configuration
+                .StandardErrorPipe.CopyFromAsync(process.StandardError, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
@@ -202,6 +204,8 @@ public partial class Command
         CancellationToken gracefulCancellationToken = default
     )
     {
+        var configuration = _configuration; // Snapshot to avoid race conditions
+
         using var _ = process;
 
         // Additional cancellation to ensure we don't wait forever for the process to terminate
@@ -276,16 +280,16 @@ public partial class Command
         );
 
         // Validate the exit code if required
-        if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
+        if (process.ExitCode != 0 && configuration.Validation.IsZeroExitCodeValidationEnabled())
         {
             throw new CommandExecutionException(
-                this,
+                configuration,
                 process.ExitCode,
                 $"""
                 Command execution failed because the underlying process ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
 
                 Command:
-                {TargetFilePath} {Arguments}
+                {configuration.TargetFilePath} {configuration.Arguments}
 
                 You can suppress this validation by calling `{nameof(WithValidation)}({nameof(
                     CommandResultValidation
@@ -309,7 +313,8 @@ public partial class Command
         CancellationToken gracefulCancellationToken
     )
     {
-        var process = new ProcessEx(CreateStartInfo());
+        var configuration = _configuration; // Snapshot to avoid race conditions
+        var process = new ProcessEx(CreateStartInfo(configuration));
 
         // This method may fail, and we want to propagate the exceptions immediately instead
         // of wrapping them in a task, so it needs to be executed in a synchronous context.
@@ -320,17 +325,17 @@ public partial class Command
             {
                 // Disable CA1416 because we're handling an exception that is thrown by the property setters
 #pragma warning disable CA1416
-                if (ResourcePolicy.Priority is not null)
-                    p.PriorityClass = ResourcePolicy.Priority.Value;
+                if (configuration.ResourcePolicy.Priority is not null)
+                    p.PriorityClass = configuration.ResourcePolicy.Priority.Value;
 
-                if (ResourcePolicy.Affinity is not null)
-                    p.ProcessorAffinity = ResourcePolicy.Affinity.Value;
+                if (configuration.ResourcePolicy.Affinity is not null)
+                    p.ProcessorAffinity = configuration.ResourcePolicy.Affinity.Value;
 
-                if (ResourcePolicy.MinWorkingSet is not null)
-                    p.MinWorkingSet = ResourcePolicy.MinWorkingSet.Value;
+                if (configuration.ResourcePolicy.MinWorkingSet is not null)
+                    p.MinWorkingSet = configuration.ResourcePolicy.MinWorkingSet.Value;
 
-                if (ResourcePolicy.MaxWorkingSet is not null)
-                    p.MaxWorkingSet = ResourcePolicy.MaxWorkingSet.Value;
+                if (configuration.ResourcePolicy.MaxWorkingSet is not null)
+                    p.MaxWorkingSet = configuration.ResourcePolicy.MaxWorkingSet.Value;
 #pragma warning restore CA1416
             }
             catch (NotSupportedException ex)

@@ -38,8 +38,7 @@ public class ConfigurationSpecs
         var modified = original.WithTargetFile("bar");
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.TargetFilePath));
-        original.TargetFilePath.Should().NotBe(modified.TargetFilePath);
+        modified.Should().BeSameAs(original);
         modified.TargetFilePath.Should().Be("bar");
     }
 
@@ -53,8 +52,7 @@ public class ConfigurationSpecs
         var modified = original.WithArguments("qqq ppp");
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
-        original.Arguments.Should().NotBe(modified.Arguments);
+        modified.Should().BeSameAs(original);
         modified.Arguments.Should().Be("qqq ppp");
     }
 
@@ -68,8 +66,7 @@ public class ConfigurationSpecs
         var modified = original.WithArguments(["-a", "foo bar"]);
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
-        original.Arguments.Should().NotBe(modified.Arguments);
+        modified.Should().BeSameAs(original);
         modified.Arguments.Should().Be("-a \"foo bar\"");
     }
 
@@ -90,8 +87,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Arguments));
-        original.Arguments.Should().NotBe(modified.Arguments);
+        modified.Should().BeSameAs(original);
         modified
             .Arguments.Should()
             .Be("-a \"foo bar\" \"\\\"foo\\\\bar\\\"\" 3.14 foo bar -5 89.13");
@@ -107,8 +103,7 @@ public class ConfigurationSpecs
         var modified = original.WithWorkingDirectory("new");
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.WorkingDirPath));
-        original.WorkingDirPath.Should().NotBe(modified.WorkingDirPath);
+        modified.Should().BeSameAs(original);
         modified.WorkingDirPath.Should().Be("new");
     }
 
@@ -124,8 +119,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.ResourcePolicy));
-        original.ResourcePolicy.Should().NotBe(modified.ResourcePolicy);
+        modified.Should().BeSameAs(original);
         modified
             .ResourcePolicy.Should()
             .BeEquivalentTo(new ResourcePolicy(ProcessPriorityClass.High, 0x1, 1024, 2048));
@@ -146,8 +140,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.ResourcePolicy));
-        original.ResourcePolicy.Should().NotBe(modified.ResourcePolicy);
+        modified.Should().BeSameAs(original);
         modified
             .ResourcePolicy.Should()
             .BeEquivalentTo(new ResourcePolicy(ProcessPriorityClass.High, 0x1, 1024, 2048));
@@ -165,8 +158,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
-        original.Credentials.Should().NotBe(modified.Credentials);
+        modified.Should().BeSameAs(original);
         modified
             .Credentials.Should()
             .BeEquivalentTo(new Credentials("domain", "username", "password", true));
@@ -184,8 +176,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Credentials));
-        original.Credentials.Should().NotBe(modified.Credentials);
+        modified.Should().BeSameAs(original);
         modified
             .Credentials.Should()
             .BeEquivalentTo(new Credentials("domain", "username", "password", true));
@@ -203,8 +194,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
-        original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
+        modified.Should().BeSameAs(original);
         modified
             .EnvironmentVariables.Should()
             .BeEquivalentTo(
@@ -226,8 +216,7 @@ public class ConfigurationSpecs
         );
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.EnvironmentVariables));
-        original.EnvironmentVariables.Should().NotBeEquivalentTo(modified.EnvironmentVariables);
+        modified.Should().BeSameAs(original);
         modified
             .EnvironmentVariables.Should()
             .BeEquivalentTo(
@@ -251,8 +240,7 @@ public class ConfigurationSpecs
         var modified = original.WithValidation(CommandResultValidation.None);
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.Validation));
-        original.Validation.Should().NotBe(modified.Validation);
+        modified.Should().BeSameAs(original);
         modified.Validation.Should().Be(CommandResultValidation.None);
     }
 
@@ -263,11 +251,12 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithStandardInputPipe(PipeSource.Null);
 
         // Act
-        var modified = original.WithStandardInputPipe(PipeSource.FromString("new"));
+        var modifiedPipeSource = PipeSource.FromString("new");
+        var modified = original.WithStandardInputPipe(modifiedPipeSource);
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardInputPipe));
-        original.StandardInputPipe.Should().NotBeSameAs(modified.StandardInputPipe);
+        modified.Should().BeSameAs(original);
+        modified.StandardInputPipe.Should().BeSameAs(modifiedPipeSource);
     }
 
     [Fact]
@@ -277,11 +266,12 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithStandardOutputPipe(PipeTarget.Null);
 
         // Act
-        var modified = original.WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null));
+        var modifiedPipeTarget = PipeTarget.ToStream(Stream.Null);
+        var modified = original.WithStandardOutputPipe(modifiedPipeTarget);
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardOutputPipe));
-        original.StandardOutputPipe.Should().NotBeSameAs(modified.StandardOutputPipe);
+        modified.Should().BeSameAs(original);
+        modified.StandardOutputPipe.Should().BeSameAs(modifiedPipeTarget);
     }
 
     [Fact]
@@ -291,10 +281,11 @@ public class ConfigurationSpecs
         var original = Cli.Wrap("foo").WithStandardErrorPipe(PipeTarget.Null);
 
         // Act
-        var modified = original.WithStandardErrorPipe(PipeTarget.ToStream(Stream.Null));
+        var modifiedPipeTarget = PipeTarget.ToStream(Stream.Null);
+        var modified = original.WithStandardErrorPipe(modifiedPipeTarget);
 
         // Assert
-        original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardErrorPipe));
-        original.StandardErrorPipe.Should().NotBeSameAs(modified.StandardErrorPipe);
+        modified.Should().BeSameAs(original);
+        modified.StandardErrorPipe.Should().BeSameAs(modifiedPipeTarget);
     }
 }
