@@ -308,7 +308,7 @@ public partial class Command
     // https://github.com/Tyrrrz/CliWrap/issues/79
     public CommandTask<CommandResult> ExecuteAsync(
         Action<ProcessStartInfo>? configureStartInfo,
-        Action<Process>? configureProcess,
+        Action<Process>? configureProcess = null,
         CancellationToken forcefulCancellationToken = default,
         CancellationToken gracefulCancellationToken = default
     )
