@@ -49,6 +49,22 @@ public class ExecutionSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_manually_configured_process_settings()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithValidation(CommandResultValidation.None);
+
+        // Act
+        var result = await cmd.ExecuteAsync(
+            startInfo => startInfo.Arguments = "exit 13",
+            process => process.PriorityBoostEnabled = false
+        );
+
+        // Assert
+        result.ExitCode.Should().Be(13);
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_not_hang_on_large_stdout_and_stderr()
     {
         // Arrange

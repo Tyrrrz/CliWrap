@@ -296,17 +296,27 @@ public partial class Command
 
     /// <summary>
     /// Executes the command asynchronously.
+    /// This overload allows you to directly configure the underlying process, and should
+    /// only be used in rare cases when you need to break out of the abstraction model
+    /// provided by CliWrap.
+    /// This overload comes with no warranty and using it may lead to unexpected behavior.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.
     /// </remarks>
-    // TODO: (breaking change) use optional parameters and remove the other overload
+    // Added to facilitate running the command without redirecting some/all of the streams
+    // https://github.com/Tyrrrz/CliWrap/issues/79
     public CommandTask<CommandResult> ExecuteAsync(
-        CancellationToken forcefulCancellationToken,
-        CancellationToken gracefulCancellationToken
+        Action<ProcessStartInfo>? configureStartInfo,
+        Action<Process>? configureProcess = null,
+        CancellationToken forcefulCancellationToken = default,
+        CancellationToken gracefulCancellationToken = default
     )
     {
-        var process = new ProcessEx(CreateStartInfo());
+        var startInfo = CreateStartInfo();
+        configureStartInfo?.Invoke(startInfo);
+
+        var process = new ProcessEx(startInfo);
 
         // This method may fail, and we want to propagate the exceptions immediately instead
         // of wrapping them in a task, so it needs to be executed in a synchronous context.
@@ -343,6 +353,8 @@ public partial class Command
                 // This exception could indicate that the process has exited before we had a chance to set the policy.
                 // This is not an exceptional situation, so we don't need to do anything here.
             }
+
+            configureProcess?.Invoke(p);
         });
 
         // Extract the process ID before calling ExecuteAsync(), because the process may
@@ -354,6 +366,18 @@ public partial class Command
             processId
         );
     }
+
+    /// <summary>
+    /// Executes the command asynchronously.
+    /// </summary>
+    /// <remarks>
+    /// This method can be awaited.
+    /// </remarks>
+    // TODO: (breaking change) use optional parameters and remove the other overload
+    public CommandTask<CommandResult> ExecuteAsync(
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken
+    ) => ExecuteAsync(null, null, forcefulCancellationToken, gracefulCancellationToken);
 
     /// <summary>
     /// Executes the command asynchronously.
