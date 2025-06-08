@@ -27,15 +27,15 @@
     <PackageReference Include="CSharpier.MsBuild" Version="1.0.2" PrivateAssets="all" />
     <PackageReference
       Include="Microsoft.Bcl.AsyncInterfaces"
-      Version="9.0.1"
-      Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true"
+      Version="9.0.5"
+      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="PolyShim" Version="1.15.0" PrivateAssets="all" />
     <PackageReference
       Include="System.Threading.Tasks.Extensions"
-      Version="4.5.4"
-      Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true"
+      Version="4.6.3"
+      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
     <PackageReference
       Include="System.Management"
@@ -45,11 +45,8 @@
     <PackageReference
       Include="System.Memory"
       Version="4.6.0"
-      Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1')) != true"
+      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Reference Include="System.Management" />
   </ItemGroup>
   <!-- Non-linking dependency on the signaler project to ensure correct build order -->
   <ItemGroup>
