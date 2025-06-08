@@ -40,7 +40,7 @@
     <PackageReference
       Include="System.Management"
       Version="9.0.1"
-      Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'"
+      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.0'))"
     />
     <PackageReference
       Include="System.Memory"
