@@ -1,15 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net9.0</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOsPlatform('Windows'))"
-      >$(TargetFrameworks);net48</TargetFrameworks
-    >
+    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CliFx" Version="2.3.6" />
     <PackageReference Include="CSharpier.MsBuild" Version="1.0.2" PrivateAssets="all" />
-    <PackageReference Include="PolyShim" Version="1.15.0" PrivateAssets="all" />
-    <PackageReference Include="System.Memory" Version="4.6.3" />
   </ItemGroup>
 </Project>
