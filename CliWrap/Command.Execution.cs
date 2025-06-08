@@ -208,10 +208,9 @@ public partial class Command
         // so we need a fallback.
         using var waitTimeoutCts = new CancellationTokenSource();
         await using var _1 = forcefulCancellationToken
-            .Register(
-                () =>
-                    // ReSharper disable once AccessToDisposedClosure
-                    waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
+            .Register(() =>
+                // ReSharper disable once AccessToDisposedClosure
+                waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
             )
             .ToAsyncDisposable();
 
