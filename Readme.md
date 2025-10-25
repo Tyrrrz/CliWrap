@@ -19,7 +19,7 @@
     <img src="favicon.png" alt="Icon" />
 </p>
 
-**CliWrap** is a library for interacting with external command-line interfaces.
+**CliWrap** is a library for interacting with command-line interfaces.
 It provides a convenient model for launching processes, redirecting input and output streams, awaiting completion, handling cancellation, and more.
 
 ## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
