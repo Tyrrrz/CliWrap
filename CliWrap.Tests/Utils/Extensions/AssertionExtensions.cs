@@ -7,12 +7,12 @@ namespace CliWrap.Tests.Utils.Extensions;
 
 internal static class AssertionExtensions
 {
-    public static void ConsistOfLines(
-        this StringAssertions assertions,
-        params IEnumerable<string> lines
-    ) =>
-        assertions
-            .Subject.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-            .Should()
-            .Equal(lines);
+    extension(StringAssertions assertions)
+    {
+        public void ConsistOfLines(params IEnumerable<string> lines) =>
+            assertions
+                .Subject.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries)
+                .Should()
+                .Equal(lines);
+    }
 }

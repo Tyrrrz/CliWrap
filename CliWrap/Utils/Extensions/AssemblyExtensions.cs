@@ -6,19 +6,18 @@ namespace CliWrap.Utils.Extensions;
 
 internal static class AssemblyExtensions
 {
-    public static void ExtractManifestResource(
-        this Assembly assembly,
-        string resourceName,
-        string destFilePath
-    )
+    extension(Assembly assembly)
     {
-        var input =
-            assembly.GetManifestResourceStream(resourceName)
-            ?? throw new MissingManifestResourceException(
-                $"Failed to find resource '{resourceName}'."
-            );
+        public void ExtractManifestResource(string resourceName, string destFilePath)
+        {
+            var input =
+                assembly.GetManifestResourceStream(resourceName)
+                ?? throw new MissingManifestResourceException(
+                    $"Failed to find resource '{resourceName}'."
+                );
 
-        using var output = File.Create(destFilePath);
-        input.CopyTo(output);
+            using var output = File.Create(destFilePath);
+            input.CopyTo(output);
+        }
     }
 }

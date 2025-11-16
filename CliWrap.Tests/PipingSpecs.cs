@@ -66,7 +66,7 @@ public class PipingSpecs
     {
         // Arrange
         using var file = TempFile.Create();
-        File.WriteAllText(file.Path, "Hello world!");
+        await File.WriteAllTextAsync(file.Path, "Hello world!");
 
         var cmd =
             PipeSource.FromFile(file.Path)
@@ -547,16 +547,14 @@ public class PipingSpecs
 
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(
-                [
-                    "generate binary",
-                    "--length",
-                    "1000000",
-                    // Buffer needs to be >= BufferSizes.Stream to fail
-                    "--buffer",
-                    "100000",
-                ]
-            );
+            .WithArguments([
+                "generate binary",
+                "--length",
+                "1000000",
+                // Buffer needs to be >= BufferSizes.Stream to fail
+                "--buffer",
+                "100000",
+            ]);
 
         // Act
         using var mergedStream1 = new MemoryStream();

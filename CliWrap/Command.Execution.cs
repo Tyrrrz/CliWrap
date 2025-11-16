@@ -47,9 +47,9 @@ public partial class Command
             // MIT License, .NET Foundation
 
             // Executable directory
-            if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
+            if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
             {
-                var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
+                var processDirPath = Path.GetDirectoryName(Environment.ProcessPath);
                 if (!string.IsNullOrWhiteSpace(processDirPath))
                     yield return processDirPath;
             }

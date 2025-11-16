@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.EventStream;
-using CliWrap.Tests.Utils;
+using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
 using Xunit;
 
@@ -32,7 +33,7 @@ public class CancellationSpecs
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         ex.CancellationToken.Should().Be(cts.Token);
 
-        ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
         stdOutBuffer.ToString().Should().NotContain("Done.");
     }
 
@@ -55,7 +56,7 @@ public class CancellationSpecs
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         ex.CancellationToken.Should().Be(cts.Token);
 
-        ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
         stdOutBuffer.ToString().Should().NotContain("Done.");
     }
 
@@ -87,7 +88,7 @@ public class CancellationSpecs
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
         ex.CancellationToken.Should().Be(cts.Token);
 
-        ProcessEx.IsRunning(task.ProcessId).Should().BeFalse();
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
         stdOutBuffer.ToString().Should().Contain("Canceled.").And.NotContain("Done.");
     }
 

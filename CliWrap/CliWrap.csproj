@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <IsTrimmable
       Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))"
@@ -24,14 +24,14 @@
     <None Include="../favicon.png" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CSharpier.MsBuild" Version="1.0.2" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
     <PackageReference
       Include="Microsoft.Bcl.AsyncInterfaces"
       Version="9.0.5"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
-    <PackageReference Include="PolyShim" Version="1.15.0" PrivateAssets="all" />
+    <PackageReference Include="PolyShim" Version="2.0.0" PrivateAssets="all" />
     <PackageReference
       Include="System.Threading.Tasks.Extensions"
       Version="4.6.3"
