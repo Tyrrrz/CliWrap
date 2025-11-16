@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils.Extensions;
@@ -102,17 +101,14 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
                 // On Windows, we need to launch an external executable that will attach
                 // to the target process's console and then send a Ctrl+C event to it.
                 // https://github.com/Tyrrrz/CliWrap/issues/47
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (OperatingSystem.IsWindows())
                 {
                     using var signaler = WindowsSignaler.Deploy();
                     return signaler.TrySend(_nativeProcess.Id, 0);
                 }
 
                 // On Unix, we can just send the signal to the process directly
-                if (
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                    || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                )
+                if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
                 {
                     return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
                 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,7 +11,7 @@ public class CredentialsSpecs
     public async Task I_can_execute_a_command_as_a_different_user()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Starting a process as another user is only supported on Windows."
         );
 
@@ -33,7 +32,7 @@ public class CredentialsSpecs
     public async Task I_can_execute_a_command_as_a_different_user_under_the_specified_domain()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Starting a process as another user is only supported on Windows."
         );
 
@@ -57,7 +56,7 @@ public class CredentialsSpecs
     public async Task I_can_try_to_execute_a_command_as_a_different_user_and_get_an_error_if_the_operating_system_does_not_support_it()
     {
         Skip.If(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Starting a process as another user is fully supported on Windows."
         );
 

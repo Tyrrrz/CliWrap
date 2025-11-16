@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
@@ -15,7 +14,7 @@ public class ResourcePolicySpecs
         // Process priority is supported on other platforms, but setting it requires elevated permissions,
         // which we cannot guarantee in a CI environment. Therefore, we only test this on Windows.
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Starting a process with a custom priority is only supported on Windows."
         );
 
@@ -34,8 +33,7 @@ public class ResourcePolicySpecs
     public async Task I_can_execute_a_command_with_a_custom_core_affinity()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                || RuntimeInformation.IsOSPlatform(OSPlatform.Linux),
+            OperatingSystem.IsWindows() || OperatingSystem.IsLinux(),
             "Starting a process with a custom core affinity is only supported on Windows and Linux."
         );
 
@@ -53,7 +51,7 @@ public class ResourcePolicySpecs
     public async Task I_can_execute_a_command_with_a_custom_working_set_limit()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Starting a process with a custom working set limit is only supported on Windows."
         );
 
@@ -75,7 +73,7 @@ public class ResourcePolicySpecs
     public async Task I_can_try_to_execute_a_command_with_a_custom_resource_policy_and_get_an_error_if_the_operating_system_does_not_support_it()
     {
         Skip.If(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Starting a process with a custom resource policy is fully supported on Windows."
         );
 

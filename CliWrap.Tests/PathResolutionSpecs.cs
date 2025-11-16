@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils;
@@ -30,7 +29,7 @@ public class PathResolutionSpecs
     public async Task I_can_execute_a_command_on_a_script_using_its_short_name()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Path resolution for scripts is only required on Windows."
         );
 

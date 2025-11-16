@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
@@ -22,7 +21,7 @@ public partial class Command
     {
         // Currently, we only need this workaround for script files on Windows, so short-circuit
         // if we are on a different platform.
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (!OperatingSystem.IsWindows())
         {
             return TargetFilePath;
         }
