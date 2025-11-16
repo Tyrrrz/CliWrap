@@ -13,7 +13,7 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
 {
     private readonly Process _nativeProcess = new() { StartInfo = startInfo };
 
-    private readonly TaskCompletionSource<object?> _exitTcs = new(
+    private readonly TaskCompletionSource _exitTcs = new(
         TaskCreationOptions.RunContinuationsAsynchronously
     );
 
@@ -61,7 +61,7 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
             ExitTime = DateTimeOffset.Now;
 
             // Release the waiting task
-            _exitTcs.TrySetResult(null);
+            _exitTcs.TrySetResult();
         };
 
         // Start the process
