@@ -16,6 +16,12 @@
     <Nullable>annotations</Nullable>
   </PropertyGroup>
 
+  <!-- Disable trim and AOT analyzers on older frameworks as they're not compatible with newer language features -->
+  <PropertyGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>false</EnableAotAnalyzer>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Authors>$(Company)</Authors>
     <Description>Library for interacting with command-line interfaces</Description>
