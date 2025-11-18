@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net35</TargetFramework>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
     <PackageReference Include="PolyShim" Version="2.0.0" PrivateAssets="all" />

@@ -2,9 +2,11 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
+
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
     <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
@@ -16,6 +18,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
     <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CliWrap\CliWrap.csproj" />
     <ProjectReference Include="..\CliWrap.Tests.Dummy\CliWrap.Tests.Dummy.csproj" />

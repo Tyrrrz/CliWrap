@@ -11,18 +11,22 @@
       >true</IsAotCompatible
     >
   </PropertyGroup>
+
   <PropertyGroup>
     <PackageIcon>favicon.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
     <PublicSign>false</PublicSign>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="../favicon.png" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
     <PackageReference
@@ -48,6 +52,7 @@
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
   </ItemGroup>
+
   <!-- Non-linking dependency on the signaler project to ensure correct build order -->
   <ItemGroup>
     <ProjectReference Include="..\CliWrap.Signaler\CliWrap.Signaler.csproj">
@@ -58,6 +63,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
+
   <!-- Embed the signaler executable inside the assembly -->
   <ItemGroup>
     <EmbeddedResource Include="../CliWrap.Signaler/bin/$(Configuration)/net35/CliWrap.Signaler.exe">
