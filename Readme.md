@@ -803,7 +803,7 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.
 This is a specialized awaitable object that contains additional information about the process associated with the executing command.
 
-If you separate the task into its own variable, you can access the `ProcessId` property to get the ID of the underlying process:
+If you separate the task into its own variable, you can use the `ProcessId` property to access the ID of the underlying process:
 
 ```csharp
 var task = Cli.Wrap("foo")
