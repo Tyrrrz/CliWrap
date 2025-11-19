@@ -79,8 +79,8 @@ var result = await Cli.Wrap("path/to/exe")
     .ExecuteAsync();
 
 // Result contains:
-// -- result.IsSuccess       (bool)
 // -- result.ExitCode        (int)
+// -- result.IsSuccess       (bool)
 // -- result.StartTime       (DateTimeOffset)
 // -- result.ExitTime        (DateTimeOffset)
 // -- result.RunTime         (TimeSpan)
@@ -133,10 +133,10 @@ var result = await Cli.Wrap("path/to/exe")
     .ExecuteBufferedAsync();
 
 // Result contains:
-// -- result.IsSuccess       (bool)
-// -- result.StandardOutput  (string)
-// -- result.StandardError   (string)
+// -- result.StandardOutput  (string) *
+// -- result.StandardError   (string) *
 // -- result.ExitCode        (int)
+// -- result.IsSuccess       (bool)
 // -- result.StartTime       (DateTimeOffset)
 // -- result.ExitTime        (DateTimeOffset)
 // -- result.RunTime         (TimeSpan)
@@ -565,9 +565,31 @@ var result = await Cli.Wrap("foo")
     .WithArguments(["bar"])
     .ExecuteBufferedAsync();
 
-var exitCode = result.ExitCode;
-var stdOut = result.StandardOutput;
-var stdErr = result.StandardError;
+// Result contains:
+// -- result.StandardOutput  (string) *
+// -- result.StandardError   (string) *
+// -- result.ExitCode        (int)
+// -- result.IsSuccess       (bool)
+// -- result.StartTime       (DateTimeOffset)
+// -- result.ExitTime        (DateTimeOffset)
+// -- result.RunTime         (TimeSpan)
+```
+
+The result object returned by this execution model also has a few convenience shorthands.
+For example, you can use the tuple deconstruction syntax to extract the exit code, standard output, and standard error — all within a single statement:
+
+```csharp
+var (exitCode, stdOut, stdErr) = await Cli.Wrap("foo")
+    .WithArguments(["bar"])
+    .ExecuteBufferedAsync();
+```
+
+If you are only interested in the standard output part of the result, you can streamline the code even further by using the provided implicit conversion:
+
+```csharp
+string stdOut = await Cli.Wrap("foo")
+    .WithArguments(["bar"])
+    .ExecuteBufferedAsync();
 ```
 
 By default, `ExecuteBufferedAsync()` assumes that the underlying process uses the default encoding (`Encoding.Default`) for writing text to the console.
@@ -776,10 +798,12 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 > **Note**:
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
-### Retrieving process-related information
+### Process information
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a specialized awaitable object that contains additional information about the process associated with the executing command:
+This is a specialized awaitable object that contains additional information about the process associated with the executing command.
+
+If you separate the task into its own variable, you can use the `ProcessId` property to access the ID of the underlying process:
 
 ```csharp
 var task = Cli.Wrap("foo")

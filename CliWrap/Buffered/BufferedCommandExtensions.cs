@@ -9,9 +9,7 @@ namespace CliWrap.Buffered;
 /// </summary>
 public static class BufferedCommandExtensions
 {
-    /// <summary>
-    /// Buffered execution model.
-    /// </summary>
+    /// <inheritdoc cref="BufferedCommandExtensions" />
     extension(Command command)
     {
         /// <summary>

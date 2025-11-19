@@ -5,7 +5,7 @@ namespace CliWrap;
 /// <summary>
 /// Result of a command execution.
 /// </summary>
-public class CommandResult(int exitCode, DateTimeOffset startTime, DateTimeOffset exitTime)
+public partial class CommandResult(int exitCode, DateTimeOffset startTime, DateTimeOffset exitTime)
 {
     /// <summary>
     /// Exit code set by the underlying process.
@@ -31,4 +31,17 @@ public class CommandResult(int exitCode, DateTimeOffset startTime, DateTimeOffse
     /// Total duration of the command execution.
     /// </summary>
     public TimeSpan RunTime => ExitTime - StartTime;
+}
+
+public partial class CommandResult
+{
+    /// <summary>
+    /// Converts the result to an integer value that corresponds to the <see cref="CommandResult.ExitCode" /> property.
+    /// </summary>
+    public static implicit operator int(CommandResult result) => result.ExitCode;
+
+    /// <summary>
+    /// Converts the result to a boolean value that corresponds to the <see cref="CommandResult.IsSuccess" /> property.
+    /// </summary>
+    public static implicit operator bool(CommandResult result) => result.IsSuccess;
 }
