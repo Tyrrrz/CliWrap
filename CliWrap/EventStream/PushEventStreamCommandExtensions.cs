@@ -13,9 +13,7 @@ namespace CliWrap.EventStream;
 // TODO: (breaking change) split the partial class into two separate classes, one for each execution model
 public static partial class EventStreamCommandExtensions
 {
-    /// <summary>
-    /// Event stream execution model.
-    /// </summary>
+    /// <inheritdoc cref="EventStreamCommandExtensions" />
     extension(Command command)
     {
         /// <summary>

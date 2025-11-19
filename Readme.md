@@ -592,6 +592,23 @@ var result = await Cli.Wrap("foo")
 > **Note**:
 > If the underlying process returns a non-zero exit code, `ExecuteBufferedAsync()` will throw an exception similarly to `ExecuteAsync()`, but the exception message will also include the standard error data.
 
+The result object provided by this execution model also has a few convenience shorthands.
+For example, you can use the tuple deconstruction syntax to extract the exit code, standard output, and standard error — all within a single statement:
+
+```csharp
+var (exitCode, stdOut, stdErr) = await Cli.Wrap("foo")
+    .WithArguments(["bar"])
+    .ExecuteBufferedAsync();
+```
+
+If you are only interested in the standard output part of the result, you can streamline the code even further by using the provided implicit conversion:
+
+```csharp
+string stdOut = await Cli.Wrap("foo")
+    .WithArguments(["bar"])
+    .ExecuteBufferedAsync();
+```
+
 #### Pull-based event stream
 
 Besides executing a command as a task, **CliWrap** also supports an alternative model, in which the execution is represented as an event stream.
@@ -780,10 +797,12 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 > **Note**:
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
-### Retrieving process-related information
+### Process information
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.
-This is a specialized awaitable object that contains additional information about the process associated with the executing command:
+This is a specialized awaitable object that contains additional information about the process associated with the executing command.
+
+If you separate the task into its own variable, you can access the `ProcessId` property to get the ID of the underlying process:
 
 ```csharp
 var task = Cli.Wrap("foo")
