@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
@@ -22,8 +21,10 @@ public partial class Command
     {
         // Currently, we only need this workaround for script files on Windows, so short-circuit
         // if we are on a different platform.
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (!OperatingSystem.IsWindows())
+        {
             return TargetFilePath;
+        }
 
         // Don't do anything for fully qualified paths or paths that already have an extension specified.
         // System.Diagnostics.Process knows how to handle those without our help.
@@ -34,7 +35,9 @@ public partial class Command
             Path.IsPathRooted(TargetFilePath)
             || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath))
         )
+        {
             return TargetFilePath;
+        }
 
         static IEnumerable<string> GetProbeDirectoryPaths()
         {
@@ -43,9 +46,9 @@ public partial class Command
             // MIT License, .NET Foundation
 
             // Executable directory
-            if (!string.IsNullOrWhiteSpace(EnvironmentEx.ProcessPath))
+            if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
             {
-                var processDirPath = Path.GetDirectoryName(EnvironmentEx.ProcessPath);
+                var processDirPath = Path.GetDirectoryName(Environment.ProcessPath);
                 if (!string.IsNullOrWhiteSpace(processDirPath))
                     yield return processDirPath;
             }
@@ -86,12 +89,14 @@ public partial class Command
             // We need this in order to be able to send signals to one specific child process,
             // without affecting any others that may also be running in parallel.
             // https://github.com/Tyrrrz/CliWrap/issues/47
-            CreateNoWindow = true
+            CreateNoWindow = true,
         };
 
         // Set credentials
         try
         {
+            // Disable CA1416 because we're handling an exception that is thrown by the property setters
+#pragma warning disable CA1416
             if (Credentials.Domain is not null)
                 startInfo.Domain = Credentials.Domain;
 
@@ -103,12 +108,13 @@ public partial class Command
 
             if (Credentials.LoadUserProfile)
                 startInfo.LoadUserProfile = Credentials.LoadUserProfile;
+#pragma warning restore CA1416
         }
         catch (NotSupportedException ex)
         {
             throw new NotSupportedException(
                 "Cannot start a process using the provided credentials. "
-                    + "Setting custom domain, password, or loading user profile is only supported on Windows.",
+                    + "Setting custom domain, username, password, and/or loading the user profile is not supported on this platform.",
                 ex
             );
         }
@@ -201,10 +207,9 @@ public partial class Command
         // so we need a fallback.
         using var waitTimeoutCts = new CancellationTokenSource();
         await using var _1 = forcefulCancellationToken
-            .Register(
-                () =>
-                    // ReSharper disable once AccessToDisposedClosure
-                    waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
+            .Register(() =>
+                // ReSharper disable once AccessToDisposedClosure
+                waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
             )
             .ToAsyncDisposable();
 
@@ -289,22 +294,66 @@ public partial class Command
 
     /// <summary>
     /// Executes the command asynchronously.
+    /// This overload allows you to directly configure the underlying process, and should
+    /// only be used in rare cases when you need to break out of the abstraction model
+    /// provided by CliWrap.
+    /// This overload comes with no warranty and using it may lead to unexpected behavior.
     /// </summary>
     /// <remarks>
     /// This method can be awaited.
     /// </remarks>
-    // TODO: (breaking change) use optional parameters and remove the other overload
+    // Added to facilitate running the command without redirecting some/all of the streams
+    // https://github.com/Tyrrrz/CliWrap/issues/79
     public CommandTask<CommandResult> ExecuteAsync(
-        CancellationToken forcefulCancellationToken,
-        CancellationToken gracefulCancellationToken
+        Action<ProcessStartInfo>? configureStartInfo,
+        Action<Process>? configureProcess = null,
+        CancellationToken forcefulCancellationToken = default,
+        CancellationToken gracefulCancellationToken = default
     )
     {
-        var process = new ProcessEx(CreateStartInfo());
+        var startInfo = CreateStartInfo();
+        configureStartInfo?.Invoke(startInfo);
 
-        // This method may fail and we want to propagate the exceptions immediately instead
+        var process = new ProcessEx(startInfo);
+
+        // This method may fail, and we want to propagate the exceptions immediately instead
         // of wrapping them in a task, so it needs to be executed in a synchronous context.
         // https://github.com/Tyrrrz/CliWrap/issues/139
-        process.Start();
+        process.Start(p =>
+        {
+            try
+            {
+                // Disable CA1416 because we're handling an exception that is thrown by the property setters
+#pragma warning disable CA1416
+                if (ResourcePolicy.Priority is not null)
+                    p.PriorityClass = ResourcePolicy.Priority.Value;
+
+                if (ResourcePolicy.Affinity is not null)
+                    p.ProcessorAffinity = ResourcePolicy.Affinity.Value;
+
+                if (ResourcePolicy.MinWorkingSet is not null)
+                    p.MinWorkingSet = ResourcePolicy.MinWorkingSet.Value;
+
+                if (ResourcePolicy.MaxWorkingSet is not null)
+                    p.MaxWorkingSet = ResourcePolicy.MaxWorkingSet.Value;
+#pragma warning restore CA1416
+            }
+            catch (NotSupportedException ex)
+            {
+                throw new NotSupportedException(
+                    "Cannot start a process with the provided resource policy. "
+                        + "Setting custom priority, affinity, and/or working set limits is not supported on this platform.",
+                    ex
+                );
+            }
+            catch (InvalidOperationException)
+            {
+                // This exception could indicate that the process has exited before we had a chance to set the policy.
+                // This is not an exceptional situation, so we don't need to do anything here.
+            }
+
+            configureProcess?.Invoke(p);
+        });
 
         // Extract the process ID before calling ExecuteAsync(), because the process may
         // already be disposed by then.
@@ -315,6 +364,18 @@ public partial class Command
             processId
         );
     }
+
+    /// <summary>
+    /// Executes the command asynchronously.
+    /// </summary>
+    /// <remarks>
+    /// This method can be awaited.
+    /// </remarks>
+    // TODO: (breaking change) use optional parameters and remove the other overload
+    public CommandTask<CommandResult> ExecuteAsync(
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken
+    ) => ExecuteAsync(null, null, forcefulCancellationToken, gracefulCancellationToken);
 
     /// <summary>
     /// Executes the command asynchronously.

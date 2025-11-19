@@ -19,7 +19,7 @@
     <img src="favicon.png" alt="Icon" />
 </p>
 
-**CliWrap** is a library for interacting with external command-line interfaces.
+**CliWrap** is a library for interacting with command-line interfaces.
 It provides a convenient model for launching processes, redirecting input and output streams, awaiting completion, handling cancellation, and more.
 
 **Extension packages**:
@@ -219,9 +219,13 @@ var cmd = Cli.Wrap("git")
 ```
 
 > **Warning**:
-> Unless you absolutely have to, avoid setting command line arguments directly from a string.
+> Unless you absolutely have to, avoid setting command-line arguments directly from a string.
 > This method expects all arguments to be correctly escaped and formatted ahead of time — which can be cumbersome to do yourself.
 > Formatting errors may result in unexpected bugs and security vulnerabilities.
+
+> **Note**:
+> There are some [obscure scenarios](https://github.com/Tyrrrz/CliWrap/issues/263), where you may need to assemble the command-line arguments yourself.
+> In such cases, you can use the `ArgumentsBuilder.Escape(...)` method to escape individual arguments manually.
 
 #### `WithWorkingDirectory(...)`
 
@@ -268,6 +272,41 @@ var cmd = Cli.Wrap("git")
 > **Note**:
 > Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
 > If you need to remove an inherited variable, set the corresponding value to `null`.
+
+#### `WithResourcePolicy(...)`
+
+Sets the system resource management policy for the child process.
+
+**Default**: default policy.
+
+**Examples**:
+
+- Set resource policy using a builder:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithResourcePolicy(policy => policy
+        .SetPriority(ProcessPriorityClass.High)
+        .SetAffinity(0b1010)
+        .SetMinWorkingSet(1024)
+        .SetMaxWorkingSet(4096)
+    );
+```
+
+- Set resource policy directly:
+
+```csharp
+var cmd = Cli.Wrap("git")
+    .WithResourcePolicy(new ResourcePolicy(
+        priority: ProcessPriorityClass.High,
+        affinity: 0b1010,
+        minWorkingSet: 1024,
+        maxWorkingSet: 4096
+    ));
+```
+
+> **Warning**:
+> Resource policy options have varying support across different platforms.
 
 #### `WithCredentials(...)`
 
@@ -535,7 +574,7 @@ var stdOut = result.StandardOutput;
 var stdErr = result.StandardError;
 ```
 
-By default, `ExecuteBufferedAsync()` assumes that the underlying process uses the default encoding (`Console.OutputEncoding`) for writing text to the console.
+By default, `ExecuteBufferedAsync()` assumes that the underlying process uses the default encoding (`Encoding.Default`) for writing text to the console.
 To override this, specify the encoding explicitly by using one of the available overloads:
 
 ```csharp

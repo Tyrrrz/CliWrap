@@ -23,6 +23,11 @@ public interface ICommandConfiguration
     string WorkingDirPath { get; }
 
     /// <summary>
+    /// Resource policy set for the underlying process.
+    /// </summary>
+    ResourcePolicy ResourcePolicy { get; }
+
+    /// <summary>
     /// User credentials set for the underlying process.
     /// </summary>
     Credentials Credentials { get; }

@@ -16,8 +16,8 @@ public class ValidationSpecs(ITestOutputHelper testOutput)
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["exit", "1"]);
 
         // Act & assert
-        var ex = await Assert.ThrowsAsync<CommandExecutionException>(
-            async () => await cmd.ExecuteAsync()
+        var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () =>
+            await cmd.ExecuteAsync()
         );
 
         ex.ExitCode.Should().Be(1);
@@ -33,8 +33,8 @@ public class ValidationSpecs(ITestOutputHelper testOutput)
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["exit", "1"]);
 
         // Act & assert
-        var ex = await Assert.ThrowsAsync<CommandExecutionException>(
-            async () => await cmd.ExecuteBufferedAsync()
+        var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () =>
+            await cmd.ExecuteBufferedAsync()
         );
 
         ex.Message.Should().Contain("Exit code set to 1"); // expected stderr

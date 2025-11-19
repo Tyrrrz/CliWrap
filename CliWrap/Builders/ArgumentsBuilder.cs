@@ -142,7 +142,16 @@ public partial class ArgumentsBuilder
 
 public partial class ArgumentsBuilder
 {
-    private static string Escape(string argument)
+    /// <summary>
+    /// Escapes special characters (spaces, slashes, and quotes) in the specified string, ensuring that the output
+    /// is correctly interpreted as a single argument when passed to a command-line application.
+    /// </summary>
+    /// <remarks>
+    /// In most cases, you should not need to use this method, as <see cref="ArgumentsBuilder" /> already escapes
+    /// arguments automatically. This method is provided for advanced scenarios where you need to escape arguments
+    /// manually.
+    /// </remarks>
+    public static string Escape(string argument)
     {
         // Implementation reference:
         // https://github.com/dotnet/runtime/blob/9a50493f9f1125fda5e2212b9d6718bc7cdbc5c0/src/libraries/System.Private.CoreLib/src/System/PasteArguments.cs#L10-L79

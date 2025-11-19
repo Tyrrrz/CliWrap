@@ -9,7 +9,7 @@ public enum OutputTarget
 {
     StdOut = 1,
     StdErr = 2,
-    All = StdOut | StdErr
+    All = StdOut | StdErr,
 }
 
 internal static class OutputTargetExtensions

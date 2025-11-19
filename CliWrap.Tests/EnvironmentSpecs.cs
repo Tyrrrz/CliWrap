@@ -54,9 +54,9 @@ public class EnvironmentSpecs
         var variableToOverwrite = $"CLIWRAP_TEST_OVERWRITE_{key}";
         var variableToUnset = $"CLIWRAP_TEST_UNSET_{key}";
 
-        using (TempEnvironmentVariable.Set(variableToKeep, "keep")) // will be left unchanged
-        using (TempEnvironmentVariable.Set(variableToOverwrite, "overwrite")) // will be overwritten
-        using (TempEnvironmentVariable.Set(variableToUnset, "unset")) // will be unset
+        using (Environment.SetTempEnvironmentVariable(variableToKeep, "keep")) // will be left unchanged
+        using (Environment.SetTempEnvironmentVariable(variableToOverwrite, "overwrite")) // will be overwritten
+        using (Environment.SetTempEnvironmentVariable(variableToUnset, "unset")) // will be unset
         {
             var cmd = Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments(["env", variableToKeep, variableToOverwrite, variableToUnset])

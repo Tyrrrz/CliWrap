@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliFx;
 
@@ -13,7 +12,7 @@ public static class Program
     public static string FilePath { get; } =
         Path.ChangeExtension(
             Assembly.GetExecutingAssembly().Location,
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "exe" : null
+            OperatingSystem.IsWindows() ? "exe" : null
         );
 
     public static async Task<int> Main(string[] args)

@@ -49,6 +49,22 @@ public class ExecutionSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_with_manually_configured_process_settings()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithValidation(CommandResultValidation.None);
+
+        // Act
+        var result = await cmd.ExecuteAsync(
+            startInfo => startInfo.Arguments = "exit 13",
+            process => process.PriorityBoostEnabled = false
+        );
+
+        // Assert
+        result.ExitCode.Should().Be(13);
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_not_hang_on_large_stdout_and_stderr()
     {
         // Arrange
@@ -59,7 +75,7 @@ public class ExecutionSpecs
         await cmd.ExecuteAsync();
     }
 
-    [Fact(Timeout = 15000)]
+    [Fact]
     public void I_can_try_to_execute_a_command_and_get_an_error_if_the_target_file_does_not_exist()
     {
         // Arrange
@@ -69,12 +85,11 @@ public class ExecutionSpecs
 
         // Should throw synchronously
         // https://github.com/Tyrrrz/CliWrap/issues/139
-        Assert.ThrowsAny<Win32Exception>(
-            () =>
-                // xUnit tells us to use ThrowsAnyAsync(...) instead for async methods,
-                // but we're actually interested in the sync portion of this method.
-                // So cast the result to object to avoid the warning.
-                (object)cmd.ExecuteAsync()
+        Assert.ThrowsAny<Win32Exception>(() =>
+            // xUnit tells us to use ThrowsAnyAsync(...) instead for async methods,
+            // but we're actually interested in the sync portion of this method.
+            // So cast the result to object to avoid the warning.
+            (object)cmd.ExecuteAsync()
         );
     }
 }

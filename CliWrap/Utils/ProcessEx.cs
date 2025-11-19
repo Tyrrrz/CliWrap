@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils.Extensions;
@@ -12,8 +11,10 @@ namespace CliWrap.Utils;
 internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
 {
     private readonly Process _nativeProcess = new() { StartInfo = startInfo };
-    private readonly TaskCompletionSource<object?> _exitTcs =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private readonly TaskCompletionSource _exitTcs = new(
+        TaskCreationOptions.RunContinuationsAsynchronously
+    );
 
     public int Id => _nativeProcess.Id;
 
@@ -24,11 +25,20 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
     // We are purposely using Stream instead of StreamWriter/StreamReader to push the concerns of
     // writing and reading to PipeSource/PipeTarget at the higher level.
 
-    public Stream StandardInput => _nativeProcess.StandardInput.BaseStream;
+    public Stream StandardInput =>
+        _nativeProcess.StartInfo.RedirectStandardInput
+            ? _nativeProcess.StandardInput.BaseStream
+            : Stream.Null;
 
-    public Stream StandardOutput => _nativeProcess.StandardOutput.BaseStream;
+    public Stream StandardOutput =>
+        _nativeProcess.StartInfo.RedirectStandardOutput
+            ? _nativeProcess.StandardOutput.BaseStream
+            : Stream.Null;
 
-    public Stream StandardError => _nativeProcess.StandardError.BaseStream;
+    public Stream StandardError =>
+        _nativeProcess.StartInfo.RedirectStandardError
+            ? _nativeProcess.StandardError.BaseStream
+            : Stream.Null;
 
     // We have to keep track of StartTime ourselves because it becomes inaccessible after the process exits
     // https://github.com/Tyrrrz/CliWrap/issues/93
@@ -40,14 +50,17 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
 
     public int ExitCode => _nativeProcess.ExitCode;
 
-    public void Start()
+    public void Start(Action<Process>? configureProcess = null)
     {
         // Hook up events
         _nativeProcess.EnableRaisingEvents = true;
         _nativeProcess.Exited += (_, _) =>
         {
+            // Record exit time
             ExitTime = DateTimeOffset.Now;
-            _exitTcs.TrySetResult(null);
+
+            // Release the waiting task
+            _exitTcs.TrySetResult();
         };
 
         // Start the process
@@ -57,20 +70,25 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
             {
                 throw new InvalidOperationException(
                     $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
-                        + "Target file is not an executable or lacks execute permissions."
+                        + "Target file is not an executable or lacks the 'execute' permission."
                 );
             }
-
-            StartTime = DateTimeOffset.Now;
         }
         catch (Win32Exception ex)
         {
             throw new Win32Exception(
                 $"Failed to start a process with file path '{_nativeProcess.StartInfo.FileName}'. "
-                    + "Target file or working directory doesn't exist, or the provided credentials are invalid.",
+                    + "Target file or working directory doesn't exist, the provided credentials are invalid, or the resource policy cannot be set due to insufficient permissions. "
+                    + "See the inner exception for more information.",
                 ex
             );
         }
+
+        // Record start time
+        StartTime = DateTimeOffset.Now;
+
+        // Apply custom configurations
+        configureProcess?.Invoke(_nativeProcess);
     }
 
     // Sends SIGINT
@@ -83,17 +101,14 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
                 // On Windows, we need to launch an external executable that will attach
                 // to the target process's console and then send a Ctrl+C event to it.
                 // https://github.com/Tyrrrz/CliWrap/issues/47
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (OperatingSystem.IsWindows())
                 {
                     using var signaler = WindowsSignaler.Deploy();
                     return signaler.TrySend(_nativeProcess.Id, 0);
                 }
 
                 // On Unix, we can just send the signal to the process directly
-                if (
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                    || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                )
+                if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
                 {
                     return NativeMethods.Unix.Kill(_nativeProcess.Id, 2) == 0;
                 }
@@ -143,7 +158,9 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
                 .Register(() => _exitTcs.TrySetCanceled(cancellationToken))
                 .ToAsyncDisposable()
         )
+        {
             await _exitTcs.Task.ConfigureAwait(false);
+        }
     }
 
     public void Dispose() => _nativeProcess.Dispose();

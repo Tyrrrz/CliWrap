@@ -217,10 +217,10 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that writes to the specified string builder.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
-        ToStringBuilder(stringBuilder, Console.OutputEncoding);
+        ToStringBuilder(stringBuilder, Encoding.Default);
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
@@ -239,19 +239,22 @@ public partial class PipeTarget
                     BufferSizes.StreamReader,
                     true
                 );
+
                 await foreach (
                     var line in reader.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false)
                 )
+                {
                     await handleLineAsync(line, cancellationToken).ConfigureAwait(false);
+                }
             }
         );
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, CancellationToken, Task> handleLineAsync) =>
-        ToDelegate(handleLineAsync, Console.OutputEncoding);
+        ToDelegate(handleLineAsync, Encoding.Default);
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
@@ -261,10 +264,10 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
-        ToDelegate(handleLineAsync, Console.OutputEncoding);
+        ToDelegate(handleLineAsync, Encoding.Default);
 
     /// <summary>
     /// Creates a pipe target that invokes the specified synchronous delegate on every line written to the stream.
@@ -281,15 +284,15 @@ public partial class PipeTarget
 
     /// <summary>
     /// Creates a pipe target that invokes the specified synchronous delegate on every line written to the stream.
-    /// Uses <see cref="Console.OutputEncoding" /> for decoding.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
     /// </summary>
     public static PipeTarget ToDelegate(Action<string> handleLine) =>
-        ToDelegate(handleLine, Console.OutputEncoding);
+        ToDelegate(handleLine, Encoding.Default);
 
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
     /// </summary>
-    public static PipeTarget Merge(IEnumerable<PipeTarget> targets)
+    public static PipeTarget Merge(params IEnumerable<PipeTarget> targets)
     {
         // This function needs to take output as a parameter because it's recursive
         static void FlattenTargets(IEnumerable<PipeTarget> targets, ICollection<PipeTarget> output)
@@ -337,6 +340,7 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that replicates data over multiple inner targets.
     /// </summary>
+    // TODO: (breaking change) remove the other overload
     public static PipeTarget Merge(params PipeTarget[] targets) =>
         Merge((IEnumerable<PipeTarget>)targets);
 }

@@ -4,15 +4,18 @@ namespace CliWrap.Utils.Extensions;
 
 internal static class StringExtensions
 {
-    public static SecureString ToSecureString(this string str)
+    extension(string str)
     {
-        var secureString = new SecureString();
+        public SecureString ToSecureString()
+        {
+            var secureString = new SecureString();
 
-        foreach (var c in str)
-            secureString.AppendChar(c);
+            foreach (var c in str)
+                secureString.AppendChar(c);
 
-        secureString.MakeReadOnly();
+            secureString.MakeReadOnly();
 
-        return secureString;
+            return secureString;
+        }
     }
 }

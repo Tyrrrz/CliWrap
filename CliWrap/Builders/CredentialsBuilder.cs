@@ -1,4 +1,6 @@
-﻿namespace CliWrap.Builders;
+﻿using System.Diagnostics;
+
+namespace CliWrap.Builders;
 
 /// <summary>
 /// Builder that helps configure user credentials.
@@ -14,7 +16,7 @@ public class CredentialsBuilder
     /// Sets the Active Directory domain used when starting the process.
     /// </summary>
     /// <remarks>
-    /// Only supported on Windows.
+    /// For information on platform support, see attributes on <see cref="ProcessStartInfo.Domain" />.
     /// </remarks>
     public CredentialsBuilder SetDomain(string? domain)
     {
@@ -25,6 +27,9 @@ public class CredentialsBuilder
     /// <summary>
     /// Sets the username used when starting the process.
     /// </summary>
+    /// <remarks>
+    /// For information on platform support, see attributes on <see cref="ProcessStartInfo.UserName" />.
+    /// </remarks>
     public CredentialsBuilder SetUserName(string? userName)
     {
         _userName = userName;
@@ -35,7 +40,7 @@ public class CredentialsBuilder
     /// Sets the password used when starting the process.
     /// </summary>
     /// <remarks>
-    /// Only supported on Windows.
+    /// For information on platform support, see attributes on <see cref="ProcessStartInfo.Password" />.
     /// </remarks>
     public CredentialsBuilder SetPassword(string? password)
     {
@@ -47,7 +52,7 @@ public class CredentialsBuilder
     /// Instructs whether to load the user profile when starting the process.
     /// </summary>
     /// <remarks>
-    /// Only supported on Windows.
+    /// For information on platform support, see attributes on <see cref="ProcessStartInfo.LoadUserProfile" />.
     /// </remarks>
     public CredentialsBuilder LoadUserProfile(bool loadUserProfile = true)
     {

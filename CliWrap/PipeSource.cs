@@ -132,12 +132,34 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the standard output of the specified command.
     /// </summary>
-    public static PipeSource FromCommand(Command command) =>
+    public static PipeSource FromCommand(
+        Command command,
+        Func<Stream, Stream, CancellationToken, Task> copyStreamAsync
+    ) =>
+        // cmdA | <transform> | cmdB
         Create(
-            async (destination, cancellationToken) =>
+            // Destination -> cmdB's standard input
+            async (destination, destinationCancellationToken) =>
                 await command
-                    .WithStandardOutputPipe(PipeTarget.ToStream(destination))
-                    .ExecuteAsync(cancellationToken)
+                    .WithStandardOutputPipe(
+                        PipeTarget.Create(
+                            // Source -> cmdA's standard output
+                            async (source, sourceCancellationToken) =>
+                                await copyStreamAsync(source, destination, sourceCancellationToken)
+                                    .ConfigureAwait(false)
+                        )
+                    )
+                    .ExecuteAsync(destinationCancellationToken)
                     .ConfigureAwait(false)
+        );
+
+    /// <summary>
+    /// Creates a pipe source that reads from the standard output of the specified command.
+    /// </summary>
+    public static PipeSource FromCommand(Command command) =>
+        FromCommand(
+            command,
+            async (source, destination, cancellationToken) =>
+                await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false)
         );
 }

@@ -16,7 +16,7 @@ public enum CommandResultValidation
     /// <summary>
     /// Ensure that the command returned a zero exit code.
     /// </summary>
-    ZeroExitCode = 0b1
+    ZeroExitCode = 0b1,
 }
 
 internal static class CommandResultValidationExtensions

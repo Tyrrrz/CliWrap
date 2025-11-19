@@ -90,7 +90,7 @@ internal class SimplexStream : Stream
 
     public async Task ReportCompletionAsync(CancellationToken cancellationToken = default) =>
         // Write an empty buffer that will make ReadAsync(...) return 0, which signifies the end of stream
-        await WriteAsync(Array.Empty<byte>(), 0, 0, cancellationToken).ConfigureAwait(false);
+        await WriteAsync([], 0, 0, cancellationToken).ConfigureAwait(false);
 
     protected override void Dispose(bool disposing)
     {

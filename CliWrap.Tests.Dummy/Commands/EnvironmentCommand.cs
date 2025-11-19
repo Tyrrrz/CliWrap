@@ -11,7 +11,7 @@ namespace CliWrap.Tests.Dummy.Commands;
 public class EnvironmentCommand : ICommand
 {
     [CommandParameter(0)]
-    public IReadOnlyList<string> Names { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<string> Names { get; init; } = [];
 
     public async ValueTask ExecuteAsync(IConsole console)
     {

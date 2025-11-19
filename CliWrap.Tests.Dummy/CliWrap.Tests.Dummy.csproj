@@ -1,16 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOsPlatform('Windows'))">$(TargetFrameworks);net48</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliFx" Version="2.3.5" />
-    <PackageReference Include="CSharpier.MsBuild" Version="0.27.0" PrivateAssets="all" />
-    <PackageReference Include="PolyShim" Version="1.10.0" PrivateAssets="all" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="CliFx" Version="2.3.6" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
   </ItemGroup>
-
 </Project>

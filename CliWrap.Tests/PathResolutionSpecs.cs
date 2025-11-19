@@ -1,8 +1,9 @@
+using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils;
+using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
 using Xunit;
 
@@ -28,15 +29,15 @@ public class PathResolutionSpecs
     public async Task I_can_execute_a_command_on_a_script_using_its_short_name()
     {
         Skip.IfNot(
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            OperatingSystem.IsWindows(),
             "Path resolution for scripts is only required on Windows."
         );
 
         // Arrange
         using var dir = TempDir.Create();
-        File.WriteAllText(Path.Combine(dir.Path, "test-script.cmd"), "@echo hello");
+        await File.WriteAllTextAsync(Path.Combine(dir.Path, "test-script.cmd"), "@echo hello");
 
-        using (TempEnvironmentVariable.ExtendPath(dir.Path))
+        using (Environment.ExtendPath(dir.Path))
         {
             var cmd = Cli.Wrap("test-script");
 
