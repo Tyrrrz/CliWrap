@@ -382,6 +382,38 @@ catch (CommandExecutionException ex)
 }
 ```
 
+With the result validation disabled, you have several ways to inspect the exit code of the process after it finishes executing:
+
+```csharp
+var result = await Cli.Wrap("git")
+    .WithValidation(CommandResultValidation.None)
+    .ExecuteAsync();
+
+// Check if exit code is zero
+if (result.IsSuccess)
+{
+    // ...
+}
+
+// Same thing, but more succint
+if (result)
+{
+    // ...
+}
+
+// Check for a specific exit code
+if (result.ExitCode == 42)
+{
+    // ...
+}
+
+// Same thing, but more succint
+if (result == 42)
+{
+    // ...
+}
+```
+
 #### `WithStandardInputPipe(...)`
 
 Sets the pipe source that will be used for the standard _input_ stream of the process.
