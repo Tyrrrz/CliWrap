@@ -366,22 +366,6 @@ var cmd = Cli.Wrap("git")
     .WithValidation(CommandResultValidation.None);
 ```
 
-If you want to throw a custom exception when the process exits with a non-zero exit code, don't disable result validation, but instead catch the default `CommandExecutionException` and re-throw it inside your own exception.
-This way you can preserve the information provided by the original exception, while extending it with additional context:
-
-```csharp
-try
-{
-    await Cli.Wrap("git").ExecuteAsync();
-}
-catch (CommandExecutionException ex)
-{
-    // Re-throw the original exception to preserve additional information
-    // about the command that failed (exit code, arguments, etc.).
-    throw new MyException("Failed to run the git command-line tool.", ex);
-}
-```
-
 With the result validation disabled, you have several ways to inspect the exit code of the process after it finishes executing:
 
 ```csharp
@@ -411,6 +395,22 @@ if (result.ExitCode == 42)
 if (result == 42)
 {
     // ...
+}
+```
+
+If you want to throw a custom exception when the process exits with a non-zero exit code, don't disable result validation, but instead catch the default `CommandExecutionException` and re-throw it inside your own exception.
+This way you can preserve the information provided by the original exception, while extending it with additional context:
+
+```csharp
+try
+{
+    await Cli.Wrap("git").ExecuteAsync();
+}
+catch (CommandExecutionException ex)
+{
+    // Re-throw the original exception to preserve additional information
+    // about the command that failed (exit code, arguments, etc.).
+    throw new MyException("Failed to run the git command-line tool.", ex);
 }
 ```
 
