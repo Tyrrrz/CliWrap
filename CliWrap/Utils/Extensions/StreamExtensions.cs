@@ -63,6 +63,7 @@ internal static class StreamExtensions
                 var charsRead = await reader
                     .ReadAsync(buffer.Memory, cancellationToken)
                     .ConfigureAwait(false);
+
                 if (charsRead <= 0)
                     break;
 

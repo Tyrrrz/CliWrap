@@ -200,6 +200,7 @@ public partial class PipeTarget
                     BufferSizes.StreamReader,
                     true
                 );
+
                 using var buffer = MemoryPool<char>.Shared.Rent(BufferSizes.StreamReader);
 
                 while (true)
@@ -207,6 +208,7 @@ public partial class PipeTarget
                     var charsRead = await reader
                         .ReadAsync(buffer.Memory, cancellationToken)
                         .ConfigureAwait(false);
+
                     if (charsRead <= 0)
                         break;
 

@@ -97,8 +97,8 @@ public static partial class EventStreamCommandExtensions
                 yield return cmdEvent;
             }
 
-            var exitCode = await commandTask.Select(r => r.ExitCode).ConfigureAwait(false);
-            yield return new ExitedCommandEvent(exitCode);
+            var result = await commandTask.ConfigureAwait(false);
+            yield return new ExitedCommandEvent(result.ExitCode);
         }
 
         /// <summary>
