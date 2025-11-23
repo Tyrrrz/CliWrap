@@ -438,19 +438,19 @@ await (input | Cli.Wrap("foo") | output).ExecuteAsync();
 Both `PipeSource` and `PipeTarget` have many factory methods that let you create pipe implementations for different scenarios:
 
 - `PipeSource`:
-  - `PipeSource.Null` — represents an empty pipe source
-  - `PipeSource.FromStream(...)` — pipes data from any readable stream
-  - `PipeSource.FromFile(...)` — pipes data from a file
-  - `PipeSource.FromBytes(...)` — pipes data from a byte array
-  - `PipeSource.FromString(...)` — pipes data from a text string
-  - `PipeSource.FromCommand(...)` — pipes data from the standard output of another command
+  - `PipeSource.Null` — represents an empty pipe source.
+  - `PipeSource.FromStream(...)` — pipes data from any readable stream.
+  - `PipeSource.FromFile(...)` — pipes data from a file.
+  - `PipeSource.FromBytes(...)` — pipes data from a byte array.
+  - `PipeSource.FromString(...)` — pipes data from a text string.
+  - `PipeSource.FromCommand(...)` — pipes data from the standard output of another command.
 - `PipeTarget`:
-  - `PipeTarget.Null` — represents a pipe target that discards all data
-  - `PipeTarget.ToStream(...)` — pipes data to any writable stream
-  - `PipeTarget.ToFile(...)` — pipes data to a file
-  - `PipeTarget.ToStringBuilder(...)` — pipes data as text into a `StringBuilder`
-  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>`, or a `Func<string, Task>`, or a `Func<string, CancellationToken, Task>` delegate
-  - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them
+  - `PipeTarget.Null` — represents a pipe target that discards all data.
+  - `PipeTarget.ToStream(...)` — pipes data to any writable stream.
+  - `PipeTarget.ToFile(...)` — pipes data to a file.
+  - `PipeTarget.ToStringBuilder(...)` — pipes data as text into a `StringBuilder`.
+  - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>`, or a `Func<string, Task>`, or a `Func<string, CancellationToken, Task>` delegate.
+  - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them.
 
 > **Warning**:
 > Using `PipeTarget.Null` results in the corresponding stream (stdout or stderr) not being opened for the underlying process at all.
@@ -523,13 +523,12 @@ await cmd.ExecuteAsync();
 - Pipe stdout into multiple files simultaneously:
 
 ```csharp
-var target = PipeTarget.Merge(
+var cmd = Cli.Wrap("foo") | PipeTarget.Merge(
     PipeTarget.ToFile("file1.txt"),
     PipeTarget.ToFile("file2.txt"),
     PipeTarget.ToFile("file3.txt")
 );
 
-var cmd = Cli.Wrap("foo") | target;
 await cmd.ExecuteAsync();
 ```
 
@@ -617,10 +616,10 @@ This lets you start a process and react to the events it produces in real-time.
 
 Those events are:
 
-- `StartedCommandEvent` — received just once, when the command starts executing (contains the process ID)
-- `StandardOutputCommandEvent` — received every time the underlying process writes a new line to the output stream (contains the text as a string)
-- `StandardErrorCommandEvent` — received every time the underlying process writes a new line to the error stream (contains the text as a string)
-- `ExitedCommandEvent` — received just once, when the command finishes executing (contains the exit code)
+- `StartedCommandEvent` — received just once, when the command starts executing (contains the process ID).
+- `StandardOutputCommandEvent` — received every time the underlying process writes a new line to the output stream (contains the text as a string).
+- `StandardErrorCommandEvent` — received every time the underlying process writes a new line to the error stream (contains the text as a string).
+- `ExitedCommandEvent` — received just once, when the command finishes executing (contains the exit code).
 
 To execute a command as a _pull-based_ event stream, use the `ListenAsync()` extension method:
 
@@ -650,7 +649,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 }
 ```
 
-The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct introduced in C# 8.
+The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct.
 When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop, preventing unnecessary buffering of data in-memory.
 
 > **Note**:
@@ -776,7 +775,7 @@ The underlying process may handle this signal to perform last-minute critical wo
 Graceful cancellation is inherently cooperative, so it's possible that the process may take too long to fulfill the request or choose to ignore it altogether.
 In the above example, this risk is mitigated by additionally scheduling a delayed forceful cancellation that prevents the command from hanging.
 
-If you are executing a command inside a method and don't want to expose those implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a forceful fallback:
+If you are executing a command inside a method and don't want to expose signal-related implementation details to the caller, you can rely on the following pattern to use the provided token for graceful cancellation and extend it with a forceful fallback:
 
 ```csharp
 public async Task GitPushAsync(CancellationToken cancellationToken = default)
@@ -791,6 +790,8 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 
     await Cli.Wrap("git")
         .WithArguments(["push"])
+        // Provided cancellation token is used for graceful cancellation.
+        // Forceful cancellation is triggered 3 seconds later if needed.
         .ExecuteAsync(forcefulCts.Token, cancellationToken);
 }
 ```
@@ -803,7 +804,7 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.
 This is a specialized awaitable object that contains additional information about the process associated with the executing command.
 
-If you separate the task into its own variable, you can use the `ProcessId` property to access the ID of the underlying process:
+Currently, this object includes only one extra property, `ProcessId`, which exposes the ID of the underlying process:
 
 ```csharp
 var task = Cli.Wrap("foo")
