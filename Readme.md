@@ -345,8 +345,8 @@ Sets the strategy for validating the result of an execution.
 
 **Accepted values**:
 
-- `CommandResultValidation.None` — no validation
-- `CommandResultValidation.ZeroExitCode` — ensures zero exit code when the process exits
+- `CommandResultValidation.None` — no validation.
+- `CommandResultValidation.ZeroExitCode` — ensures zero exit code when the process exits.
 
 **Default**: `CommandResultValidation.ZeroExitCode`.
 
