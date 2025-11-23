@@ -752,7 +752,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 Command execution is asynchronous in nature as it involves a completely separate process.
 In many cases, it may be useful to implement an abortion mechanism to stop the execution before it finishes, either through a manual trigger or a timeout.
 
-To do that, issue the corresponding [`CancellationToken`](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken) and include it when calling `ExecuteAsync()`:
+To do that, issue the corresponding [`CancellationToken`](https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken) and include it when calling `ExecuteAsync()`:
 
 ```csharp
 using System.Threading;
