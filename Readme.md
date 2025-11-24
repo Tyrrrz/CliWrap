@@ -89,7 +89,7 @@ var result = await Cli.Wrap("path/to/exe")
 The code above spawns a child process with the configured command-line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other relevant information.
 
-> **Warning**:
+> [!WARNING]
 > **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 > You can [override this behavior](#withvalidation) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
 
@@ -142,7 +142,7 @@ var result = await Cli.Wrap("path/to/exe")
 // -- result.RunTime         (TimeSpan)
 ```
 
-> **Warning**:
+> [!WARNING]
 > Be mindful when using `ExecuteBufferedAsync()`.
 > Programs can write arbitrary data (including binary) to the output and error streams, and storing it in-memory may be impractical.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
@@ -152,7 +152,7 @@ var result = await Cli.Wrap("path/to/exe")
 The fluent interface provided by the command object allows you to configure various aspects of its execution.
 This section covers all available configuration methods and their usage.
 
-> **Note**:
+> [!NOTE]
 > `Command` is an immutable object — all configuration methods listed here create a new instance instead of modifying the existing one.
 
 #### `WithArguments(...)`
@@ -201,7 +201,7 @@ var cmd = Cli.Wrap("git")
     });
 ```
 
-> **Note**:
+> [!TIP]
 > The builder overload allows you to define custom extension methods for reusable argument patterns.
 > [Learn more](https://twitter.com/Tyrrrz/status/1409104223753605121).
 
@@ -214,12 +214,12 @@ var cmd = Cli.Wrap("git")
     .WithArguments("commit -m \"my commit\"");
 ```
 
-> **Warning**:
+> [!WARNING]
 > Unless you absolutely have to, avoid setting command-line arguments directly from a string.
 > This method expects all arguments to be correctly escaped and formatted ahead of time — which can be cumbersome to do yourself.
 > Formatting errors may result in unexpected bugs and security vulnerabilities.
 
-> **Note**:
+> [!NOTE]
 > There are some [obscure scenarios](https://github.com/Tyrrrz/CliWrap/issues/263), where you may need to assemble the command-line arguments yourself.
 > In such cases, you can use the `ArgumentsBuilder.Escape(...)` method to escape individual arguments manually.
 
@@ -265,7 +265,7 @@ var cmd = Cli.Wrap("git")
     });
 ```
 
-> **Note**:
+> [!NOTE]
 > Environment variables configured using `WithEnvironmentVariables(...)` are applied on top of those inherited from the parent process.
 > If you need to remove an inherited variable, set the corresponding value to `null`.
 
@@ -301,7 +301,7 @@ var cmd = Cli.Wrap("git")
     ));
 ```
 
-> **Warning**:
+> [!WARNING]
 > Resource policy options have varying support across different platforms.
 
 #### `WithCredentials(...)`
@@ -336,7 +336,7 @@ var cmd = Cli.Wrap("git")
     ));
 ```
 
-> **Warning**:
+> [!WARNING]
 > Running a process under a different username is supported across all platforms, but other options are only available on Windows.
 
 #### `WithValidation(...)`
@@ -484,7 +484,7 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
   - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>`, or a `Func<string, Task>`, or a `Func<string, CancellationToken, Task>` delegate.
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them.
 
-> **Warning**:
+> [!WARNING]
 > Using `PipeTarget.Null` results in the corresponding stream (stdout or stderr) not being opened for the underlying process at all.
 > In the vast majority of cases, this behavior should be functionally equivalent to piping to a null stream, but without the performance overhead of consuming and discarding unneeded data.
 > This may be undesirable in [certain situations](https://github.com/Tyrrrz/CliWrap/issues/145#issuecomment-1100680547) — in which case it's recommended to pipe to a null stream explicitly using `PipeTarget.ToStream(Stream.Null)`.
@@ -638,7 +638,7 @@ var result = await Cli.Wrap("foo")
     .ExecuteBufferedAsync(Encoding.ASCII, Encoding.UTF8);
 ```
 
-> **Note**:
+> [!NOTE]
 > If the underlying process returns a non-zero exit code, `ExecuteBufferedAsync()` will throw an exception similarly to `ExecuteAsync()`, but the exception message will also include the standard error data.
 
 #### Pull-based event stream
@@ -684,7 +684,7 @@ await foreach (var cmdEvent in cmd.ListenAsync())
 The `ListenAsync()` method starts the command and returns an object of type `IAsyncEnumerable<CommandEvent>`, which you can iterate using the `await foreach` construct.
 When using this execution model, back pressure is facilitated by locking the pipes between each iteration of the loop, preventing unnecessary buffering of data in-memory.
 
-> **Note**:
+> [!NOTE]
 > Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
 #### Push-based event stream
@@ -723,7 +723,7 @@ You can use the set of extensions provided by [Rx.NET](https://github.com/dotnet
 
 Unlike the pull-based event stream, this execution model does not involve any back pressure, meaning that the data is pushed to the observer at the rate that it becomes available.
 
-> **Note**:
+> [!NOTE]
 > Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
 
 #### Combining execution models with custom pipes
@@ -828,7 +828,7 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 }
 ```
 
-> **Note**:
+> [!NOTE]
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
 ### Process information
