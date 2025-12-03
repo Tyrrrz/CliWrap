@@ -18,9 +18,3 @@ public enum CommandResultValidation
     /// </summary>
     ZeroExitCode = 0b1,
 }
-
-internal static class CommandResultValidationExtensions
-{
-    public static bool IsZeroExitCodeValidationEnabled(this CommandResultValidation validation) =>
-        (validation & CommandResultValidation.ZeroExitCode) != 0;
-}

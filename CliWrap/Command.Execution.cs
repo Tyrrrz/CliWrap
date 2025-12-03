@@ -272,7 +272,7 @@ public partial class Command
         );
 
         // Validate the exit code if required
-        if (process.ExitCode != 0 && Validation.IsZeroExitCodeValidationEnabled())
+        if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
         {
             throw new CommandExecutionException(
                 this,

@@ -14,12 +14,15 @@ public enum OutputTarget
 
 internal static class OutputTargetExtensions
 {
-    public static IEnumerable<ConsoleWriter> GetWriters(this IConsole console, OutputTarget target)
+    extension(IConsole console)
     {
-        if (target.HasFlag(OutputTarget.StdOut))
-            yield return console.Output;
+        public IEnumerable<ConsoleWriter> GetWriters(OutputTarget target)
+        {
+            if (target.HasFlag(OutputTarget.StdOut))
+                yield return console.Output;
 
-        if (target.HasFlag(OutputTarget.StdErr))
-            yield return console.Error;
+            if (target.HasFlag(OutputTarget.StdErr))
+                yield return console.Error;
+        }
     }
 }
