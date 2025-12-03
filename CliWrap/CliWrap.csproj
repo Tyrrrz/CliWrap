@@ -35,7 +35,7 @@
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
-    <PackageReference Include="PolyShim" Version="2.0.0" PrivateAssets="all" />
+    <PackageReference Include="PolyShim" Version="2.4.0" PrivateAssets="all" />
     <PackageReference
       Include="System.Threading.Tasks.Extensions"
       Version="4.6.3"

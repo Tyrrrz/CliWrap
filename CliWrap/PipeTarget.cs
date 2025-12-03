@@ -120,7 +120,7 @@ public partial class PipeTarget
             finally
             {
                 foreach (var (_, subStream) in targetSubStreams)
-                    await subStream.ToAsyncDisposable().DisposeAsync().ConfigureAwait(false);
+                    await subStream.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

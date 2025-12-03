@@ -200,11 +200,10 @@ public partial class Command
     {
         using var _ = process;
 
-        // Additional cancellation to ensure we don't wait forever for the process to terminate
-        // after forceful cancellation.
         // Ideally, we don't want ExecuteAsync() to return or throw before the process actually
         // exits, but it's theoretically possible that an attempt to kill the process may fail,
-        // so we need a fallback.
+        // so we need a fallback. This cancellation token is triggered after a timeout once
+        // forceful cancellation is requested, and ensures that we don't wait forever.
         using var waitTimeoutCts = new CancellationTokenSource();
         await using var _1 = forcefulCancellationToken
             .Register(() =>
@@ -213,7 +212,8 @@ public partial class Command
             )
             .ToAsyncDisposable();
 
-        // Additional cancellation for the stdin pipe in case the process exits without fully exhausting it
+        // The process may exit without fully consuming the data from the stdin pipe, in which
+        // case we need a separate cancellation signal that will abort the piping operation.
         using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(
             forcefulCancellationToken
         );
@@ -227,8 +227,10 @@ public partial class Command
         // Start piping streams in the background
         var pipingTask = Task.WhenAll(
             PipeStandardInputAsync(process, stdInCts.Token),
+            // Output pipe may outlive the process, so don't cancel it on process exit
             // ReSharper disable once PossiblyMistakenUseOfCancellationToken
             PipeStandardOutputAsync(process, forcefulCancellationToken),
+            // Error pipe may outlive the process, so don't cancel it on process exit
             // ReSharper disable once PossiblyMistakenUseOfCancellationToken
             PipeStandardErrorAsync(process, forcefulCancellationToken)
         );
@@ -241,9 +243,7 @@ public partial class Command
             await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
 
             // Send the cancellation signal to the stdin pipe since the process has exited
-            // and won't need it anymore.
-            // If the pipe has already been exhausted (most likely), this won't do anything.
-            // If the pipe is still trying to transfer data, this will cause it to abort.
+            // and won't need it anymore. This should prevent it from hanging in some edge cases.
             await stdInCts.CancelAsync();
 
             // Wait until piping is done and propagate exceptions
@@ -259,8 +259,7 @@ public partial class Command
             ) { }
 
         // Throw if forceful cancellation was requested.
-        // This needs to be checked first because it effectively overrides graceful cancellation
-        // by outright killing the process, even if graceful cancellation was requested earlier.
+        // This needs to be checked first because it has precedence over graceful cancellation.
         forcefulCancellationToken.ThrowIfCancellationRequested(
             "Command execution canceled. "
                 + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated."
