@@ -227,7 +227,9 @@ public partial class Command
         // Start piping streams in the background
         var pipingTask = Task.WhenAll(
             PipeStandardInputAsync(process, stdInCts.Token),
+            // ReSharper disable once PossiblyMistakenUseOfCancellationToken
             PipeStandardOutputAsync(process, forcefulCancellationToken),
+            // ReSharper disable once PossiblyMistakenUseOfCancellationToken
             PipeStandardErrorAsync(process, forcefulCancellationToken)
         );
 

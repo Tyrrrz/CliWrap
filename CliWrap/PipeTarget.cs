@@ -47,7 +47,9 @@ public partial class PipeTarget
         )
         {
             // Cancellation to abort the pipe if any of the underlying targets fail
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var cancelOrFailCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken
+            );
 
             // Create a separate sub-stream for each target
             var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
@@ -65,13 +67,15 @@ public partial class PipeTarget
                         try
                         {
                             // ReSharper disable once AccessToDisposedClosure
-                            await target.CopyFromAsync(subStream, cts.Token).ConfigureAwait(false);
+                            await target
+                                .CopyFromAsync(subStream, cancelOrFailCts.Token)
+                                .ConfigureAwait(false);
                         }
                         catch
                         {
                             // Abort the operation if any of the targets fail
                             // ReSharper disable once AccessToDisposedClosure
-                            await cts.CancelAsync();
+                            await cancelOrFailCts.CancelAsync();
 
                             throw;
                         }
@@ -85,21 +89,27 @@ public partial class PipeTarget
                     while (true)
                     {
                         var bytesRead = await origin
-                            .ReadAsync(buffer.Memory, cts.Token)
+                            .ReadAsync(buffer.Memory, cancelOrFailCts.Token)
                             .ConfigureAwait(false);
 
                         if (bytesRead <= 0)
                             break;
 
                         foreach (var (_, subStream) in targetSubStreams)
+                        {
                             await subStream
-                                .WriteAsync(buffer.Memory[..bytesRead], cts.Token)
+                                .WriteAsync(buffer.Memory[..bytesRead], cancelOrFailCts.Token)
                                 .ConfigureAwait(false);
+                        }
                     }
 
                     // Report that transmission is complete
                     foreach (var (_, subStream) in targetSubStreams)
-                        await subStream.ReportCompletionAsync(cts.Token).ConfigureAwait(false);
+                    {
+                        await subStream
+                            .ReportCompletionAsync(cancelOrFailCts.Token)
+                            .ConfigureAwait(false);
+                    }
                 }
                 finally
                 {
