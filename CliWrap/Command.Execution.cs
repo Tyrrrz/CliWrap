@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -257,7 +258,7 @@ public partial class Command
         {
             // We tried to kill the process, but it didn't exit within the allotted timeout, meaning
             // that the termination attempt failed. This should never happen, but inform the user if it does.
-            throw new InvalidOperationException(
+            throw new Win32Exception(
                 $"Failed to terminate the underlying process ({process.Name}#{process.Id}) within the allotted timeout.",
                 ex
             );
