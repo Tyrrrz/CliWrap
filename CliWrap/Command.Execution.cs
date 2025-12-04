@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -149,10 +150,14 @@ public partial class Command
             {
                 await StandardInputPipe
                     .CopyToAsync(process.StandardInput, cancellationToken)
-                    // Some streams do not support cancellation, so we add a fallback that
-                    // drops the task and returns early.
-                    // This is important with stdin because the process might finish before
-                    // the pipe has been fully exhausted, and we don't want to wait for it.
+                    // The input pipe may never respond to cancellation, so we add a fallback
+                    // that drops the task and returns early when cancellation is requested.
+                    // This prevents hanging when the process exits before consuming all stdin data.
+                    // https://github.com/Tyrrrz/CliWrap/issues/74
+                    // Update: after some retrospection, I think it was a bad design decision to
+                    // take responsibility for adding a timeout on a user-provided pipe source.
+                    // It should be the user's responsibility to ensure that their pipe source
+                    // respects cancellation. Otherwise, we may as well add such fallbacks everywhere.
                     .WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -249,27 +254,52 @@ public partial class Command
             // Wait until piping is done and propagate exceptions
             await pipingTask.ConfigureAwait(false);
         }
-        // Swallow exceptions caused by internal and user-provided cancellations,
-        // because we have a separate mechanism for handling them below.
+        catch (OperationCanceledException ex) when (ex.CancellationToken == waitTimeoutCts.Token)
+        {
+            // We tried to kill the process, but it didn't exit within the allotted timeout, meaning
+            // that the termination attempt failed. This should never happen, but inform the user if it does.
+            throw new TimeoutException(
+                $"Failed to terminate the underlying process ({process.Name}#{process.Id}) within the allotted timeout.",
+                ex
+            );
+        }
+        catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
+        {
+            // This clause will be hit both when stdin piping is canceled due to process exit
+            // and when it aborts due to an actual cancellation request (because of the link).
+            // Swallow this exception because it was triggered by an internal cancellation,
+            // we will throw a more meaningful one later if needed.
+        }
         catch (OperationCanceledException ex)
             when (ex.CancellationToken == forcefulCancellationToken
                 || ex.CancellationToken == gracefulCancellationToken
-                || ex.CancellationToken == waitTimeoutCts.Token
-                || ex.CancellationToken == stdInCts.Token
-            ) { }
+            )
+        {
+            // This clause should never hit due to the registrations above, but just in case it does,
+            // swallow the exception here to throw a more meaningful one later.
+        }
 
-        // Throw if forceful cancellation was requested.
-        // This needs to be checked first because it has precedence over graceful cancellation.
-        forcefulCancellationToken.ThrowIfCancellationRequested(
-            "Command execution canceled. "
-                + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated."
-        );
+        // Check if the process exited after forceful cancellation
+        if (forcefulCancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                "Command execution canceled. "
+                    + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
+                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
+                forcefulCancellationToken
+            );
+        }
 
-        // Throw if graceful cancellation was requested
-        gracefulCancellationToken.ThrowIfCancellationRequested(
-            "Command execution canceled. "
-                + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated."
-        );
+        // Check if the process exited after graceful cancellation
+        if (gracefulCancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                "Command execution canceled. "
+                    + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated.",
+                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
+                gracefulCancellationToken
+            );
+        }
 
         // Validate the exit code if required
         if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
