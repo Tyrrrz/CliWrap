@@ -75,21 +75,25 @@ internal class UnixFdStream : Stream
         if (count == 0)
             return 0;
 
-        var bytesRead = NativeMethods.Unix.Read(_fd, ref buffer[offset], (nuint)count);
-
-        if (bytesRead < 0)
+        // Use a loop instead of recursion to avoid stack overflow under repeated signal interruptions
+        while (true)
         {
-            var error = Marshal.GetLastWin32Error();
-            // Retry if interrupted by signal
-            if (error == NativeMethods.Unix.EINTR)
-                return Read(buffer, offset, count);
+            var bytesRead = NativeMethods.Unix.Read(_fd, ref buffer[offset], (nuint)count);
 
-            throw new IOException(
-                $"Failed to read from file descriptor {_fd}. Error code: {error}"
-            );
+            if (bytesRead < 0)
+            {
+                var error = Marshal.GetLastWin32Error();
+                // Retry if interrupted by signal
+                if (error == NativeMethods.Unix.EINTR)
+                    continue;
+
+                throw new IOException(
+                    $"Failed to read from file descriptor {_fd}. Error code: {error}"
+                );
+            }
+
+            return (int)bytesRead;
         }
-
-        return (int)bytesRead;
     }
 
     /// <inheritdoc />

@@ -15,6 +15,7 @@ internal class UnixPseudoTerminal : PseudoTerminal
     private readonly int _masterFd;
     private readonly int _slaveFd;
     private readonly UnixFdStream _masterStream;
+    private readonly object _closeLock = new();
     private bool _slaveFdClosed;
     private bool _disposed;
 
@@ -42,6 +43,7 @@ internal class UnixPseudoTerminal : PseudoTerminal
             );
         }
 
+        var masterStreamCreated = false;
         try
         {
             // Set initial terminal size
@@ -50,11 +52,15 @@ internal class UnixPseudoTerminal : PseudoTerminal
             // Create stream wrapper for master fd
             // Master is bidirectional - write sends to child, read receives from child
             _masterStream = new UnixFdStream(_masterFd, canRead: true, canWrite: true);
+            masterStreamCreated = true;
         }
         catch
         {
             // Clean up fds if initialization fails after openpty
-            NativeMethods.Unix.Close(_masterFd);
+            // Only close master fd if the stream hasn't taken ownership of it
+            // (UnixFdStream will close the fd in its Dispose method)
+            if (!masterStreamCreated)
+                NativeMethods.Unix.Close(_masterFd);
             NativeMethods.Unix.Close(_slaveFd);
             throw;
         }
@@ -118,10 +124,15 @@ internal class UnixPseudoTerminal : PseudoTerminal
     /// </remarks>
     public void CloseSlave()
     {
-        if (!_slaveFdClosed)
+        // Use lock to prevent race condition where concurrent calls could
+        // close the same file descriptor multiple times
+        lock (_closeLock)
         {
-            NativeMethods.Unix.Close(_slaveFd);
-            _slaveFdClosed = true;
+            if (!_slaveFdClosed)
+            {
+                NativeMethods.Unix.Close(_slaveFd);
+                _slaveFdClosed = true;
+            }
         }
     }
 
@@ -143,10 +154,14 @@ internal class UnixPseudoTerminal : PseudoTerminal
         if (!_disposed)
         {
             _masterStream.Dispose();
-            if (!_slaveFdClosed)
+            // Use the same lock as CloseSlave to prevent race conditions
+            lock (_closeLock)
             {
-                NativeMethods.Unix.Close(_slaveFd);
-                _slaveFdClosed = true;
+                if (!_slaveFdClosed)
+                {
+                    NativeMethods.Unix.Close(_slaveFd);
+                    _slaveFdClosed = true;
+                }
             }
             _disposed = true;
         }

@@ -867,7 +867,7 @@ public class PseudoTerminalSpecs
         cts.Cancel();
 
         // Assert
-        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await task);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await task);
 
         // The cancellation should have worked without hanging
     }
@@ -967,7 +967,6 @@ public class PseudoTerminalSpecs
 
         for (var i = 0; i < tasks.Length; i++)
         {
-            var index = i;
             tasks[i] = Task.Run(async () =>
             {
                 var cmd = Cli.Wrap(Dummy.Program.FilePath)

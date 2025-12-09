@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
 namespace CliWrap.Utils;
@@ -26,6 +27,8 @@ internal class WindowsPseudoTerminal : PseudoTerminal
     /// <param name="rows">Terminal height in rows.</param>
     public WindowsPseudoTerminal(int columns, int rows)
     {
+        ValidateDimensions(columns, rows);
+
         // Create pipe for PTY input (parent writes -> PTY reads)
         if (!CreatePipe(out var inputReadHandle, out _inputWriteHandle))
         {
@@ -112,6 +115,8 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         if (_disposed)
             throw new ObjectDisposedException(GetType().FullName);
 
+        ValidateDimensions(columns, rows);
+
         var size = new NativeMethods.Windows.Coord { X = (short)columns, Y = (short)rows };
 
         var result = NativeMethods.Windows.ResizePseudoConsole(_pseudoConsoleHandle, size);
@@ -124,14 +129,15 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         }
     }
 
-    private volatile bool _consoleClosed;
+    private int _consoleClosed; // 0 = open, 1 = closed
 
     /// <inheritdoc />
     public override void CloseConsole()
     {
-        if (!_disposed && !_consoleClosed)
+        // Use Interlocked.CompareExchange for thread-safe check-and-set
+        // This prevents concurrent calls from invoking ClosePseudoConsole twice
+        if (!_disposed && Interlocked.CompareExchange(ref _consoleClosed, 1, 0) == 0)
         {
-            _consoleClosed = true;
             // Close the pseudo console to signal EOF on the output stream.
             // This causes blocked reads to return, enabling clean shutdown.
             // Note: This must be done BEFORE disposing the streams to avoid race conditions.
@@ -144,16 +150,36 @@ internal class WindowsPseudoTerminal : PseudoTerminal
     {
         if (!_disposed)
         {
-            // Close the console first if not already closed
-            if (!_consoleClosed)
+            // Close the console first if not already closed (thread-safe)
+            if (Interlocked.CompareExchange(ref _consoleClosed, 1, 0) == 0)
             {
-                _consoleClosed = true;
                 NativeMethods.Windows.ClosePseudoConsole(_pseudoConsoleHandle);
             }
             // Then dispose the streams
             _inputStream.Dispose();
             _outputStream.Dispose();
             _disposed = true;
+        }
+    }
+
+    private static void ValidateDimensions(int columns, int rows)
+    {
+        if (columns > short.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(columns),
+                columns,
+                $"Column count ({columns}) exceeds maximum supported value ({short.MaxValue})."
+            );
+        }
+
+        if (rows > short.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rows),
+                rows,
+                $"Row count ({rows}) exceeds maximum supported value ({short.MaxValue})."
+            );
         }
     }
 

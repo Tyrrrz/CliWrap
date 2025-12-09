@@ -623,11 +623,10 @@ internal class PtyProcessEx : IDisposable
         {
             _pty.Dispose();
 
-            if (OperatingSystem.IsWindows())
+            // Thread handle is closed immediately after process creation
+            if (OperatingSystem.IsWindows() && _processHandle != IntPtr.Zero)
             {
-                // Thread handle is closed immediately after process creation
-                if (_processHandle != IntPtr.Zero)
-                    NativeMethods.Windows.CloseHandle(_processHandle);
+                NativeMethods.Windows.CloseHandle(_processHandle);
             }
 
             _disposed = true;
