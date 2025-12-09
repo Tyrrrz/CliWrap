@@ -354,7 +354,11 @@ internal class PtyProcessEx : IDisposable
             _pty.InputStream.Write(ctrlC, 0, 1);
             _pty.InputStream.Flush();
         }
-        catch
+        catch (IOException)
+        {
+            Kill();
+        }
+        catch (ObjectDisposedException)
         {
             Kill();
         }
@@ -365,23 +369,16 @@ internal class PtyProcessEx : IDisposable
     /// </summary>
     public void Kill()
     {
-        try
-        {
-            if (_hasExited)
-                return;
+        if (_hasExited)
+            return;
 
-            if (OperatingSystem.IsWindows())
-            {
-                NativeMethods.Windows.TerminateProcess(_processHandle, 1);
-            }
-            else
-            {
-                NativeMethods.Unix.Kill(_processId, 9);
-            }
-        }
-        catch
+        if (OperatingSystem.IsWindows())
         {
-            // Ignore - process may have already exited
+            NativeMethods.Windows.TerminateProcess(_processHandle, 1);
+        }
+        else
+        {
+            NativeMethods.Unix.Kill(_processId, 9);
         }
     }
 
