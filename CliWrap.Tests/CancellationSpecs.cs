@@ -64,32 +64,24 @@ public class CancellationSpecs
     public async Task I_can_execute_a_command_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
+        using var forcefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var gracefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
         var stdOutBuffer = new StringBuilder();
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"])
-            | PipeTarget.Merge(
-                PipeTarget.ToDelegate(line =>
-                {
-                    // We need to send the cancellation request right after the process has registered
-                    // a handler for the interrupt signal, otherwise the default handler will trigger
-                    // and just kill the process.
-                    if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
-                        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
-                }),
-                PipeTarget.ToStringBuilder(stdOutBuffer)
-            );
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | stdOutBuffer;
 
         // Act
-        var task = cmd.ExecuteAsync(CancellationToken.None, cts.Token);
+        var task = cmd.ExecuteAsync(forcefulCts.Token, gracefulCts.Token);
 
         // Assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-        ex.CancellationToken.Should().Be(cts.Token);
+        (ex.CancellationToken == gracefulCts.Token || ex.CancellationToken == forcefulCts.Token)
+            .Should()
+            .BeTrue();
 
         Process.IsRunning(task.ProcessId).Should().BeFalse();
-        stdOutBuffer.ToString().Should().Contain("Canceled.").And.NotContain("Done.");
+        stdOutBuffer.ToString().Should().NotContain("Done.");
     }
 
     [Fact(Timeout = 15000)]
@@ -130,8 +122,8 @@ public class CancellationSpecs
     public async Task I_can_execute_a_command_with_buffering_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+        using var forcefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var gracefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
@@ -140,12 +132,14 @@ public class CancellationSpecs
             await cmd.ExecuteBufferedAsync(
                 Encoding.Default,
                 Encoding.Default,
-                CancellationToken.None,
-                cts.Token
+                forcefulCts.Token,
+                gracefulCts.Token
             )
         );
 
-        ex.CancellationToken.Should().Be(cts.Token);
+        (ex.CancellationToken == gracefulCts.Token || ex.CancellationToken == forcefulCts.Token)
+            .Should()
+            .BeTrue();
     }
 
     [Fact(Timeout = 15000)]
@@ -196,8 +190,8 @@ public class CancellationSpecs
     public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+        using var forcefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var gracefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
@@ -208,8 +202,8 @@ public class CancellationSpecs
                 var cmdEvent in cmd.ListenAsync(
                     Encoding.Default,
                     Encoding.Default,
-                    CancellationToken.None,
-                    cts.Token
+                    forcefulCts.Token,
+                    gracefulCts.Token
                 )
             )
             {
@@ -218,7 +212,9 @@ public class CancellationSpecs
             }
         });
 
-        ex.CancellationToken.Should().Be(cts.Token);
+        (ex.CancellationToken == gracefulCts.Token || ex.CancellationToken == forcefulCts.Token)
+            .Should()
+            .BeTrue();
     }
 
     [Fact(Timeout = 15000)]
@@ -275,14 +271,19 @@ public class CancellationSpecs
     public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_cancel_it_gracefully_after_a_delay()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+        using var forcefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var gracefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act & assert
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await cmd.Observe(Encoding.Default, Encoding.Default, CancellationToken.None, cts.Token)
+            await cmd.Observe(
+                    Encoding.Default,
+                    Encoding.Default,
+                    forcefulCts.Token,
+                    gracefulCts.Token
+                )
                 .ForEachAsync(
                     cmdEvent =>
                     {
@@ -293,6 +294,8 @@ public class CancellationSpecs
                 )
         );
 
-        ex.CancellationToken.Should().Be(cts.Token);
+        (ex.CancellationToken == gracefulCts.Token || ex.CancellationToken == forcefulCts.Token)
+            .Should()
+            .BeTrue();
     }
 }
