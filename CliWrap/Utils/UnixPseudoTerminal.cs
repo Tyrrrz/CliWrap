@@ -15,6 +15,7 @@ internal class UnixPseudoTerminal : PseudoTerminal
     private readonly int _masterFd;
     private readonly int _slaveFd;
     private readonly UnixFdStream _masterStream;
+    private bool _slaveFdClosed;
     private bool _disposed;
 
     /// <summary>
@@ -41,12 +42,22 @@ internal class UnixPseudoTerminal : PseudoTerminal
             );
         }
 
-        // Set initial terminal size
-        SetSize(columns, rows);
+        try
+        {
+            // Set initial terminal size
+            SetSize(columns, rows);
 
-        // Create stream wrapper for master fd
-        // Master is bidirectional - write sends to child, read receives from child
-        _masterStream = new UnixFdStream(_masterFd, canRead: true, canWrite: true);
+            // Create stream wrapper for master fd
+            // Master is bidirectional - write sends to child, read receives from child
+            _masterStream = new UnixFdStream(_masterFd, canRead: true, canWrite: true);
+        }
+        catch
+        {
+            // Clean up fds if initialization fails after openpty
+            NativeMethods.Unix.Close(_masterFd);
+            NativeMethods.Unix.Close(_slaveFd);
+            throw;
+        }
     }
 
     /// <summary>
@@ -102,14 +113,15 @@ internal class UnixPseudoTerminal : PseudoTerminal
     /// Closes the slave file descriptor.
     /// </summary>
     /// <remarks>
-    /// This should be called in the parent process after forking,
+    /// This should be called in the parent process after spawning,
     /// as the parent only uses the master fd.
     /// </remarks>
     public void CloseSlave()
     {
-        if (!_disposed)
+        if (!_slaveFdClosed)
         {
             NativeMethods.Unix.Close(_slaveFd);
+            _slaveFdClosed = true;
         }
     }
 
@@ -131,7 +143,11 @@ internal class UnixPseudoTerminal : PseudoTerminal
         if (!_disposed)
         {
             _masterStream.Dispose();
-            NativeMethods.Unix.Close(_slaveFd);
+            if (!_slaveFdClosed)
+            {
+                NativeMethods.Unix.Close(_slaveFd);
+                _slaveFdClosed = true;
+            }
             _disposed = true;
         }
     }

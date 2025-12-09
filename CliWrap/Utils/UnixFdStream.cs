@@ -75,31 +75,18 @@ internal class UnixFdStream : Stream
         if (count == 0)
             return 0;
 
-        // If offset is non-zero, we need to use a temporary buffer
-        byte[] readBuffer;
-        if (offset == 0)
-        {
-            readBuffer = buffer;
-        }
-        else
-        {
-            readBuffer = new byte[count];
-        }
-
-        var bytesRead = NativeMethods.Unix.Read(_fd, readBuffer, (nuint)count);
+        var bytesRead = NativeMethods.Unix.Read(_fd, ref buffer[offset], (nuint)count);
 
         if (bytesRead < 0)
         {
             var error = Marshal.GetLastWin32Error();
+            // Retry if interrupted by signal
+            if (error == NativeMethods.Unix.EINTR)
+                return Read(buffer, offset, count);
+
             throw new IOException(
                 $"Failed to read from file descriptor {_fd}. Error code: {error}"
             );
-        }
-
-        // Copy to original buffer if we used a temporary one
-        if (offset != 0 && bytesRead > 0)
-        {
-            Array.Copy(readBuffer, 0, buffer, offset, (int)bytesRead);
         }
 
         return (int)bytesRead;
@@ -131,30 +118,22 @@ internal class UnixFdStream : Stream
         if (count == 0)
             return;
 
-        // If offset is non-zero, we need to use a temporary buffer
-        byte[] writeBuffer;
-        if (offset == 0)
-        {
-            writeBuffer = buffer;
-        }
-        else
-        {
-            writeBuffer = new byte[count];
-            Array.Copy(buffer, offset, writeBuffer, 0, count);
-        }
-
         var totalWritten = 0;
         while (totalWritten < count)
         {
             var bytesWritten = NativeMethods.Unix.Write(
                 _fd,
-                offset == 0 ? buffer : writeBuffer,
+                ref buffer[offset + totalWritten],
                 (nuint)(count - totalWritten)
             );
 
             if (bytesWritten < 0)
             {
                 var error = Marshal.GetLastWin32Error();
+                // Retry if interrupted by signal
+                if (error == NativeMethods.Unix.EINTR)
+                    continue;
+
                 throw new IOException(
                     $"Failed to write to file descriptor {_fd}. Error code: {error}"
                 );

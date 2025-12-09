@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -16,6 +16,9 @@ namespace CliWrap.Utils;
 /// </summary>
 internal class PtyProcessEx : IDisposable
 {
+    // Lock for thread-safe working directory changes on Unix
+    private static readonly object _unixWorkingDirectoryLock = new();
+
     private readonly PseudoTerminal _pty;
     private readonly string _fileName;
     private readonly string _arguments;
@@ -27,10 +30,9 @@ internal class PtyProcessEx : IDisposable
     );
 
     private IntPtr _processHandle;
-    private IntPtr _threadHandle;
     private int _processId;
-    private bool _hasExited;
-    private int _exitCode;
+    private volatile bool _hasExited;
+    private volatile int _exitCode;
     private bool _disposed;
 
     public PtyProcessEx(
@@ -213,7 +215,6 @@ internal class PtyProcessEx : IDisposable
                 {
                     NativeMethods.Windows.CloseHandle(processInfo.hThread);
                 }
-                _threadHandle = IntPtr.Zero;
             }
             finally
             {
@@ -233,33 +234,240 @@ internal class PtyProcessEx : IDisposable
     private void StartUnix()
     {
         var unixPty = (UnixPseudoTerminal)_pty;
+        var slaveFd = unixPty.SlaveFd;
 
-        // On Unix, we need to use the standard Process class
-        // but configure environment to work with PTY
-        // The slave fd will be used by the child process
+        // Allocate posix_spawn structures
+        var fileActionsPtr = Marshal.AllocHGlobal(NativeMethods.Unix.PosixSpawnFileActionsSize);
+        var attrPtr = Marshal.AllocHGlobal(NativeMethods.Unix.PosixSpawnAttrSize);
 
-        // For a proper PTY implementation on Unix, we would need to fork
-        // Since fork is dangerous in .NET managed code, we use a workaround:
-        // Start the process normally but pass the slave fd via inheritance
-
-        // Use standard .NET Process for Unix
-        // The PTY slave fd needs to be set up in the child, which is complex
-        // For now, we'll use a simpler approach: start process with PTY environment hints
-
-        var startInfo = new ProcessStartInfo
+        try
         {
-            FileName = _fileName,
-            Arguments = _arguments,
-            WorkingDirectory = _workingDirectory,
-            UseShellExecute = false,
-            RedirectStandardInput = false,
-            RedirectStandardOutput = false,
-            RedirectStandardError = false,
-            CreateNoWindow = true,
-        };
+            // Initialize file actions
+            var result = NativeMethods.Unix.PosixSpawnFileActionsInit(fileActionsPtr);
+            if (result != 0)
+            {
+                throw new InvalidOperationException(
+                    $"posix_spawn_file_actions_init failed with error {result}"
+                );
+            }
 
-        // Set TERM environment variable to indicate PTY
-        startInfo.Environment["TERM"] = "xterm-256color";
+            try
+            {
+                // Initialize spawn attributes
+                result = NativeMethods.Unix.PosixSpawnAttrInit(attrPtr);
+                if (result != 0)
+                {
+                    throw new InvalidOperationException(
+                        $"posix_spawnattr_init failed with error {result}"
+                    );
+                }
+
+                try
+                {
+                    // Set up file descriptor redirections:
+                    // Redirect stdin (0), stdout (1), stderr (2) to the PTY slave
+                    result = NativeMethods.Unix.PosixSpawnFileActionsAddDup2(
+                        fileActionsPtr,
+                        slaveFd,
+                        0
+                    );
+                    if (result != 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"posix_spawn_file_actions_adddup2 (stdin) failed with error {result}"
+                        );
+                    }
+
+                    result = NativeMethods.Unix.PosixSpawnFileActionsAddDup2(
+                        fileActionsPtr,
+                        slaveFd,
+                        1
+                    );
+                    if (result != 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"posix_spawn_file_actions_adddup2 (stdout) failed with error {result}"
+                        );
+                    }
+
+                    result = NativeMethods.Unix.PosixSpawnFileActionsAddDup2(
+                        fileActionsPtr,
+                        slaveFd,
+                        2
+                    );
+                    if (result != 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"posix_spawn_file_actions_adddup2 (stderr) failed with error {result}"
+                        );
+                    }
+
+                    // Close the original slave fd in the child (after dup2)
+                    result = NativeMethods.Unix.PosixSpawnFileActionsAddClose(
+                        fileActionsPtr,
+                        slaveFd
+                    );
+                    if (result != 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"posix_spawn_file_actions_addclose failed with error {result}"
+                        );
+                    }
+
+                    // On Linux, try to set POSIX_SPAWN_SETSID to create new session
+                    if (OperatingSystem.IsLinux())
+                    {
+                        NativeMethods.Unix.PosixSpawnAttrSetFlags(
+                            attrPtr,
+                            NativeMethods.Unix.POSIX_SPAWN_SETSID
+                        );
+                    }
+
+                    // Build argv array
+                    var argv = BuildArgv();
+
+                    // Build envp array
+                    var envp = BuildEnvp();
+
+                    // Lock around working directory change since it's process-wide
+                    lock (_unixWorkingDirectoryLock)
+                    {
+                        var originalDir = Environment.CurrentDirectory;
+                        if (!string.IsNullOrEmpty(_workingDirectory))
+                        {
+                            Environment.CurrentDirectory = _workingDirectory;
+                        }
+
+                        try
+                        {
+                            // Spawn the process
+                            result = NativeMethods.Unix.PosixSpawnp(
+                                out _processId,
+                                _fileName,
+                                fileActionsPtr,
+                                attrPtr,
+                                argv,
+                                envp
+                            );
+
+                            if (result != 0)
+                            {
+                                throw new Win32Exception(
+                                    result,
+                                    $"Failed to spawn process with PTY: {_fileName}"
+                                );
+                            }
+                        }
+                        finally
+                        {
+                            if (!string.IsNullOrEmpty(_workingDirectory))
+                            {
+                                Environment.CurrentDirectory = originalDir;
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    NativeMethods.Unix.PosixSpawnAttrDestroy(attrPtr);
+                }
+            }
+            finally
+            {
+                NativeMethods.Unix.PosixSpawnFileActionsDestroy(fileActionsPtr);
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(fileActionsPtr);
+            Marshal.FreeHGlobal(attrPtr);
+        }
+
+        // Close slave fd in parent - only master is needed for I/O
+        unixPty.CloseSlave();
+    }
+
+    private string[] BuildArgv()
+    {
+        // First element is the program name
+        if (string.IsNullOrWhiteSpace(_arguments))
+        {
+            return [_fileName, null!];
+        }
+
+        // Parse arguments (simple space-separated, respecting quotes)
+        var args = ParseArguments(_arguments);
+        var argv = new string[args.Count + 2];
+        argv[0] = _fileName;
+        for (var i = 0; i < args.Count; i++)
+        {
+            argv[i + 1] = args[i];
+        }
+        argv[argv.Length - 1] = null!; // NULL terminator
+        return argv;
+    }
+
+    private static List<string> ParseArguments(string arguments)
+    {
+        var args = new List<string>();
+        var current = new StringBuilder();
+        var inQuotes = false;
+        var quoteChar = '\0';
+
+        foreach (var c in arguments)
+        {
+            if (inQuotes)
+            {
+                if (c == quoteChar)
+                {
+                    inQuotes = false;
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+            else
+            {
+                if (c == '"' || c == '\'')
+                {
+                    inQuotes = true;
+                    quoteChar = c;
+                }
+                else if (char.IsWhiteSpace(c))
+                {
+                    if (current.Length > 0)
+                    {
+                        args.Add(current.ToString());
+                        current.Clear();
+                    }
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+        }
+
+        if (current.Length > 0)
+        {
+            args.Add(current.ToString());
+        }
+
+        return args;
+    }
+
+    private string[] BuildEnvp()
+    {
+        // Start with current environment
+        var env = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+        {
+            env[(string)entry.Key] = (string)entry.Value!;
+        }
+
+        // Set TERM for PTY
+        env["TERM"] = "xterm-256color";
 
         // Parse and add custom environment variables
         if (!string.IsNullOrEmpty(_environmentBlock))
@@ -273,57 +481,27 @@ internal class PtyProcessEx : IDisposable
                 {
                     var key = pair.Substring(0, idx);
                     var value = pair.Substring(idx + 1);
-                    startInfo.Environment[key] = value;
+                    env[key] = value;
                 }
             }
         }
 
-        // Note: For full Unix PTY support, we would need to:
-        // 1. Fork the process
-        // 2. In child: call setsid(), login_tty(slave_fd), exec
-        // 3. In parent: close slave fd, use master fd
-        // This requires unsafe P/Invoke fork/exec which is complex in managed code
-
-        // For this implementation, we use the PTY master for I/O
-        // but the child process won't have a proper controlling terminal
-        // This still provides colored output support for many programs
-
-        var process = new Process { StartInfo = startInfo };
-        process.EnableRaisingEvents = true;
-        process.Exited += (_, _) =>
+        // Convert to envp format (KEY=VALUE strings, NULL-terminated array)
+        var envp = new string[env.Count + 1];
+        var i = 0;
+        foreach (var kvp in env)
         {
-            ExitTime = DateTimeOffset.Now;
-            _exitCode = process.ExitCode;
-            _hasExited = true;
-            _exitTcs.TrySetResult();
-        };
-
-        try
-        {
-            if (!process.Start())
-            {
-                throw new InvalidOperationException($"Failed to start process: {_fileName}");
-            }
+            envp[i++] = $"{kvp.Key}={kvp.Value}";
         }
-        catch (Win32Exception ex)
-        {
-            throw new Win32Exception(
-                $"Failed to start process with PTY: {_fileName}. {ex.Message}",
-                ex
-            );
-        }
-
-        _processId = process.Id;
-
-        // Close slave fd in parent - only master is needed
-        unixPty.CloseSlave();
+        envp[env.Count] = null!; // NULL terminator
+        return envp;
     }
 
     private async Task WaitForExitBackground()
     {
-        if (OperatingSystem.IsWindows())
+        await Task.Run(() =>
         {
-            await Task.Run(() =>
+            if (OperatingSystem.IsWindows())
             {
                 NativeMethods.Windows.WaitForSingleObject(
                     _processHandle,
@@ -334,13 +512,47 @@ internal class PtyProcessEx : IDisposable
                 {
                     _exitCode = (int)exitCode;
                 }
+            }
+            else
+            {
+                // Wait for process exit using waitpid
+                while (true)
+                {
+                    var result = NativeMethods.Unix.WaitPid(_processId, out var status, 0);
+                    if (result == _processId)
+                    {
+                        // Process exited - extract exit code from status
+                        if (NativeMethods.Unix.WIFEXITED(status))
+                        {
+                            _exitCode = NativeMethods.Unix.WEXITSTATUS(status);
+                        }
+                        else if (NativeMethods.Unix.WIFSIGNALED(status))
+                        {
+                            // Process killed by signal - convention: 128 + signal number
+                            _exitCode = 128 + NativeMethods.Unix.WTERMSIG(status);
+                        }
+                        else
+                        {
+                            _exitCode = -1;
+                        }
+                        break;
+                    }
+                    else if (result == -1)
+                    {
+                        var error = Marshal.GetLastWin32Error();
+                        // Retry if interrupted by signal
+                        if (error == NativeMethods.Unix.EINTR)
+                            continue;
+                        // Other error (process may have already been reaped)
+                        break;
+                    }
+                }
+            }
 
-                ExitTime = DateTimeOffset.Now;
-                _hasExited = true;
-                _exitTcs.TrySetResult();
-            });
-        }
-        // Unix exit handling is done via Process.Exited event in StartUnix
+            ExitTime = DateTimeOffset.Now;
+            _hasExited = true;
+            _exitTcs.TrySetResult();
+        });
     }
 
     /// <summary>

@@ -124,7 +124,7 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         }
     }
 
-    private bool _consoleClosed;
+    private volatile bool _consoleClosed;
 
     /// <inheritdoc />
     public override void CloseConsole()
