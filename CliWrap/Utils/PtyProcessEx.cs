@@ -17,7 +17,7 @@ namespace CliWrap.Utils;
 internal class PtyProcessEx : IProcessEx
 {
     // Lock for thread-safe working directory changes on Unix
-    private static readonly object _unixWorkingDirectoryLock = new();
+    private static readonly Lock _unixWorkingDirectoryLock = new();
 
     private readonly PseudoTerminal _pty;
     private readonly string _fileName;

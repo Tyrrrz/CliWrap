@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Threading;
 
 namespace CliWrap.Utils;
 
@@ -15,7 +16,7 @@ internal class UnixPseudoTerminal : PseudoTerminal
     private readonly int _masterFd;
     private readonly int _slaveFd;
     private readonly UnixFdStream _masterStream;
-    private readonly object _closeLock = new();
+    private readonly Lock _closeLock = new();
     private bool _slaveFdClosed;
     private bool _disposed;
 
