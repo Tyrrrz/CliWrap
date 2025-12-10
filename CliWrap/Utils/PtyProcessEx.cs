@@ -14,7 +14,7 @@ namespace CliWrap.Utils;
 /// <summary>
 /// Process wrapper for PTY-based execution.
 /// </summary>
-internal class PtyProcessEx : IDisposable
+internal class PtyProcessEx : IProcessEx
 {
     // Lock for thread-safe working directory changes on Unix
     private static readonly object _unixWorkingDirectoryLock = new();
@@ -63,14 +63,18 @@ internal class PtyProcessEx : IDisposable
     /// Gets the stream for reading from the process's stdout via PTY.
     /// </summary>
     /// <remarks>
-    /// With PTY, stderr is merged into stdout.
+    /// With PTY, stderr is merged into stdout by the terminal.
     /// </remarks>
     public Stream StandardOutput => _pty.OutputStream;
 
     /// <summary>
-    /// Gets an empty stream since stderr is merged into stdout with PTY.
+    /// Gets the stream for reading from the process's stderr via PTY.
     /// </summary>
-    public Stream StandardError => Stream.Null;
+    /// <remarks>
+    /// With PTY, stderr is merged into stdout by the terminal,
+    /// so this returns the same stream as <see cref="StandardOutput"/>.
+    /// </remarks>
+    public Stream StandardError => _pty.OutputStream;
 
     public DateTimeOffset StartTime { get; private set; }
 
@@ -585,13 +589,9 @@ internal class PtyProcessEx : IDisposable
             return;
 
         if (OperatingSystem.IsWindows())
-        {
             NativeMethods.Windows.TerminateProcess(_processHandle, 1);
-        }
         else
-        {
             NativeMethods.Unix.Kill(_processId, 9);
-        }
     }
 
     public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)
@@ -619,17 +619,15 @@ internal class PtyProcessEx : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            _pty.Dispose();
+        if (_disposed)
+            return;
 
-            // Thread handle is closed immediately after process creation
-            if (OperatingSystem.IsWindows() && _processHandle != IntPtr.Zero)
-            {
-                NativeMethods.Windows.CloseHandle(_processHandle);
-            }
+        _pty.Dispose();
 
-            _disposed = true;
-        }
+        // Close process handle on Windows (thread handle is closed immediately after process creation)
+        if (OperatingSystem.IsWindows() && _processHandle != IntPtr.Zero)
+            NativeMethods.Windows.CloseHandle(_processHandle);
+
+        _disposed = true;
     }
 }

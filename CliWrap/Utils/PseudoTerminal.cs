@@ -18,7 +18,7 @@ internal abstract class PseudoTerminal : IDisposable
             if (OperatingSystem.IsWindows())
             {
                 // ConPTY requires Windows 10 version 1809 (build 17763) or later
-                return Environment.OSVersion.Version >= new Version(10, 0, 17763);
+                return OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763);
             }
 
             if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
@@ -43,7 +43,7 @@ internal abstract class PseudoTerminal : IDisposable
     {
         if (OperatingSystem.IsWindows())
         {
-            if (Environment.OSVersion.Version < new Version(10, 0, 17763))
+            if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
             {
                 throw new PlatformNotSupportedException(
                     "Pseudo-terminal support requires Windows 10 version 1809 (build 17763) or later. "

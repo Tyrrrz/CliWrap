@@ -11,7 +11,7 @@ namespace CliWrap.Tests;
 public class PseudoTerminalSpecs
 {
     private static bool IsPtySupported =>
-        (OperatingSystem.IsWindows() && Environment.OSVersion.Version >= new Version(10, 0, 17763))
+        (OperatingSystem.IsWindows() && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
         || OperatingSystem.IsLinux()
         || OperatingSystem.IsMacOS();
 
