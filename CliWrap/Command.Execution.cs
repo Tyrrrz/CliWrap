@@ -171,29 +171,15 @@ public partial class Command
         }
     }
 
-    private async Task PipeStandardOutputAsync(
-        ProcessEx process,
+    private async Task PipeStreamAsync(
+        Stream source,
+        PipeTarget target,
         CancellationToken cancellationToken = default
     )
     {
-        await using (process.StandardOutput.ToAsyncDisposable())
+        await using (source.ToAsyncDisposable())
         {
-            await StandardOutputPipe
-                .CopyFromAsync(process.StandardOutput, cancellationToken)
-                .ConfigureAwait(false);
-        }
-    }
-
-    private async Task PipeStandardErrorAsync(
-        ProcessEx process,
-        CancellationToken cancellationToken = default
-    )
-    {
-        await using (process.StandardError.ToAsyncDisposable())
-        {
-            await StandardErrorPipe
-                .CopyFromAsync(process.StandardError, cancellationToken)
-                .ConfigureAwait(false);
+            await target.CopyFromAsync(source, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -248,6 +234,63 @@ public partial class Command
         catch (IOException) { }
         catch (ObjectDisposedException) { }
         catch (OperationCanceledException) { }
+    }
+
+    private void ThrowIfCanceled(
+        IProcessEx process,
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken,
+        bool isPty
+    )
+    {
+        var processType = isPty ? "PTY process" : "process";
+
+        if (forcefulCancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                $"Command execution canceled. Underlying {processType} ({process.Name}#{process.Id}) was forcefully terminated.",
+                forcefulCancellationToken
+            );
+        }
+
+        if (gracefulCancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                $"Command execution canceled. Underlying {processType} ({process.Name}#{process.Id}) was gracefully terminated.",
+                gracefulCancellationToken
+            );
+        }
+    }
+
+    private void ValidateExitCode(IProcessEx process, bool isPty)
+    {
+        if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
+        {
+            var processType = isPty ? "PTY process" : "process";
+            throw new CommandExecutionException(
+                this,
+                process.ExitCode,
+                $"""
+                Command execution failed because the underlying {processType} ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
+
+                Command:
+                {TargetFilePath} {Arguments}
+
+                You can suppress this validation by calling `{nameof(WithValidation)}({nameof(
+                    CommandResultValidation
+                )}.{nameof(CommandResultValidation.None)})` on the command.
+                """
+            );
+        }
+    }
+
+    private TimeoutException CreateTimeoutException(IProcessEx process, bool isPty, Exception inner)
+    {
+        var processType = isPty ? "PTY process" : "process";
+        return new TimeoutException(
+            $"Failed to terminate the underlying {processType} ({process.Name}#{process.Id}) within the allotted timeout.",
+            inner
+        );
     }
 
     private string? CreateEnvironmentBlock()
@@ -323,10 +366,7 @@ public partial class Command
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == waitTimeoutCts.Token)
         {
-            throw new TimeoutException(
-                $"Failed to terminate the underlying PTY process ({process.Name}#{process.Id}) within the allotted timeout.",
-                ex
-            );
+            throw CreateTimeoutException(process, isPty: true, ex);
         }
         catch (OperationCanceledException ex)
             when (ex.CancellationToken == stdInCts.Token || ex.CancellationToken == stdOutCts.Token)
@@ -336,41 +376,8 @@ public partial class Command
                 || ex.CancellationToken == gracefulCancellationToken
             ) { }
 
-        if (forcefulCancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                "Command execution canceled. "
-                    + $"Underlying PTY process ({process.Name}#{process.Id}) was forcefully terminated.",
-                forcefulCancellationToken
-            );
-        }
-
-        if (gracefulCancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                "Command execution canceled. "
-                    + $"Underlying PTY process ({process.Name}#{process.Id}) was gracefully terminated.",
-                gracefulCancellationToken
-            );
-        }
-
-        if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
-        {
-            throw new CommandExecutionException(
-                this,
-                process.ExitCode,
-                $"""
-                Command execution failed because the underlying PTY process ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
-
-                Command:
-                {TargetFilePath} {Arguments}
-
-                You can suppress this validation by calling `{nameof(WithValidation)}({nameof(
-                    CommandResultValidation
-                )}.{nameof(CommandResultValidation.None)})` on the command.
-                """
-            );
-        }
+        ThrowIfCanceled(process, forcefulCancellationToken, gracefulCancellationToken, isPty: true);
+        ValidateExitCode(process, isPty: true);
 
         return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
     }
@@ -412,10 +419,10 @@ public partial class Command
             PipeStandardInputAsync(process, stdInCts.Token),
             // Output pipe may outlive the process, so don't cancel it on process exit
             // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-            PipeStandardOutputAsync(process, forcefulCancellationToken),
+            PipeStreamAsync(process.StandardOutput, StandardOutputPipe, forcefulCancellationToken),
             // Error pipe may outlive the process, so don't cancel it on process exit
             // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-            PipeStandardErrorAsync(process, forcefulCancellationToken)
+            PipeStreamAsync(process.StandardError, StandardErrorPipe, forcefulCancellationToken)
         );
 
         try
@@ -436,10 +443,7 @@ public partial class Command
         {
             // We tried to kill the process, but it didn't exit within the allotted timeout, meaning
             // that the termination attempt failed. This should never happen, but inform the user if it does.
-            throw new TimeoutException(
-                $"Failed to terminate the underlying process ({process.Name}#{process.Id}) within the allotted timeout.",
-                ex
-            );
+            throw CreateTimeoutException(process, isPty: false, ex);
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
         {
@@ -457,46 +461,13 @@ public partial class Command
             // swallow the exception here to throw a more meaningful one later.
         }
 
-        // Check if the process exited after forceful cancellation
-        if (forcefulCancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                "Command execution canceled. "
-                    + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
-                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-                forcefulCancellationToken
-            );
-        }
-
-        // Check if the process exited after graceful cancellation
-        if (gracefulCancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                "Command execution canceled. "
-                    + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated.",
-                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-                gracefulCancellationToken
-            );
-        }
-
-        // Validate the exit code if required
-        if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
-        {
-            throw new CommandExecutionException(
-                this,
-                process.ExitCode,
-                $"""
-                Command execution failed because the underlying process ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
-
-                Command:
-                {TargetFilePath} {Arguments}
-
-                You can suppress this validation by calling `{nameof(WithValidation)}({nameof(
-                    CommandResultValidation
-                )}.{nameof(CommandResultValidation.None)})` on the command.
-                """
-            );
-        }
+        ThrowIfCanceled(
+            process,
+            forcefulCancellationToken,
+            gracefulCancellationToken,
+            isPty: false
+        );
+        ValidateExitCode(process, isPty: false);
 
         return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
     }
