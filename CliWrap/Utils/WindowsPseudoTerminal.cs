@@ -48,6 +48,13 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         }
 
         // Create the pseudo console
+        if (columns > short.MaxValue || columns < short.MinValue ||
+            rows > short.MaxValue || rows < short.MinValue)
+        {
+            throw new ArgumentOutOfRangeException(
+                $"Terminal dimensions must be between {short.MinValue} and {short.MaxValue}"
+            );
+        }
         var size = new NativeMethods.Windows.Coord { X = (short)columns, Y = (short)rows };
 
         var result = NativeMethods.Windows.CreatePseudoConsole(
@@ -75,18 +82,28 @@ internal class WindowsPseudoTerminal : PseudoTerminal
 
         // Create streams for I/O
         // Note: Using synchronous I/O because CreatePipe doesn't support overlapped I/O
-        _inputStream = new FileStream(
-            _inputWriteHandle,
-            FileAccess.Write,
-            bufferSize: 4096,
-            isAsync: false
-        );
-        _outputStream = new FileStream(
-            _outputReadHandle,
-            FileAccess.Read,
-            bufferSize: 4096,
-            isAsync: false
-        );
+        try
+        {
+            _inputStream = new FileStream(
+                _inputWriteHandle,
+                FileAccess.Write,
+                bufferSize: 4096,
+                isAsync: false
+            );
+            _outputStream = new FileStream(
+                _outputReadHandle,
+                FileAccess.Read,
+                bufferSize: 4096,
+                isAsync: false
+            );
+        }
+        catch
+        {
+            _inputWriteHandle.Dispose();
+            _outputReadHandle.Dispose();
+            NativeMethods.Windows.ClosePseudoConsole(_pseudoConsoleHandle);
+            throw;
+        }
     }
 
     /// <summary>
@@ -115,6 +132,10 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         if (_disposed)
             throw new ObjectDisposedException(GetType().FullName);
 
+        if (columns < 0 || columns > short.MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(columns), columns, $"columns must be between 0 and {short.MaxValue}.");
+        if (rows < 0 || rows > short.MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(rows), rows, $"rows must be between 0 and {short.MaxValue}.");
         ValidateDimensions(columns, rows);
 
         var size = new NativeMethods.Windows.Coord { X = (short)columns, Y = (short)rows };

@@ -362,9 +362,6 @@ public partial class Command
         {
             await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
             await stdInCts.CancelAsync();
-            // Give output piping a moment to read any remaining data from the pipe buffer
-            // before closing the console. The ConPTY might have buffered output.
-            await Task.Delay(50).ConfigureAwait(false);
             // Close the PTY console to signal EOF on the output stream.
             // This causes the blocked read in PipePtyOutputAsync to return.
             process.CloseConsole();
@@ -376,11 +373,16 @@ public partial class Command
         }
         catch (OperationCanceledException ex)
             when (ex.CancellationToken == stdInCts.Token || ex.CancellationToken == stdOutCts.Token)
-        { }
+        {
+            Debug.WriteLine($"OperationCanceledException caught for stdIn/stdOut cancellation: {ex.Message}");
+        }
         catch (OperationCanceledException ex)
             when (ex.CancellationToken == forcefulCancellationToken
                 || ex.CancellationToken == gracefulCancellationToken
-            ) { }
+            )
+        {
+            // Swallow the exception here because cancellation is handled explicitly below.
+        }
 
         ThrowIfCanceled(process, forcefulCancellationToken, gracefulCancellationToken, isPty: true);
         ValidateExitCode(process, isPty: true);
