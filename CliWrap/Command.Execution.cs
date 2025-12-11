@@ -226,9 +226,12 @@ public partial class Command
                 ) > 0
             )
             {
-                await StandardOutputPipe
-                    .CopyFromAsync(new MemoryStream(buffer, 0, bytesRead), cancellationToken)
-                    .ConfigureAwait(false);
+                using (var ms = new MemoryStream(buffer, 0, bytesRead))
+                {
+                    await StandardOutputPipe
+                        .CopyFromAsync(ms, cancellationToken)
+                        .ConfigureAwait(false);
+                }
             }
         }
         // Expected exceptions during PTY piping:
