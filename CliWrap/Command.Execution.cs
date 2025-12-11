@@ -202,7 +202,7 @@ public partial class Command
             // Flush to ensure data is sent to the PTY immediately
             await process.StandardInput.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (IOException ex) when (ex.GetType() == typeof(IOException)) { }
+        catch (IOException) { }
         catch (OperationCanceledException) { }
     }
 
