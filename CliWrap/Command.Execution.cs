@@ -161,12 +161,10 @@ public partial class Command
                     .WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
-            // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
-            // This may happen if the process terminated before the pipe has been exhausted.
-            // It's not an exceptional situation because the process may not need the entire
-            // stdin to complete successfully.
-            // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
-            // We also can't rely on process.HasExited here because of potential race conditions.
+            // IOException (exact type only): "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
+            // This occurs when the process terminates before consuming all stdin data - not an error
+            // since the process may not need all input to complete successfully.
+            // Don't catch derived exceptions (e.g., FileNotFoundException) to avoid masking real errors.
             catch (IOException ex) when (ex.GetType() == typeof(IOException)) { }
         }
     }
@@ -202,8 +200,12 @@ public partial class Command
             // Flush to ensure data is sent to the PTY immediately
             await process.StandardInput.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (IOException ex) when (ex.GetType() == typeof(IOException)) { }
-        catch (OperationCanceledException) { }
+        // Expected exceptions during PTY piping:
+        // - IOException: PTY closed or pipe broken (normal during process termination)
+        // - ObjectDisposedException: Stream disposed during cleanup
+        // - OperationCanceledException: Cancellation requested
+        catch (Exception ex)
+            when (ex is IOException or ObjectDisposedException or OperationCanceledException) { }
     }
 
     private async Task PipePtyOutputAsync(
@@ -213,15 +215,13 @@ public partial class Command
     {
         try
         {
-            // Read in a loop to handle the synchronous PTY output stream
+            // Read in a loop and pipe to output target
             var buffer = new byte[4096];
             int bytesRead;
             while (
                 (
-                    bytesRead = await Task.Run(
-                            () => process.StandardOutput.Read(buffer, 0, buffer.Length),
-                            cancellationToken
-                        )
+                    bytesRead = await process
+                        .StandardOutput.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
                         .ConfigureAwait(false)
                 ) > 0
             )
@@ -231,9 +231,12 @@ public partial class Command
                     .ConfigureAwait(false);
             }
         }
-        catch (IOException) { }
-        catch (ObjectDisposedException) { }
-        catch (OperationCanceledException) { }
+        // Expected exceptions during PTY piping:
+        // - IOException: PTY closed or pipe broken (normal during process termination)
+        // - ObjectDisposedException: Stream disposed during cleanup
+        // - OperationCanceledException: Cancellation requested
+        catch (Exception ex)
+            when (ex is IOException or ObjectDisposedException or OperationCanceledException) { }
     }
 
     private void ThrowIfCanceled(

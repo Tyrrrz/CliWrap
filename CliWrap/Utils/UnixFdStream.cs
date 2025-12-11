@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CliWrap.Utils;
 
@@ -154,6 +156,36 @@ internal class UnixFdStream : Stream
     public override void Flush()
     {
         // No buffering, nothing to flush
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Unix file descriptor I/O is inherently synchronous. This override wraps the
+    /// synchronous Read operation in Task.Run to provide async semantics without blocking.
+    /// </remarks>
+    public override Task<int> ReadAsync(
+        byte[] buffer,
+        int offset,
+        int count,
+        CancellationToken cancellationToken
+    )
+    {
+        return Task.Run(() => Read(buffer, offset, count), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Unix file descriptor I/O is inherently synchronous. This override wraps the
+    /// synchronous Write operation in Task.Run to provide async semantics without blocking.
+    /// </remarks>
+    public override Task WriteAsync(
+        byte[] buffer,
+        int offset,
+        int count,
+        CancellationToken cancellationToken
+    )
+    {
+        return Task.Run(() => Write(buffer, offset, count), cancellationToken);
     }
 
     /// <inheritdoc />

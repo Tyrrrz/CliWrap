@@ -549,7 +549,7 @@ public class PseudoTerminalSpecs
 
     #region Execution Tests - Cancellation
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_and_cancel_it_forcefully()
     {
         Skip.IfNot(IsPtySupported, "PTY is not supported on this platform.");
@@ -567,7 +567,7 @@ public class PseudoTerminalSpecs
         );
     }
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_and_cancel_it_gracefully()
     {
         Skip.IfNot(IsPtySupported, "PTY is not supported on this platform.");
@@ -590,7 +590,7 @@ public class PseudoTerminalSpecs
 
     #region Execution Tests - Large Output
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_and_handle_large_output()
     {
         Skip.IfNot(IsPtySupported, "PTY is not supported on this platform.");
@@ -714,7 +714,7 @@ public class PseudoTerminalSpecs
         stdOutBuffer.ToString().Should().Contain(inputData);
     }
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_and_handle_chunked_output_correctly()
     {
         // This test verifies that multiple reads with different buffer positions work correctly
@@ -744,7 +744,7 @@ public class PseudoTerminalSpecs
 
     #region Execution Tests - Concurrent Execution
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_multiple_commands_with_pseudo_terminal_concurrently_with_different_working_directories()
     {
         // This test would have caught the working directory race condition
@@ -803,7 +803,7 @@ public class PseudoTerminalSpecs
         }
     }
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_many_commands_with_pseudo_terminal_concurrently()
     {
         // Stress test for concurrent PTY execution
@@ -842,7 +842,7 @@ public class PseudoTerminalSpecs
 
     #region Execution Tests - Signal Handling
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_and_forcefully_cancel_it_getting_correct_exit_code()
     {
         // This test would have caught the WIFSIGNALED bug where signal-killed processes
@@ -872,7 +872,7 @@ public class PseudoTerminalSpecs
         // The cancellation should have worked without hanging
     }
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_that_is_interrupted_via_ctrl_c()
     {
         // Tests graceful cancellation via PTY (Ctrl+C / SIGINT)
@@ -935,7 +935,7 @@ public class PseudoTerminalSpecs
         }
     }
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_and_dispose_is_idempotent()
     {
         // Tests that multiple dispose calls don't cause issues (double-close prevention)
@@ -956,7 +956,7 @@ public class PseudoTerminalSpecs
         // No exception = success
     }
 
-    [SkippableFact(Timeout = 30000)]
+    [SkippableFact(Timeout = 15000)]
     public async Task I_can_execute_a_command_with_pseudo_terminal_that_exits_quickly_and_resources_are_cleaned_up()
     {
         // Tests cleanup when process exits very quickly (potential race condition)
