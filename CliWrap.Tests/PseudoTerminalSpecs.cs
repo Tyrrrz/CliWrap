@@ -573,7 +573,10 @@ public class PseudoTerminalSpecs
         Skip.IfNot(IsPtySupported, "PTY is not supported on this platform.");
 
         // Arrange
-        using var forcefulCts = new CancellationTokenSource();
+        // Graceful cancellation fires at 500ms. Forceful cancellation at 3s as a fallback
+        // in case the process doesn't respond to the interrupt signal (Ctrl+C).
+        // On Windows ConPTY, some processes may not handle Ctrl+C properly.
+        using var forcefulCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         using var gracefulCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
