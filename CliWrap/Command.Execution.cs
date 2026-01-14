@@ -29,11 +29,8 @@ public partial class Command
 
         // Don't do anything for fully qualified paths or paths that already have an extension specified.
         // System.Diagnostics.Process knows how to handle those without our help.
-        // Note that IsPathRooted(...) doesn't check if the path is absolute, as it also returns true for
-        // strings like 'c:foo.txt' (which is relative to the current directory on drive C), but it's good
-        // enough for our purposes and the alternative is only available on .NET Standard 2.1+.
         if (
-            Path.IsPathRooted(TargetFilePath)
+            Path.IsPathFullyQualified(TargetFilePath)
             || !string.IsNullOrWhiteSpace(Path.GetExtension(TargetFilePath))
         )
         {

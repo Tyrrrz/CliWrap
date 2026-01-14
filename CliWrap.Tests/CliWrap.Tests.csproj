@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
-    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.5" PrivateAssets="all" />
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
     <PackageReference Include="GitHubActionsTestLogger" Version="3.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />

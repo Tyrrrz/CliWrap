@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1" PrivateAssets="all" />
-    <PackageReference Include="PolyShim" Version="2.4.0" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.5" PrivateAssets="all" />
+    <PackageReference Include="PolyShim" Version="2.5.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>
