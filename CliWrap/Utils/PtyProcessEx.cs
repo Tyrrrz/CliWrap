@@ -314,7 +314,20 @@ internal class PtyProcessEx : IProcessEx
                     if (result != 0)
                     {
                         throw new InvalidOperationException(
-                            $"posix_spawn_file_actions_addclose failed with error {result}"
+                            $"posix_spawn_file_actions_addclose (slave) failed with error {result}"
+                        );
+                    }
+
+                    // Close the master fd in the child to prevent fd leak
+                    // The child only needs the slave (via stdin/stdout/stderr)
+                    result = NativeMethods.Unix.PosixSpawnFileActionsAddClose(
+                        fileActionsPtr,
+                        unixPty.MasterFd
+                    );
+                    if (result != 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"posix_spawn_file_actions_addclose (master) failed with error {result}"
                         );
                     }
 
@@ -413,17 +426,74 @@ internal class PtyProcessEx : IProcessEx
 
     private static List<string> ParseArguments(string arguments)
     {
+        // This parser handles the escaping format produced by ArgumentsBuilder.Escape(),
+        // which follows the Windows command-line escaping convention:
+        // - Arguments containing spaces or quotes are wrapped in double quotes
+        // - Double quotes inside arguments are escaped as \"
+        // - Backslashes before quotes are doubled (\\")
+        // - Backslashes not before quotes are kept as-is
+
         var args = new List<string>();
         var current = new StringBuilder();
         var inQuotes = false;
-        var quoteChar = '\0';
 
-        foreach (var c in arguments)
+        for (var i = 0; i < arguments.Length; i++)
         {
+            var c = arguments[i];
+
             if (inQuotes)
             {
-                if (c == quoteChar)
+                if (c == '\\' && i + 1 < arguments.Length)
                 {
+                    var next = arguments[i + 1];
+                    if (next == '"')
+                    {
+                        // Escaped quote - add the quote and skip the backslash
+                        current.Append('"');
+                        i++;
+                    }
+                    else if (next == '\\')
+                    {
+                        // Check if this sequence of backslashes is followed by a quote
+                        var backslashCount = 0;
+                        var j = i;
+                        while (j < arguments.Length && arguments[j] == '\\')
+                        {
+                            backslashCount++;
+                            j++;
+                        }
+
+                        if (j < arguments.Length && arguments[j] == '"')
+                        {
+                            // Backslashes before quote: each pair becomes one backslash
+                            current.Append('\\', backslashCount / 2);
+                            if (backslashCount % 2 == 1)
+                            {
+                                // Odd number means the quote is escaped
+                                current.Append('"');
+                                i = j; // Skip past the quote
+                            }
+                            else
+                            {
+                                // Even number means the quote ends the string
+                                i = j - 1; // Position at last backslash, loop will handle quote
+                            }
+                        }
+                        else
+                        {
+                            // Backslashes not before quote - keep as-is
+                            current.Append(c);
+                        }
+                    }
+                    else
+                    {
+                        // Backslash not followed by quote or backslash - keep as-is
+                        current.Append(c);
+                    }
+                }
+                else if (c == '"')
+                {
+                    // End of quoted section
                     inQuotes = false;
                 }
                 else
@@ -433,10 +503,9 @@ internal class PtyProcessEx : IProcessEx
             }
             else
             {
-                if (c == '"' || c == '\'')
+                if (c == '"')
                 {
                     inQuotes = true;
-                    quoteChar = c;
                 }
                 else if (char.IsWhiteSpace(c))
                 {
@@ -560,15 +629,34 @@ internal class PtyProcessEx : IProcessEx
     }
 
     /// <summary>
-    /// Sends Ctrl+C to the process through the PTY.
+    /// Sends an interrupt signal to the process.
     /// </summary>
+    /// <remarks>
+    /// On Unix, this sends SIGINT directly to the process. Writing Ctrl+C (0x03) to the PTY
+    /// is unreliable because it requires the terminal to be in cooked mode with ISIG enabled,
+    /// and the child must be the controlling process of the terminal.
+    /// On Windows, this writes Ctrl+C to the PTY input, which ConPTY handles.
+    /// </remarks>
     public void Interrupt()
     {
+        if (_hasExited)
+            return;
+
         try
         {
-            var ctrlC = new byte[] { 0x03 };
-            _pty.InputStream.Write(ctrlC, 0, 1);
-            _pty.InputStream.Flush();
+            if (OperatingSystem.IsWindows())
+            {
+                // On Windows, write Ctrl+C to the PTY - ConPTY handles signal delivery
+                var ctrlC = new byte[] { 0x03 };
+                _pty.InputStream.Write(ctrlC, 0, 1);
+                _pty.InputStream.Flush();
+            }
+            else
+            {
+                // On Unix, send SIGINT directly to the process for reliable signal delivery
+                // SIGINT = 2
+                NativeMethods.Unix.Kill(_processId, 2);
+            }
         }
         catch (IOException)
         {

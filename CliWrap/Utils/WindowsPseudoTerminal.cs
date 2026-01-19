@@ -48,8 +48,12 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         }
 
         // Create the pseudo console
-        if (columns > short.MaxValue || columns < short.MinValue ||
-            rows > short.MaxValue || rows < short.MinValue)
+        if (
+            columns > short.MaxValue
+            || columns < short.MinValue
+            || rows > short.MaxValue
+            || rows < short.MinValue
+        )
         {
             throw new ArgumentOutOfRangeException(
                 $"Terminal dimensions must be between {short.MinValue} and {short.MaxValue}"
@@ -133,9 +137,17 @@ internal class WindowsPseudoTerminal : PseudoTerminal
             throw new ObjectDisposedException(GetType().FullName);
 
         if (columns < 0 || columns > short.MaxValue)
-            throw new ArgumentOutOfRangeException(nameof(columns), columns, $"columns must be between 0 and {short.MaxValue}.");
+            throw new ArgumentOutOfRangeException(
+                nameof(columns),
+                columns,
+                $"columns must be between 0 and {short.MaxValue}."
+            );
         if (rows < 0 || rows > short.MaxValue)
-            throw new ArgumentOutOfRangeException(nameof(rows), rows, $"rows must be between 0 and {short.MaxValue}.");
+            throw new ArgumentOutOfRangeException(
+                nameof(rows),
+                rows,
+                $"rows must be between 0 and {short.MaxValue}."
+            );
         ValidateDimensions(columns, rows);
 
         var size = new NativeMethods.Windows.Coord { X = (short)columns, Y = (short)rows };

@@ -17,6 +17,7 @@ internal class UnixPseudoTerminal : PseudoTerminal
     private readonly int _slaveFd;
     private readonly UnixFdStream _masterStream;
     private readonly Lock _closeLock = new();
+    private bool _masterStreamDisposed;
     private bool _slaveFdClosed;
     private bool _disposed;
 
@@ -66,6 +67,15 @@ internal class UnixPseudoTerminal : PseudoTerminal
             throw;
         }
     }
+
+    /// <summary>
+    /// Gets the master file descriptor.
+    /// </summary>
+    /// <remarks>
+    /// This fd is used by the parent process for reading/writing to the PTY.
+    /// It should be closed in the child process to prevent fd leaks.
+    /// </remarks>
+    public int MasterFd => _masterFd;
 
     /// <summary>
     /// Gets the slave file descriptor for the child process.
@@ -139,14 +149,23 @@ internal class UnixPseudoTerminal : PseudoTerminal
 
     /// <inheritdoc />
     /// <remarks>
-    /// On Unix, closing the master stream will signal EOF to readers.
-    /// This is typically not needed since the child process exit will cause EOF.
+    /// On Unix, the child process exiting causes EOF on the master side.
+    /// However, if the master stream read is blocked after the child exits,
+    /// we may need to close the stream to unblock it.
     /// </remarks>
     public override void CloseConsole()
     {
-        // On Unix, the master fd closing signals EOF.
-        // The stream will be cleaned up in Dispose.
-        // For now, this is a no-op since Unix PTY typically signals EOF when the child exits.
+        // On Unix, when the child process exits and closes the slave side of the PTY,
+        // the master side should receive EOF. However, to ensure blocked reads are
+        // unblocked, we dispose the stream which closes the fd.
+        lock (_closeLock)
+        {
+            if (!_masterStreamDisposed)
+            {
+                _masterStream.Dispose();
+                _masterStreamDisposed = true;
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -154,10 +173,13 @@ internal class UnixPseudoTerminal : PseudoTerminal
     {
         if (!_disposed)
         {
-            _masterStream.Dispose();
-            // Use the same lock as CloseSlave to prevent race conditions
             lock (_closeLock)
             {
+                if (!_masterStreamDisposed)
+                {
+                    _masterStream.Dispose();
+                    _masterStreamDisposed = true;
+                }
                 if (!_slaveFdClosed)
                 {
                     NativeMethods.Unix.Close(_slaveFd);

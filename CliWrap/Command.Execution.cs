@@ -374,7 +374,9 @@ public partial class Command
         catch (OperationCanceledException ex)
             when (ex.CancellationToken == stdInCts.Token || ex.CancellationToken == stdOutCts.Token)
         {
-            Debug.WriteLine($"OperationCanceledException caught for stdIn/stdOut cancellation: {ex.Message}");
+            Debug.WriteLine(
+                $"OperationCanceledException caught for stdIn/stdOut cancellation: {ex.Message}"
+            );
         }
         catch (OperationCanceledException ex)
             when (ex.CancellationToken == forcefulCancellationToken
