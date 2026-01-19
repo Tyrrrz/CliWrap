@@ -41,6 +41,10 @@ internal static partial class NativeMethods
         // errno values
         public const int EINTR = 4;
 
+        // Signal numbers (POSIX standard)
+        public const int SIGINT = 2;
+        public const int SIGKILL = 9;
+
         [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
         public static extern int Ioctl(int fd, nuint request, ref WinSize winSize);
 

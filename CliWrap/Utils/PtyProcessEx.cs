@@ -16,7 +16,12 @@ namespace CliWrap.Utils;
 /// </summary>
 internal class PtyProcessEx : IProcessEx
 {
-    // Lock for thread-safe working directory changes on Unix
+    // Lock for thread-safe working directory changes on Unix.
+    // WARNING: This lock only protects against races with other PTY processes spawned
+    // by this library. It cannot protect against external code changing the working
+    // directory via Environment.CurrentDirectory, as that is a process-wide property.
+    // posix_spawn does not support setting a working directory directly, so this is
+    // an inherent limitation of the PTY implementation on Unix.
     private static readonly Lock _unixWorkingDirectoryLock = new();
 
     private readonly PseudoTerminal _pty;
@@ -334,10 +339,16 @@ internal class PtyProcessEx : IProcessEx
                     // On Linux, try to set POSIX_SPAWN_SETSID to create new session
                     if (OperatingSystem.IsLinux())
                     {
-                        NativeMethods.Unix.PosixSpawnAttrSetFlags(
+                        result = NativeMethods.Unix.PosixSpawnAttrSetFlags(
                             attrPtr,
                             NativeMethods.Unix.POSIX_SPAWN_SETSID
                         );
+                        if (result != 0)
+                        {
+                            throw new InvalidOperationException(
+                                $"posix_spawnattr_setflags failed with error {result}"
+                            );
+                        }
                     }
 
                     // Build argv array
@@ -654,8 +665,7 @@ internal class PtyProcessEx : IProcessEx
             else
             {
                 // On Unix, send SIGINT directly to the process for reliable signal delivery
-                // SIGINT = 2
-                NativeMethods.Unix.Kill(_processId, 2);
+                NativeMethods.Unix.Kill(_processId, NativeMethods.Unix.SIGINT);
             }
         }
         catch (IOException)
@@ -679,7 +689,7 @@ internal class PtyProcessEx : IProcessEx
         if (OperatingSystem.IsWindows())
             NativeMethods.Windows.TerminateProcess(_processHandle, 1);
         else
-            NativeMethods.Unix.Kill(_processId, 9);
+            NativeMethods.Unix.Kill(_processId, NativeMethods.Unix.SIGKILL);
     }
 
     public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)

@@ -48,17 +48,7 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         }
 
         // Create the pseudo console
-        if (
-            columns > short.MaxValue
-            || columns < short.MinValue
-            || rows > short.MaxValue
-            || rows < short.MinValue
-        )
-        {
-            throw new ArgumentOutOfRangeException(
-                $"Terminal dimensions must be between {short.MinValue} and {short.MaxValue}"
-            );
-        }
+        // Note: ValidateDimensions already checked the dimensions, but we need to ensure they fit in short
         var size = new NativeMethods.Windows.Coord { X = (short)columns, Y = (short)rows };
 
         var result = NativeMethods.Windows.CreatePseudoConsole(
@@ -136,18 +126,6 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         if (_disposed)
             throw new ObjectDisposedException(GetType().FullName);
 
-        if (columns < 0 || columns > short.MaxValue)
-            throw new ArgumentOutOfRangeException(
-                nameof(columns),
-                columns,
-                $"columns must be between 0 and {short.MaxValue}."
-            );
-        if (rows < 0 || rows > short.MaxValue)
-            throw new ArgumentOutOfRangeException(
-                nameof(rows),
-                rows,
-                $"rows must be between 0 and {short.MaxValue}."
-            );
         ValidateDimensions(columns, rows);
 
         var size = new NativeMethods.Windows.Coord { X = (short)columns, Y = (short)rows };
@@ -197,21 +175,21 @@ internal class WindowsPseudoTerminal : PseudoTerminal
 
     private static void ValidateDimensions(int columns, int rows)
     {
-        if (columns > short.MaxValue)
+        if (columns < 1 || columns > short.MaxValue)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(columns),
                 columns,
-                $"Column count ({columns}) exceeds maximum supported value ({short.MaxValue})."
+                $"Column count must be between 1 and {short.MaxValue}."
             );
         }
 
-        if (rows > short.MaxValue)
+        if (rows < 1 || rows > short.MaxValue)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(rows),
                 rows,
-                $"Row count ({rows}) exceeds maximum supported value ({short.MaxValue})."
+                $"Row count must be between 1 and {short.MaxValue}."
             );
         }
     }

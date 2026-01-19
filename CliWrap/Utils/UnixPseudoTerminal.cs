@@ -87,13 +87,27 @@ internal class UnixPseudoTerminal : PseudoTerminal
 
     /// <inheritdoc />
     /// <remarks>
+    /// <para>
     /// Writing to this stream sends data to the child process's stdin.
+    /// </para>
+    /// <para>
+    /// On Unix, this is the same stream as <see cref="OutputStream"/> because
+    /// the master fd is bidirectional. Callers should be aware that concurrent
+    /// read/write operations affect the same underlying file descriptor.
+    /// </para>
     /// </remarks>
     public override Stream InputStream => _masterStream;
 
     /// <inheritdoc />
     /// <remarks>
+    /// <para>
     /// Reading from this stream receives data from the child process's stdout/stderr.
+    /// </para>
+    /// <para>
+    /// On Unix, this is the same stream as <see cref="InputStream"/> because
+    /// the master fd is bidirectional. Callers should be aware that concurrent
+    /// read/write operations affect the same underlying file descriptor.
+    /// </para>
     /// </remarks>
     public override Stream OutputStream => _masterStream;
 
