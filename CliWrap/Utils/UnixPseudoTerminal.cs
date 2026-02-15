@@ -28,6 +28,8 @@ internal class UnixPseudoTerminal : PseudoTerminal
     /// <param name="rows">Terminal height in rows.</param>
     public UnixPseudoTerminal(int columns, int rows)
     {
+        ValidateDimensions(columns, rows);
+
         // Create the PTY master/slave pair
         var result = NativeMethods.Unix.OpenPty(
             out _masterFd,
@@ -117,6 +119,8 @@ internal class UnixPseudoTerminal : PseudoTerminal
         if (_disposed)
             throw new ObjectDisposedException(GetType().FullName);
 
+        ValidateDimensions(columns, rows);
+
         var winSize = new NativeMethods.Unix.WinSize
         {
             Col = (ushort)columns,
@@ -179,6 +183,27 @@ internal class UnixPseudoTerminal : PseudoTerminal
                 _masterStream.Dispose();
                 _masterStreamDisposed = true;
             }
+        }
+    }
+
+    private static void ValidateDimensions(int columns, int rows)
+    {
+        if (columns < 1 || columns > ushort.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(columns),
+                columns,
+                $"Column count must be between 1 and {ushort.MaxValue}."
+            );
+        }
+
+        if (rows < 1 || rows > ushort.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rows),
+                rows,
+                $"Row count must be between 1 and {ushort.MaxValue}."
+            );
         }
     }
 
