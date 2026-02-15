@@ -93,7 +93,12 @@ internal class WindowsPseudoTerminal : PseudoTerminal
         }
         catch
         {
-            _inputWriteHandle.Dispose();
+            // If _inputStream was created, it owns _inputWriteHandle — dispose the
+            // stream (which closes the handle). Otherwise, dispose the handle directly.
+            if (_inputStream != null)
+                _inputStream.Dispose();
+            else
+                _inputWriteHandle.Dispose();
             _outputReadHandle.Dispose();
             NativeMethods.Windows.ClosePseudoConsole(_pseudoConsoleHandle);
             throw;
