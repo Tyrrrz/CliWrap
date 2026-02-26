@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageReference Include="CSharpier.MsBuild" Version="1.2.5" PrivateAssets="all" />
-    <PackageReference Include="ProcessX" Version="1.5.6" />
-    <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
-    <PackageReference Include="MedallionShell" Version="1.6.2" />
-    <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="CSharpier.MsBuild" PrivateAssets="all" />
+    <PackageReference Include="ProcessX" />
+    <PackageReference Include="RunProcessAsTask" />
+    <PackageReference Include="MedallionShell" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>

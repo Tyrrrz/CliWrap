@@ -28,31 +28,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CSharpier.MsBuild" Version="1.2.5" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MsBuild" PrivateAssets="all" />
     <PackageReference
       Include="Microsoft.Bcl.AsyncInterfaces"
-      Version="10.0.2"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
-    <PackageReference
-      Include="Microsoft.SourceLink.GitHub"
-      Version="10.0.102"
-      PrivateAssets="all"
-    />
-    <PackageReference Include="PolyShim" Version="2.5.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+    <PackageReference Include="PolyShim" PrivateAssets="all" />
     <PackageReference
       Include="System.Threading.Tasks.Extensions"
-      Version="4.6.3"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
     <PackageReference
       Include="System.Management"
-      Version="10.0.2"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.0'))"
     />
     <PackageReference
       Include="System.Memory"
-      Version="4.6.3"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
   </ItemGroup>

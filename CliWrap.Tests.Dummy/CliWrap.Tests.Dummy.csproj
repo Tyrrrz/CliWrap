@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliFx" Version="2.3.6" />
-    <PackageReference Include="CSharpier.MsBuild" Version="1.2.5" PrivateAssets="all" />
+    <PackageReference Include="CliFx" />
+    <PackageReference Include="CSharpier.MsBuild" PrivateAssets="all" />
   </ItemGroup>
 </Project>
