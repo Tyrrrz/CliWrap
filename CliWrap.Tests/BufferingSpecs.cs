@@ -60,13 +60,10 @@ public class BufferingSpecs
             .WithArguments(["echo", "Hello stdout", "--target", "stdout"]);
 
         // Act
-        var result = await cmd.ExecuteBufferedAsync();
+        string result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        ((string)result)
-            .Trim()
-            .Should()
-            .Be("Hello stdout");
+        result.Trim().Should().Be("Hello stdout");
     }
 
     [Fact(Timeout = 15000)]
