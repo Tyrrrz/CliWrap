@@ -158,40 +158,235 @@ public partial class Command
                     .WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
-            // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
-            // This may happen if the process terminated before the pipe has been exhausted.
-            // It's not an exceptional situation because the process may not need the entire
-            // stdin to complete successfully.
-            // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
-            // We also can't rely on process.HasExited here because of potential race conditions.
+            // IOException (exact type only): "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
+            // This occurs when the process terminates before consuming all stdin data - not an error
+            // since the process may not need all input to complete successfully.
+            // Don't catch derived exceptions (e.g., FileNotFoundException) to avoid masking real errors.
             catch (IOException ex) when (ex.GetType() == typeof(IOException)) { }
         }
     }
 
-    private async Task PipeStandardOutputAsync(
-        ProcessEx process,
+    private async Task PipeStreamAsync(
+        Stream source,
+        PipeTarget target,
         CancellationToken cancellationToken = default
     )
     {
-        await using (process.StandardOutput.ToAsyncDisposable())
+        await using (source.ToAsyncDisposable())
         {
-            await StandardOutputPipe
-                .CopyFromAsync(process.StandardOutput, cancellationToken)
-                .ConfigureAwait(false);
+            await target.CopyFromAsync(source, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task PipeStandardErrorAsync(
-        ProcessEx process,
+    // PTY-specific piping methods
+
+    private async Task PipePtyInputAsync(
+        PtyProcessEx process,
         CancellationToken cancellationToken = default
     )
     {
-        await using (process.StandardError.ToAsyncDisposable())
+        // IMPORTANT: Do NOT dispose the stdin stream here!
+        // With PTY, closing the input pipe causes ConPTY to send Ctrl+C to the process.
+        // The stream will be cleaned up when the PTY is disposed after the process exits.
+        try
         {
-            await StandardErrorPipe
-                .CopyFromAsync(process.StandardError, cancellationToken)
+            await StandardInputPipe
+                .CopyToAsync(process.StandardInput, cancellationToken)
                 .ConfigureAwait(false);
+
+            // Flush to ensure data is sent to the PTY immediately
+            await process.StandardInput.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
+        // Expected exceptions during PTY piping:
+        // - IOException: PTY closed or pipe broken (normal during process termination)
+        // - ObjectDisposedException: Stream disposed during cleanup
+        // - OperationCanceledException: Cancellation requested
+        catch (Exception ex)
+            when (ex is IOException or ObjectDisposedException or OperationCanceledException) { }
+    }
+
+    private async Task PipePtyOutputAsync(
+        PtyProcessEx process,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            // Read in a loop and pipe to output target
+            var buffer = new byte[4096];
+            int bytesRead;
+            while (
+                (
+                    bytesRead = await process
+                        .StandardOutput.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                        .ConfigureAwait(false)
+                ) > 0
+            )
+            {
+                using (var ms = new MemoryStream(buffer, 0, bytesRead))
+                {
+                    await StandardOutputPipe
+                        .CopyFromAsync(ms, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+        // Expected exceptions during PTY piping:
+        // - IOException: PTY closed or pipe broken (normal during process termination)
+        // - ObjectDisposedException: Stream disposed during cleanup
+        // - OperationCanceledException: Cancellation requested
+        catch (Exception ex)
+            when (ex is IOException or ObjectDisposedException or OperationCanceledException) { }
+    }
+
+    private void ThrowIfCanceled(
+        IProcessEx process,
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken,
+        bool isPty
+    )
+    {
+        var processType = isPty ? "PTY process" : "process";
+
+        if (forcefulCancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                $"Command execution canceled. Underlying {processType} ({process.Name}#{process.Id}) was forcefully terminated.",
+                forcefulCancellationToken
+            );
+        }
+
+        if (gracefulCancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(
+                $"Command execution canceled. Underlying {processType} ({process.Name}#{process.Id}) was gracefully terminated.",
+                gracefulCancellationToken
+            );
+        }
+    }
+
+    private void ValidateExitCode(IProcessEx process, bool isPty)
+    {
+        if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
+        {
+            var processType = isPty ? "PTY process" : "process";
+            throw new CommandExecutionException(
+                this,
+                process.ExitCode,
+                $"""
+                Command execution failed because the underlying {processType} ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
+
+                Command:
+                {TargetFilePath} {Arguments}
+
+                You can suppress this validation by calling `{nameof(WithValidation)}({nameof(
+                    CommandResultValidation
+                )}.{nameof(CommandResultValidation.None)})` on the command.
+                """
+            );
+        }
+    }
+
+    private TimeoutException CreateTimeoutException(IProcessEx process, bool isPty, Exception inner)
+    {
+        var processType = isPty ? "PTY process" : "process";
+        return new TimeoutException(
+            $"Failed to terminate the underlying {processType} ({process.Name}#{process.Id}) within the allotted timeout.",
+            inner
+        );
+    }
+
+    private string? CreateEnvironmentBlock()
+    {
+        if (EnvironmentVariables.Count == 0)
+            return null;
+
+        // Get current environment and merge with custom variables
+        var env = Environment
+            .GetEnvironmentVariables()
+            .Cast<System.Collections.DictionaryEntry>()
+            .ToDictionary(e => (string)e.Key, e => (string?)e.Value);
+
+        foreach (var (key, value) in EnvironmentVariables)
+        {
+            if (value is not null)
+                env[key] = value;
+            else
+                env.Remove(key);
+        }
+
+        // Build null-terminated environment block
+        return string.Join("\0", env.Select(kv => $"{kv.Key}={kv.Value}")) + "\0";
+    }
+
+    private async Task<CommandResult> ExecuteAsync(
+        PtyProcessEx process,
+        CancellationToken forcefulCancellationToken = default,
+        CancellationToken gracefulCancellationToken = default
+    )
+    {
+        using var _ = process;
+
+        using var waitTimeoutCts = new CancellationTokenSource();
+        await using var _1 = forcefulCancellationToken
+            .Register(() => waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3)))
+            .ToAsyncDisposable();
+
+        // CTS for stdin - canceled when process exits or forceful cancellation
+        using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(
+            forcefulCancellationToken
+        );
+
+        // CTS for stdout - the PTY output stream doesn't get EOF until the console is closed,
+        // so we need to cancel output piping after the process exits
+        using var stdOutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            forcefulCancellationToken
+        );
+
+        await using var _2 = forcefulCancellationToken.Register(process.Kill).ToAsyncDisposable();
+        await using var _3 = gracefulCancellationToken
+            .Register(process.Interrupt)
+            .ToAsyncDisposable();
+
+        // Start piping streams in the background
+        // With PTY, stderr is merged into stdout, so we only pipe stdin and stdout
+        var pipingTask = Task.WhenAll(
+            PipePtyInputAsync(process, stdInCts.Token),
+            PipePtyOutputAsync(process, stdOutCts.Token)
+        );
+
+        try
+        {
+            await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
+            await stdInCts.CancelAsync();
+            // Close the PTY console to signal EOF on the output stream.
+            // This causes the blocked read in PipePtyOutputAsync to return.
+            process.CloseConsole();
+            await pipingTask.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException ex) when (ex.CancellationToken == waitTimeoutCts.Token)
+        {
+            throw CreateTimeoutException(process, isPty: true, ex);
+        }
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == stdInCts.Token || ex.CancellationToken == stdOutCts.Token)
+        {
+            Debug.WriteLine(
+                $"OperationCanceledException caught for stdIn/stdOut cancellation: {ex.Message}"
+            );
+        }
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == forcefulCancellationToken
+                || ex.CancellationToken == gracefulCancellationToken
+            )
+        {
+            // Swallow the exception here because cancellation is handled explicitly below.
+        }
+
+        ThrowIfCanceled(process, forcefulCancellationToken, gracefulCancellationToken, isPty: true);
+        ValidateExitCode(process, isPty: true);
+
+        return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
     }
 
     private async Task<CommandResult> ExecuteAsync(
@@ -231,10 +426,10 @@ public partial class Command
             PipeStandardInputAsync(process, stdInCts.Token),
             // Output pipe may outlive the process, so don't cancel it on process exit
             // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-            PipeStandardOutputAsync(process, forcefulCancellationToken),
+            PipeStreamAsync(process.StandardOutput, StandardOutputPipe, forcefulCancellationToken),
             // Error pipe may outlive the process, so don't cancel it on process exit
             // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-            PipeStandardErrorAsync(process, forcefulCancellationToken)
+            PipeStreamAsync(process.StandardError, StandardErrorPipe, forcefulCancellationToken)
         );
 
         try
@@ -255,10 +450,7 @@ public partial class Command
         {
             // We tried to kill the process, but it didn't exit within the allotted timeout, meaning
             // that the termination attempt failed. This should never happen, but inform the user if it does.
-            throw new TimeoutException(
-                $"Failed to terminate the underlying process ({process.Name}#{process.Id}) within the allotted timeout.",
-                ex
-            );
+            throw CreateTimeoutException(process, isPty: false, ex);
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
         {
@@ -276,46 +468,13 @@ public partial class Command
             // swallow the exception here to throw a more meaningful one later.
         }
 
-        // Check if the process exited after forceful cancellation
-        if (forcefulCancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                "Command execution canceled. "
-                    + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
-                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-                forcefulCancellationToken
-            );
-        }
-
-        // Check if the process exited after graceful cancellation
-        if (gracefulCancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                "Command execution canceled. "
-                    + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated.",
-                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
-                gracefulCancellationToken
-            );
-        }
-
-        // Validate the exit code if required
-        if (process.ExitCode != 0 && Validation.HasFlag(CommandResultValidation.ZeroExitCode))
-        {
-            throw new CommandExecutionException(
-                this,
-                process.ExitCode,
-                $"""
-                Command execution failed because the underlying process ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
-
-                Command:
-                {TargetFilePath} {Arguments}
-
-                You can suppress this validation by calling `{nameof(WithValidation)}({nameof(
-                    CommandResultValidation
-                )}.{nameof(CommandResultValidation.None)})` on the command.
-                """
-            );
-        }
+        ThrowIfCanceled(
+            process,
+            forcefulCancellationToken,
+            gracefulCancellationToken,
+            isPty: false
+        );
+        ValidateExitCode(process, isPty: false);
 
         return new CommandResult(process.ExitCode, process.StartTime, process.ExitTime);
     }
@@ -403,7 +562,42 @@ public partial class Command
     public CommandTask<CommandResult> ExecuteAsync(
         CancellationToken forcefulCancellationToken,
         CancellationToken gracefulCancellationToken
-    ) => ExecuteAsync(null, null, forcefulCancellationToken, gracefulCancellationToken);
+    )
+    {
+        // Check if PTY mode is enabled
+        if (PseudoTerminalOptions.IsEnabled)
+        {
+            return ExecuteWithPtyAsync(forcefulCancellationToken, gracefulCancellationToken);
+        }
+
+        return ExecuteAsync(null, null, forcefulCancellationToken, gracefulCancellationToken);
+    }
+
+    private CommandTask<CommandResult> ExecuteWithPtyAsync(
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken
+    )
+    {
+        // Create pseudo-terminal
+        var pty = PseudoTerminal.Create(PseudoTerminalOptions.Columns, PseudoTerminalOptions.Rows);
+
+        var process = new PtyProcessEx(
+            pty,
+            GetOptimallyQualifiedTargetFilePath(),
+            Arguments,
+            WorkingDirPath,
+            CreateEnvironmentBlock()
+        );
+
+        process.Start();
+
+        var processId = process.Id;
+
+        return new CommandTask<CommandResult>(
+            ExecuteAsync(process, forcefulCancellationToken, gracefulCancellationToken),
+            processId
+        );
+    }
 
     /// <summary>
     /// Executes the command asynchronously.

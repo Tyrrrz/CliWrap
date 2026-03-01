@@ -20,7 +20,8 @@ public partial class Command(
     CommandResultValidation validation,
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
-    PipeTarget standardErrorPipe
+    PipeTarget standardErrorPipe,
+    PseudoTerminalOptions pseudoTerminalOptions
 ) : ICommandConfiguration
 {
     /// <summary>
@@ -37,7 +38,8 @@ public partial class Command(
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
-            PipeTarget.Null
+            PipeTarget.Null,
+            PseudoTerminalOptions.Default
         ) { }
 
     /// <inheritdoc />
@@ -71,6 +73,9 @@ public partial class Command(
     /// <inheritdoc />
     public PipeTarget StandardErrorPipe { get; } = standardErrorPipe;
 
+    /// <inheritdoc />
+    public PseudoTerminalOptions PseudoTerminalOptions { get; } = pseudoTerminalOptions;
+
     /// <summary>
     /// Creates a copy of this command, setting the target file path to the specified value.
     /// </summary>
@@ -86,7 +91,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -108,7 +114,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -155,7 +162,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -173,7 +181,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -204,7 +213,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -237,7 +247,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -268,7 +279,8 @@ public partial class Command(
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -286,7 +298,8 @@ public partial class Command(
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -304,7 +317,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoTerminalOptions
         );
 
     /// <summary>
@@ -322,8 +336,78 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            target
+            target,
+            PseudoTerminalOptions
         );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the pseudo-terminal options to the specified value.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// PTY mode makes CLI applications behave as if running in an interactive terminal,
+    /// enabling colored output, progress indicators, and other TTY-dependent features.
+    /// </para>
+    /// <para>
+    /// Note: When PTY is enabled, stderr is merged into stdout on all platforms.
+    /// The <see cref="StandardErrorPipe" /> will receive an empty stream.
+    /// </para>
+    /// </remarks>
+    [Pure]
+    public Command WithPseudoTerminal(PseudoTerminalOptions options) =>
+        new(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            ResourcePolicy,
+            Credentials,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            options
+        );
+
+    /// <summary>
+    /// Creates a copy of this command, enabling or disabling pseudo-terminal mode.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// PTY mode makes CLI applications behave as if running in an interactive terminal,
+    /// enabling colored output, progress indicators, and other TTY-dependent features.
+    /// </para>
+    /// <para>
+    /// Note: When PTY is enabled, stderr is merged into stdout on all platforms.
+    /// The <see cref="StandardErrorPipe" /> will receive an empty stream.
+    /// </para>
+    /// </remarks>
+    [Pure]
+    public Command WithPseudoTerminal(bool enabled = true) =>
+        WithPseudoTerminal(enabled ? PseudoTerminalOptions.Enabled : PseudoTerminalOptions.Default);
+
+    /// <summary>
+    /// Creates a copy of this command, setting the pseudo-terminal options to the value
+    /// configured by the specified delegate.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// PTY mode makes CLI applications behave as if running in an interactive terminal,
+    /// enabling colored output, progress indicators, and other TTY-dependent features.
+    /// </para>
+    /// <para>
+    /// Note: When PTY is enabled, stderr is merged into stdout on all platforms.
+    /// The <see cref="StandardErrorPipe" /> will receive an empty stream.
+    /// </para>
+    /// </remarks>
+    [Pure]
+    public Command WithPseudoTerminal(Action<PseudoTerminalOptionsBuilder> configure)
+    {
+        var builder = new PseudoTerminalOptionsBuilder();
+        configure(builder);
+
+        return WithPseudoTerminal(builder.Build());
+    }
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]

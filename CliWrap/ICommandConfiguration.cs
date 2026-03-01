@@ -56,4 +56,9 @@ public interface ICommandConfiguration
     /// Pipe target for the standard error stream of the underlying process.
     /// </summary>
     PipeTarget StandardErrorPipe { get; }
+
+    /// <summary>
+    /// Pseudo-terminal configuration for the underlying process.
+    /// </summary>
+    PseudoTerminalOptions PseudoTerminalOptions { get; }
 }
