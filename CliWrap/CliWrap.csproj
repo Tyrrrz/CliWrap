@@ -33,7 +33,6 @@
       Include="Microsoft.Bcl.AsyncInterfaces"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
     <PackageReference Include="PolyShim" PrivateAssets="all" />
     <PackageReference
       Include="System.Threading.Tasks.Extensions"
