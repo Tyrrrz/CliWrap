@@ -13,7 +13,6 @@
     <PackageVersion Include="MedallionShell" Version="1.6.2" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.103" />
     <PackageVersion Include="PolyShim" Version="2.6.1" />
     <PackageVersion Include="ProcessX" Version="1.5.6" />
     <PackageVersion Include="RunProcessAsTask" Version="1.2.4" />
