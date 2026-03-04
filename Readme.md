@@ -1,9 +1,9 @@
 # CliWrap
 
-[![Status](https://img.shields.io/badge/status-active-47c219.svg)](https://github.com/Tyrrrz/.github/blob/master/docs/project-status.md)
+[![Status](https://img.shields.io/badge/status-active-47c219.svg)](https://github.com/Tyrrrz/.github/blob/prime/docs/project-status.md)
 [![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://tyrrrz.me/ukraine)
-[![Build](https://img.shields.io/github/actions/workflow/status/Tyrrrz/CliWrap/main.yml?branch=master)](https://github.com/Tyrrrz/CliWrap/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/Tyrrrz/CliWrap/master)](https://codecov.io/gh/Tyrrrz/CliWrap)
+[![Build](https://img.shields.io/github/actions/workflow/status/Tyrrrz/CliWrap/main.yml?branch=prime)](https://github.com/Tyrrrz/CliWrap/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/Tyrrrz/CliWrap/prime)](https://codecov.io/gh/Tyrrrz/CliWrap)
 [![Version](https://img.shields.io/nuget/v/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Downloads](https://img.shields.io/nuget/dt/CliWrap.svg)](https://nuget.org/packages/CliWrap)
 [![Discord](https://img.shields.io/discord/869237470565392384?label=discord)](https://discord.gg/2SUWKFnHSm)
@@ -22,7 +22,7 @@
 **CliWrap** is a library for interacting with command-line interfaces.
 It provides a convenient model for launching processes, redirecting input and output streams, awaiting completion, handling cancellation, and more.
 
-## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
+## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/prime/docs/why-so-political.md)</sup>
 
 By using this project or its source code, for any purpose and in any shape or form, you grant your **implicit agreement** to all the following statements:
 
@@ -192,7 +192,7 @@ var forcePush = true;
 var cmd = Cli.Wrap("git")
     // Arguments can also be constructed in an imperative fashion.
     // Equivalent to: `git push --force`
-    .WithArguments(args => 
+    .WithArguments(args =>
     {
         args.Add("push");
 
