@@ -8,7 +8,7 @@ using CliWrap.Utils.Extensions;
 
 namespace CliWrap.Utils;
 
-internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
+internal class ProcessEx(ProcessStartInfo startInfo) : IProcessEx
 {
     private readonly Process _nativeProcess = new() { StartInfo = startInfo };
 
