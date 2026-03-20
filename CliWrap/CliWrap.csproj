@@ -10,6 +10,11 @@
       Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))"
       >true</IsAotCompatible
     >
+    <!-- LibraryImport source generator requires unsafe code blocks (net7.0+) -->
+    <AllowUnsafeBlocks
+      Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))"
+      >true</AllowUnsafeBlocks
+    >
   </PropertyGroup>
 
   <PropertyGroup>
