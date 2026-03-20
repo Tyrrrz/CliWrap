@@ -53,32 +53,41 @@ public partial class PipeSource
     /// Creates an anonymous pipe source with the <see cref="CopyToAsync(Stream, CancellationToken)" /> method
     /// implemented by the specified asynchronous delegate.
     /// </summary>
-    public static PipeSource Create(Func<Stream, CancellationToken, Task> handlePipeAsync) =>
-        new AnonymousPipeSource(handlePipeAsync);
+    public static PipeSource Create(Func<Stream, CancellationToken, Task> handlePipeAsync)
+    {
+        ArgumentNullException.ThrowIfNull(handlePipeAsync);
+        return new AnonymousPipeSource(handlePipeAsync);
+    }
 
     /// <summary>
     /// Creates an anonymous pipe source with the <see cref="CopyToAsync(Stream, CancellationToken)" /> method
     /// implemented by the specified synchronous delegate.
     /// </summary>
-    public static PipeSource Create(Action<Stream> handlePipe) =>
-        Create(
+    public static PipeSource Create(Action<Stream> handlePipe)
+    {
+        ArgumentNullException.ThrowIfNull(handlePipe);
+        return Create(
             (destination, _) =>
             {
                 handlePipe(destination);
                 return Task.CompletedTask;
             }
         );
+    }
 
     /// <summary>
     /// Creates a pipe source that reads from the specified stream.
     /// </summary>
-    public static PipeSource FromStream(Stream stream, bool autoFlush) =>
-        Create(
+    public static PipeSource FromStream(Stream stream, bool autoFlush)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        return Create(
             async (destination, cancellationToken) =>
                 await stream
                     .CopyToAsync(destination, autoFlush, cancellationToken)
                     .ConfigureAwait(false)
         );
+    }
 
     /// <summary>
     /// Creates a pipe source that reads from the specified stream.
@@ -89,8 +98,10 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the specified file.
     /// </summary>
-    public static PipeSource FromFile(string filePath) =>
-        Create(
+    public static PipeSource FromFile(string filePath)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+        return Create(
             async (destination, cancellationToken) =>
             {
                 var source = File.OpenRead(filePath);
@@ -98,6 +109,7 @@ public partial class PipeSource
                     await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
             }
         );
+    }
 
     /// <summary>
     /// Creates a pipe source that reads from the specified memory buffer.
@@ -111,7 +123,11 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the specified byte array.
     /// </summary>
-    public static PipeSource FromBytes(byte[] data) => FromBytes((ReadOnlyMemory<byte>)data);
+    public static PipeSource FromBytes(byte[] data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return FromBytes((ReadOnlyMemory<byte>)data);
+    }
 
     /// <inheritdoc cref="FromBytes(System.ReadOnlyMemory{byte})" />
     [Obsolete("Use FromBytes(ReadOnlyMemory<byte>) instead"), ExcludeFromCodeCoverage]
@@ -120,8 +136,12 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the specified string.
     /// </summary>
-    public static PipeSource FromString(string str, Encoding encoding) =>
-        FromBytes(encoding.GetBytes(str));
+    public static PipeSource FromString(string str, Encoding encoding)
+    {
+        ArgumentNullException.ThrowIfNull(str);
+        ArgumentNullException.ThrowIfNull(encoding);
+        return FromBytes(encoding.GetBytes(str));
+    }
 
     /// <summary>
     /// Creates a pipe source that reads from the specified string.
@@ -135,9 +155,12 @@ public partial class PipeSource
     public static PipeSource FromCommand(
         Command command,
         Func<Stream, Stream, CancellationToken, Task> copyStreamAsync
-    ) =>
+    )
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(copyStreamAsync);
         // cmdA | <transform> | cmdB
-        Create(
+        return Create(
             // Destination -> cmdB's standard input
             async (destination, destinationCancellationToken) =>
                 await command
@@ -152,6 +175,7 @@ public partial class PipeSource
                     .ExecuteAsync(destinationCancellationToken)
                     .ConfigureAwait(false)
         );
+    }
 
     /// <summary>
     /// Creates a pipe source that reads from the standard output of the specified command.

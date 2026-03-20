@@ -79,7 +79,9 @@ public static partial class EventStreamCommandExtensions
                             observer.OnCompleted();
                         }
                     },
-                    TaskContinuationOptions.None
+                    CancellationToken.None,
+                    TaskContinuationOptions.None,
+                    TaskScheduler.Default
                 );
 
                 return Disposable.Null;

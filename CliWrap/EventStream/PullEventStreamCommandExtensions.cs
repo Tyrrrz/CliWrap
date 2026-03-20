@@ -82,10 +82,12 @@ public static partial class EventStreamCommandExtensions
                 async _ =>
                     // ReSharper disable once AccessToDisposedClosure
                     await channel
-                        .ReportCompletionAsync(forcefulCancellationToken)
+                        .ReportCompletionAsync(CancellationToken.None)
                         .ConfigureAwait(false),
                 // Run the continuation even if the parent task failed
-                TaskContinuationOptions.None
+                CancellationToken.None,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default
             );
 
             await foreach (

@@ -152,30 +152,39 @@ public partial class PipeTarget
     /// Creates an anonymous pipe target with the <see cref="CopyFromAsync(Stream, CancellationToken)" /> method
     /// implemented by the specified asynchronous delegate.
     /// </summary>
-    public static PipeTarget Create(Func<Stream, CancellationToken, Task> handlePipeAsync) =>
-        new AnonymousPipeTarget(handlePipeAsync);
+    public static PipeTarget Create(Func<Stream, CancellationToken, Task> handlePipeAsync)
+    {
+        ArgumentNullException.ThrowIfNull(handlePipeAsync);
+        return new AnonymousPipeTarget(handlePipeAsync);
+    }
 
     /// <summary>
     /// Creates an anonymous pipe target with the <see cref="CopyFromAsync(Stream, CancellationToken)" /> method
     /// implemented by the specified synchronous delegate.
     /// </summary>
-    public static PipeTarget Create(Action<Stream> handlePipe) =>
-        Create(
+    public static PipeTarget Create(Action<Stream> handlePipe)
+    {
+        ArgumentNullException.ThrowIfNull(handlePipe);
+        return Create(
             (origin, _) =>
             {
                 handlePipe(origin);
                 return Task.CompletedTask;
             }
         );
+    }
 
     /// <summary>
     /// Creates a pipe target that writes to the specified stream.
     /// </summary>
-    public static PipeTarget ToStream(Stream stream, bool autoFlush) =>
-        Create(
+    public static PipeTarget ToStream(Stream stream, bool autoFlush)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        return Create(
             async (origin, cancellationToken) =>
                 await origin.CopyToAsync(stream, autoFlush, cancellationToken).ConfigureAwait(false)
         );
+    }
 
     /// <summary>
     /// Creates a pipe target that writes to the specified stream.
@@ -186,8 +195,10 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to the specified file.
     /// </summary>
-    public static PipeTarget ToFile(string filePath) =>
-        Create(
+    public static PipeTarget ToFile(string filePath)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+        return Create(
             async (origin, cancellationToken) =>
             {
                 var target = File.Create(filePath);
@@ -195,12 +206,16 @@ public partial class PipeTarget
                     await origin.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
             }
         );
+    }
 
     /// <summary>
     /// Creates a pipe target that writes to the specified string builder.
     /// </summary>
-    public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding) =>
-        Create(
+    public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding)
+    {
+        ArgumentNullException.ThrowIfNull(stringBuilder);
+        ArgumentNullException.ThrowIfNull(encoding);
+        return Create(
             async (origin, cancellationToken) =>
             {
                 using var reader = new StreamReader(
@@ -226,6 +241,7 @@ public partial class PipeTarget
                 }
             }
         );
+    }
 
     /// <summary>
     /// Creates a pipe target that writes to the specified string builder.
@@ -240,8 +256,11 @@ public partial class PipeTarget
     public static PipeTarget ToDelegate(
         Func<string, CancellationToken, Task> handleLineAsync,
         Encoding encoding
-    ) =>
-        Create(
+    )
+    {
+        ArgumentNullException.ThrowIfNull(handleLineAsync);
+        ArgumentNullException.ThrowIfNull(encoding);
+        return Create(
             async (origin, cancellationToken) =>
             {
                 using var reader = new StreamReader(
@@ -260,6 +279,7 @@ public partial class PipeTarget
                 }
             }
         );
+    }
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
@@ -271,8 +291,15 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
     /// </summary>
-    public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
-        ToDelegate(async (line, _) => await handleLineAsync(line).ConfigureAwait(false), encoding);
+    public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding)
+    {
+        ArgumentNullException.ThrowIfNull(handleLineAsync);
+        ArgumentNullException.ThrowIfNull(encoding);
+        return ToDelegate(
+            async (line, _) => await handleLineAsync(line).ConfigureAwait(false),
+            encoding
+        );
+    }
 
     /// <summary>
     /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
@@ -284,8 +311,11 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that invokes the specified synchronous delegate on every line written to the stream.
     /// </summary>
-    public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding) =>
-        ToDelegate(
+    public static PipeTarget ToDelegate(Action<string> handleLine, Encoding encoding)
+    {
+        ArgumentNullException.ThrowIfNull(handleLine);
+        ArgumentNullException.ThrowIfNull(encoding);
+        return ToDelegate(
             line =>
             {
                 handleLine(line);
@@ -293,6 +323,7 @@ public partial class PipeTarget
             },
             encoding
         );
+    }
 
     /// <summary>
     /// Creates a pipe target that invokes the specified synchronous delegate on every line written to the stream.
@@ -306,6 +337,8 @@ public partial class PipeTarget
     /// </summary>
     public static PipeTarget Merge(params IEnumerable<PipeTarget> targets)
     {
+        ArgumentNullException.ThrowIfNull(targets);
+
         // This function needs to take output as a parameter because it's recursive
         static void FlattenTargets(IEnumerable<PipeTarget> targets, ICollection<PipeTarget> output)
         {

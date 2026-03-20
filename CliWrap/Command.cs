@@ -28,7 +28,7 @@ public partial class Command(
     /// </summary>
     public Command(string targetFilePath)
         : this(
-            targetFilePath,
+            targetFilePath ?? throw new ArgumentNullException(nameof(targetFilePath)),
             string.Empty,
             Directory.GetCurrentDirectory(),
             ResourcePolicy.Default,
