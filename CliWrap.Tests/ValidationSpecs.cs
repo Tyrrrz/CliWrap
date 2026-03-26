@@ -15,11 +15,11 @@ public class ValidationSpecs(ITestOutputHelper testOutput)
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["exit", "1"]);
 
-        // Act & assert
-        var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () =>
-            await cmd.ExecuteAsync()
-        );
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
 
+        // Assert
+        var ex = (await act.Should().ThrowAsync<CommandExecutionException>()).Which;
         ex.ExitCode.Should().Be(1);
         ex.Command.Should().BeEquivalentTo(cmd);
 
@@ -32,11 +32,11 @@ public class ValidationSpecs(ITestOutputHelper testOutput)
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["exit", "1"]);
 
-        // Act & assert
-        var ex = await Assert.ThrowsAsync<CommandExecutionException>(async () =>
-            await cmd.ExecuteBufferedAsync()
-        );
+        // Act
+        var act = async () => await cmd.ExecuteBufferedAsync();
 
+        // Assert
+        var ex = (await act.Should().ThrowAsync<CommandExecutionException>()).Which;
         ex.Message.Should().Contain("Exit code set to 1"); // expected stderr
         ex.ExitCode.Should().Be(1);
         ex.Command.Should().BeEquivalentTo(cmd);

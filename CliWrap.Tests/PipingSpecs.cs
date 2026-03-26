@@ -502,9 +502,13 @@ public class PipingSpecs
                 PipeTarget.ToDelegate(_ => throw new Exception("Expected exception."))
             );
 
-        // Act & assert
-        var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
-        ex.Message.Should().Contain("Expected exception.");
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        (await act.Should().ThrowAsync<Exception>())
+            .Which.Message.Should()
+            .Contain("Expected exception.");
     }
 
     [Fact(Timeout = 15000)]
@@ -633,8 +637,11 @@ public class PipingSpecs
             PipeSource.FromFile("non-existing-file.txt")
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
-        // Act & assert
-        await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
     }
 
     [Fact(Timeout = 15000)]
@@ -646,8 +653,11 @@ public class PipingSpecs
                 .WithArguments(["generate binary", "--length", "100_000"])
             | PipeTarget.ToFile("non-existing-directory/file.txt");
 
-        // Act & assert
-        await Assert.ThrowsAnyAsync<Exception>(async () => await cmd.ExecuteAsync());
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
     }
 
     [Fact(Timeout = 15000)]

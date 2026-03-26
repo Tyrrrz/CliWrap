@@ -81,7 +81,10 @@ public class ResourcePolicySpecs
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithResourcePolicy(p => p.SetMinWorkingSet(1024 * 1024));
 
-        // Act & assert
-        await Assert.ThrowsAsync<NotSupportedException>(() => cmd.ExecuteAsync());
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<NotSupportedException>();
     }
 }

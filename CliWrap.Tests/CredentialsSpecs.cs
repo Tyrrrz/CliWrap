@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -24,8 +25,11 @@ public class CredentialsSpecs
                 c.SetUserName("user123").SetPassword("pass123").LoadUserProfile()
             );
 
-        // Act & assert
-        await Assert.ThrowsAsync<Win32Exception>(() => cmd.ExecuteAsync());
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<Win32Exception>();
     }
 
     [SkippableFact(Timeout = 15000)]
@@ -48,8 +52,11 @@ public class CredentialsSpecs
                     .LoadUserProfile()
             );
 
-        // Act & assert
-        await Assert.ThrowsAsync<Win32Exception>(() => cmd.ExecuteAsync());
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<Win32Exception>();
     }
 
     [SkippableFact(Timeout = 15000)]
@@ -64,7 +71,10 @@ public class CredentialsSpecs
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithCredentials(c => c.SetUserName("user123").SetPassword("pass123"));
 
-        // Act & assert
-        await Assert.ThrowsAsync<NotSupportedException>(() => cmd.ExecuteAsync());
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<NotSupportedException>();
     }
 }
