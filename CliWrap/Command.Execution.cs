@@ -209,7 +209,6 @@ public partial class Command
         using var waitTimeoutCts = new CancellationTokenSource();
         await using var _1 = forcefulCancellationToken
             .Register(() =>
-                // ReSharper disable once AccessToDisposedClosure
                 waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
             )
             .ToAsyncDisposable();
@@ -230,10 +229,8 @@ public partial class Command
         var pipingTask = Task.WhenAll(
             PipeStandardInputAsync(process, stdInCts.Token),
             // Output pipe may outlive the process, so don't cancel it on process exit
-            // ReSharper disable once PossiblyMistakenUseOfCancellationToken
             PipeStandardOutputAsync(process, forcefulCancellationToken),
             // Error pipe may outlive the process, so don't cancel it on process exit
-            // ReSharper disable once PossiblyMistakenUseOfCancellationToken
             PipeStandardErrorAsync(process, forcefulCancellationToken)
         );
 
@@ -282,7 +279,6 @@ public partial class Command
             throw new OperationCanceledException(
                 "Command execution canceled. "
                     + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
-                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
                 forcefulCancellationToken
             );
         }
@@ -293,7 +289,6 @@ public partial class Command
             throw new OperationCanceledException(
                 "Command execution canceled. "
                     + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated.",
-                // ReSharper disable once PossiblyMistakenUseOfCancellationToken
                 gracefulCancellationToken
             );
         }

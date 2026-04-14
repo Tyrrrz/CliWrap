@@ -14,7 +14,6 @@ internal static class AsyncDisposableExtensions
     {
         public async ValueTask DisposeAsync()
         {
-            // ReSharper disable once SuspiciousTypeConversion.Global
             if (target is IAsyncDisposable asyncDisposable)
             {
                 await asyncDisposable.DisposeAsync().ConfigureAwait(false);

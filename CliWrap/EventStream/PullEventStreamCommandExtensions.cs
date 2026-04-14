@@ -37,7 +37,6 @@ public static partial class EventStreamCommandExtensions
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
                     {
-                        // ReSharper disable once AccessToDisposedClosure
                         await channel
                             .PublishAsync(
                                 new StandardOutputCommandEvent(line),
@@ -54,7 +53,6 @@ public static partial class EventStreamCommandExtensions
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
                     {
-                        // ReSharper disable once AccessToDisposedClosure
                         await channel
                             .PublishAsync(
                                 new StandardErrorCommandEvent(line),
@@ -80,7 +78,6 @@ public static partial class EventStreamCommandExtensions
             // Close the channel once the command completes, so that ReceiveAsync() can finish
             _ = commandTask.Task.ContinueWith(
                 async _ =>
-                    // ReSharper disable once AccessToDisposedClosure
                     await channel
                         .ReportCompletionAsync(forcefulCancellationToken)
                         .ConfigureAwait(false),

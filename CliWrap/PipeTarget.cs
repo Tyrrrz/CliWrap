@@ -66,7 +66,6 @@ public partial class PipeTarget
 
                         try
                         {
-                            // ReSharper disable once AccessToDisposedClosure
                             await target
                                 .CopyFromAsync(subStream, cancelOrFailCts.Token)
                                 .ConfigureAwait(false);
@@ -74,7 +73,6 @@ public partial class PipeTarget
                         catch
                         {
                             // Abort the operation if any of the targets fail
-                            // ReSharper disable once AccessToDisposedClosure
                             await cancelOrFailCts.CancelAsync();
 
                             throw;
