@@ -208,9 +208,7 @@ public partial class Command
         // forceful cancellation is requested, and ensures that we don't wait forever.
         using var waitTimeoutCts = new CancellationTokenSource();
         await using var _1 = forcefulCancellationToken
-            .Register(() =>
-                waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3))
-            )
+            .Register(() => waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3)))
             .ToAsyncDisposable();
 
         // The process may exit without fully consuming the data from the stdin pipe, in which
