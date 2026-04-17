@@ -35,6 +35,7 @@
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
     />
     <PackageReference Include="PolyShim" PrivateAssets="all" />
+    <PackageReference Include="PowerKit" PrivateAssets="all" />
     <PackageReference
       Include="System.Threading.Tasks.Extensions"
       Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))"
