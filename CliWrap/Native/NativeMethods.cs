@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace CliWrap.Utils;
+namespace CliWrap.Native;
 
 internal static partial class NativeMethods
 {
