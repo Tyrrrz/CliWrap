@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
-using CliWrap.Signaler.Utils;
+using CliWrap.Signaler.Native;
 
 namespace CliWrap.Signaler;
 
