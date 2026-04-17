@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Utils;
 using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
+using PowerKit;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -34,7 +34,7 @@ public class PathResolutionSpecs
         );
 
         // Arrange
-        using var dir = TempDir.Create();
+        using var dir = TempDirectory.Create();
         await File.WriteAllTextAsync(Path.Combine(dir.Path, "test-script.cmd"), "@echo hello");
 
         using (Environment.ExtendPath(dir.Path))

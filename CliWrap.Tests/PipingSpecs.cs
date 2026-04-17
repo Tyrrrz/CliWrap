@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Utils;
 using FluentAssertions;
+using PowerKit;
 using Xunit;
 
 namespace CliWrap.Tests;

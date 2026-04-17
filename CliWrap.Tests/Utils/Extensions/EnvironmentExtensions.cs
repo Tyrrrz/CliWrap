@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Reactive.Disposables;
+using PowerKit;
 
 namespace CliWrap.Tests.Utils.Extensions;
 

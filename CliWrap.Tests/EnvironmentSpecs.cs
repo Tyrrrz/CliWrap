@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
-using CliWrap.Tests.Utils;
 using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
+using PowerKit;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -15,7 +15,7 @@ public class EnvironmentSpecs
     public async Task I_can_execute_a_command_with_a_custom_working_directory()
     {
         // Arrange
-        using var dir = TempDir.Create();
+        using var dir = TempDirectory.Create();
 
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments("cwd")
