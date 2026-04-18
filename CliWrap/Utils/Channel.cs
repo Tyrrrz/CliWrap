@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using PowerKit;
 
 namespace CliWrap.Utils;
 
@@ -11,15 +12,13 @@ internal class Channel<T> : IDisposable
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly SemaphoreSlim _readLock = new(0, 1);
 
-    private bool _isItemAvailable;
-    private T _item = default!;
+    private Cell<T> _cell = new();
 
     public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        _item = item;
-        _isItemAvailable = true;
+        _cell.Store(item);
 
         _readLock.Release();
     }
@@ -32,12 +31,12 @@ internal class Channel<T> : IDisposable
         {
             await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-            if (_isItemAvailable)
+            if (_cell.TryOpen(out var item))
             {
-                yield return _item;
-                _isItemAvailable = false;
+                yield return item;
+                _cell = new Cell<T>();
             }
-            // If the read lock was released but the item is not available,
+            // If the read lock was released but the cell is empty,
             // then the channel has been closed.
             else
             {
@@ -52,8 +51,7 @@ internal class Channel<T> : IDisposable
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        _item = default!;
-        _isItemAvailable = false;
+        _cell = new Cell<T>();
 
         _readLock.Release();
     }
