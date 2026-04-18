@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Native;
-using CliWrap.Utils.Extensions;
+using PowerKit.Extensions;
 
 namespace CliWrap.Utils;
 

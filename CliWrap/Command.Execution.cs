@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Utils;
-using CliWrap.Utils.Extensions;
+using PowerKit.Extensions;
 
 namespace CliWrap;
 
