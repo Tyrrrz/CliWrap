@@ -44,11 +44,12 @@ public partial class Command
             // MIT License, .NET Foundation
 
             // Executable directory
-            if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
+            if (
+                Environment.ProcessPath?.NullIfWhiteSpace() is { } processPath
+                && Path.GetDirectoryName(processPath)?.NullIfWhiteSpace() is { } processDirPath
+            )
             {
-                var processDirPath = Path.GetDirectoryName(Environment.ProcessPath);
-                if (!string.IsNullOrWhiteSpace(processDirPath))
-                    yield return processDirPath;
+                yield return processDirPath;
             }
 
             // Working directory

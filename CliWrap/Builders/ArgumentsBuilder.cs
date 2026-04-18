@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using PowerKit.Extensions;
 
 namespace CliWrap.Builders;
 
@@ -20,9 +21,7 @@ public partial class ArgumentsBuilder
     /// </summary>
     public ArgumentsBuilder Add(string value, bool escape)
     {
-        if (_buffer.Length > 0)
-            _buffer.Append(' ');
-
+        _buffer.AppendIfNotEmpty(' ');
         _buffer.Append(escape ? Escape(value) : value);
 
         return this;
