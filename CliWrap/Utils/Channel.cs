@@ -12,7 +12,7 @@ internal class Channel<T> : IDisposable
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly SemaphoreSlim _readLock = new(0, 1);
 
-    private Cell<T> _cell = new();
+    private readonly Cell<T> _cell = new();
 
     public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
     {
@@ -34,7 +34,7 @@ internal class Channel<T> : IDisposable
             if (_cell.TryOpen(out var item))
             {
                 yield return item;
-                _cell = new Cell<T>();
+                _cell.Clear();
             }
             // If the read lock was released but the cell is empty,
             // then the channel has been closed.
@@ -51,7 +51,7 @@ internal class Channel<T> : IDisposable
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        _cell = new Cell<T>();
+        _cell.Clear();
 
         _readLock.Release();
     }
