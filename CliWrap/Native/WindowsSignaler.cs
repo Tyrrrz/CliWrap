@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using PowerKit.Extensions;
 
-namespace CliWrap.Utils;
+namespace CliWrap.Native;
 
 internal partial class WindowsSignaler(string filePath) : IDisposable
 {
