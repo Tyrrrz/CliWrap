@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils.Extensions;
@@ -25,7 +26,24 @@ public class EnvironmentSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        result.StandardOutput.Trim().Should().Be(dir.Path);
+        // Resolve dir.Path to its canonical form to handle OS-level symlink resolution.
+        // On some platforms (e.g., macOS), /var is a symlink to /private/var, so
+        // Directory.GetCurrentDirectory() in the child process returns the resolved path.
+        // We replicate this by temporarily setting the current directory, which triggers
+        // the same OS path resolution (getcwd).
+        var prevDir = Directory.GetCurrentDirectory();
+        string resolvedDirPath;
+        try
+        {
+            Directory.SetCurrentDirectory(dir.Path);
+            resolvedDirPath = Directory.GetCurrentDirectory();
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(prevDir);
+        }
+
+        result.StandardOutput.Trim().Should().Be(resolvedDirPath);
     }
 
     [Fact(Timeout = 15000)]
