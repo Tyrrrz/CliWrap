@@ -16,7 +16,7 @@
 </table>
 
 <p align="center">
-    <img src="favicon.png" alt="Icon" />
+    <img src=".assets/hero.gif" alt="CliWrap — a library for interacting with command-line interfaces in .NET. Replaces verbose System.Diagnostics.Process boilerplate with a fluent, immutable, shell-style piping API." />
 </p>
 
 **CliWrap** is a library for interacting with command-line interfaces.
