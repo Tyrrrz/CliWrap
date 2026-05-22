@@ -184,25 +184,12 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to the specified file.
     /// </summary>
-    public static PipeTarget ToFile(string filePath) =>
-        Create(
-            async (origin, cancellationToken) =>
-            {
-                var target = File.Create(filePath);
-                await using (target.ToAsyncDisposable())
-                    await origin.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
-            }
-        );
-
-    /// <summary>
-    /// Creates a pipe target that writes to the specified file.
-    /// </summary>
     public static PipeTarget ToFile(
         string filePath,
         FileMode mode = FileMode.Create,
         FileShare share = FileShare.Read,
         int bufferSize = 4096,
-        FileOptions options = FileOptions.WriteThrough,
+        FileOptions options = FileOptions.None,
         bool autoFlush = true
     ) =>
         Create(
