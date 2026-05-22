@@ -195,6 +195,25 @@ public partial class PipeTarget
         );
 
     /// <summary>
+    /// Creates a pipe target that writes to the specified file.
+    /// </summary>
+    public static PipeTarget ToFile(
+        string filePath,
+        FileMode mode = FileMode.Create,
+        FileShare share = FileShare.Read,
+        int bufferSize = 4096,
+        FileOptions options = FileOptions.WriteThrough,
+        bool autoFlush = true
+    ) =>
+        Create(
+            async (origin, cancellationToken) =>
+            {
+                using var target = new FileStream(filePath, mode, FileAccess.Write, share, bufferSize, options);
+                await origin.CopyToAsync(target, autoFlush, cancellationToken).ConfigureAwait(false);
+            }
+        );
+
+    /// <summary>
     /// Creates a pipe target that writes to the specified string builder.
     /// </summary>
     public static PipeTarget ToStringBuilder(StringBuilder stringBuilder, Encoding encoding) =>
