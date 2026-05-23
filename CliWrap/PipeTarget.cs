@@ -195,8 +195,17 @@ public partial class PipeTarget
         Create(
             async (origin, cancellationToken) =>
             {
-                using var target = new FileStream(filePath, mode, FileAccess.Write, share, bufferSize, options);
-                await origin.CopyToAsync(target, autoFlush, cancellationToken).ConfigureAwait(false);
+                using var target = new FileStream(
+                    filePath,
+                    mode,
+                    FileAccess.Write,
+                    share,
+                    bufferSize,
+                    options
+                );
+                await origin
+                    .CopyToAsync(target, autoFlush, cancellationToken)
+                    .ConfigureAwait(false);
             }
         );
 
