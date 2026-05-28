@@ -136,7 +136,7 @@ public partial class PipeTarget
     /// In the vast majority of cases, this behavior should be functionally equivalent to piping
     /// to a null stream, but without the performance overhead of consuming and discarding unneeded data.
     /// This may be undesirable in certain situations, in which case it's recommended to pipe to a
-    /// null stream explicitly using <see cref="ToStream(Stream)" /> with <see cref="Stream.Null" />.
+    /// null stream explicitly using <see cref="ToStream(Stream, bool, bool)" /> with <see cref="Stream.Null" />.
     /// </remarks>
     public static PipeTarget Null { get; } =
         Create(
@@ -169,43 +169,42 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to the specified stream.
     /// </summary>
-    public static PipeTarget ToStream(Stream stream, bool autoFlush) =>
+    public static PipeTarget ToStream(
+        Stream stream,
+        bool autoFlush = true,
+        bool disposeStream = false
+    ) =>
         Create(
             async (origin, cancellationToken) =>
-                await origin.CopyToAsync(stream, autoFlush, cancellationToken).ConfigureAwait(false)
+            {
+                try
+                {
+                    await origin
+                        .CopyToAsync(stream, autoFlush, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (disposeStream)
+                        await stream.DisposeAsync().ConfigureAwait(false);
+                }
+            }
         );
-
-    /// <summary>
-    /// Creates a pipe target that writes to the specified stream.
-    /// </summary>
-    // TODO: (breaking change) remove in favor of optional parameter
-    public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
     /// <summary>
     /// Creates a pipe target that writes to the specified file.
     /// </summary>
-    public static PipeTarget ToFile(
-        string filePath,
-        FileMode mode = FileMode.Create,
-        FileShare share = FileShare.Read,
-        int bufferSize = 4096,
-        FileOptions options = FileOptions.None,
-        bool autoFlush = true
-    ) =>
+    public static PipeTarget ToFile(string filePath) =>
         Create(
             async (origin, cancellationToken) =>
             {
                 using var target = new FileStream(
                     filePath,
-                    mode,
+                    FileMode.Create,
                     FileAccess.Write,
-                    share,
-                    bufferSize,
-                    options
+                    FileShare.Read
                 );
-                await origin
-                    .CopyToAsync(target, autoFlush, cancellationToken)
-                    .ConfigureAwait(false);
+                await origin.CopyToAsync(target, true, cancellationToken).ConfigureAwait(false);
             }
         );
 
