@@ -206,13 +206,14 @@ public partial class PipeTarget
         Create(
             async (origin, cancellationToken) =>
             {
-                using var target = new FileStream(
-                    filePath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.Read
-                );
-                await origin.CopyToAsync(target, true, cancellationToken).ConfigureAwait(false);
+var target = new FileStream(
+    filePath,
+    FileMode.Create,
+    FileAccess.Write,
+    FileShare.Read
+);
+await using (target.ToAsyncDisposable())
+    await origin.CopyToAsync(target, true, cancellationToken).ConfigureAwait(false);
             }
         );
 
