@@ -202,20 +202,16 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to the specified file.
     /// </summary>
-    public static PipeTarget ToFile(string filePath) =>
-        Create(
-            async (origin, cancellationToken) =>
-            {
-var target = new FileStream(
-    filePath,
-    FileMode.Create,
-    FileAccess.Write,
-    FileShare.Read
-);
-await using (target.ToAsyncDisposable())
-    await origin.CopyToAsync(target, true, cancellationToken).ConfigureAwait(false);
-            }
-        );
+    public static PipeTarget ToFile(string filePath) => ToStream(
+        new FileStream(
+            filePath,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read
+        ),
+        false,
+        true
+    );
 
     /// <summary>
     /// Creates a pipe target that writes to the specified string builder.
