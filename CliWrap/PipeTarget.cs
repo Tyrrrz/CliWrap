@@ -192,7 +192,9 @@ public partial class PipeTarget
                     filePath,
                     FileMode.Create,
                     FileAccess.Write,
-                    FileShare.Read
+                    FileShare.Read,
+                    BufferSizes.Stream,
+                    FileOptions.Asynchronous
                 );
 
                 await using (file.ToAsyncDisposable())
