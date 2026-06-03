@@ -202,7 +202,7 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to the specified file.
     /// </summary>
-    public static PipeTarget ToFile(string filePath) => 
+    public static PipeTarget ToFile(string filePath) =>
         Create(
             async (origin, cancellationToken) =>
             {
@@ -214,7 +214,7 @@ public partial class PipeTarget
                 );
 
                 await using (file.ToAsyncDisposable())
-                    await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
+                    await origin.CopyToAsync(file, true, cancellationToken).ConfigureAwait(false);
             }
         );
 
