@@ -72,35 +72,19 @@ public partial class PipeSource
     /// <summary>
     /// Creates a pipe source that reads from the specified stream.
     /// </summary>
-    public static PipeSource FromStream(Stream stream, bool autoFlush, bool disposeStream) =>
+    public static PipeSource FromStream(Stream stream, bool autoFlush) =>
         Create(
             async (destination, cancellationToken) =>
-            {
-                try
-                {
-                    await stream
-                        .CopyToAsync(destination, autoFlush, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    if (disposeStream)
-                        await stream.DisposeAsync().ConfigureAwait(false);
-                }
-            }
+                await stream
+                    .CopyToAsync(destination, autoFlush, cancellationToken)
+                    .ConfigureAwait(false)
         );
 
     /// <summary>
     /// Creates a pipe source that reads from the specified stream.
     /// </summary>
-    public static PipeSource FromStream(Stream stream, bool autoFlush) =>
-        FromStream(stream, autoFlush, false);
-
-    /// <summary>
-    /// Creates a pipe source that reads from the specified stream.
-    /// </summary>
     // TODO: (breaking change) remove in favor of optional parameter
-    public static PipeSource FromStream(Stream stream) => FromStream(stream, true, false);
+    public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
 
     /// <summary>
     /// Creates a pipe source that reads from the specified file.

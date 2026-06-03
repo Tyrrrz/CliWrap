@@ -169,35 +169,17 @@ public partial class PipeTarget
     /// <summary>
     /// Creates a pipe target that writes to the specified stream.
     /// </summary>
-    public static PipeTarget ToStream(Stream stream, bool autoFlush, bool disposeStream) =>
+    public static PipeTarget ToStream(Stream stream, bool autoFlush) =>
         Create(
             async (origin, cancellationToken) =>
-            {
-                try
-                {
-                    await origin
-                        .CopyToAsync(stream, autoFlush, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    if (disposeStream)
-                        await stream.DisposeAsync().ConfigureAwait(false);
-                }
-            }
+                await origin.CopyToAsync(stream, autoFlush, cancellationToken).ConfigureAwait(false)
         );
 
     /// <summary>
     /// Creates a pipe target that writes to the specified stream.
     /// </summary>
-    public static PipeTarget ToStream(Stream stream, bool autoFlush) =>
-        ToStream(stream, autoFlush, false);
-
-    /// <summary>
-    /// Creates a pipe target that writes to the specified stream.
-    /// </summary>
     // TODO: (breaking change) remove in favor of optional parameter
-    public static PipeTarget ToStream(Stream stream) => ToStream(stream, true, false);
+    public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
     /// <summary>
     /// Creates a pipe target that writes to the specified file.
