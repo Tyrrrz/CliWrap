@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Text;
@@ -181,6 +182,59 @@ public class CancellationSpecs
         (await act.Should().ThrowAsync<OperationCanceledException>())
             .Which.CancellationToken.Should()
             .Be(cts.Token);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_with_no_unobserved_exception()
+    {
+        // Arrange
+        var unobservedExceptions = new List<Exception>();
+
+        void OnUnobservedException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            unobservedExceptions.Add(e.Exception);
+            e.SetObserved();
+        }
+
+        TaskScheduler.UnobservedTaskException += OnUnobservedException;
+
+        var cmd = Cli.Wrap("dotnet").WithArguments(["--version"]);
+
+        // Act
+        try
+        {
+            // Repeat to maximize race condition triggering
+            for (var i = 0; i < 50; i++)
+            {
+                using var cts = new CancellationTokenSource();
+
+                var act = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await foreach (var _ in cmd.ListenAsync(cts.Token))
+                        {
+                            cts.Cancel();
+                        }
+                    }
+                    catch (OperationCanceledException) { }
+                });
+
+                await act;
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            await Task.Delay(500);
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= OnUnobservedException;
+        }
+
+        // Assert
+        Assert.Empty(unobservedExceptions);
     }
 
     [Fact(Timeout = 15000)]

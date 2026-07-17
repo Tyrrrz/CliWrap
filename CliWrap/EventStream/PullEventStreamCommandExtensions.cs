@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -75,23 +76,39 @@ public static partial class EventStreamCommandExtensions
 
             yield return new StartedCommandEvent(commandTask.ProcessId);
 
-            // Close the channel once the command completes, so that ReceiveAsync() can finish
-            _ = commandTask.Task.ContinueWith(
-                async _ =>
-                    await channel
-                        .ReportCompletionAsync(forcefulCancellationToken)
-                        .ConfigureAwait(false),
-                // Run the continuation even if the parent task failed
-                TaskContinuationOptions.None
-            );
+            var completionTask = commandTask
+                .Task.ContinueWith(
+                    async _ =>
+                        await channel
+                            .ReportCompletionAsync(forcefulCancellationToken)
+                            .ConfigureAwait(false),
+                    // Run the continuation even if the parent task failed
+                    TaskContinuationOptions.None
+                )
+                .Unwrap();
 
-            await foreach (
-                var cmdEvent in channel
-                    .ReceiveAsync(forcefulCancellationToken)
-                    .ConfigureAwait(false)
-            )
+            try
             {
-                yield return cmdEvent;
+                await foreach (
+                    var cmdEvent in channel
+                        .ReceiveAsync(forcefulCancellationToken)
+                        .ConfigureAwait(false)
+                )
+                {
+                    yield return cmdEvent;
+                }
+            }
+            finally
+            {
+                try
+                {
+                    await completionTask.ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                    when (ex is OperationCanceledException or ObjectDisposedException)
+                {
+                    // Channel already close
+                }
             }
 
             var result = await commandTask.ConfigureAwait(false);
