@@ -107,7 +107,7 @@ public static partial class EventStreamCommandExtensions
                 catch (Exception ex)
                     when (ex is OperationCanceledException or ObjectDisposedException)
                 {
-                    // Channel already close
+                    // Channel has already closed
                 }
             }
 
