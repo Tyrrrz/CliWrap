@@ -82,7 +82,8 @@ public static partial class EventStreamCommandExtensions
 
                         return result;
                     })
-                    // Since the command task is detached, we need to observe it to avoid unobserved task exceptions
+                    // The task will remain detached, so observe its exception so it
+                    // doesn't get reported to the finalizer thread and crash the process.
                     .Task.ObserveException();
 
                 return Disposable.Null;
