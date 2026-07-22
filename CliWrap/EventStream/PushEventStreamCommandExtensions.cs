@@ -51,17 +51,18 @@ public static partial class EventStreamCommandExtensions
                 var commandTask = command
                     .WithStandardOutputPipe(stdOutPipe)
                     .WithStandardErrorPipe(stdErrPipe)
-                    .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
+                    .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
+
+                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
+
+                _ = commandTask
                     .Bind(async task =>
                     {
+                        CommandResult result;
+
                         try
                         {
-                            var result = await task.ConfigureAwait(false);
-
-                            observer.OnNext(new ExitedCommandEvent(result.ExitCode));
-                            observer.OnCompleted();
-
-                            return result;
+                            result = await task.ConfigureAwait(false);
                         }
                         catch (OperationCanceledException) when (task.IsCanceled)
                         {
@@ -73,12 +74,16 @@ public static partial class EventStreamCommandExtensions
                             observer.OnError(ex);
                             throw;
                         }
-                    });
 
-                // Since the command task is detached, we need to observe its exception to avoid unobserved task exceptions
-                _ = commandTask.Task.ObserveException();
+                        // Execute these outside of try/catch to avoid catching exceptions from observer callbacks.
+                        // Otherwise, we may get an error event after the completion event.
+                        observer.OnNext(new ExitedCommandEvent(result.ExitCode));
+                        observer.OnCompleted();
 
-                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
+                        return result;
+                    })
+                    // Since the command task is detached, we need to observe it to avoid unobserved task exceptions
+                    .Task.ObserveException();
 
                 return Disposable.Null;
             });

@@ -32,6 +32,25 @@ public class EventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_stop_listening_to_a_pull_based_event_stream_early()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["generate text", "--target", "all", "--lines", "100"]);
+
+        // Act
+        var i = 0;
+        await foreach (var _ in cmd.ListenAsync())
+        {
+            if (i++ >= 10)
+                break;
+        }
+
+        // Assert
+        i.Should().Be(10);
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_as_a_push_based_event_stream()
     {
         // Arrange
