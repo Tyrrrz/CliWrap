@@ -13,7 +13,7 @@ public partial class CommandResult(int exitCode, DateTimeOffset startTime, DateT
     public int ExitCode { get; } = exitCode;
 
     /// <summary>
-    /// Whether the command execution was successful (i.e. exit code is zero).
+    /// Whether the command execution was successful (i.e., exit code is zero).
     /// </summary>
     public bool IsSuccess => ExitCode == 0;
 

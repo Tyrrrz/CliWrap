@@ -230,7 +230,7 @@ var cmd = Cli.Wrap("git")
 
 Sets the working directory of the child process.
 
-**Default**: current working directory, i.e. `Directory.GetCurrentDirectory()`.
+**Default**: current working directory, i.e., `Directory.GetCurrentDirectory()`.
 
 **Example**:
 
