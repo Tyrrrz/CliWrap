@@ -163,8 +163,9 @@ public partial class Command
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // CopyToAsync() may not honor cancellation and can fault after WaitAsync() returns.
-                // Observe that fault to avoid unobserved task exceptions.
+                // We tried to cancel the copy task and abandoned it. If it did not respond to
+                // cancellation, it will remain in a detached state, so we need to observe its
+                // exception so it doesn't get reported to the finalizer thread and crash the process.
                 _ = copyTask.ObserveException();
 
                 throw;
