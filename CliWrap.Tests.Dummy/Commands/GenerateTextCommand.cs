@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CliFx;
 using CliFx.Binding;
@@ -25,31 +24,26 @@ public partial class GenerateTextCommand : ICommand
     [CommandOption("lines")]
     public int LinesCount { get; set; } = 1;
 
-    private int LineLength => LinesCount > 0 ? Length / LinesCount : 0;
-
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        if (LineLength <= 0)
+        var lineLength = LinesCount > 0 ? Length / LinesCount : 0;
+
+        if (lineLength <= 0)
             return;
 
-        for (var line = 0; line < LinesCount; line++)
+        for (var lineNumber = 0; lineNumber < LinesCount; lineNumber++)
         {
             var currentLineLength =
-                line < LinesCount - 1
-                    ? LineLength
+                lineNumber < LinesCount - 1
+                    ? lineLength
                     // Place any remaining characters in the last line so that the total output length
                     // is always equal to Length.
-                    : Length - LineLength * line;
+                    : Length - lineLength * lineNumber;
 
-            var buffer = new StringBuilder(currentLineLength);
-
-            for (var i = 0; i < currentLineLength; i++)
-            {
-                buffer.Append(_allowedChars[_random.Next(0, _allowedChars.Length)]);
-            }
+            var line = _random.GetItems(_allowedChars, currentLineLength);
 
             foreach (var writer in console.GetWriters(Target))
-                await writer.WriteLineAsync(buffer.ToString());
+                await writer.WriteLineAsync(new string(line));
         }
     }
 }
