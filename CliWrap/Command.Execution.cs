@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
 using CliWrap.Utils;
+using CliWrap.Utils.Extensions;
 using PowerKit.Extensions;
 
 namespace CliWrap;
@@ -144,10 +145,11 @@ public partial class Command
     {
         await using (process.StandardInput.ToAsyncDisposable())
         {
+            var copyTask = StandardInputPipe.CopyToAsync(process.StandardInput, cancellationToken);
+
             try
             {
-                await StandardInputPipe
-                    .CopyToAsync(process.StandardInput, cancellationToken)
+                await copyTask
                     // The input pipe may never respond to cancellation, so we add a fallback
                     // that drops the task and returns early when cancellation is requested.
                     // This prevents hanging when the process exits before consuming all stdin data.
@@ -158,6 +160,14 @@ public partial class Command
                     // respects cancellation. Otherwise, we may as well add such fallbacks everywhere.
                     .WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // CopyToAsync() may not honor cancellation and can fault after WaitAsync() returns.
+                // Observe that fault to avoid unobserved task exceptions.
+                _ = copyTask.ObserveException();
+
+                throw;
             }
             catch (IOException ex)
                 // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.

@@ -2,8 +2,8 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CliWrap.Utils.Extensions;
 using PowerKit;
-using PowerKit.Extensions;
 
 namespace CliWrap.EventStream;
 
@@ -55,29 +55,28 @@ public static partial class EventStreamCommandExtensions
 
                 observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
-                // Don't pass cancellation token to the continuation because we need it to
-                // trigger regardless of how the task completed.
-                _ = commandTask.Task.ContinueWith(
-                    t =>
+                _ = commandTask
+                    .Bind(async task =>
                     {
-                        // Canceled tasks don't have exceptions
-                        if (t.IsCanceled)
+                        try
                         {
-                            observer.OnError(new TaskCanceledException(t));
-                        }
-                        else if (t.Exception is not null)
-                        {
-                            observer.OnError(t.Exception.TryGetSingle() ?? t.Exception);
-                        }
-                        else
-                        {
-                            observer.OnNext(new ExitedCommandEvent(t.Result.ExitCode));
+                            var result = await task.ConfigureAwait(false);
+
+                            observer.OnNext(new ExitedCommandEvent(result.ExitCode));
                             observer.OnCompleted();
                         }
-                    },
-                    // Run the continuation even if the parent task failed
-                    TaskContinuationOptions.None
-                );
+                        catch (OperationCanceledException) when (task.IsCanceled)
+                        {
+                            observer.OnError(new TaskCanceledException(task));
+                        }
+                        catch (Exception ex)
+                        {
+                            observer.OnError(ex);
+                        }
+
+                        return true;
+                    })
+                    .Task.ObserveException();
 
                 return Disposable.Null;
             });
