@@ -13,7 +13,10 @@ public partial class GenerateTextCommand : ICommand
 {
     // Tests rely on the random seed being fixed
     private readonly Random _random = new(1234567);
-    private readonly char[] _allowedChars = Enumerable.Range(32, 94).Select(i => (char)i).ToArray();
+    private static readonly char[] AllowedChars = Enumerable
+        .Range(32, 94)
+        .Select(i => (char)i)
+        .ToArray();
 
     [CommandOption("target")]
     public OutputTarget Target { get; set; } = OutputTarget.StdOut;
@@ -40,10 +43,14 @@ public partial class GenerateTextCommand : ICommand
                     // is always equal to Length.
                     : Length - lineLength * lineNumber;
 
-            var line = _random.GetItems(_allowedChars, currentLineLength);
+            var line = string.Create(
+                currentLineLength,
+                _random,
+                (buffer, random) => random.GetItems(AllowedChars, buffer)
+            );
 
             foreach (var writer in console.GetWriters(Target))
-                await writer.WriteLineAsync(new string(line));
+                await writer.WriteLineAsync(line);
         }
     }
 }
