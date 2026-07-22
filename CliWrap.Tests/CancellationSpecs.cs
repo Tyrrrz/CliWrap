@@ -12,6 +12,7 @@ using Xunit;
 
 namespace CliWrap.Tests;
 
+[Collection(nameof(NonParallelCollection))]
 public class CancellationSpecs
 {
     [Fact(Timeout = 15000)]
@@ -181,6 +182,57 @@ public class CancellationSpecs
         (await act.Should().ThrowAsync<OperationCanceledException>())
             .Which.CancellationToken.Should()
             .Be(cts.Token);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_cancel_it_without_unobserved_exception()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/336
+
+        // Arrange
+        var exception = default(Exception?);
+
+        void OnUnobservedException(object? sender, UnobservedTaskExceptionEventArgs args)
+        {
+            Interlocked.CompareExchange(ref exception, args.Exception, null);
+            args.SetObserved();
+        }
+
+        TaskScheduler.UnobservedTaskException += OnUnobservedException;
+
+        var cmd = Cli.Wrap("dotnet").WithArguments(["--version"]);
+
+        // Act
+        try
+        {
+            // This is not a deterministic test, so run it multiple times to increase exposure to the race condition
+            for (var i = 0; i < 50; i++)
+            {
+                using var cts = new CancellationTokenSource();
+
+                try
+                {
+                    await foreach (var _ in cmd.ListenAsync(cts.Token))
+                    {
+                        await cts.CancelAsync();
+                    }
+                }
+                catch (OperationCanceledException) { }
+            }
+
+            await Task.Delay(500);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= OnUnobservedException;
+        }
+
+        // Assert
+        Volatile.Read(ref exception).Should().BeNull();
     }
 
     [Fact(Timeout = 15000)]
