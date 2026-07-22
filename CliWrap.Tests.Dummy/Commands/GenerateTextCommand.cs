@@ -29,10 +29,10 @@ public partial class GenerateTextCommand : ICommand
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var lineLength = LinesCount > 0 ? Length / LinesCount : 0;
-
-        if (lineLength <= 0)
+        if (Length <= 0 || LinesCount <= 0)
             return;
+
+        var lineLength = LinesCount > 0 ? Length / LinesCount : 0;
 
         for (var lineNumber = 0; lineNumber < LinesCount; lineNumber++)
         {

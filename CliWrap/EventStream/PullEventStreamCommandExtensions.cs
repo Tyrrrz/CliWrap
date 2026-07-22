@@ -70,7 +70,7 @@ public static partial class EventStreamCommandExtensions
                                 && abandonCts.IsCancellationRequested
                             )
                         {
-                            // The iterator was abandoned during publish, ignore
+                            // The iterator was abandoned during transmit, ignore
                         }
                     },
                     standardOutputEncoding
@@ -103,7 +103,7 @@ public static partial class EventStreamCommandExtensions
                                 && abandonCts.IsCancellationRequested
                             )
                         {
-                            // The iterator was abandoned during publish, ignore
+                            // The iterator was abandoned during transmit, ignore
                         }
                     },
                     standardErrorEncoding
