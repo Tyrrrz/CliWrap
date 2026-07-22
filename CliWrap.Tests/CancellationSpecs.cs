@@ -12,7 +12,6 @@ using Xunit;
 
 namespace CliWrap.Tests;
 
-[Collection(nameof(NonParallelCollection))]
 public class CancellationSpecs
 {
     [Fact(Timeout = 15000)]
