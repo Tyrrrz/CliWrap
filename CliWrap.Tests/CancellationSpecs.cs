@@ -200,7 +200,7 @@ public class CancellationSpecs
 
         TaskScheduler.UnobservedTaskException += OnUnobservedException;
 
-        var cmd = Cli.Wrap("dotnet").WithArguments(["--version"]);
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act
         try
