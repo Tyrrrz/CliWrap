@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +7,7 @@ internal static class TaskExtensions
 {
     extension(Task task)
     {
-        public Task<AggregateException?> ObserveException() =>
+        public Task ObserveException() =>
             task.ContinueWith(
                 t => t.Exception,
                 CancellationToken.None,
