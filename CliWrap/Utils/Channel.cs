@@ -9,18 +9,18 @@ namespace CliWrap.Utils;
 
 internal class Channel<T> : IDisposable
 {
-    private readonly SemaphoreSlim _writeLock = new(1, 1);
-    private readonly SemaphoreSlim _readLock = new(0, 1);
+    private readonly SemaphoreSlim _transmitLock = new(1, 1);
+    private readonly SemaphoreSlim _receiveLock = new(0, 1);
 
     private readonly Cell<T> _cell = new();
 
-    public async Task PublishAsync(T item, CancellationToken cancellationToken = default)
+    public async Task TransmitAsync(T item, CancellationToken cancellationToken = default)
     {
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _transmitLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         _cell.Store(item);
 
-        _readLock.Release();
+        _receiveLock.Release();
     }
 
     public async IAsyncEnumerable<T> ReceiveAsync(
@@ -29,36 +29,36 @@ internal class Channel<T> : IDisposable
     {
         while (true)
         {
-            await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await _receiveLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             if (_cell.TryOpen(out var item))
             {
                 yield return item;
                 _cell.Clear();
             }
-            // If the read lock was released but the cell is empty,
+            // If the receive lock was released but the cell is empty,
             // then the channel has been closed.
             else
             {
                 break;
             }
 
-            _writeLock.Release();
+            _transmitLock.Release();
         }
     }
 
-    public async Task ReportCompletionAsync(CancellationToken cancellationToken = default)
+    public async Task CloseAsync(CancellationToken cancellationToken = default)
     {
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _transmitLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         _cell.Clear();
 
-        _readLock.Release();
+        _receiveLock.Release();
     }
 
     public void Dispose()
     {
-        _writeLock.Dispose();
-        _readLock.Dispose();
+        _transmitLock.Dispose();
+        _receiveLock.Dispose();
     }
 }

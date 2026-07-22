@@ -41,11 +41,10 @@ public static class BufferedCommandExtensions
                 PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
             );
 
-            var commandWithPipes = command
+            // Execute the command with the pipes extended to capture the output and error streams into buffers
+            return command
                 .WithStandardOutputPipe(stdOutPipe)
-                .WithStandardErrorPipe(stdErrPipe);
-
-            return commandWithPipes
+                .WithStandardErrorPipe(stdErrPipe)
                 .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
                 .Bind(async task =>
                 {
@@ -90,15 +89,13 @@ public static class BufferedCommandExtensions
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
             CancellationToken cancellationToken = default
-        )
-        {
-            return command.ExecuteBufferedAsync(
+        ) =>
+            command.ExecuteBufferedAsync(
                 standardOutputEncoding,
                 standardErrorEncoding,
                 cancellationToken,
                 CancellationToken.None
             );
-        }
 
         /// <summary>
         /// Executes the command asynchronously with buffering.
@@ -111,10 +108,7 @@ public static class BufferedCommandExtensions
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             Encoding encoding,
             CancellationToken cancellationToken = default
-        )
-        {
-            return command.ExecuteBufferedAsync(encoding, encoding, cancellationToken);
-        }
+        ) => command.ExecuteBufferedAsync(encoding, encoding, cancellationToken);
 
         /// <summary>
         /// Executes the command asynchronously with buffering.
@@ -127,9 +121,6 @@ public static class BufferedCommandExtensions
         /// </remarks>
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             CancellationToken cancellationToken = default
-        )
-        {
-            return command.ExecuteBufferedAsync(Encoding.Default, cancellationToken);
-        }
+        ) => command.ExecuteBufferedAsync(Encoding.Default, cancellationToken);
     }
 }

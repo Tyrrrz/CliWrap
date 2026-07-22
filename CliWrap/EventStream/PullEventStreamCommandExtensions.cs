@@ -39,7 +39,7 @@ public static partial class EventStreamCommandExtensions
                     async (line, innerCancellationToken) =>
                     {
                         await channel
-                            .PublishAsync(
+                            .TransmitAsync(
                                 new StandardOutputCommandEvent(line),
                                 innerCancellationToken
                             )
@@ -55,7 +55,7 @@ public static partial class EventStreamCommandExtensions
                     async (line, innerCancellationToken) =>
                     {
                         await channel
-                            .PublishAsync(
+                            .TransmitAsync(
                                 new StandardErrorCommandEvent(line),
                                 innerCancellationToken
                             )
@@ -65,23 +65,19 @@ public static partial class EventStreamCommandExtensions
                 )
             );
 
-            var commandWithPipes = command
+            // Execute the command with the pipes extended to report events to the channel
+            var commandTask = command
                 .WithStandardOutputPipe(stdOutPipe)
-                .WithStandardErrorPipe(stdErrPipe);
-
-            var commandTask = commandWithPipes.ExecuteAsync(
-                forcefulCancellationToken,
-                gracefulCancellationToken
-            );
+                .WithStandardErrorPipe(stdErrPipe)
+                .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
 
             yield return new StartedCommandEvent(commandTask.ProcessId);
 
-            var completionTask = commandTask
+            // Close the channel when the command finishes executing, so that the consumer can stop listening
+            var channelTask = commandTask
                 .Task.ContinueWith(
                     async _ =>
-                        await channel
-                            .ReportCompletionAsync(forcefulCancellationToken)
-                            .ConfigureAwait(false),
+                        await channel.CloseAsync(forcefulCancellationToken).ConfigureAwait(false),
                     // Run the continuation even if the parent task failed
                     TaskContinuationOptions.None
                 )
@@ -102,12 +98,12 @@ public static partial class EventStreamCommandExtensions
             {
                 try
                 {
-                    await completionTask.ConfigureAwait(false);
+                    await channelTask.ConfigureAwait(false);
                 }
-                catch (Exception ex)
-                    when (ex is OperationCanceledException or ObjectDisposedException)
+                catch (OperationCanceledException)
                 {
-                    // Channel has already closed
+                    // Ignore the internal cancellation exception here as we will throw
+                    // a more meaningful one by awaiting the command task below.
                 }
             }
 
@@ -125,15 +121,13 @@ public static partial class EventStreamCommandExtensions
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
             CancellationToken cancellationToken = default
-        )
-        {
-            return command.ListenAsync(
+        ) =>
+            command.ListenAsync(
                 standardOutputEncoding,
                 standardErrorEncoding,
                 cancellationToken,
                 CancellationToken.None
             );
-        }
 
         /// <summary>
         /// Executes the command as a pull-based event stream.
@@ -144,10 +138,7 @@ public static partial class EventStreamCommandExtensions
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             Encoding encoding,
             CancellationToken cancellationToken = default
-        )
-        {
-            return command.ListenAsync(encoding, encoding, cancellationToken);
-        }
+        ) => command.ListenAsync(encoding, encoding, cancellationToken);
 
         /// <summary>
         /// Executes the command as a pull-based event stream.
@@ -158,9 +149,6 @@ public static partial class EventStreamCommandExtensions
         /// </remarks>
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             CancellationToken cancellationToken = default
-        )
-        {
-            return command.ListenAsync(Encoding.Default, cancellationToken);
-        }
+        ) => command.ListenAsync(Encoding.Default, cancellationToken);
     }
 }

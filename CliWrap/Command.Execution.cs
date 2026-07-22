@@ -159,13 +159,16 @@ public partial class Command
                     .WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
-            // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
-            // This may happen if the process terminated before the pipe has been exhausted.
-            // It's not an exceptional situation because the process may not need the entire
-            // stdin to complete successfully.
-            // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
-            // We also can't rely on process.HasExited here because of potential race conditions.
-            catch (IOException ex) when (ex.GetType() == typeof(IOException)) { }
+            catch (IOException ex)
+                // Don't catch derived exceptions, such as FileNotFoundException, to avoid false positives.
+                // We also can't rely on process.HasExited here because of potential race conditions.
+                when (ex.GetType() == typeof(IOException))
+            {
+                // Expect IOException: "The pipe has been ended" (Windows) or "Broken pipe" (Unix).
+                // This may happen if the process terminated before the pipe has been exhausted.
+                // It's not an exceptional situation because the process may not need the entire
+                // stdin to complete successfully.
+            }
         }
     }
 
@@ -250,39 +253,37 @@ public partial class Command
         catch (OperationCanceledException ex) when (ex.CancellationToken == waitTimeoutCts.Token)
         {
             // We tried to kill the process, but it didn't exit within the allotted timeout, meaning
-            // that the termination attempt failed. This should never happen, but inform the user if it does.
+            // that the termination attempt failed. This should never happen, but it's not impossible.
             throw new TimeoutException(
                 $"Failed to terminate the underlying process ({process.Name}#{process.Id}) within the allotted timeout.",
                 ex
             );
         }
-        catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
-        {
-            // This clause will be hit both when stdin piping is canceled due to process exit
-            // and when it aborts due to an actual cancellation request (because of the link).
-            // Swallow this exception because it was triggered by an internal cancellation,
-            // we will throw a more meaningful one later if needed.
-        }
         catch (OperationCanceledException ex)
-            when (ex.CancellationToken == forcefulCancellationToken
-                || ex.CancellationToken == gracefulCancellationToken
+            when (ex.CancellationToken == stdInCts.Token
+                && !forcefulCancellationToken.IsCancellationRequested
             )
         {
-            // This clause should never hit due to the registrations above, but just in case it does,
-            // swallow the exception here to throw a more meaningful one later.
+            // The process has exited on its own, but the stdin pipe was still trying to write data to it.
+            // This is an internal cancellation that is not meant to be surfaced to the user.
         }
-
-        // Check if the process exited after forceful cancellation
-        if (forcefulCancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException ex)
+            // The exception's own token may be the stdin cancellation token, because it's linked,
+            // so we need to check the forceful cancellation token directly.
+            when (forcefulCancellationToken.IsCancellationRequested)
         {
+            // We tried to kill the process and it exited. Rethrow a more meaningful exception.
             throw new OperationCanceledException(
                 "Command execution canceled. "
                     + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
+                ex,
                 forcefulCancellationToken
             );
         }
 
-        // Check if the process exited after graceful cancellation
+        // The process has exited on its own, but it might have done so because we requested a graceful cancellation.
+        // Check the token manually because we don't pass it to any of the other methods and won't get the exception
+        // propagated automatically.
         if (gracefulCancellationToken.IsCancellationRequested)
         {
             throw new OperationCanceledException(
