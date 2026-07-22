@@ -270,24 +270,21 @@ public partial class Command
                 ex
             );
         }
-        catch (OperationCanceledException ex)
-            when (ex.CancellationToken == stdInCts.Token
-                && !forcefulCancellationToken.IsCancellationRequested
-            )
+        catch (OperationCanceledException)
         {
-            // The process has exited on its own, but the stdin pipe was still trying to write data to it.
-            // This is an internal cancellation that is not meant to be surfaced to the user.
+            // The rest of cancellation exceptions bubble up here as a result of either user-requested
+            // cancellation, or due to other internal cancellations.
+            // We only care about the former, but it's way easier and more reliable to handle them separately
+            // so we do that below.
         }
-        catch (OperationCanceledException ex)
-            // The exception's own token may be the stdin cancellation token, because it's linked,
-            // so we need to check the forceful cancellation token directly.
-            when (forcefulCancellationToken.IsCancellationRequested)
+
+        // The process may exit after the cancellation request but before an awaited operation
+        // observes it. In that case, cancellation still takes precedence over exit-code validation.
+        if (forcefulCancellationToken.IsCancellationRequested)
         {
-            // We tried to kill the process and it exited. Rethrow a more meaningful exception.
             throw new OperationCanceledException(
                 "Command execution canceled. "
                     + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
-                ex,
                 forcefulCancellationToken
             );
         }
