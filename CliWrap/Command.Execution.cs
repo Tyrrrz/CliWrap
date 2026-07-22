@@ -270,12 +270,18 @@ public partial class Command
                 ex
             );
         }
-        catch (OperationCanceledException) when (forcefulCancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException)
+            // Not checking ex.CancellationToken here because it will always be stdInCts.Token
+            // at this point due to the link.
+            when (forcefulCancellationToken.IsCancellationRequested)
         {
             // The operation was cancelled forcefully by the user. Suppress this exception as we'll throw
             // a more meaningful one later.
         }
-        catch (OperationCanceledException) when (gracefulCancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException)
+            // Not checking ex.CancellationToken here because it will always be stdInCts.Token
+            // at this point due to the link.
+            when (gracefulCancellationToken.IsCancellationRequested)
         {
             // The operation was cancelled gracefully by the user. Suppress this exception as we'll throw
             // a more meaningful one later.
