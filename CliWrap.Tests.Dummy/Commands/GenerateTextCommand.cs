@@ -25,13 +25,25 @@ public partial class GenerateTextCommand : ICommand
     [CommandOption("lines")]
     public int LinesCount { get; set; } = 1;
 
+    private int LineLength => LinesCount > 0 ? Length / LinesCount : 0;
+
     public async ValueTask ExecuteAsync(IConsole console)
     {
+        if (LineLength <= 0)
+            return;
+
         for (var line = 0; line < LinesCount; line++)
         {
-            var buffer = new StringBuilder(Length);
+            var currentLineLength =
+                line < LinesCount - 1
+                    ? LineLength
+                    // Place any remaining characters in the last line so that the total output length
+                    // is always equal to Length.
+                    : Length - LineLength * line;
 
-            for (var i = 0; i < Length; i++)
+            var buffer = new StringBuilder(currentLineLength);
+
+            for (var i = 0; i < currentLineLength; i++)
             {
                 buffer.Append(_allowedChars[_random.Next(0, _allowedChars.Length)]);
             }

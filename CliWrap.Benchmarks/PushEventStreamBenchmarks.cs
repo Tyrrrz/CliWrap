@@ -15,7 +15,7 @@ public class PushEventStreamBenchmarks
         var counter = 0;
 
         await Cli.Wrap(Tests.Dummy.Program.FilePath)
-            .WithArguments(["generate", "text", "--lines", "1000"])
+            .WithArguments(["generate", "text", "--length", "100000000", "--lines", "1000"])
             .Observe()
             .ForEachAsync(cmdEvent =>
             {

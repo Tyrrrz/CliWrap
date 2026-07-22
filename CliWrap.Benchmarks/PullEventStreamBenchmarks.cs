@@ -15,7 +15,7 @@ public class PullEventStreamBenchmarks
 
         await foreach (
             var cmdEvent in Cli.Wrap(Tests.Dummy.Program.FilePath)
-                .WithArguments(["generate", "text", "--lines", "1000"])
+                .WithArguments(["generate", "text", "--length", "100000000", "--lines", "1000"])
                 .ListenAsync()
         )
         {
@@ -40,7 +40,7 @@ public class PullEventStreamBenchmarks
 
         var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX.GetDualAsyncEnumerable(
             Tests.Dummy.Program.FilePath,
-            arguments: "generate text --lines 1000"
+            arguments: "generate text --length 100000000 --lines 1000"
         );
 
         var consumeStdOutTask = Task.Run(async () =>

@@ -276,7 +276,7 @@ public class PipingSpecs
         var stdOutLinesCount = 0;
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "100"])
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "1000"])
             | (
                 async line =>
                 {
@@ -289,7 +289,7 @@ public class PipingSpecs
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
+        stdOutLinesCount.Should().Be(1000);
     }
 
     [Fact(Timeout = 15000)]
@@ -299,7 +299,7 @@ public class PipingSpecs
         var stdOutLinesCount = 0;
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "100"])
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "1000"])
             | (
                 async (_, cancellationToken) =>
                 {
@@ -312,7 +312,7 @@ public class PipingSpecs
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
+        stdOutLinesCount.Should().Be(1000);
     }
 
     [Fact(Timeout = 15000)]
@@ -322,14 +322,14 @@ public class PipingSpecs
         var stdOutLinesCount = 0;
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "100"])
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "1000"])
             | (_ => stdOutLinesCount++);
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
+        stdOutLinesCount.Should().Be(1000);
     }
 
     [Fact(Timeout = 15000)]
@@ -393,15 +393,15 @@ public class PipingSpecs
 
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(["generate text", "--target", "all", "--lines", "100"])
+                .WithArguments(["generate text", "--target", "all", "--lines", "1000"])
             | (HandleStdOutAsync, HandleStdErrAsync);
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
-        stdErrLinesCount.Should().Be(100);
+        stdOutLinesCount.Should().Be(1000);
+        stdErrLinesCount.Should().Be(1000);
     }
 
     [Fact(Timeout = 15000)]
@@ -425,15 +425,15 @@ public class PipingSpecs
 
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(["generate text", "--target", "all", "--lines", "100"])
+                .WithArguments(["generate text", "--target", "all", "--lines", "1000"])
             | (HandleStdOutAsync, HandleStdErrAsync);
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
-        stdErrLinesCount.Should().Be(100);
+        stdOutLinesCount.Should().Be(1000);
+        stdErrLinesCount.Should().Be(1000);
     }
 
     [Fact(Timeout = 15000)]
@@ -445,15 +445,15 @@ public class PipingSpecs
 
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(["generate text", "--target", "all", "--lines", "100"])
+                .WithArguments(["generate text", "--target", "all", "--lines", "1000"])
             | (_ => stdOutLinesCount++, _ => stdErrLinesCount++);
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        stdOutLinesCount.Should().Be(100);
-        stdErrLinesCount.Should().Be(100);
+        stdOutLinesCount.Should().Be(1000);
+        stdErrLinesCount.Should().Be(1000);
     }
 
     [Fact(Timeout = 15000)]
@@ -608,7 +608,7 @@ public class PipingSpecs
         var delegateLines = new List<string>();
 
         var cmd =
-            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "100"])
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate text", "--lines", "1000"])
             | delegateLines.Add;
 
         // Act

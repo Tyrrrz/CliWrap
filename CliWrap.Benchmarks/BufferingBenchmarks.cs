@@ -14,7 +14,7 @@ public class BufferingBenchmarks
     public async Task<(string, string)> CliWrap()
     {
         var result = await Cli.Wrap(Tests.Dummy.Program.FilePath)
-            .WithArguments(["generate", "text", "--lines", "1000"])
+            .WithArguments(["generate", "text", "--length", "100000000", "--lines", "1000"])
             .ExecuteBufferedAsync();
 
         return (result.StandardOutput, result.StandardError);
@@ -25,7 +25,7 @@ public class BufferingBenchmarks
     {
         var result = await ProcessEx.RunAsync(
             Tests.Dummy.Program.FilePath,
-            "generate text --lines 1000"
+            "generate text --length 100000000 --lines 1000"
         );
 
         return (
@@ -40,7 +40,7 @@ public class BufferingBenchmarks
         var result = await Medallion
             .Shell.Shell.Default.Run(
                 Tests.Dummy.Program.FilePath,
-                ["generate", "text", "--lines", "1000"]
+                ["generate", "text", "--length", "100000000", "--lines", "1000"]
             )
             .Task;
 
@@ -52,7 +52,7 @@ public class BufferingBenchmarks
     {
         var (_, stdOutStream, stdErrStream) = Cysharp.Diagnostics.ProcessX.GetDualAsyncEnumerable(
             Tests.Dummy.Program.FilePath,
-            arguments: "generate text --lines 1000"
+            arguments: "generate text --length 100000000 --lines 1000"
         );
 
         var stdOutTask = stdOutStream.ToTask();
