@@ -75,10 +75,10 @@ public static partial class EventStreamCommandExtensions
                         }
                     });
 
-                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
-
                 // Since the command task is detached, we need to observe its exception to avoid unobserved task exceptions
                 _ = commandTask.Task.ObserveException();
+
+                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
                 return Disposable.Null;
             });
