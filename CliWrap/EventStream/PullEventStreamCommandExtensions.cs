@@ -69,22 +69,25 @@ public static partial class EventStreamCommandExtensions
             var commandTask = command
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe)
-                .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
-
-            yield return new StartedCommandEvent(commandTask.ProcessId);
-
-            // Close the channel when the command finishes executing, so that the consumer can stop listening
-            var channelTask = commandTask
-                .Task.ContinueWith(
-                    async _ =>
-                        await channel.CloseAsync(forcefulCancellationToken).ConfigureAwait(false),
-                    // Run the continuation even if the parent task failed
-                    TaskContinuationOptions.None
-                )
-                .Unwrap();
+                .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
+                .Bind(async task =>
+                {
+                    try
+                    {
+                        return await task.ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        // Close the channel when the command finishes executing,
+                        // so that the consumer can stop listening.
+                        await channel.CloseAsync(forcefulCancellationToken).ConfigureAwait(false);
+                    }
+                });
 
             try
             {
+                yield return new StartedCommandEvent(commandTask.ProcessId);
+
                 await foreach (
                     var cmdEvent in channel
                         .ReceiveAsync(forcefulCancellationToken)
@@ -93,25 +96,21 @@ public static partial class EventStreamCommandExtensions
                 {
                     yield return cmdEvent;
                 }
+
+                var result = await commandTask.ConfigureAwait(false);
+
+                yield return new ExitedCommandEvent(result.ExitCode);
             }
             finally
             {
-                try
-                {
-                    // Await the channel task to ensure that the channel is closed and all events are flushed
-                    // before the iterator completes and the channel (along with its semaphore) is disposed.
-                    // Otherwise, this task may produce an unobserved exception.
-                    await channelTask.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    // Ignore the internal cancellation exception here as we will throw
-                    // a more meaningful one by awaiting the command task below.
-                }
+                // The code after the yield return statements may not execute if the consumer
+                // breaks out of the loop early or cancels it.
+                // Make sure the command task is awaited to completion no matter what,
+                // so that it doesn't produce unobserved task exceptions.
+                // Note: double-awaiting is safe because tasks are idempotent.
+                // https://github.com/Tyrrrz/CliWrap/issues/336
+                await commandTask.ConfigureAwait(false);
             }
-
-            var result = await commandTask.ConfigureAwait(false);
-            yield return new ExitedCommandEvent(result.ExitCode);
         }
 
         /// <summary>
