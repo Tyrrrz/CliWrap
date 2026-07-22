@@ -110,7 +110,7 @@ public static partial class EventStreamCommandExtensions
                 )
             );
 
-            // Execute the command with the pipes extended to report events to the channel
+            // Execute the command with the pipes extended to transmit events to the channel
             var commandTask = command
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe)
