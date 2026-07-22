@@ -98,6 +98,9 @@ public static partial class EventStreamCommandExtensions
             {
                 try
                 {
+                    // Await the channel task to ensure that the channel is closed and all events are flushed
+                    // before the iterator completes and the channel (along with its semaphore) is disposed.
+                    // Otherwise, this task may produce an unobserved exception.
                     await channelTask.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
