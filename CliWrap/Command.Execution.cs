@@ -270,16 +270,22 @@ public partial class Command
                 ex
             );
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (forcefulCancellationToken.IsCancellationRequested)
         {
-            // The rest of cancellation exceptions bubble up here as a result of either user-requested
-            // cancellation, or due to other internal cancellations.
-            // We only care about the former, but it's way easier and more reliable to handle them separately
-            // so we do that below.
+            // The operation was cancelled forcefully by the user. Suppress this exception as we'll throw
+            // a more meaningful one later.
+        }
+        catch (OperationCanceledException) when (gracefulCancellationToken.IsCancellationRequested)
+        {
+            // The operation was cancelled gracefully by the user. Suppress this exception as we'll throw
+            // a more meaningful one later.
+        }
+        catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
+        {
+            // The process exited before consuming all stdin, ignore this internal cancellation
         }
 
-        // The process may exit after the cancellation request but before an awaited operation
-        // observes it. In that case, cancellation still takes precedence over exit-code validation.
+        // Handle forceful cancellation
         if (forcefulCancellationToken.IsCancellationRequested)
         {
             throw new OperationCanceledException(
@@ -289,9 +295,7 @@ public partial class Command
             );
         }
 
-        // The process has exited on its own, but it might have done so because we requested a graceful cancellation.
-        // Check the token manually because we don't pass it to any of the other methods and won't get the exception
-        // propagated automatically.
+        // Handle graceful cancellation
         if (gracefulCancellationToken.IsCancellationRequested)
         {
             throw new OperationCanceledException(
