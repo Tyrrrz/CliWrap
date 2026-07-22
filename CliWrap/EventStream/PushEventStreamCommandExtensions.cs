@@ -51,11 +51,7 @@ public static partial class EventStreamCommandExtensions
                 var commandTask = command
                     .WithStandardOutputPipe(stdOutPipe)
                     .WithStandardErrorPipe(stdErrPipe)
-                    .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
-
-                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
-
-                _ = commandTask
+                    .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
                     .Bind(async task =>
                     {
                         try
@@ -64,19 +60,25 @@ public static partial class EventStreamCommandExtensions
 
                             observer.OnNext(new ExitedCommandEvent(result.ExitCode));
                             observer.OnCompleted();
+
+                            return result;
                         }
                         catch (OperationCanceledException) when (task.IsCanceled)
                         {
                             observer.OnError(new TaskCanceledException(task));
+                            throw;
                         }
                         catch (Exception ex)
                         {
                             observer.OnError(ex);
+                            throw;
                         }
+                    });
 
-                        return true;
-                    })
-                    .Task.ObserveException();
+                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
+
+                // Since the command task is detached, we need to observe its exception to avoid unobserved task exceptions
+                _ = commandTask.Task.ObserveException();
 
                 return Disposable.Null;
             });
