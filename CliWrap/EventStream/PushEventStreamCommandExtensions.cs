@@ -2,8 +2,8 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CliWrap.Utils.Extensions;
 using PowerKit;
+using PowerKit.Extensions;
 
 namespace CliWrap.EventStream;
 
