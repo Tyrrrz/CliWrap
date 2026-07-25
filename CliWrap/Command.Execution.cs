@@ -245,12 +245,23 @@ public partial class Command
             PipeStandardErrorAsync(process, forcefulCancellationToken)
         );
 
+        // Start waiting for the process to exit
+        var waitTask = process.WaitUntilExitAsync(waitTimeoutCts.Token);
+
         try
         {
-            // Wait until the process exits normally or gets killed.
+            // Wait until the process exits normally or gets killed, OR until piping completes/fails.
             // The timeout is started after the execution is forcefully canceled and ensures
             // that we don't wait forever in case the attempt to kill the process failed.
-            await process.WaitUntilExitAsync(waitTimeoutCts.Token).ConfigureAwait(false);
+            await Task.WhenAny(waitTask, pipingTask).ConfigureAwait(false);
+
+            // If piping failed before the process exited, kill the process to avoid
+            // leaving it running in the background.
+            if (!waitTask.IsCompleted && !pipingTask.IsCompletedSuccessfully)
+                process.Kill();
+
+            // Wait for the process to fully exit
+            await waitTask.ConfigureAwait(false);
 
             // Send the cancellation signal to the stdin pipe since the process has exited
             // and won't need it anymore. This should prevent it from hanging in some edge cases.

@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using CliWrap.Buffered;
 using FluentAssertions;
 using PowerKit;
+using PowerKit.Extensions;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -767,5 +769,26 @@ public class PipingSpecs
 
         // Act & assert
         await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_the_underlying_process_is_killed_if_a_pipe_throws()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["sleep", "00:00:20"])
+            .WithStandardOutputPipe(
+                PipeTarget.Create((_, _) => throw new InvalidOperationException("Pipe error"))
+            );
+
+        // Act
+        var task = cmd.ExecuteAsync();
+        var act = async () => await task;
+
+        // Assert: the exception from the pipe propagates
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Pipe error");
+
+        // Assert: the process is not left running in the background
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 }
