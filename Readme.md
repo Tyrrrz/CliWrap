@@ -92,10 +92,6 @@ var result = await Cli.Wrap("path/to/exe")
 The code above spawns a child process with the configured command-line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other relevant information.
 
-> [!NOTE]
-> **CliWrap** takes full ownership of the process it spawns and guarantees that it is terminated before the execution method returns or throws — whether the command completed normally, was canceled, or failed with an exception.
-> This means you never need to manually track or clean up the process afterwards.
-
 > [!WARNING]
 > **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 > You can [override this behavior](#withvalidation) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
@@ -153,6 +149,18 @@ var result = await Cli.Wrap("path/to/exe")
 > Be mindful when using `ExecuteBufferedAsync()`.
 > Programs can write arbitrary data (including binary) to the output and error streams, and storing it in-memory may be impractical.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
+
+Whichever execution model you use, **CliWrap** takes full ownership of the process it spawns and guarantees that it is terminated before the execution method returns or throws — whether the command completed normally, was canceled, or failed with an exception.
+This means you never need to manually track or clean up the process afterwards, even in scenarios where something goes wrong midway:
+
+```csharp
+// The output pipe throws partway through the execution.
+// Regardless, the underlying process is guaranteed to be
+// terminated by the time `ExecuteAsync()` rethrows the exception.
+await Cli.Wrap("path/to/exe")
+    .WithStandardOutputPipe(PipeTarget.Create((_, _) => throw new Exception("Oops!")))
+    .ExecuteAsync();
+```
 
 ### Command configuration
 
