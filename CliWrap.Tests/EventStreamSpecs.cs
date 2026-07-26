@@ -127,14 +127,14 @@ public class EventStreamSpecs
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
-        // Act: subscribe but abandon the observable immediately after the first event
-        var startedEvent = (StartedCommandEvent)await cmd.Observe().FirstAsync();
+        // Act
+        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>.FirstAsync();
 
         // Give the process a moment to get terminated, since disposing the subscription
         // triggers the kill asynchronously
         await Task.Delay(2000);
 
-        // Assert: the process is not left running in the background
+        // Assert
         Process.IsRunning(startedEvent.ProcessId).Should().BeFalse();
     }
 
