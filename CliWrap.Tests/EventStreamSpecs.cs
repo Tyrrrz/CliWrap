@@ -39,7 +39,7 @@ public class EventStreamSpecs
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
-        // Act: start listening but break out immediately after the first event
+        // Act
         var processId = 0;
         await foreach (var cmdEvent in cmd.ListenAsync())
         {
@@ -49,7 +49,7 @@ public class EventStreamSpecs
             break;
         }
 
-        // Assert: the process is not left running in the background
+        // Assert
         Process.IsRunning(processId).Should().BeFalse();
     }
 
