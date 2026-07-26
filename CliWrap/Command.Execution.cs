@@ -236,9 +236,10 @@ public partial class Command
 
         // The process may exit without fully consuming the data from the stdin pipe, in which
         // case we need a separate cancellation signal that will abort the piping operation.
-        using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(
-            forcefulCancellationOrPanicCts.Token
-        );
+        // This source is linked to the forceful termination flow (forceful cancellation or panic)
+        // and is additionally triggered when the process exits.
+        using var forcefulCancellationOrPanicOrExitCts =
+            CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationOrPanicCts.Token);
 
         // Kill the process when forceful termination is requested
         await using var _2 = forcefulCancellationOrPanicCts
@@ -250,7 +251,7 @@ public partial class Command
 
         // Start piping streams in the background
         var pipingTask = Task.WhenAll(
-            PipeStandardInputAsync(process, stdInCts.Token),
+            PipeStandardInputAsync(process, forcefulCancellationOrPanicOrExitCts.Token),
             // Output pipe may outlive the process, so don't cancel it on process exit
             PipeStandardOutputAsync(process, forcefulCancellationToken),
             // Error pipe may outlive the process, so don't cancel it on process exit
@@ -279,7 +280,7 @@ public partial class Command
 
             // Send the cancellation signal to the stdin pipe since the process has exited
             // and won't need it anymore. This should prevent it from hanging in some edge cases.
-            await stdInCts.CancelAsync();
+            await forcefulCancellationOrPanicOrExitCts.CancelAsync();
 
             // Wait until piping is done and propagate exceptions
             await pipingTask.ConfigureAwait(false);
@@ -294,7 +295,7 @@ public partial class Command
             );
         }
         catch (OperationCanceledException)
-            // Not checking ex.CancellationToken here because it will always be stdInCts.Token
+            // Not checking ex.CancellationToken here because it will always be forcefulCancellationOrPanicOrExitCts.Token
             // at this point due to the link.
             when (forcefulCancellationToken.IsCancellationRequested)
         {
@@ -302,14 +303,15 @@ public partial class Command
             // a more meaningful one later.
         }
         catch (OperationCanceledException)
-            // Not checking ex.CancellationToken here because it will always be stdInCts.Token
+            // Not checking ex.CancellationToken here because it will always be forcefulCancellationOrPanicOrExitCts.Token
             // at this point due to the link.
             when (gracefulCancellationToken.IsCancellationRequested)
         {
             // The operation was cancelled gracefully by the user. Suppress this exception as we'll throw
             // a more meaningful one later.
         }
-        catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == forcefulCancellationOrPanicOrExitCts.Token)
         {
             // The process exited before consuming all stdin, ignore this internal cancellation
         }

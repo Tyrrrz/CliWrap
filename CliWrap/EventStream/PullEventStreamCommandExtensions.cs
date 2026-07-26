@@ -38,33 +38,19 @@ public static partial class EventStreamCommandExtensions
             using var forcefulCancellationOrAbandonCts =
                 CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken);
 
+            // The delegate's cancellation token is derived from the token passed to ExecuteAsync
+            // below (forcefulCancellationOrAbandonCts.Token), so abandoning the iterator cancels
+            // the in-flight transmit as well. Any resulting cancellation is handled by ExecuteAsync.
             var stdOutPipe = PipeTarget.Merge(
                 command.StandardOutputPipe,
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
-                    {
-                        try
-                        {
-                            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                                innerCancellationToken,
-                                forcefulCancellationOrAbandonCts.Token
-                            );
-
-                            await channel
-                                .TransmitAsync(
-                                    new StandardOutputCommandEvent(line),
-                                    linkedCts.Token
-                                )
-                                .ConfigureAwait(false);
-                        }
-                        catch (Exception ex)
-                            when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && forcefulCancellationOrAbandonCts.IsCancellationRequested
+                        await channel
+                            .TransmitAsync(
+                                new StandardOutputCommandEvent(line),
+                                innerCancellationToken
                             )
-                        {
-                            // The iterator was abandoned during transmit, ignore
-                        }
-                    },
+                            .ConfigureAwait(false),
                     standardOutputEncoding
                 )
             );
@@ -73,26 +59,12 @@ public static partial class EventStreamCommandExtensions
                 command.StandardErrorPipe,
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
-                    {
-                        try
-                        {
-                            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                                innerCancellationToken,
-                                forcefulCancellationOrAbandonCts.Token
-                            );
-
-                            await channel
-                                .TransmitAsync(new StandardErrorCommandEvent(line), linkedCts.Token)
-                                .ConfigureAwait(false);
-                        }
-                        catch (Exception ex)
-                            when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && forcefulCancellationOrAbandonCts.IsCancellationRequested
+                        await channel
+                            .TransmitAsync(
+                                new StandardErrorCommandEvent(line),
+                                innerCancellationToken
                             )
-                        {
-                            // The iterator was abandoned during transmit, ignore
-                        }
-                    },
+                            .ConfigureAwait(false),
                     standardErrorEncoding
                 )
             );
@@ -154,11 +126,19 @@ public static partial class EventStreamCommandExtensions
                 // terminates the underlying process and stops the pipes.
                 await forcefulCancellationOrAbandonCts.CancelAsync();
 
-                // Wait for the command to finish executing before returning, observing any
-                // exception so it doesn't get reported to the finalizer thread and crash the
-                // process. This satisfies the CliWrap convention that the process must be fully
-                // terminated by the time the method returns.
-                await commandTask.Task.ObserveException().ConfigureAwait(false);
+                // Wait for the command to finish executing before returning, so that the process
+                // is fully terminated by the time the method returns, per the CliWrap convention.
+                // Any exception is swallowed here (rather than surfaced) because on the abandon path
+                // the command task faults with the expected forceful-cancellation exception, and on
+                // the normal path the task was already awaited above.
+                try
+                {
+                    await commandTask.ConfigureAwait(false);
+                }
+                catch
+                {
+                    // The process has been terminated; the exception is expected here
+                }
             }
         }
 
