@@ -113,8 +113,16 @@ public static partial class EventStreamCommandExtensions
                 // On normal completion the process has already exited, so this is a no-op.
                 return Disposable.Create(() =>
                 {
-                    forcefulCancellationOrAbandonCts.Cancel();
-                    forcefulCancellationOrAbandonCts.Dispose();
+                    try
+                    {
+                        forcefulCancellationOrAbandonCts.Cancel();
+                        forcefulCancellationOrAbandonCts.Dispose();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // The CTS may have already been disposed if Dispose() was called multiple times.
+                        // This is legal for IDisposable, so ignore it.
+                    }
                 });
             });
 

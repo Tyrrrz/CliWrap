@@ -773,7 +773,6 @@ Unlike the pull-based event stream, this execution model does not involve any ba
 
 > [!NOTE]
 > Disposing the subscription (for example, by using an operator such as `Take(...)` or `FirstAsync(...)`, or by disposing it explicitly) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the observable is abandoned.
-> If you want to stop consuming events without killing the process, pass a `CancellationToken` to `Observe()` and cancel it instead.
 
 #### Combining execution models with custom pipes
 

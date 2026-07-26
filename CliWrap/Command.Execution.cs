@@ -250,30 +250,38 @@ public partial class Command
             .ToAsyncDisposable();
 
         // Start piping streams in the background
-        var pipingTask = Task.WhenAll(
-            PipeStandardInputAsync(process, forcefulCancellationOrPanicOrExitCts.Token),
-            // Output pipe may outlive the process, so don't cancel it on process exit
-            PipeStandardOutputAsync(process, forcefulCancellationToken),
-            // Error pipe may outlive the process, so don't cancel it on process exit
-            PipeStandardErrorAsync(process, forcefulCancellationToken)
+        var stdinPipeTask = PipeStandardInputAsync(
+            process,
+            forcefulCancellationOrPanicOrExitCts.Token
         );
+        // Output pipe may outlive the process, so don't cancel it on process exit
+        var stdoutPipeTask = PipeStandardOutputAsync(process, forcefulCancellationToken);
+        // Error pipe may outlive the process, so don't cancel it on process exit
+        var stderrPipeTask = PipeStandardErrorAsync(process, forcefulCancellationToken);
 
         // Start waiting for the process to exit
         var waitTask = process.WaitUntilExitAsync(waitTimeoutCts.Token);
 
         try
         {
-            // Wait until the process exits normally or gets killed, OR until piping completes/fails.
-            // The timeout is started after the execution is forcefully canceled and ensures
-            // that we don't wait forever in case the attempt to kill the process failed.
-            await Task.WhenAny(waitTask, pipingTask).ConfigureAwait(false);
+            // Wait until the process exits, OR until any pipe completes (success or failure).
+            // We need to monitor individual pipe tasks to detect pipe failure early — if we waited
+            // for Task.WhenAll, a single faulted pipe would block until all pipes complete, which
+            // could deadlock if the process is blocked writing to the faulted pipe's buffer.
+            await Task.WhenAny(waitTask, stdinPipeTask, stdoutPipeTask, stderrPipeTask)
+                .ConfigureAwait(false);
 
-            // If piping failed before the process exited, request forceful termination.
+            // If any pipe failed before the process exited, request forceful termination.
             // This prevents the deadlock where the process is blocked trying to write to a
             // pipe that nobody is reading anymore, and — unlike a bare Kill() — it routes
             // through the forceful-termination flow, which awaits the exit with a timeout.
-            if (!waitTask.IsCompleted && !pipingTask.IsCompletedSuccessfully)
+            if (
+                !waitTask.IsCompleted
+                && (stdinPipeTask.IsFaulted || stdoutPipeTask.IsFaulted || stderrPipeTask.IsFaulted)
+            )
+            {
                 await forcefulCancellationOrPanicCts.CancelAsync();
+            }
 
             // Wait for the process to fully exit
             await waitTask.ConfigureAwait(false);
@@ -282,8 +290,8 @@ public partial class Command
             // and won't need it anymore. This should prevent it from hanging in some edge cases.
             await forcefulCancellationOrPanicOrExitCts.CancelAsync();
 
-            // Wait until piping is done and propagate exceptions
-            await pipingTask.ConfigureAwait(false);
+            // Wait until all piping is done and propagate exceptions
+            await Task.WhenAll(stdinPipeTask, stdoutPipeTask, stderrPipeTask).ConfigureAwait(false);
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == waitTimeoutCts.Token)
         {
