@@ -92,6 +92,10 @@ var result = await Cli.Wrap("path/to/exe")
 The code above spawns a child process with the configured command-line arguments and working directory, and then asynchronously waits for it to exit.
 After the task has completed, it resolves to a `CommandResult` object that contains the process exit code and other relevant information.
 
+> [!NOTE]
+> **CliWrap** takes full ownership of the process it spawns and guarantees that it is terminated before the execution method returns or throws — whether the command completed normally, was canceled, or failed with an exception.
+> This means you never need to manually track or clean up the process afterwards.
+
 > [!WARNING]
 > **CliWrap** will throw an exception if the underlying process returns a non-zero exit code, as it usually indicates an error.
 > You can [override this behavior](#withvalidation) by disabling result validation using `WithValidation(CommandResultValidation.None)`.
@@ -717,6 +721,10 @@ When using this execution model, back pressure is facilitated by locking the pip
 > [!NOTE]
 > Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
+> [!NOTE]
+> Breaking out of the `await foreach` loop (or throwing inside it) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the iterator is abandoned.
+> If you want to stop consuming events without killing the process, pass a `CancellationToken` to `ListenAsync()` and cancel it instead.
+
 #### Push-based event stream
 
 Similarly to the pull-based stream, you can also execute a command as a _push-based_ event stream instead:
@@ -864,18 +872,6 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 
 > [!NOTE]
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
-
-### Process ownership
-
-**CliWrap** takes full ownership of the process it spawns and guarantees that the process is always terminated before the execution method returns or throws.
-This applies to every execution model (`ExecuteAsync()`, `ExecuteBufferedAsync()`, `ListenAsync()`, `Observe()`) and to every exit path, whether the command completed normally, was canceled, threw an exception in a pipe, or encountered any other error.
-
-Because of this guarantee, you never need to manually track or clean up the process after the execution method completes.
-The only exception is a rare edge case where killing the process itself times out (which should never happen in practice), in which case a `TimeoutException` is thrown to indicate the failure.
-
-> [!NOTE]
-> When using `ListenAsync()`, breaking out of the `await foreach` loop also terminates the underlying process.
-> If you want to stop consuming events without killing the process, pass a `CancellationToken` to `ListenAsync()` and cancel it instead.
 
 ### Process information
 

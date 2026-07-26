@@ -215,23 +215,35 @@ public partial class Command
     {
         using var _ = process;
 
+        // CliWrap owns the process lifecycle and guarantees that the process is terminated before
+        // this method returns or throws. All forceful termination — whether requested by the user
+        // or triggered internally (for example, when a pipe fails) — is funneled through this
+        // single cancellation source, which is also linked to the user-provided forceful
+        // cancellation token. This ensures that every kill goes through the same flow: the process
+        // is killed and then awaited with a timeout.
+        using var forcefulCancellationCts = CancellationTokenSource.CreateLinkedTokenSource(
+            forcefulCancellationToken
+        );
+
         // Ideally, we don't want ExecuteAsync() to return or throw before the process actually
         // exits, but it's theoretically possible that an attempt to kill the process may fail,
         // so we need a fallback. This cancellation token is triggered after a timeout once
-        // forceful cancellation is requested, and ensures that we don't wait forever.
+        // forceful termination is requested, and ensures that we don't wait forever.
         using var waitTimeoutCts = new CancellationTokenSource();
-        await using var _1 = forcefulCancellationToken
-            .Register(() => waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3)))
+        await using var _1 = forcefulCancellationCts
+            .Token.Register(() => waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3)))
             .ToAsyncDisposable();
 
         // The process may exit without fully consuming the data from the stdin pipe, in which
         // case we need a separate cancellation signal that will abort the piping operation.
         using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(
-            forcefulCancellationToken
+            forcefulCancellationCts.Token
         );
 
-        // Bind user-provided cancellation tokens to the process
-        await using var _2 = forcefulCancellationToken.Register(process.Kill).ToAsyncDisposable();
+        // Kill the process when forceful termination is requested
+        await using var _2 = forcefulCancellationCts
+            .Token.Register(process.Kill)
+            .ToAsyncDisposable();
         await using var _3 = gracefulCancellationToken
             .Register(process.Interrupt)
             .ToAsyncDisposable();
@@ -255,11 +267,12 @@ public partial class Command
             // that we don't wait forever in case the attempt to kill the process failed.
             await Task.WhenAny(waitTask, pipingTask).ConfigureAwait(false);
 
-            // If piping failed before the process exited, kill it immediately.
-            // Without this, awaiting waitTask below would deadlock if the process is blocked
-            // trying to write to a pipe that nobody is reading anymore.
+            // If piping failed before the process exited, request forceful termination.
+            // This prevents the deadlock where the process is blocked trying to write to a
+            // pipe that nobody is reading anymore, and — unlike a bare Kill() — it routes
+            // through the forceful-termination flow, which awaits the exit with a timeout.
             if (!waitTask.IsCompleted && !pipingTask.IsCompletedSuccessfully)
-                process.Kill();
+                await forcefulCancellationCts.CancelAsync();
 
             // Wait for the process to fully exit
             await waitTask.ConfigureAwait(false);
@@ -302,11 +315,17 @@ public partial class Command
         }
         finally
         {
-            // CliWrap owns the process lifecycle and guarantees that the process is always
-            // terminated before this method returns or throws. Kill() is a no-op if the
-            // process has already exited.
+            // Guarantee that the process is terminated on any remaining exit path (for example,
+            // an unexpected exception). Route this through the forceful-termination source rather
+            // than calling Kill() directly, so that it goes through the same flow as user
+            // cancellation: the process is killed and then awaited with a timeout. Kill() is
+            // asynchronous at the system level, so returning right after it could otherwise leave
+            // the process still running.
             if (!waitTask.IsCompletedSuccessfully)
-                process.Kill();
+            {
+                await forcefulCancellationCts.CancelAsync();
+                await waitTask.ObserveException().ConfigureAwait(false);
+            }
         }
 
         // Handle forceful cancellation

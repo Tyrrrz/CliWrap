@@ -636,10 +636,14 @@ public class PipingSpecs
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
-        var act = async () => await cmd.ExecuteAsync();
+        var task = cmd.ExecuteAsync();
+        var act = async () => await task;
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
+
+        // Assert: the process is not left running in the background
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -652,10 +656,14 @@ public class PipingSpecs
             | PipeTarget.ToFile("non-existing-directory/file.txt");
 
         // Act
-        var act = async () => await cmd.ExecuteAsync();
+        var task = cmd.ExecuteAsync();
+        var act = async () => await task;
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
+
+        // Assert: the process is not left running in the background
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -769,26 +777,5 @@ public class PipingSpecs
 
         // Act & assert
         await cmd.ExecuteAsync();
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_the_underlying_process_is_killed_if_a_pipe_throws()
-    {
-        // Arrange
-        var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(["sleep", "00:00:20"])
-            .WithStandardOutputPipe(
-                PipeTarget.Create((_, _) => throw new InvalidOperationException("Pipe error"))
-            );
-
-        // Act
-        var task = cmd.ExecuteAsync();
-        var act = async () => await task;
-
-        // Assert: the exception from the pipe propagates
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Pipe error");
-
-        // Assert: the process is not left running in the background
-        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 }

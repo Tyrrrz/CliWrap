@@ -35,9 +35,8 @@ public static partial class EventStreamCommandExtensions
             using var channel = new Channel<CommandEvent>();
 
             // Used to kill the process if the consumer abandons the iterator or cancels forcefully
-            using var killCts = CancellationTokenSource.CreateLinkedTokenSource(
-                forcefulCancellationToken
-            );
+            using var forcefulCancellationOrAbandonCts =
+                CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken);
 
             var stdOutPipe = PipeTarget.Merge(
                 command.StandardOutputPipe,
@@ -46,14 +45,14 @@ public static partial class EventStreamCommandExtensions
                     {
                         // If the iterator was abandoned or the process is being killed, skip
                         // transmitting so we don't deadlock waiting for a channel receiver.
-                        if (killCts.IsCancellationRequested)
+                        if (forcefulCancellationOrAbandonCts.IsCancellationRequested)
                             return;
 
                         try
                         {
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                                 innerCancellationToken,
-                                killCts.Token
+                                forcefulCancellationOrAbandonCts.Token
                             );
 
                             await channel
@@ -65,7 +64,7 @@ public static partial class EventStreamCommandExtensions
                         }
                         catch (Exception ex)
                             when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && killCts.IsCancellationRequested
+                                && forcefulCancellationOrAbandonCts.IsCancellationRequested
                             )
                         {
                             // The iterator was abandoned during transmit, ignore
@@ -82,14 +81,14 @@ public static partial class EventStreamCommandExtensions
                     {
                         // If the iterator was abandoned or the process is being killed, skip
                         // transmitting so we don't deadlock waiting for a channel receiver.
-                        if (killCts.IsCancellationRequested)
+                        if (forcefulCancellationOrAbandonCts.IsCancellationRequested)
                             return;
 
                         try
                         {
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                                 innerCancellationToken,
-                                killCts.Token
+                                forcefulCancellationOrAbandonCts.Token
                             );
 
                             await channel
@@ -98,7 +97,7 @@ public static partial class EventStreamCommandExtensions
                         }
                         catch (Exception ex)
                             when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && killCts.IsCancellationRequested
+                                && forcefulCancellationOrAbandonCts.IsCancellationRequested
                             )
                         {
                             // The iterator was abandoned during transmit, ignore
@@ -109,12 +108,12 @@ public static partial class EventStreamCommandExtensions
             );
 
             // Execute the command with the pipes extended to transmit events to the channel.
-            // We pass killCts.Token as the forceful cancellation token so that abandoning the
-            // iterator (which cancels killCts) also kills the underlying process.
+            // We pass forcefulCancellationOrAbandonCts.Token as the forceful cancellation token so that abandoning the
+            // iterator (which cancels forcefulCancellationOrAbandonCts) also kills the underlying process.
             var commandTask = command
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe)
-                .ExecuteAsync(killCts.Token, gracefulCancellationToken)
+                .ExecuteAsync(forcefulCancellationOrAbandonCts.Token, gracefulCancellationToken)
                 .Bind(async task =>
                 {
                     try
@@ -127,11 +126,13 @@ public static partial class EventStreamCommandExtensions
                         // so that the consumer can stop listening.
                         try
                         {
-                            await channel.CloseAsync(killCts.Token).ConfigureAwait(false);
+                            await channel
+                                .CloseAsync(forcefulCancellationOrAbandonCts.Token)
+                                .ConfigureAwait(false);
                         }
                         catch (Exception ex)
                             when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && killCts.IsCancellationRequested
+                                && forcefulCancellationOrAbandonCts.IsCancellationRequested
                             )
                         {
                             // The iterator was abandoned as the channel was closing, ignore
@@ -159,10 +160,10 @@ public static partial class EventStreamCommandExtensions
             finally
             {
                 // The code after the yield return statements may not execute if the consumer
-                // breaks out of the iterator early. Cancelling killCts terminates the underlying
+                // breaks out of the iterator early. Cancelling forcefulCancellationOrAbandonCts terminates the underlying
                 // process and stops the pipes, satisfying the CliWrap convention that the process
                 // must be fully terminated before the method returns.
-                await killCts.CancelAsync();
+                await forcefulCancellationOrAbandonCts.CancelAsync();
 
                 // The task will remain detached, so observe its exception so it
                 // doesn't get reported to the finalizer thread and crash the process.
