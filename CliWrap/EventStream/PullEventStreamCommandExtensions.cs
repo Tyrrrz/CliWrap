@@ -160,14 +160,15 @@ public static partial class EventStreamCommandExtensions
             finally
             {
                 // The code after the yield return statements may not execute if the consumer
-                // breaks out of the iterator early. Cancelling forcefulCancellationOrAbandonCts terminates the underlying
-                // process and stops the pipes, satisfying the CliWrap convention that the process
-                // must be fully terminated before the method returns.
+                // breaks out of the iterator early. Cancelling forcefulCancellationOrAbandonCts
+                // terminates the underlying process and stops the pipes.
                 await forcefulCancellationOrAbandonCts.CancelAsync();
 
-                // The task will remain detached, so observe its exception so it
-                // doesn't get reported to the finalizer thread and crash the process.
-                _ = commandTask.Task.ObserveException();
+                // Wait for the command to finish executing before returning, observing any
+                // exception so it doesn't get reported to the finalizer thread and crash the
+                // process. This satisfies the CliWrap convention that the process must be fully
+                // terminated by the time the method returns.
+                await commandTask.Task.ObserveException().ConfigureAwait(false);
             }
         }
 
