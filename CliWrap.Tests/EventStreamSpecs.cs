@@ -130,12 +130,11 @@ public class EventStreamSpecs
         // Act
         var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
 
-        // Give the process a moment to get terminated, since disposing the subscription
-        // triggers the kill asynchronously
-        await Task.Delay(2000);
-
         // Assert
-        Process.IsRunning(startedEvent.ProcessId).Should().BeFalse();
+        // Abandoning the subscription triggers the kill asynchronously, so poll
+        // until the process has terminated (bounded by the test timeout)
+        while (Process.IsRunning(startedEvent.ProcessId))
+            await Task.Delay(100);
     }
 
     [Fact(Timeout = 15000)]
