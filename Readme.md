@@ -150,6 +150,18 @@ var result = await Cli.Wrap("path/to/exe")
 > Programs can write arbitrary data (including binary) to the output and error streams, and storing it in-memory may be impractical.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
 
+Whichever execution model you use, **CliWrap** takes full ownership of the process it spawns and guarantees that it is terminated before the execution method returns or throws — whether the command completed normally, was canceled, or failed with an exception.
+This means you never need to manually track or clean up the process afterwards, even in scenarios where something goes wrong midway:
+
+```csharp
+// The output pipe throws partway through the execution.
+// Regardless, the underlying process is guaranteed to be
+// terminated by the time `ExecuteAsync()` rethrows the exception.
+await Cli.Wrap("path/to/exe")
+    .WithStandardOutputPipe(PipeTarget.Create((_, _) => throw new Exception("Oops!")))
+    .ExecuteAsync();
+```
+
 ### Command configuration
 
 The fluent interface provided by the command object allows you to configure various aspects of its execution.
@@ -717,6 +729,9 @@ When using this execution model, back pressure is facilitated by locking the pip
 > [!NOTE]
 > Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
+> [!NOTE]
+> Breaking out of the `await foreach` loop (or throwing inside it) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the iterator is abandoned.
+
 #### Push-based event stream
 
 Similarly to the pull-based stream, you can also execute a command as a _push-based_ event stream instead:
@@ -755,6 +770,9 @@ Unlike the pull-based event stream, this execution model does not involve any ba
 
 > [!NOTE]
 > Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
+
+> [!NOTE]
+> Disposing the subscription (for example, by using an operator such as `Take(...)` or `FirstAsync(...)`, or by disposing it explicitly) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the observable is abandoned.
 
 #### Combining execution models with custom pipes
 

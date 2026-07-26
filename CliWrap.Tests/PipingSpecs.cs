@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using CliWrap.Buffered;
 using FluentAssertions;
 using PowerKit;
+using PowerKit.Extensions;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -634,10 +636,14 @@ public class PipingSpecs
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
-        var act = async () => await cmd.ExecuteAsync();
+        var task = cmd.ExecuteAsync();
+        var act = async () => await task;
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
+
+        // Assert: the process is not left running in the background
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -650,10 +656,14 @@ public class PipingSpecs
             | PipeTarget.ToFile("non-existing-directory/file.txt");
 
         // Act
-        var act = async () => await cmd.ExecuteAsync();
+        var task = cmd.ExecuteAsync();
+        var act = async () => await task;
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
+
+        // Assert: the process is not left running in the background
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
