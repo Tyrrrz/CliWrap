@@ -111,18 +111,15 @@ public static partial class EventStreamCommandExtensions
                 // terminate the underlying process and stop the pipes. This satisfies the CliWrap
                 // convention that the process must be fully terminated once the execution ends.
                 // On normal completion the process has already exited, so this is a no-op.
+                var isDisposed = false;
                 return Disposable.Create(() =>
                 {
-                    try
-                    {
-                        forcefulCancellationOrAbandonCts.Cancel();
-                        forcefulCancellationOrAbandonCts.Dispose();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // The CTS may have already been disposed if Dispose() was called multiple times.
-                        // This is legal for IDisposable, so ignore it.
-                    }
+                    if (isDisposed)
+                        return;
+
+                    isDisposed = true;
+                    forcefulCancellationOrAbandonCts.Cancel();
+                    forcefulCancellationOrAbandonCts.Dispose();
                 });
             });
 
