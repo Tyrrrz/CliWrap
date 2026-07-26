@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CliWrap.EventStream;
 using FluentAssertions;
+using PowerKit.Extensions;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -116,5 +118,25 @@ public class EventStreamSpecs
 
         // Act & assert
         await cmd.Observe().ToArray();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_the_underlying_process_is_killed_if_the_iterator_is_abandoned()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act: start listening but break out immediately after the first event
+        var processId = 0;
+        await foreach (var cmdEvent in cmd.ListenAsync())
+        {
+            if (cmdEvent is StartedCommandEvent startedEvent)
+                processId = startedEvent.ProcessId;
+
+            break;
+        }
+
+        // Assert: the process is not left running in the background
+        Process.IsRunning(processId).Should().BeFalse();
     }
 }

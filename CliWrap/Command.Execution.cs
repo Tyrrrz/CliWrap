@@ -255,8 +255,9 @@ public partial class Command
             // that we don't wait forever in case the attempt to kill the process failed.
             await Task.WhenAny(waitTask, pipingTask).ConfigureAwait(false);
 
-            // If piping failed before the process exited, kill the process to avoid
-            // leaving it running in the background.
+            // If piping failed before the process exited, kill it immediately.
+            // Without this, awaiting waitTask below would deadlock if the process is blocked
+            // trying to write to a pipe that nobody is reading anymore.
             if (!waitTask.IsCompleted && !pipingTask.IsCompletedSuccessfully)
                 process.Kill();
 
@@ -298,6 +299,14 @@ public partial class Command
         catch (OperationCanceledException ex) when (ex.CancellationToken == stdInCts.Token)
         {
             // The process exited before consuming all stdin, ignore this internal cancellation
+        }
+        finally
+        {
+            // CliWrap owns the process lifecycle and guarantees that the process is always
+            // terminated before this method returns or throws. Kill() is a no-op if the
+            // process has already exited.
+            if (!waitTask.IsCompletedSuccessfully)
+                process.Kill();
         }
 
         // Handle forceful cancellation

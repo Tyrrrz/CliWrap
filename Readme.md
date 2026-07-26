@@ -865,6 +865,18 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 > [!NOTE]
 > Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
+### Process ownership
+
+**CliWrap** takes full ownership of the process it spawns and guarantees that the process is always terminated before the execution method returns or throws.
+This applies to every execution model (`ExecuteAsync()`, `ExecuteBufferedAsync()`, `ListenAsync()`, `Observe()`) and to every exit path, whether the command completed normally, was canceled, threw an exception in a pipe, or encountered any other error.
+
+Because of this guarantee, you never need to manually track or clean up the process after the execution method completes.
+The only exception is a rare edge case where killing the process itself times out (which should never happen in practice), in which case a `TimeoutException` is thrown to indicate the failure.
+
+> [!NOTE]
+> When using `ListenAsync()`, breaking out of the `await foreach` loop also terminates the underlying process.
+> If you want to stop consuming events without killing the process, pass a `CancellationToken` to `ListenAsync()` and cancel it instead.
+
 ### Process information
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.

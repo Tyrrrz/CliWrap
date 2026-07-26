@@ -34,10 +34,10 @@ public static partial class EventStreamCommandExtensions
         {
             using var channel = new Channel<CommandEvent>();
 
-            // The consumer may abandon the iterator, leaving it in a hanging but uncanceled state.
-            // In that case, we want the process to continue running in the background, but we also
-            // need to bypass the channel to drain the pipes without waiting for transmit/receive locks.
-            using var abandonCts = CancellationTokenSource.CreateLinkedTokenSource(
+            // Used to kill the process if the consumer abandons the iterator or cancels forcefully.
+            // This CTS is also linked to the user-provided forceful cancellation token, so either
+            // source of cancellation will terminate the process.
+            using var killCts = CancellationTokenSource.CreateLinkedTokenSource(
                 forcefulCancellationToken
             );
 
@@ -46,16 +46,16 @@ public static partial class EventStreamCommandExtensions
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
                     {
-                        // If the iterator was abandoned, then just turn this pipe into a no-op
-                        // so that it drains the process's output stream without deadlocking on the channel.
-                        if (abandonCts.IsCancellationRequested)
+                        // If the iterator was abandoned or the process is being killed, skip
+                        // transmitting so we don't deadlock waiting for a channel receiver.
+                        if (killCts.IsCancellationRequested)
                             return;
 
                         try
                         {
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                                 innerCancellationToken,
-                                abandonCts.Token
+                                killCts.Token
                             );
 
                             await channel
@@ -67,7 +67,7 @@ public static partial class EventStreamCommandExtensions
                         }
                         catch (Exception ex)
                             when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && abandonCts.IsCancellationRequested
+                                && killCts.IsCancellationRequested
                             )
                         {
                             // The iterator was abandoned during transmit, ignore
@@ -82,16 +82,16 @@ public static partial class EventStreamCommandExtensions
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
                     {
-                        // If the iterator was abandoned, then just turn this pipe into a no-op
-                        // so that it drains the process's error stream without deadlocking on the channel.
-                        if (abandonCts.IsCancellationRequested)
+                        // If the iterator was abandoned or the process is being killed, skip
+                        // transmitting so we don't deadlock waiting for a channel receiver.
+                        if (killCts.IsCancellationRequested)
                             return;
 
                         try
                         {
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                                 innerCancellationToken,
-                                abandonCts.Token
+                                killCts.Token
                             );
 
                             await channel
@@ -100,7 +100,7 @@ public static partial class EventStreamCommandExtensions
                         }
                         catch (Exception ex)
                             when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && abandonCts.IsCancellationRequested
+                                && killCts.IsCancellationRequested
                             )
                         {
                             // The iterator was abandoned during transmit, ignore
@@ -110,11 +110,13 @@ public static partial class EventStreamCommandExtensions
                 )
             );
 
-            // Execute the command with the pipes extended to transmit events to the channel
+            // Execute the command with the pipes extended to transmit events to the channel.
+            // We pass killCts.Token as the forceful cancellation token so that abandoning the
+            // iterator (which cancels killCts) also kills the underlying process.
             var commandTask = command
                 .WithStandardOutputPipe(stdOutPipe)
                 .WithStandardErrorPipe(stdErrPipe)
-                .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
+                .ExecuteAsync(killCts.Token, gracefulCancellationToken)
                 .Bind(async task =>
                 {
                     try
@@ -127,11 +129,11 @@ public static partial class EventStreamCommandExtensions
                         // so that the consumer can stop listening.
                         try
                         {
-                            await channel.CloseAsync(abandonCts.Token).ConfigureAwait(false);
+                            await channel.CloseAsync(killCts.Token).ConfigureAwait(false);
                         }
                         catch (Exception ex)
                             when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && abandonCts.IsCancellationRequested
+                                && killCts.IsCancellationRequested
                             )
                         {
                             // The iterator was abandoned as the channel was closing, ignore
@@ -159,11 +161,10 @@ public static partial class EventStreamCommandExtensions
             finally
             {
                 // The code after the yield return statements may not execute if the consumer
-                // breaks out of the iterator early. Because of that, the pipes will stop
-                // draining properly and the execution may deadlock. To avoid that, we trigger
-                // a token to stop transmitting events so that the command can keep draining its
-                // output without waiting for the consumer to read from the channel.
-                await abandonCts.CancelAsync();
+                // breaks out of the iterator early. Cancelling killCts terminates the underlying
+                // process and stops the pipes, satisfying the CliWrap convention that the process
+                // must be fully terminated before the method returns.
+                await killCts.CancelAsync();
 
                 // The task will remain detached, so observe its exception so it
                 // doesn't get reported to the finalizer thread and crash the process.
