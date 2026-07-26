@@ -221,7 +221,7 @@ public partial class Command
         // single cancellation source, which is also linked to the user-provided forceful
         // cancellation token. This ensures that every kill goes through the same flow: the process
         // is killed and then awaited with a timeout.
-        using var forcefulCancellationCts = CancellationTokenSource.CreateLinkedTokenSource(
+        using var forcefulCancellationOrPanicCts = CancellationTokenSource.CreateLinkedTokenSource(
             forcefulCancellationToken
         );
 
@@ -230,18 +230,18 @@ public partial class Command
         // so we need a fallback. This cancellation token is triggered after a timeout once
         // forceful termination is requested, and ensures that we don't wait forever.
         using var waitTimeoutCts = new CancellationTokenSource();
-        await using var _1 = forcefulCancellationCts
+        await using var _1 = forcefulCancellationOrPanicCts
             .Token.Register(() => waitTimeoutCts.CancelAfter(TimeSpan.FromSeconds(3)))
             .ToAsyncDisposable();
 
         // The process may exit without fully consuming the data from the stdin pipe, in which
         // case we need a separate cancellation signal that will abort the piping operation.
         using var stdInCts = CancellationTokenSource.CreateLinkedTokenSource(
-            forcefulCancellationCts.Token
+            forcefulCancellationOrPanicCts.Token
         );
 
         // Kill the process when forceful termination is requested
-        await using var _2 = forcefulCancellationCts
+        await using var _2 = forcefulCancellationOrPanicCts
             .Token.Register(process.Kill)
             .ToAsyncDisposable();
         await using var _3 = gracefulCancellationToken
@@ -272,7 +272,7 @@ public partial class Command
             // pipe that nobody is reading anymore, and — unlike a bare Kill() — it routes
             // through the forceful-termination flow, which awaits the exit with a timeout.
             if (!waitTask.IsCompleted && !pipingTask.IsCompletedSuccessfully)
-                await forcefulCancellationCts.CancelAsync();
+                await forcefulCancellationOrPanicCts.CancelAsync();
 
             // Wait for the process to fully exit
             await waitTask.ConfigureAwait(false);
@@ -323,7 +323,7 @@ public partial class Command
             // the process still running.
             if (!waitTask.IsCompletedSuccessfully)
             {
-                await forcefulCancellationCts.CancelAsync();
+                await forcefulCancellationOrPanicCts.CancelAsync();
                 await waitTask.ObserveException().ConfigureAwait(false);
             }
         }

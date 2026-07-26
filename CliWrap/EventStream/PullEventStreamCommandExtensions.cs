@@ -43,11 +43,6 @@ public static partial class EventStreamCommandExtensions
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
                     {
-                        // If the iterator was abandoned or the process is being killed, skip
-                        // transmitting so we don't deadlock waiting for a channel receiver.
-                        if (forcefulCancellationOrAbandonCts.IsCancellationRequested)
-                            return;
-
                         try
                         {
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -79,11 +74,6 @@ public static partial class EventStreamCommandExtensions
                 PipeTarget.ToDelegate(
                     async (line, innerCancellationToken) =>
                     {
-                        // If the iterator was abandoned or the process is being killed, skip
-                        // transmitting so we don't deadlock waiting for a channel receiver.
-                        if (forcefulCancellationOrAbandonCts.IsCancellationRequested)
-                            return;
-
                         try
                         {
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(

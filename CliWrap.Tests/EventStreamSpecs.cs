@@ -128,7 +128,7 @@ public class EventStreamSpecs
         var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
 
         // Act
-        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>.FirstAsync();
+        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
 
         // Give the process a moment to get terminated, since disposing the subscription
         // triggers the kill asynchronously

@@ -723,7 +723,6 @@ When using this execution model, back pressure is facilitated by locking the pip
 
 > [!NOTE]
 > Breaking out of the `await foreach` loop (or throwing inside it) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the iterator is abandoned.
-> If you want to stop consuming events without killing the process, pass a `CancellationToken` to `ListenAsync()` and cancel it instead.
 
 #### Push-based event stream
 

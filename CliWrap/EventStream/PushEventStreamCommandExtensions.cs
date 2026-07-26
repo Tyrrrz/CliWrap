@@ -75,19 +75,16 @@ public static partial class EventStreamCommandExtensions
                         {
                             result = await task.ConfigureAwait(false);
                         }
-                        catch (OperationCanceledException ex) when (task.IsCanceled)
+                        catch (OperationCanceledException) when (task.IsCanceled)
                         {
                             // forcefulCancellationOrAbandonCts is linked to the user-provided
-                            // forceful cancellation token, so the token carried by the exception
-                            // may be the internal linked one. Surface the user's original token
-                            // when they were the ones who requested forceful cancellation.
+                            // forceful cancellation token, so the task's own cancellation token may
+                            // be the internal linked one. Surface the user's original token when they
+                            // requested forceful cancellation; otherwise (graceful cancellation or an
+                            // abandoned observable) fall back to the task's cancellation.
                             observer.OnError(
                                 forcefulCancellationToken.IsCancellationRequested
-                                    ? new OperationCanceledException(
-                                        ex.Message,
-                                        ex,
-                                        forcefulCancellationToken
-                                    )
+                                    ? new OperationCanceledException(forcefulCancellationToken)
                                     : new TaskCanceledException(task)
                             );
                             throw;
