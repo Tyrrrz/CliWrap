@@ -34,9 +34,7 @@ public static partial class EventStreamCommandExtensions
         {
             using var channel = new Channel<CommandEvent>();
 
-            // Used to kill the process if the consumer abandons the iterator or cancels forcefully.
-            // This CTS is also linked to the user-provided forceful cancellation token, so either
-            // source of cancellation will terminate the process.
+            // Used to kill the process if the consumer abandons the iterator or cancels forcefully
             using var killCts = CancellationTokenSource.CreateLinkedTokenSource(
                 forcefulCancellationToken
             );
