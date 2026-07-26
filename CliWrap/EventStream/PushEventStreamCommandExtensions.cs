@@ -31,6 +31,12 @@ public static partial class EventStreamCommandExtensions
         ) =>
             Observable.CreateSynchronized<CommandEvent>(observer =>
             {
+                // Used to kill the process if the subscription is disposed (abandoned)
+                // before the command finishes executing.
+                var killCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    forcefulCancellationToken
+                );
+
                 var stdOutPipe = PipeTarget.Merge(
                     command.StandardOutputPipe,
                     PipeTarget.ToDelegate(
@@ -47,11 +53,12 @@ public static partial class EventStreamCommandExtensions
                     )
                 );
 
-                // Execute the command with the pipes extended to push events to the observer
+                // Execute the command with killCts.Token as the forceful cancellation token,
+                // so that disposing the subscription (which cancels killCts) also kills the process.
                 var commandTask = command
                     .WithStandardOutputPipe(stdOutPipe)
                     .WithStandardErrorPipe(stdErrPipe)
-                    .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
+                    .ExecuteAsync(killCts.Token, gracefulCancellationToken);
 
                 observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
 
@@ -86,7 +93,16 @@ public static partial class EventStreamCommandExtensions
                     // doesn't get reported to the finalizer thread and crash the process.
                     .Task.ObserveException();
 
-                return Disposable.Null;
+                // Return a disposable that cancels killCts to terminate the process if the
+                // subscription is disposed before the command completes.
+                // This is also triggered on normal completion (OnCompleted/OnError dispose
+                // the subscription), but by then the process has already exited, so Kill()
+                // is a no-op.
+                return Disposable.Create(() =>
+                {
+                    killCts.Cancel();
+                    killCts.Dispose();
+                });
             });
 
         /// <summary>

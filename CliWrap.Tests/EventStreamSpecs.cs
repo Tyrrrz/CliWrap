@@ -121,6 +121,23 @@ public class EventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_the_underlying_process_is_killed_if_the_subscription_is_abandoned()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act: subscribe but take only the first event (StartedCommandEvent) then dispose
+        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
+
+        // Assert: the process is not left running in the background.
+        // Kill() is system-level asynchronous, so we poll until it takes effect.
+        while (Process.IsRunning(startedEvent.ProcessId))
+            await Task.Delay(10);
+
+        Process.IsRunning(startedEvent.ProcessId).Should().BeFalse();
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_the_underlying_process_is_killed_if_the_iterator_is_abandoned()
     {
         // Arrange
@@ -136,7 +153,11 @@ public class EventStreamSpecs
             break;
         }
 
-        // Assert: the process is not left running in the background
+        // Assert: the process is not left running in the background.
+        // Kill() is system-level asynchronous, so we poll until it takes effect.
+        while (Process.IsRunning(processId))
+            await Task.Delay(10);
+
         Process.IsRunning(processId).Should().BeFalse();
     }
 }
