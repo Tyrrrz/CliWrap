@@ -226,13 +226,6 @@ public partial class Command
         // pipe to finish if there's nothing reading from it anymore.
         using var exitCts = CancellationTokenSource.CreateLinkedTokenSource(panicCts.Token);
 
-        // It is theoretically possible that a termination signal to the process does nothing.
-        // To handle that, set a timeout to avoid waiting indefinitely for the process to exit.
-        using var killTimeoutCts = new CancellationTokenSource();
-        await using var _1 = panicCts
-            .Token.Register(() => killTimeoutCts.CancelAfter(TimeSpan.FromSeconds(15)))
-            .ToAsyncDisposable();
-
         // Kill the process when forceful termination (via cancellation or panic) is requested
         await using var _2 = panicCts.Token.Register(process.Kill).ToAsyncDisposable();
 
@@ -248,10 +241,13 @@ public partial class Command
         var stdOutTask = PipeStandardOutputAsync(process, panicCts.Token);
         var stdErrTask = PipeStandardErrorAsync(process, panicCts.Token);
 
-        // Wait until the process exits normally or gets killed.
-        // The timeout is started after the execution is forcefully canceled and ensures
-        // that we don't wait forever in case the attempt to kill the process failed.
-        var processTask = process.WaitUntilExitAsync(killTimeoutCts.Token);
+        // Wait until the process exits normally or gets killed
+        var processTask = process.WaitUntilExitAsync(
+            // In theory, a SIGKILL signal does not guarantee that the process will exit, but even if we
+            // abandon it after a timeout, we can't also reliably abandon the pipes since those might not
+            // respect cancellation. So we just wait indefinitely and hope for the best.
+            CancellationToken.None
+        );
 
         try
         {
@@ -260,70 +256,57 @@ public partial class Command
                 var completedTask in Task.WhenEach(stdInTask, stdOutTask, stdErrTask, processTask)
             )
             {
-                // If the process exited, trigger the corresponding signal to cancel the stdin pipe since it's
-                // definitely not going to be needed anymore.
+                // If the process task finished, trigger the corresponding signal to cancel the stdin pipe
+                // since it's definitely not going to be needed anymore.
                 if (completedTask == processTask)
                 {
                     await exitCts.CancelAsync().ConfigureAwait(false);
                 }
-                // If a piping task failed while the process is still running, we want to terminate it immediately.
-                // The process may keep running for a while unless we do it, and since this method is going to end
-                // up in an exception anyway, we might as well cut the wait.
-                else if (completedTask.IsFaulted && !processTask.IsCompleted)
+                // If a piping task failed while the process is still running, proactively terminate the process.
+                // It may continue running for a while even with the corresponding standard stream(s) closed, so
+                // we want to cut the wait short since we're going to throw an exception down the line anyway.
+                else if (
+                    (
+                        completedTask == stdInTask
+                        || completedTask == stdOutTask
+                        || completedTask == stdErrTask
+                    )
+                    && !completedTask.IsCompletedSuccessfully
+                    && !processTask.IsCompleted
+                )
                 {
                     await panicCts.CancelAsync().ConfigureAwait(false);
                 }
             }
 
-            // Join all tasks and propagate exceptions, if any
+            // Join all tasks and propagate exceptions. If any of the tasks faulted, this will throw an aggregation
+            // of their exceptions. If some tasks failed while others were cancelled, then the failures take
+            // precedence and the cancellation exceptions will be suppressed. If none of the tasks failed but
+            // some or all were cancelled, then a single cancellation exception will be thrown.
             await Task.WhenAll(stdInTask, stdOutTask, stdErrTask, processTask)
                 .ConfigureAwait(false);
-        }
-        catch (OperationCanceledException ex) when (ex.CancellationToken == killTimeoutCts.Token)
-        {
-            // We tried to kill the process, but it didn't exit within the allotted timeout, meaning
-            // that the termination attempt failed. This should never happen, but it's not impossible.
-            throw new TimeoutException(
-                $"Failed to terminate the underlying process ({process.Name}#{process.Id}) within the allotted timeout.",
-                ex
-            );
-        }
-        catch (OperationCanceledException)
-            // Not checking ex.CancellationToken here because it's always going to be one of the linked tokens
-            when (forcefulCancellationToken.IsCancellationRequested)
-        {
-            // The operation was cancelled forcefully by the user. Suppress this exception as we'll throw
-            // a more meaningful one later.
-        }
-        catch (OperationCanceledException)
-            // Not checking ex.CancellationToken here because it's always going to be one of the linked tokens
-            when (gracefulCancellationToken.IsCancellationRequested)
-        {
-            // The operation was cancelled gracefully by the user. Suppress this exception as we'll throw
-            // a more meaningful one later.
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == exitCts.Token)
         {
             // The stdin pipe was cancelled because the process exited before it could finish writing all data
         }
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == forcefulCancellationToken)
+        {
+            // The operation was cancelled forcefully by the consumer. In some timing conditions, this exception
+            // may never be thrown even if cancellation was requested, so for now we will suppress it and recheck
+            // the cancellation token manually later to throw a more meaningful exception.
+        }
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == gracefulCancellationToken)
+        {
+            // This exception is theoretically impossible, seeing as the graceful cancellation token is not passed
+            // down anywhere. Still, we have this clause for symmetry.
+        }
         finally
         {
-            // Guarantee that the process is terminated on any remaining exit path (for example,
-            // an unexpected exception). If the process has already exited, this will have no effect.
-            // If the process is still running and we reached this stage, then it's due to a failure.
-            if (!processTask.IsCompletedSuccessfully)
-            {
-                await panicCts.CancelAsync().ConfigureAwait(false);
-
-                try
-                {
-                    await processTask.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    //
-                }
-            }
+            // The process must never outlive the execution of this method
+            await processTask.ConfigureAwait(false);
         }
 
         // Report forceful cancellation
