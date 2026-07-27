@@ -20,8 +20,8 @@ public partial class CommandTask<TResult>(Task<TResult> task, int processId) : I
     /// </summary>
     public int ProcessId { get; } = processId;
 
-    // Allows chaining this task without awaiting it.
-    // Important since we don't provide an async method builder for our custom task.
+    // Allows chaining of this task without awaiting it.
+    // Important since we don't provide an async method builder for this custom task.
     internal CommandTask<T> Bind<T>(Func<CommandTask<TResult>, CommandTask<T>> transform) =>
         transform(this);
 

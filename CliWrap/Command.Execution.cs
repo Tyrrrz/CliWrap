@@ -227,10 +227,10 @@ public partial class Command
         using var exitCts = CancellationTokenSource.CreateLinkedTokenSource(panicCts.Token);
 
         // Kill the process when forceful termination (via cancellation or panic) is requested
-        await using var _2 = panicCts.Token.Register(process.Kill).ToAsyncDisposable();
+        await using var _1 = panicCts.Token.Register(process.Kill).ToAsyncDisposable();
 
         // Send an interrupt signal to the process when graceful termination is requested
-        await using var _3 = gracefulCancellationToken
+        await using var _2 = gracefulCancellationToken
             .Register(process.Interrupt)
             .ToAsyncDisposable();
 
