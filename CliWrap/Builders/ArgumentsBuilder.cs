@@ -27,9 +27,7 @@ public partial class ArgumentsBuilder
         return this;
     }
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
+    /// <inheritdoc cref="Add(string, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public ArgumentsBuilder Add(string value) => Add(value, true);
 
@@ -44,9 +42,7 @@ public partial class ArgumentsBuilder
         return this;
     }
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
+    /// <inheritdoc cref="Add(IEnumerable{string}, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public ArgumentsBuilder Add(IEnumerable<string> values) => Add(values, true);
 
@@ -59,16 +55,12 @@ public partial class ArgumentsBuilder
         bool escape = true
     ) => Add(value.ToString(null, formatProvider), escape);
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
+    /// <inheritdoc cref="Add(IFormattable, IFormatProvider, bool)" />
     // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo, bool escape) =>
         Add(value, (IFormatProvider)cultureInfo, escape);
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// </summary>
+    /// <inheritdoc cref="Add(IFormattable, CultureInfo, bool)" />
     // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IFormattable value, CultureInfo cultureInfo) =>
         Add(value, cultureInfo, true);
@@ -80,10 +72,7 @@ public partial class ArgumentsBuilder
     public ArgumentsBuilder Add(IFormattable value, bool escape) =>
         Add(value, DefaultFormatProvider, escape);
 
-    /// <summary>
-    /// Adds the specified value to the list of arguments.
-    /// The value is converted to string using invariant culture.
-    /// </summary>
+    /// <inheritdoc cref="Add(IFormattable, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public ArgumentsBuilder Add(IFormattable value) => Add(value, true);
 
@@ -102,9 +91,7 @@ public partial class ArgumentsBuilder
         return this;
     }
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
+    /// <inheritdoc cref="Add(IEnumerable{IFormattable}, IFormatProvider, bool)" />
     // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(
         IEnumerable<IFormattable> values,
@@ -112,9 +99,7 @@ public partial class ArgumentsBuilder
         bool escape
     ) => Add(values, (IFormatProvider)cultureInfo, escape);
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// </summary>
+    /// <inheritdoc cref="Add(IEnumerable{IFormattable}, CultureInfo, bool)" />
     // TODO: (breaking change) remove in favor of the other overloads
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, CultureInfo cultureInfo) =>
         Add(values, cultureInfo, true);
@@ -126,10 +111,7 @@ public partial class ArgumentsBuilder
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape) =>
         Add(values, DefaultFormatProvider, escape);
 
-    /// <summary>
-    /// Adds the specified values to the list of arguments.
-    /// The values are converted to string using invariant culture.
-    /// </summary>
+    /// <inheritdoc cref="Add(IEnumerable{IFormattable}, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values) => Add(values, true);
 

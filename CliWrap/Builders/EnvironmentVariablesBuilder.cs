@@ -30,9 +30,7 @@ public class EnvironmentVariablesBuilder
         return this;
     }
 
-    /// <summary>
-    /// Sets multiple environment variables from the specified dictionary.
-    /// </summary>
+    /// <inheritdoc cref="Set(IEnumerable{KeyValuePair{string, string}})" />
     public EnvironmentVariablesBuilder Set(IReadOnlyDictionary<string, string?> variables) =>
         Set((IEnumerable<KeyValuePair<string, string?>>)variables);
 

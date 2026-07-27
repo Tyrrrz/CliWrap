@@ -150,18 +150,15 @@ public partial class PipeTarget
     /// Creates an anonymous pipe target with the <see cref="CopyFromAsync(Stream, CancellationToken)" /> method
     /// implemented by the specified asynchronous delegate.
     /// </summary>
-    public static PipeTarget Create(Func<Stream, CancellationToken, Task> handlePipeAsync) =>
-        new AnonymousPipeTarget(handlePipeAsync);
+    public static PipeTarget Create(Func<Stream, CancellationToken, Task> copyFromAsync) =>
+        new AnonymousPipeTarget(copyFromAsync);
 
-    /// <summary>
-    /// Creates an anonymous pipe target with the <see cref="CopyFromAsync(Stream, CancellationToken)" /> method
-    /// implemented by the specified synchronous delegate.
-    /// </summary>
-    public static PipeTarget Create(Action<Stream> handlePipe) =>
+    /// <inheritdoc cref="Create(Func{Stream, CancellationToken, Task})" />
+    public static PipeTarget Create(Action<Stream> copyFrom) =>
         Create(
             (origin, _) =>
             {
-                handlePipe(origin);
+                copyFrom(origin);
                 return Task.CompletedTask;
             }
         );
@@ -175,9 +172,7 @@ public partial class PipeTarget
                 await origin.CopyToAsync(stream, autoFlush, cancellationToken).ConfigureAwait(false)
         );
 
-    /// <summary>
-    /// Creates a pipe target that writes to the specified stream.
-    /// </summary>
+    /// <inheritdoc cref="ToStream(Stream, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
@@ -233,10 +228,7 @@ public partial class PipeTarget
             }
         );
 
-    /// <summary>
-    /// Creates a pipe target that writes to the specified string builder.
-    /// Uses <see cref="Encoding.Default" /> for decoding.
-    /// </summary>
+    /// <inheritdoc cref="ToStringBuilder(StringBuilder, Encoding)" />
     public static PipeTarget ToStringBuilder(StringBuilder stringBuilder) =>
         ToStringBuilder(stringBuilder, Encoding.Default);
 
@@ -267,23 +259,15 @@ public partial class PipeTarget
             }
         );
 
-    /// <summary>
-    /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
-    /// Uses <see cref="Encoding.Default" /> for decoding.
-    /// </summary>
+    /// <inheritdoc cref="ToDelegate(Func{string, CancellationToken, Task}, Encoding)" />
     public static PipeTarget ToDelegate(Func<string, CancellationToken, Task> handleLineAsync) =>
         ToDelegate(handleLineAsync, Encoding.Default);
 
-    /// <summary>
-    /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
-    /// </summary>
+    /// <inheritdoc cref="ToDelegate(Func{string, CancellationToken, Task}, Encoding)" />
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync, Encoding encoding) =>
         ToDelegate(async (line, _) => await handleLineAsync(line).ConfigureAwait(false), encoding);
 
-    /// <summary>
-    /// Creates a pipe target that invokes the specified asynchronous delegate on every line written to the stream.
-    /// Uses <see cref="Encoding.Default" /> for decoding.
-    /// </summary>
+    /// <inheritdoc cref="ToDelegate(Func{string, Task}, Encoding)" />
     public static PipeTarget ToDelegate(Func<string, Task> handleLineAsync) =>
         ToDelegate(handleLineAsync, Encoding.Default);
 
@@ -300,10 +284,7 @@ public partial class PipeTarget
             encoding
         );
 
-    /// <summary>
-    /// Creates a pipe target that invokes the specified synchronous delegate on every line written to the stream.
-    /// Uses <see cref="Encoding.Default" /> for decoding.
-    /// </summary>
+    /// <inheritdoc cref="ToDelegate(Action{string}, Encoding)" />
     public static PipeTarget ToDelegate(Action<string> handleLine) =>
         ToDelegate(handleLine, Encoding.Default);
 
@@ -355,9 +336,7 @@ public partial class PipeTarget
         return new AggregatePipeTarget(optimizedTargets);
     }
 
-    /// <summary>
-    /// Creates a pipe target that replicates data over multiple inner targets.
-    /// </summary>
+    /// <inheritdoc cref="Merge(IEnumerable{PipeTarget})" />
     // TODO: (breaking change) remove the other overload
     public static PipeTarget Merge(params PipeTarget[] targets) =>
         Merge((IEnumerable<PipeTarget>)targets);

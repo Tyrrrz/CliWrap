@@ -37,7 +37,7 @@ public partial class BufferedCommandResult(
 public partial class BufferedCommandResult
 {
     /// <summary>
-    /// Converts the result to a string value that corresponds to the <see cref="BufferedCommandResult.StandardOutput" /> property.
+    /// Converts the result to a string value that corresponds to the <see cref="StandardOutput" /> property.
     /// </summary>
     public static implicit operator string(BufferedCommandResult result) => result.StandardOutput;
 }
