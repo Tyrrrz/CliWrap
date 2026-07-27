@@ -106,7 +106,7 @@ public partial class ArgumentsBuilder
 
     /// <summary>
     /// Adds the specified values to the list of arguments.
-    /// The values are converted to string using invariant culture.
+    /// The values are converted to strings using the invariant culture.
     /// </summary>
     public ArgumentsBuilder Add(IEnumerable<IFormattable> values, bool escape) =>
         Add(values, DefaultFormatProvider, escape);

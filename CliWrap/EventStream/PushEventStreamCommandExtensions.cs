@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using PowerKit;
 using PowerKit.Extensions;
 
@@ -67,38 +66,23 @@ public static partial class EventStreamCommandExtensions
                     // Wrap the task to add pre- and post-execution logic
                     .Bind(async task =>
                     {
-                        observer.OnNext(new StartedCommandEvent(task.ProcessId));
-
-                        CommandResult result;
                         try
                         {
-                            result = await task.ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException) when (task.Task.IsCanceled)
-                        {
-                            observer.OnError(
-                                forcefulCancellationToken.IsCancellationRequested
-                                    ? new OperationCanceledException(forcefulCancellationToken)
-                                    : new TaskCanceledException(task)
-                            );
-                            throw;
+                            observer.OnNext(new StartedCommandEvent(task.ProcessId));
+
+                            var result = await task.ConfigureAwait(false);
+
+                            observer.OnNext(new ExitedCommandEvent(result.ExitCode));
+                            observer.OnCompleted();
+
+                            return result;
                         }
                         catch (Exception ex)
                         {
                             observer.OnError(ex);
                             throw;
                         }
-
-                        // Execute these outside of try/catch to avoid catching exceptions from observer callbacks.
-                        // Otherwise, we may get an error event after the completion event.
-                        observer.OnNext(new ExitedCommandEvent(result.ExitCode));
-                        observer.OnCompleted();
-
-                        return result;
-                    })
-                    // The task will remain detached, so observe its exception to prevent it from
-                    // routing to the scheduler.
-                    .Task.ObserveException();
+                    });
 
                 // When the consumer unsubscribes from the observable, we trigger a forceful cancellation
                 // to terminate the process. If the process has already exited, this will have no effect.
@@ -106,6 +90,15 @@ public static partial class EventStreamCommandExtensions
                 {
                     unsubscribeCts.Cancel();
                     unsubscribeCts.Dispose();
+
+                    // Ideally, the command task should be joined when the consumer unsubscribes from the observable,
+                    // but, unlike IAsyncEnumerable<T>, IObservable<T> only provides a synchronous cleanup mechanism.
+                    // This leaves us with two choices: either block the thread waiting on the task to complete,
+                    // or abandon the task and let it finish in a detached state.
+                    // The former can lead to deadlocks in certain scenarios, while the latter can lead to unobserved
+                    // exceptions bubbling to the scheduler.
+                    // As the lesser of the two evils, we abandon the task and also explicitly observe its exception.
+                    _ = commandTask.Task.ObserveException();
                 });
             });
 

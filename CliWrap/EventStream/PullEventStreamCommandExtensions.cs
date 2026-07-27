@@ -39,8 +39,8 @@ public static partial class EventStreamCommandExtensions
         {
             using var channel = new Channel<CommandEvent>();
 
-            // Used to trigger forceful cancellation when the consumer abandons the iterator
-            using var abandonCts = CancellationTokenSource.CreateLinkedTokenSource(
+            // Used to trigger forceful cancellation when the iterator is abandoned
+            using var disposeCts = CancellationTokenSource.CreateLinkedTokenSource(
                 forcefulCancellationToken
             );
 
@@ -77,7 +77,7 @@ public static partial class EventStreamCommandExtensions
                         )
                     )
                 )
-                .ExecuteAsync(abandonCts.Token, gracefulCancellationToken)
+                .ExecuteAsync(disposeCts.Token, gracefulCancellationToken)
                 // Wrap the task to add pre- and post-execution logic
                 .Bind(async task =>
                 {
@@ -90,11 +90,11 @@ public static partial class EventStreamCommandExtensions
                         try
                         {
                             // Close the channel to release its listeners
-                            await channel.CloseAsync(abandonCts.Token).ConfigureAwait(false);
+                            await channel.CloseAsync(disposeCts.Token).ConfigureAwait(false);
                         }
                         catch (OperationCanceledException)
                         {
-                            // Race condition: the iterator was canceled or abandoned as the channel was closing
+                            // Race condition: the operation was canceled as the channel was closing
                         }
                     }
                 });
@@ -118,21 +118,24 @@ public static partial class EventStreamCommandExtensions
             }
             finally
             {
-                // The code after the yield statements may not execute if the consumer breaks out
-                // of the iterator early. In that case, we trigger a forceful cancellation to terminate
-                // the process and close the channel.
-                await abandonCts.CancelAsync().ConfigureAwait(false);
+                // Request forceful cancellation when the iterator is disposed.
+                // If the iterator has finished, then the command task has already completed
+                // and this cancellation is a no-op.
+                // If the iterator was abandoned (via break, return, or throw), then the
+                // command task is still running in a detached state, so this cancellation
+                // will terminate the process and allow the task to complete.
+                await disposeCts.CancelAsync().ConfigureAwait(false);
 
-                // Wait for the command to finish executing before returning, so that the process
-                // is fully terminated by the time the method returns.
+                // Wait for the task to complete.
+                // If it has already been awaited in the try block, then this is a no-op.
+                // If the iterator was abandoned, then the above statement should force the task to complete.
                 try
                 {
                     await commandTask.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (disposeCts.IsCancellationRequested)
                 {
-                    // If the iterator was abandoned, the command will throw a cancellation exception,
-                    // which is expected and should not be propagated to the consumer.
+                    // Iterator was abandoned and an internal cancellation was requested
                 }
             }
         }

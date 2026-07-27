@@ -47,9 +47,7 @@ public partial class PipeTarget
         )
         {
             // Cancellation to abort the pipe if any of the underlying targets fail
-            using var cancelOrFailCts = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken
-            );
+            using var panicCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             // Create a separate sub-stream for each target
             var targetSubStreams = new Dictionary<PipeTarget, SimplexStream>();
@@ -67,13 +65,13 @@ public partial class PipeTarget
                         try
                         {
                             await target
-                                .CopyFromAsync(subStream, cancelOrFailCts.Token)
+                                .CopyFromAsync(subStream, panicCts.Token)
                                 .ConfigureAwait(false);
                         }
                         catch
                         {
                             // Abort the operation if any of the targets fail
-                            await cancelOrFailCts.CancelAsync();
+                            await panicCts.CancelAsync().ConfigureAwait(false);
 
                             throw;
                         }
@@ -87,7 +85,7 @@ public partial class PipeTarget
                     while (true)
                     {
                         var bytesRead = await origin
-                            .ReadAsync(buffer.Memory, cancelOrFailCts.Token)
+                            .ReadAsync(buffer.Memory, panicCts.Token)
                             .ConfigureAwait(false);
 
                         if (bytesRead <= 0)
@@ -96,7 +94,7 @@ public partial class PipeTarget
                         foreach (var (_, subStream) in targetSubStreams)
                         {
                             await subStream
-                                .WriteAsync(buffer.Memory[..bytesRead], cancelOrFailCts.Token)
+                                .WriteAsync(buffer.Memory[..bytesRead], panicCts.Token)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -104,9 +102,7 @@ public partial class PipeTarget
                     // Report that transmission is complete
                     foreach (var (_, subStream) in targetSubStreams)
                     {
-                        await subStream
-                            .ReportCompletionAsync(cancelOrFailCts.Token)
-                            .ConfigureAwait(false);
+                        await subStream.ReportCompletionAsync(panicCts.Token).ConfigureAwait(false);
                     }
                 }
                 finally

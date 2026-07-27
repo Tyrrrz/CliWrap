@@ -221,16 +221,17 @@ public partial class Command
             forcefulCancellationToken
         );
 
+        // Used to trigger cancellation of the stdin pipe when the process exits. The process may
+        // exit without fully consuming all of the stdin data, so we want to avoid waiting for the
+        // pipe to finish if there's nothing reading from it anymore.
+        using var exitCts = CancellationTokenSource.CreateLinkedTokenSource(panicCts.Token);
+
         // It is theoretically possible that a termination signal to the process does nothing.
         // To handle that, set a timeout to avoid waiting indefinitely for the process to exit.
         using var killTimeoutCts = new CancellationTokenSource();
         await using var _1 = panicCts
             .Token.Register(() => killTimeoutCts.CancelAfter(TimeSpan.FromSeconds(15)))
             .ToAsyncDisposable();
-
-        // The process may exit without fully consuming the data from the stdin pipe, in which
-        // case we need a separate cancellation signal that will abort the piping operation.
-        using var exitCts = CancellationTokenSource.CreateLinkedTokenSource(panicCts.Token);
 
         // Kill the process when forceful termination (via cancellation or panic) is requested
         await using var _2 = panicCts.Token.Register(process.Kill).ToAsyncDisposable();
@@ -240,43 +241,43 @@ public partial class Command
             .Register(process.Interrupt)
             .ToAsyncDisposable();
 
-        // Start piping streams in the background.
-        // Output and error pipes may legally outlive the process, so we don't cancel them on process exit.
+        // Start piping streams in the background. In the event that any of the tasks fail,
+        // the corresponding standard stream(s) will be closed, so there is no risk of a deadlock.
+        // Output and error streams may legally outlive the process, so we don't cancel them when it exits.
         var stdInTask = PipeStandardInputAsync(process, exitCts.Token);
         var stdOutTask = PipeStandardOutputAsync(process, panicCts.Token);
         var stdErrTask = PipeStandardErrorAsync(process, panicCts.Token);
 
-        // Start waiting for the process to exit
+        // Wait until the process exits normally or gets killed.
+        // The timeout is started after the execution is forcefully canceled and ensures
+        // that we don't wait forever in case the attempt to kill the process failed.
         var processTask = process.WaitUntilExitAsync(killTimeoutCts.Token);
 
         try
         {
-            // Monitor pipe tasks until the process exits. Completed successful pipes are removed
-            // from consideration so they don't prevent us from observing a later pipe failure.
-            var pendingTasks = new List<Task> { processTask, stdInTask, stdOutTask, stdErrTask };
-            while (!processTask.IsCompleted && pendingTasks.Count > 1)
+            // Check tasks as they complete
+            await foreach (
+                var completedTask in Task.WhenEach(stdInTask, stdOutTask, stdErrTask, processTask)
+            )
             {
-                var completedTask = await Task.WhenAny(pendingTasks).ConfigureAwait(false);
-                pendingTasks.Remove(completedTask);
-
-                // A faulted pipe can deadlock the process if it is blocked writing to a pipe that
-                // nobody is reading anymore, so request forceful termination immediately.
-                if (completedTask.IsFaulted)
+                // If the process exited, trigger the corresponding signal to cancel the stdin pipe since it's
+                // definitely not going to be needed anymore.
+                if (completedTask == processTask)
                 {
-                    await panicCts.CancelAsync();
-                    break;
+                    await exitCts.CancelAsync().ConfigureAwait(false);
+                }
+                // If a piping task failed while the process is still running, we want to terminate it immediately.
+                // The process may keep running for a while unless we do it, and since this method is going to end
+                // up in an exception anyway, we might as well cut the wait.
+                else if (completedTask.IsFaulted && !processTask.IsCompleted)
+                {
+                    await panicCts.CancelAsync().ConfigureAwait(false);
                 }
             }
 
-            // Wait for the process to fully exit
-            await processTask.ConfigureAwait(false);
-
-            // Cancel the stdin pipe if it's still running, because the process has exited
-            // and won't consume any more data.
-            await exitCts.CancelAsync();
-
-            // Wait until all piping is done and propagate exceptions
-            await Task.WhenAll(stdInTask, stdOutTask, stdErrTask).ConfigureAwait(false);
+            // Join all tasks and propagate exceptions, if any
+            await Task.WhenAll(stdInTask, stdOutTask, stdErrTask, processTask)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == killTimeoutCts.Token)
         {
@@ -312,7 +313,7 @@ public partial class Command
             // If the process is still running and we reached this stage, then it's due to a failure.
             if (!processTask.IsCompletedSuccessfully)
             {
-                await panicCts.CancelAsync();
+                await panicCts.CancelAsync().ConfigureAwait(false);
 
                 try
                 {
