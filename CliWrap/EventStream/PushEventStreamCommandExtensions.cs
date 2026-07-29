@@ -119,7 +119,7 @@ public static partial class EventStreamCommandExtensions
                     // This leaves us with two choices: either block the thread waiting on the task to complete,
                     // or detach the task and let it finish in the background. We take the second option, since blocking
                     // the thread may lead to deadlocks in certain scenarios.
-                    _ = commandTask.Task.ObserveException();
+                    _ = commandTask.Task.Catch();
                 });
             });
 

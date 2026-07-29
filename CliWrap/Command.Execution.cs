@@ -164,7 +164,7 @@ public partial class Command
                 // We tried to cancel the copy task, but it may have not cooperated and may still be
                 // running in the background. To make sure its exception doesn't bubble up to the scheduler,
                 // we explicitly observe it.
-                _ = copyTask.ObserveException();
+                _ = copyTask.Catch();
 
                 throw;
             }

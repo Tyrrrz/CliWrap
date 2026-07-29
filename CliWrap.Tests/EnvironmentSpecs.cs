@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
+using PowerKit;
 using PowerKit.Extensions;
 using Xunit;
 
