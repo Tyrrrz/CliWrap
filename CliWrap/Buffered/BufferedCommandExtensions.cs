@@ -47,14 +47,15 @@ public static class BufferedCommandExtensions
                     )
                 )
                 .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
-                // Wrap the task to add pre- and post-execution logic
-                .Bind(async task =>
+                // CommandTask<> doesn't have a method builder, so we wrap it manually to
+                // transform the result into an object that also includes the contents of
+                // the standard output and standard error buffers.
+                .Wrap(async task =>
                 {
                     try
                     {
                         var result = await task.ConfigureAwait(false);
 
-                        // Extend the result with buffered output and error
                         return new BufferedCommandResult(
                             result.ExitCode,
                             result.StartTime,

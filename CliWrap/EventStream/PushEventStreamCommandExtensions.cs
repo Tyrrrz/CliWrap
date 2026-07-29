@@ -36,10 +36,9 @@ public static partial class EventStreamCommandExtensions
         ) =>
             Observable.CreateSynchronized<CommandEvent>(observer =>
             {
-                // Used to trigger forceful cancellation when the consumer unsubscribes from the observable
-                var unsubscribeCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    forcefulCancellationToken
-                );
+                // Used to trigger forceful cancellation also when the consumer unsubscribes from the observable
+                var forcefulCancellationOrUnsubscribeCts =
+                    CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken);
 
                 var commandTask = command
                     // Extend the existing standard output pipe to also push events to the observer
@@ -62,9 +61,13 @@ public static partial class EventStreamCommandExtensions
                             )
                         )
                     )
-                    .ExecuteAsync(unsubscribeCts.Token, gracefulCancellationToken)
-                    // Wrap the task to add pre- and post-execution logic
-                    .Bind(async task =>
+                    .ExecuteAsync(
+                        forcefulCancellationOrUnsubscribeCts.Token,
+                        gracefulCancellationToken
+                    )
+                    // CommandTask<> doesn't have a method builder, so we wrap it manually to
+                    // attach observer callbacks for started, exited, and error events.
+                    .Wrap(async task =>
                     {
                         try
                         {
@@ -77,6 +80,21 @@ public static partial class EventStreamCommandExtensions
 
                             return result;
                         }
+                        catch (OperationCanceledException ex)
+                            when (ex.CancellationToken == forcefulCancellationOrUnsubscribeCts.Token
+                                && forcefulCancellationToken.IsCancellationRequested
+                            )
+                        {
+                            // Translate the linked cancellation token back to the consumer-provided one
+                            var translatedEx = new OperationCanceledException(
+                                ex.Message,
+                                ex,
+                                forcefulCancellationToken
+                            );
+
+                            observer.OnError(translatedEx);
+                            throw translatedEx;
+                        }
                         catch (Exception ex)
                         {
                             observer.OnError(ex);
@@ -84,20 +102,22 @@ public static partial class EventStreamCommandExtensions
                         }
                     });
 
-                // When the consumer unsubscribes from the observable, we trigger a forceful cancellation
-                // to terminate the process. If the process has already exited, this will have no effect.
                 return Disposable.Create(() =>
                 {
-                    unsubscribeCts.Cancel();
-                    unsubscribeCts.Dispose();
+                    // The observable may finish either by reaching its end naturally or by having
+                    // its subscription disposed. In the latter case, since nothing
+                    // is listening to the events and draining the pipes anymore, the process may
+                    // hang indefinitely. Even if it doesn't, we also just don't want it to linger
+                    // around if the consumer is no longer interested in the events. So to handle that,
+                    // we trigger a forceful cancellation to terminate the process.
+                    forcefulCancellationOrUnsubscribeCts.Cancel();
+                    forcefulCancellationOrUnsubscribeCts.Dispose();
 
                     // Ideally, the command task should be joined when the consumer unsubscribes from the observable,
                     // but, unlike IAsyncEnumerable<T>, IObservable<T> only provides a synchronous cleanup mechanism.
                     // This leaves us with two choices: either block the thread waiting on the task to complete,
-                    // or abandon the task and let it finish in a detached state.
-                    // The former can lead to deadlocks in certain scenarios, while the latter can lead to unobserved
-                    // exceptions bubbling to the scheduler.
-                    // As the lesser of the two evils, we abandon the task and also explicitly observe its exception.
+                    // or detach the task and let it finish in the background. We take the second option, since blocking
+                    // the thread may lead to deadlocks in certain scenarios.
                     _ = commandTask.Task.ObserveException();
                 });
             });

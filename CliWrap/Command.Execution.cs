@@ -161,8 +161,9 @@ public partial class Command
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // We tried to cancel the copy task and abandoned it. It may remain in a detached
-                // state, so we need to observe its exception to prevent it from routing to the scheduler.
+                // We tried to cancel the copy task, but it may have not cooperated and may still be
+                // running in the background. To make sure its exception doesn't bubble up to the scheduler,
+                // we explicitly observe it.
                 _ = copyTask.ObserveException();
 
                 throw;
@@ -214,20 +215,23 @@ public partial class Command
     {
         using var _ = process;
 
-        // Used to trigger forceful cancellation if an exception is thrown within this method,
+        // Used to trigger forceful cancellation also if an exception is thrown within this method,
         // for example by the consumer-provided pipes. This ensures that the underlying process
-        // never outlives the execution of this method.
-        using var panicCts = CancellationTokenSource.CreateLinkedTokenSource(
+        // never outlives the execution of this method, which is one of CliWrap's guarantees.
+        using var forcefulCancellationOrPanicCts = CancellationTokenSource.CreateLinkedTokenSource(
             forcefulCancellationToken
         );
 
-        // Used to trigger cancellation of the stdin pipe when the process exits. The process may
+        // Used to trigger cancellation of the stdin pipe also when the process exits. The process may
         // exit without fully consuming all of the stdin data, so we want to avoid waiting for the
         // pipe to finish if there's nothing reading from it anymore.
-        using var exitCts = CancellationTokenSource.CreateLinkedTokenSource(panicCts.Token);
+        using var forcefulCancellationOrPanicOrExitCts =
+            CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationOrPanicCts.Token);
 
         // Kill the process when forceful termination (via cancellation or panic) is requested
-        await using var _1 = panicCts.Token.Register(process.Kill).ToAsyncDisposable();
+        await using var _1 = forcefulCancellationOrPanicCts
+            .Token.Register(process.Kill)
+            .ToAsyncDisposable();
 
         // Send an interrupt signal to the process when graceful termination is requested
         await using var _2 = gracefulCancellationToken
@@ -236,31 +240,26 @@ public partial class Command
 
         // Start piping streams in the background. In the event that any of the tasks fail,
         // the corresponding standard stream(s) will be closed, so there is no risk of a deadlock.
-        // Output and error streams may legally outlive the process, so we don't cancel them when it exits.
-        var stdInTask = PipeStandardInputAsync(process, exitCts.Token);
-        var stdOutTask = PipeStandardOutputAsync(process, panicCts.Token);
-        var stdErrTask = PipeStandardErrorAsync(process, panicCts.Token);
+        // Output and error streams may legally outlive the process, so we don't cancel them on exit.
+        var stdInTask = PipeStandardInputAsync(process, forcefulCancellationOrPanicOrExitCts.Token);
+        var stdOutTask = PipeStandardOutputAsync(process, forcefulCancellationOrPanicCts.Token);
+        var stdErrTask = PipeStandardErrorAsync(process, forcefulCancellationOrPanicCts.Token);
 
         // Wait until the process exits normally or gets killed
-        var processTask = process.WaitUntilExitAsync(
-            // In theory, a SIGKILL signal does not guarantee that the process will exit, but even if we
-            // abandon it after a timeout, we can't also reliably abandon the pipes since those might not
-            // respect cancellation. So we just wait indefinitely and hope for the best.
-            CancellationToken.None
-        );
+        var processTask = process.WaitUntilExitAsync();
 
         try
         {
-            // Check tasks as they complete
+            // Check on the background tasks as they complete
             await foreach (
                 var completedTask in Task.WhenEach(stdInTask, stdOutTask, stdErrTask, processTask)
             )
             {
-                // If the process task finished, trigger the corresponding signal to cancel the stdin pipe
-                // since it's definitely not going to be needed anymore.
+                // If the process task has finished, trigger the corresponding signal to cancel the
+                // stdin pipe task since the process can't read any more data from it.
                 if (completedTask == processTask)
                 {
-                    await exitCts.CancelAsync().ConfigureAwait(false);
+                    await forcefulCancellationOrPanicOrExitCts.CancelAsync().ConfigureAwait(false);
                 }
                 // If a piping task failed while the process is still running, proactively terminate the process.
                 // It may continue running for a while even with the corresponding standard stream(s) closed, so
@@ -275,7 +274,7 @@ public partial class Command
                     && !processTask.IsCompleted
                 )
                 {
-                    await panicCts.CancelAsync().ConfigureAwait(false);
+                    await forcefulCancellationOrPanicCts.CancelAsync().ConfigureAwait(false);
                 }
             }
 
@@ -286,22 +285,17 @@ public partial class Command
             await Task.WhenAll(stdInTask, stdOutTask, stdErrTask, processTask)
                 .ConfigureAwait(false);
         }
-        catch (OperationCanceledException ex) when (ex.CancellationToken == exitCts.Token)
+        catch (OperationCanceledException ex)
+            when (ex.CancellationToken == forcefulCancellationOrPanicOrExitCts.Token)
         {
-            // The stdin pipe was cancelled because the process exited before it could finish writing all data
+            // The stdin pipe was cancelled because the process exited before it could finish writing all data.
+            // Don't report internal cancellations.
         }
         catch (OperationCanceledException ex)
-            when (ex.CancellationToken == forcefulCancellationToken)
+            when (ex.CancellationToken == forcefulCancellationOrPanicCts.Token)
         {
-            // The operation was cancelled forcefully by the consumer. In some timing conditions, this exception
-            // may never be thrown even if cancellation was requested, so for now we will suppress it and recheck
-            // the cancellation token manually later to throw a more meaningful exception.
-        }
-        catch (OperationCanceledException ex)
-            when (ex.CancellationToken == gracefulCancellationToken)
-        {
-            // This exception is theoretically impossible, seeing as the graceful cancellation token is not passed
-            // down anywhere. Still, we have this clause for symmetry.
+            // The operation was cancelled either by the consumer or by a panic. The former will be handled
+            // separately, while the latter is an internal cancellation that shouldn't be reported.
         }
         finally
         {

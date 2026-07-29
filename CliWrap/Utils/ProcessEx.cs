@@ -152,17 +152,7 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
         }
     }
 
-    public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)
-    {
-        await using (
-            cancellationToken
-                .Register(() => _exitTcs.TrySetCanceled(cancellationToken))
-                .ToAsyncDisposable()
-        )
-        {
-            await _exitTcs.Task.ConfigureAwait(false);
-        }
-    }
+    public async Task WaitUntilExitAsync() => await _exitTcs.Task.ConfigureAwait(false);
 
     public void Dispose() => _nativeProcess.Dispose();
 }
