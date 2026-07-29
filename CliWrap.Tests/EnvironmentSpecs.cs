@@ -26,11 +26,7 @@ public class EnvironmentSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        var actualPath = result.StandardOutput.Trim();
-        if (actualPath.StartsWith("/private/", StringComparison.Ordinal))
-            actualPath = actualPath["/private".Length..];
-
-        Path.GetFullPath(actualPath).Should().Be(Path.GetFullPath(dir.Path));
+        Path.GetFullPath(result.StandardOutput.Trim()).Should().Be(Path.GetFullPath(dir.Path));
     }
 
     [Fact(Timeout = 15000)]
