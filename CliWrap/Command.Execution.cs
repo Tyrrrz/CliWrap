@@ -286,16 +286,12 @@ public partial class Command
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException ex)
-            when (ex.CancellationToken == forcefulCancellationOrPanicOrExitCts.Token)
+            when (ex.CancellationToken == forcefulCancellationOrPanicCts.Token
+                || ex.CancellationToken == forcefulCancellationOrPanicOrExitCts.Token
+            )
         {
-            // The stdin pipe was cancelled because the process exited before it could finish writing all data.
-            // Don't report internal cancellations.
-        }
-        catch (OperationCanceledException ex)
-            when (ex.CancellationToken == forcefulCancellationOrPanicCts.Token)
-        {
-            // The operation was cancelled either by the consumer or by a panic. The former will be handled
-            // separately, while the latter is an internal cancellation that shouldn't be reported.
+            // Cancellation was either requested by the consumer or triggered internally. Consumer-initiated
+            // cancellations will be reported separately later, while the internal ones shouldn't be reported.
         }
         finally
         {
