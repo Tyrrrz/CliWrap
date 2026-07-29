@@ -719,7 +719,7 @@ When using this execution model, back pressure is facilitated by locking the pip
 > Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
 > [!NOTE]
-> Abandoning the iterator (via `break`, `return`, or `throw`) will terminate the underlying process as if [forceful cancellation](#timeout-and-cancellation) was requested.
+> Abandoning the iterator (via `break`, `return`, or `throw`) will terminate the underlying process as if [forceful cancellation](#timeout-and-cancellation) were requested.
 
 #### Push-based event stream
 
@@ -761,7 +761,7 @@ Unlike the pull-based event stream, this execution model does not involve any ba
 > Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
 
 > [!NOTE]
-> Disposing the subscription will terminate the underlying process as if [forceful cancellation](#timeout-and-cancellation) was requested.
+> Disposing the subscription will terminate the underlying process as if [forceful cancellation](#timeout-and-cancellation) were requested.
 
 #### Combining execution models with custom pipes
 
