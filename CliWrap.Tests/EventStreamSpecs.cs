@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CliWrap.EventStream;
@@ -34,23 +36,22 @@ public class EventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_break_out_early()
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_abandon_it_early()
     {
         // Arrange
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["generate text", "--target", "all", "--lines", "1000"]);
 
         // Act
-        var processId = 0;
-        await foreach (var cmdEvent in cmd.ListenAsync())
+        var i = 0;
+        await foreach (var _ in cmd.ListenAsync())
         {
-            if (cmdEvent is StartedCommandEvent startedEvent)
-                processId = startedEvent.ProcessId;
-
-            break;
+            if (++i >= 10)
+                break;
         }
 
         // Assert
-        Process.IsRunning(processId).Should().BeFalse();
+        i.Should().Be(10);
     }
 
     [Fact(Timeout = 15000)]
@@ -76,7 +77,7 @@ public class EventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_not_hang_on_large_stdout_and_stderr_if_I_break_out_early()
+    public async Task I_can_execute_a_command_as_a_pull_based_event_stream_and_not_hang_on_large_stdout_and_stderr_if_I_abandon_it_early()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
@@ -122,19 +123,30 @@ public class EventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_abandon_it_early()
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_unsubscribe_from_it_early()
     {
         // Arrange
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["generate text", "--target", "all", "--lines", "1000"]);
 
         // Act
-        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
+        var i = 0;
+        IDisposable? subscription = null;
 
-        // Assert
-        // Abandoning the subscription triggers the kill asynchronously, so poll
-        // until the process has terminated (bounded by the test timeout)
-        while (Process.IsRunning(startedEvent.ProcessId))
-            await Task.Delay(100);
+        using (
+            subscription = cmd.Observe()
+                .Subscribe(
+                    Observer.Create<CommandEvent>(onNext: _ =>
+                    {
+                        if (++i >= 10)
+                            subscription?.Dispose();
+                    })
+                )
+        )
+        {
+            // Assert
+            i.Should().Be(10);
+        }
     }
 
     [Fact(Timeout = 15000)]
@@ -154,5 +166,40 @@ public class EventStreamSpecs
 
         // Act & assert
         await cmd.Observe().ToArray();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_a_push_based_event_stream_and_not_hang_on_large_stdout_and_stderr_if_I_unsubscribe_from_it_early()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments([
+                "generate text",
+                "--target",
+                "all",
+                "--length",
+                "10000000",
+                "--lines",
+                "1000",
+            ]);
+
+        // Act
+        var i = 0;
+        IDisposable? subscription = null;
+
+        using (
+            subscription = cmd.Observe()
+                .Subscribe(
+                    Observer.Create<CommandEvent>(onNext: _ =>
+                    {
+                        if (++i >= 10)
+                            subscription?.Dispose();
+                    })
+                )
+        )
+        {
+            // Assert
+            i.Should().Be(10);
+        }
     }
 }

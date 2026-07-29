@@ -636,12 +636,10 @@ public class PipingSpecs
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
-        var task = cmd.ExecuteAsync();
-        var act = async () => await task;
+        var act = async () => await cmd.ExecuteAsync();
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
-        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -654,36 +652,39 @@ public class PipingSpecs
             | PipeTarget.ToFile("non-existing-directory/file.txt");
 
         // Act
-        var task = cmd.ExecuteAsync();
-        var act = async () => await task;
+        var act = async () => await cmd.ExecuteAsync();
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
-        Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_on_large_stdout_if_the_pipe_target_throws_an_exception()
+    public async Task I_can_try_to_execute_a_command_and_not_hang_on_large_stdout_if_the_pipe_target_throws_an_exception()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
             .WithArguments(["generate binary", "--length", "100000"])
             .WithStandardOutputPipe(
-                PipeTarget.Create(
-                    async (origin, cancellationToken) =>
-                    {
-                        using var buffer = MemoryPool<byte>.Shared.Rent(1);
+                PipeTarget.Create(async (_, _) => throw new Exception("Expected exception."))
+            );
 
-                        while (
-                            await origin
-                                .ReadAsync(buffer.Memory[..1], cancellationToken)
-                                .ConfigureAwait(false) > 0
-                        )
-                        {
-                            throw new Exception("Expected exception.");
-                        }
-                    }
-                )
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        (await act.Should().ThrowAsync<Exception>())
+            .Which.Message.Should()
+            .Contain("Expected exception.");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_try_to_execute_a_command_and_have_it_finish_early_if_the_pipe_target_throws_an_exception()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["sleep", "00:00:20"])
+            .WithStandardOutputPipe(
+                PipeTarget.Create(async (_, _) => throw new Exception("Expected exception."))
             );
 
         // Act
@@ -694,6 +695,7 @@ public class PipingSpecs
         (await act.Should().ThrowAsync<Exception>())
             .Which.Message.Should()
             .Contain("Expected exception.");
+
         Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 

@@ -8,7 +8,7 @@ namespace CliWrap.Tests;
 public class BufferingSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout()
+    public async Task I_can_execute_a_command_and_get_its_stdout()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
@@ -23,7 +23,7 @@ public class BufferingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_get_the_stderr()
+    public async Task I_can_execute_a_command_and_get_its_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
@@ -38,7 +38,7 @@ public class BufferingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_get_the_stdout_and_stderr()
+    public async Task I_can_execute_a_command_and_get_its_stdout_and_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
@@ -53,7 +53,7 @@ public class BufferingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_use_an_implicit_conversion_to_get_stdout()
+    public async Task I_can_execute_a_command_and_use_an_implicit_conversion_to_get_its_stdout()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
@@ -67,7 +67,7 @@ public class BufferingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_use_deconstruction_to_get_stdout_and_stderr()
+    public async Task I_can_execute_a_command_and_use_deconstruction_to_get_its_stdout_and_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)
@@ -83,7 +83,7 @@ public class BufferingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_with_buffering_and_not_hang_on_large_stdout_and_stderr()
+    public async Task I_can_execute_a_command_and_not_hang_on_large_stdout_and_stderr()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath)

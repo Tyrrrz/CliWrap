@@ -9,7 +9,7 @@ namespace CliWrap.Tests;
 public class ExecutionSpecs
 {
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_get_the_exit_code_and_execution_time()
+    public async Task I_can_execute_a_command_and_get_its_exit_code_and_execution_time()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath);
@@ -24,7 +24,7 @@ public class ExecutionSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_use_an_implicit_conversion_to_get_the_exit_code()
+    public async Task I_can_execute_a_command_and_use_an_implicit_conversion_to_get_its_exit_code()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath);
@@ -40,7 +40,7 @@ public class ExecutionSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_get_the_associated_process_ID()
+    public async Task I_can_execute_a_command_and_get_its_associated_process_ID()
     {
         // Arrange
         var cmd = Cli.Wrap(Dummy.Program.FilePath);
