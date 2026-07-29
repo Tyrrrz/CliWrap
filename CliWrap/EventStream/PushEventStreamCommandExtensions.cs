@@ -69,16 +69,12 @@ public static partial class EventStreamCommandExtensions
                     // attach observer callbacks for started, exited, and error events.
                     .Wrap(async task =>
                     {
+                        observer.OnNext(new StartedCommandEvent(task.ProcessId));
+
+                        CommandResult result;
                         try
                         {
-                            observer.OnNext(new StartedCommandEvent(task.ProcessId));
-
-                            var result = await task.ConfigureAwait(false);
-
-                            observer.OnNext(new ExitedCommandEvent(result.ExitCode));
-                            observer.OnCompleted();
-
-                            return result;
+                            result = await task.ConfigureAwait(false);
                         }
                         catch (OperationCanceledException ex)
                             when (ex.CancellationToken == forcefulCancellationOrUnsubscribeCts.Token
@@ -100,6 +96,11 @@ public static partial class EventStreamCommandExtensions
                             observer.OnError(ex);
                             throw;
                         }
+
+                        observer.OnNext(new ExitedCommandEvent(result.ExitCode));
+                        observer.OnCompleted();
+
+                        return result;
                     });
 
                 return Disposable.Create(() =>
