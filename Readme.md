@@ -48,6 +48,7 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 - Fully asynchronous and cancellation-aware API
 - Graceful cancellation using interrupt signals
 - Designed with strict immutability in mind
+- Complete ownership of the underlying process's lifetime
 - Provides safety against typical deadlock scenarios
 - Tested on Windows, Linux, and macOS
 - Targets .NET Standard 2.0+, .NET Core 3.0+, .NET Framework 4.6.2+
@@ -149,18 +150,6 @@ var result = await Cli.Wrap("path/to/exe")
 > Be mindful when using `ExecuteBufferedAsync()`.
 > Programs can write arbitrary data (including binary) to the output and error streams, and storing it in-memory may be impractical.
 > For more advanced scenarios, **CliWrap** also provides other piping options, which are covered in the [piping section](#piping).
-
-Whichever execution model you use, **CliWrap** takes full ownership of the process it spawns and guarantees that it is terminated before the execution method returns or throws — whether the command completed normally, was canceled, or failed with an exception.
-This means you never need to manually track or clean up the process afterwards, even in scenarios where something goes wrong midway:
-
-```csharp
-// The output pipe throws partway through the execution.
-// Regardless, the underlying process is guaranteed to be
-// terminated by the time `ExecuteAsync()` rethrows the exception.
-await Cli.Wrap("path/to/exe")
-    .WithStandardOutputPipe(PipeTarget.Create((_, _) => throw new Exception("Oops!")))
-    .ExecuteAsync();
-```
 
 ### Command configuration
 
@@ -730,7 +719,7 @@ When using this execution model, back pressure is facilitated by locking the pip
 > Just like with `ExecuteBufferedAsync()`, you can specify custom encoding for `ListenAsync()` using one of its overloads.
 
 > [!NOTE]
-> Breaking out of the `await foreach` loop (or throwing inside it) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the iterator is abandoned.
+> Abandoning the iterator (via `break`, `return`, or `throw`) will terminate the underlying process as if [forceful cancellation](#timeout-and-cancellation) was requested.
 
 #### Push-based event stream
 
@@ -772,7 +761,7 @@ Unlike the pull-based event stream, this execution model does not involve any ba
 > Similarly to `ExecuteBufferedAsync()`, you can specify custom encoding for `Observe()` using one of its overloads.
 
 > [!NOTE]
-> Disposing the subscription (for example, by using an operator such as `Take(...)` or `FirstAsync(...)`, or by disposing it explicitly) terminates the underlying process, since **CliWrap** guarantees that the process is not left running once the observable is abandoned.
+> Disposing the subscription will terminate the underlying process as if [forceful cancellation](#timeout-and-cancellation) was requested.
 
 #### Combining execution models with custom pipes
 
@@ -830,6 +819,9 @@ catch (OperationCanceledException)
 }
 ```
 
+> [!NOTE]
+> When the command is canceled, `ExecuteAsync()` will only complete after the kill signal has been fully settled by the operating system and the underlying process has exited.
+
 Besides outright killing the process, you can also request cancellation in a more graceful way by sending an interrupt signal.
 To do that, pass an additional cancellation token to `ExecuteAsync()` that corresponds to that request:
 
@@ -881,7 +873,7 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 ```
 
 > [!NOTE]
-> Similarly to `ExecuteAsync()`, cancellation is also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
+> Similarly to `ExecuteAsync()`, both cancellation mechanisms are also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
 ### Process information
 

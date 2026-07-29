@@ -2,10 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Native;
-using PowerKit.Extensions;
 
 namespace CliWrap.Utils;
 
@@ -152,17 +150,7 @@ internal class ProcessEx(ProcessStartInfo startInfo) : IDisposable
         }
     }
 
-    public async Task WaitUntilExitAsync(CancellationToken cancellationToken = default)
-    {
-        await using (
-            cancellationToken
-                .Register(() => _exitTcs.TrySetCanceled(cancellationToken))
-                .ToAsyncDisposable()
-        )
-        {
-            await _exitTcs.Task.ConfigureAwait(false);
-        }
-    }
+    public async Task WaitUntilExitAsync() => await _exitTcs.Task.ConfigureAwait(false);
 
     public void Dispose() => _nativeProcess.Dispose();
 }

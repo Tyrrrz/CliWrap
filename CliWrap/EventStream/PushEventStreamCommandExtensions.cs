@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using PowerKit;
 using PowerKit.Extensions;
 
@@ -20,7 +19,13 @@ public static partial class EventStreamCommandExtensions
         /// Executes the command as a push-based event stream.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
+        /// </para>
+        /// <para>
+        /// Unsubscribing from the observable (by calling <see cref="IDisposable.Dispose" /> on the subscription)
+        /// will also forcefully terminate the underlying process.
+        /// </para>
         /// </remarks>
         // TODO: (breaking change) use optional parameters and remove the other overload
         public IObservable<CommandEvent> Observe(
@@ -31,63 +36,60 @@ public static partial class EventStreamCommandExtensions
         ) =>
             Observable.CreateSynchronized<CommandEvent>(observer =>
             {
-                // Used to kill the process if the subscription is disposed (i.e. the observable
-                // is abandoned) or if forceful cancellation is requested
-                var forcefulCancellationOrAbandonCts =
+                // Used to trigger forceful cancellation also when the consumer unsubscribes from the observable
+                var forcefulCancellationOrUnsubscribeCts =
                     CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken);
 
-                var stdOutPipe = PipeTarget.Merge(
-                    command.StandardOutputPipe,
-                    PipeTarget.ToDelegate(
-                        line => observer.OnNext(new StandardOutputCommandEvent(line)),
-                        standardOutputEncoding
-                    )
-                );
-
-                var stdErrPipe = PipeTarget.Merge(
-                    command.StandardErrorPipe,
-                    PipeTarget.ToDelegate(
-                        line => observer.OnNext(new StandardErrorCommandEvent(line)),
-                        standardErrorEncoding
-                    )
-                );
-
-                // Execute the command with the pipes extended to push events to the observer.
-                // We pass forcefulCancellationOrAbandonCts.Token as the forceful cancellation token
-                // so that abandoning the observable (which cancels forcefulCancellationOrAbandonCts)
-                // also kills the underlying process.
                 var commandTask = command
-                    .WithStandardOutputPipe(stdOutPipe)
-                    .WithStandardErrorPipe(stdErrPipe)
+                    // Extend the existing standard output pipe to also push events to the observer
+                    .WithStandardOutputPipe(
+                        PipeTarget.Merge(
+                            command.StandardOutputPipe,
+                            PipeTarget.ToDelegate(
+                                line => observer.OnNext(new StandardOutputCommandEvent(line)),
+                                standardOutputEncoding
+                            )
+                        )
+                    )
+                    // Extend the existing standard error pipe to also push events to the observer
+                    .WithStandardErrorPipe(
+                        PipeTarget.Merge(
+                            command.StandardErrorPipe,
+                            PipeTarget.ToDelegate(
+                                line => observer.OnNext(new StandardErrorCommandEvent(line)),
+                                standardErrorEncoding
+                            )
+                        )
+                    )
                     .ExecuteAsync(
-                        forcefulCancellationOrAbandonCts.Token,
+                        forcefulCancellationOrUnsubscribeCts.Token,
                         gracefulCancellationToken
-                    );
-
-                observer.OnNext(new StartedCommandEvent(commandTask.ProcessId));
-
-                _ = commandTask
-                    .Bind(async task =>
+                    )
+                    // CommandTask<> doesn't have a method builder, so we wrap it manually to
+                    // attach observer callbacks for started, exited, and error events.
+                    .Wrap(async task =>
                     {
-                        CommandResult result;
+                        observer.OnNext(new StartedCommandEvent(task.ProcessId));
 
+                        CommandResult result;
                         try
                         {
                             result = await task.ConfigureAwait(false);
                         }
-                        catch (OperationCanceledException) when (task.IsCanceled)
+                        catch (OperationCanceledException ex)
+                            when (ex.CancellationToken == forcefulCancellationOrUnsubscribeCts.Token
+                                && forcefulCancellationToken.IsCancellationRequested
+                            )
                         {
-                            // forcefulCancellationOrAbandonCts is linked to the user-provided
-                            // forceful cancellation token, so the task's own cancellation token may
-                            // be the internal linked one. Surface the user's original token when they
-                            // requested forceful cancellation; otherwise (graceful cancellation or an
-                            // abandoned observable) fall back to the task's cancellation.
-                            observer.OnError(
-                                forcefulCancellationToken.IsCancellationRequested
-                                    ? new OperationCanceledException(forcefulCancellationToken)
-                                    : new TaskCanceledException(task)
+                            // Translate the linked cancellation token back to the consumer-provided one
+                            var translatedEx = new OperationCanceledException(
+                                ex.Message,
+                                ex,
+                                forcefulCancellationToken
                             );
-                            throw;
+
+                            observer.OnError(translatedEx);
+                            throw translatedEx;
                         }
                         catch (Exception ex)
                         {
@@ -95,40 +97,33 @@ public static partial class EventStreamCommandExtensions
                             throw;
                         }
 
-                        // Execute these outside of try/catch to avoid catching exceptions from observer callbacks.
-                        // Otherwise, we may get an error event after the completion event.
                         observer.OnNext(new ExitedCommandEvent(result.ExitCode));
                         observer.OnCompleted();
 
                         return result;
-                    })
-                    // The task will remain detached, so observe its exception so it
-                    // doesn't get reported to the finalizer thread and crash the process.
-                    .Task.ObserveException();
+                    });
 
-                // When the subscription is disposed (either because the observable was abandoned
-                // or because it completed normally), cancel forcefulCancellationOrAbandonCts to
-                // terminate the underlying process and stop the pipes. This satisfies the CliWrap
-                // convention that the process must be fully terminated once the execution ends.
-                // On normal completion the process has already exited, so this is a no-op.
-                var isDisposed = false;
                 return Disposable.Create(() =>
                 {
-                    if (isDisposed)
-                        return;
+                    // The observable may finish either by reaching its end naturally or by having
+                    // its subscription disposed. In the latter case, since nothing
+                    // is listening to the events and draining the pipes anymore, the process may
+                    // hang indefinitely. Even if it doesn't, we also just don't want it to linger
+                    // around if the consumer is no longer interested in the events. So to handle that,
+                    // we trigger a forceful cancellation to terminate the process.
+                    forcefulCancellationOrUnsubscribeCts.Cancel();
+                    forcefulCancellationOrUnsubscribeCts.Dispose();
 
-                    isDisposed = true;
-                    forcefulCancellationOrAbandonCts.Cancel();
-                    forcefulCancellationOrAbandonCts.Dispose();
+                    // Ideally, the command task should be joined when the consumer unsubscribes from the observable,
+                    // but, unlike IAsyncEnumerable<T>, IObservable<T> only provides a synchronous cleanup mechanism.
+                    // This leaves us with two choices: either block the thread waiting on the task to complete,
+                    // or detach the task and let it finish in the background. We take the second option, since blocking
+                    // the thread may lead to deadlocks in certain scenarios.
+                    _ = commandTask.Task.Catch();
                 });
             });
 
-        /// <summary>
-        /// Executes the command as a push-based event stream.
-        /// </summary>
-        /// <remarks>
-        /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-        /// </remarks>
+        /// <inheritdoc cref="Observe(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IObservable<CommandEvent> Observe(
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
@@ -141,24 +136,13 @@ public static partial class EventStreamCommandExtensions
                 CancellationToken.None
             );
 
-        /// <summary>
-        /// Executes the command as a push-based event stream.
-        /// </summary>
-        /// <remarks>
-        /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-        /// </remarks>
+        /// <inheritdoc cref="Observe(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IObservable<CommandEvent> Observe(
             Encoding encoding,
             CancellationToken cancellationToken = default
         ) => command.Observe(encoding, encoding, cancellationToken);
 
-        /// <summary>
-        /// Executes the command as a push-based event stream.
-        /// Uses <see cref="Encoding.Default" /> for decoding.
-        /// </summary>
-        /// <remarks>
-        /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-        /// </remarks>
+        /// <inheritdoc cref="Observe(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IObservable<CommandEvent> Observe(CancellationToken cancellationToken = default) =>
             command.Observe(Encoding.Default, cancellationToken);
     }

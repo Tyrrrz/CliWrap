@@ -16,7 +16,7 @@ public class ResourcePolicyBuilder
     /// Sets the priority class of the process.
     /// </summary>
     /// <remarks>
-    /// For information on platform support, see attributes on <see cref="Process.PriorityClass" />.
+    /// For information on platform support, see the attributes on <see cref="Process.PriorityClass" />.
     /// </remarks>
     public ResourcePolicyBuilder SetPriority(ProcessPriorityClass? priority)
     {
@@ -29,7 +29,7 @@ public class ResourcePolicyBuilder
     /// For example, to set the affinity to cores 1 and 3 out of 4, pass 0b1010.
     /// </summary>
     /// <remarks>
-    /// For information on platform support, see attributes on <see cref="Process.ProcessorAffinity" />.
+    /// For information on platform support, see the attributes on <see cref="Process.ProcessorAffinity" />.
     /// </remarks>
     public ResourcePolicyBuilder SetAffinity(nint? affinity)
     {
@@ -41,7 +41,7 @@ public class ResourcePolicyBuilder
     /// Sets the minimum working set size of the process.
     /// </summary>
     /// <remarks>
-    /// For information on platform support, see attributes on <see cref="Process.MinWorkingSet" />.
+    /// For information on platform support, see the attributes on <see cref="Process.MinWorkingSet" />.
     /// </remarks>
     public ResourcePolicyBuilder SetMinWorkingSet(nint? minWorkingSet)
     {
@@ -53,7 +53,7 @@ public class ResourcePolicyBuilder
     /// Sets the maximum working set size of the process.
     /// </summary>
     /// <remarks>
-    /// For information on platform support, see attributes on <see cref="Process.MaxWorkingSet" />.
+    /// For information on platform support, see the attributes on <see cref="Process.MaxWorkingSet" />.
     /// </remarks>
     public ResourcePolicyBuilder SetMaxWorkingSet(nint? maxWorkingSet)
     {

@@ -119,10 +119,7 @@ public partial class Command(
     public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
         WithArguments(args => args.Add(arguments, escape));
 
-    /// <summary>
-    /// Creates a copy of this command, setting the arguments to the value
-    /// obtained by formatting the specified enumeration.
-    /// </summary>
+    /// <inheritdoc cref="WithArguments(IEnumerable{string}, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     [Pure]
     public Command WithArguments(IEnumerable<string> arguments) => WithArguments(arguments, true);

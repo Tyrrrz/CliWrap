@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils;
-using PowerKit.Extensions;
 
 namespace CliWrap.EventStream;
 
@@ -22,7 +21,13 @@ public static partial class EventStreamCommandExtensions
         /// Executes the command as a pull-based event stream.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
+        /// </para>
+        /// <para>
+        /// Abandoning the iterator (via <c>break</c>, <c>return</c>, or <c>throw</c>)
+        /// will also forcefully terminate the underlying process.
+        /// </para>
         /// </remarks>
         // TODO: (breaking change) use optional parameters and remove the other overload
         public async IAsyncEnumerable<CommandEvent> ListenAsync(
@@ -34,70 +39,76 @@ public static partial class EventStreamCommandExtensions
         {
             using var channel = new Channel<CommandEvent>();
 
-            // Used to kill the process if the consumer abandons the iterator or cancels forcefully
-            using var forcefulCancellationOrAbandonCts =
+            // Used to trigger forceful cancellation also when the iterator is disposed
+            using var forcefulCancellationOrDisposeCts =
                 CancellationTokenSource.CreateLinkedTokenSource(forcefulCancellationToken);
 
-            // The delegate's cancellation token is derived from the token passed to ExecuteAsync
-            // below (forcefulCancellationOrAbandonCts.Token), so abandoning the iterator cancels
-            // the in-flight transmit as well. Any resulting cancellation is handled by ExecuteAsync.
-            var stdOutPipe = PipeTarget.Merge(
-                command.StandardOutputPipe,
-                PipeTarget.ToDelegate(
-                    async (line, innerCancellationToken) =>
-                        await channel
-                            .TransmitAsync(
-                                new StandardOutputCommandEvent(line),
-                                innerCancellationToken
-                            )
-                            .ConfigureAwait(false),
-                    standardOutputEncoding
-                )
-            );
-
-            var stdErrPipe = PipeTarget.Merge(
-                command.StandardErrorPipe,
-                PipeTarget.ToDelegate(
-                    async (line, innerCancellationToken) =>
-                        await channel
-                            .TransmitAsync(
-                                new StandardErrorCommandEvent(line),
-                                innerCancellationToken
-                            )
-                            .ConfigureAwait(false),
-                    standardErrorEncoding
-                )
-            );
-
-            // Execute the command with the pipes extended to transmit events to the channel.
-            // We pass forcefulCancellationOrAbandonCts.Token as the forceful cancellation token so that abandoning the
-            // iterator (which cancels forcefulCancellationOrAbandonCts) also kills the underlying process.
             var commandTask = command
-                .WithStandardOutputPipe(stdOutPipe)
-                .WithStandardErrorPipe(stdErrPipe)
-                .ExecuteAsync(forcefulCancellationOrAbandonCts.Token, gracefulCancellationToken)
-                .Bind(async task =>
+                // Extend the existing standard output pipe to also transmit events to the channel
+                .WithStandardOutputPipe(
+                    PipeTarget.Merge(
+                        command.StandardOutputPipe,
+                        PipeTarget.ToDelegate(
+                            async (line, innerCancellationToken) =>
+                                await channel
+                                    .TransmitAsync(
+                                        new StandardOutputCommandEvent(line),
+                                        innerCancellationToken
+                                    )
+                                    .ConfigureAwait(false),
+                            standardOutputEncoding
+                        )
+                    )
+                )
+                // Extend the existing standard error pipe to also transmit events to the channel
+                .WithStandardErrorPipe(
+                    PipeTarget.Merge(
+                        command.StandardErrorPipe,
+                        PipeTarget.ToDelegate(
+                            async (line, innerCancellationToken) =>
+                                await channel
+                                    .TransmitAsync(
+                                        new StandardErrorCommandEvent(line),
+                                        innerCancellationToken
+                                    )
+                                    .ConfigureAwait(false),
+                            standardErrorEncoding
+                        )
+                    )
+                )
+                .ExecuteAsync(forcefulCancellationOrDisposeCts.Token, gracefulCancellationToken)
+                // CommandTask<> doesn't have a method builder, so we wrap it manually to
+                // close the channel on completion.
+                .Wrap(async task =>
                 {
                     try
                     {
                         return await task.ConfigureAwait(false);
                     }
+                    catch (OperationCanceledException ex)
+                        when (ex.CancellationToken == forcefulCancellationOrDisposeCts.Token
+                            && forcefulCancellationToken.IsCancellationRequested
+                        )
+                    {
+                        // Translate the linked cancellation token back to the consumer-provided one
+                        throw new OperationCanceledException(
+                            ex.Message,
+                            ex,
+                            forcefulCancellationToken
+                        );
+                    }
                     finally
                     {
-                        // Close the channel when the command finishes executing,
-                        // so that the consumer can stop listening.
                         try
                         {
+                            // Close the channel to release its listeners and finish the loop below
                             await channel
-                                .CloseAsync(forcefulCancellationOrAbandonCts.Token)
+                                .CloseAsync(forcefulCancellationOrDisposeCts.Token)
                                 .ConfigureAwait(false);
                         }
-                        catch (Exception ex)
-                            when ((ex is OperationCanceledException or ObjectDisposedException)
-                                && forcefulCancellationOrAbandonCts.IsCancellationRequested
-                            )
+                        catch (OperationCanceledException)
                         {
-                            // The iterator was abandoned as the channel was closing, ignore
+                            // Race condition: the operation was canceled as the channel was closing
                         }
                     }
                 });
@@ -121,33 +132,31 @@ public static partial class EventStreamCommandExtensions
             }
             finally
             {
-                // The code after the yield return statements may not execute if the consumer
-                // breaks out of the iterator early. Cancelling forcefulCancellationOrAbandonCts
-                // terminates the underlying process and stops the pipes.
-                await forcefulCancellationOrAbandonCts.CancelAsync();
+                // The iterator may finish either by reaching its end naturally or by being
+                // abandoned (via break, return, or throw). In the latter case, since nothing
+                // is listening to the events and draining the pipes anymore, the process may
+                // hang indefinitely. Even if it doesn't, we also just don't want it to linger
+                // around if the consumer is no longer interested in the events. So to handle that,
+                // we trigger a forceful cancellation to terminate the process.
+                await forcefulCancellationOrDisposeCts.CancelAsync().ConfigureAwait(false);
 
-                // Wait for the command to finish executing before returning, so that the process
-                // is fully terminated by the time the method returns, per the CliWrap convention.
-                // Any exception is swallowed here (rather than surfaced) because on the abandon path
-                // the command task faults with the expected forceful-cancellation exception, and on
-                // the normal path the task was already awaited above.
                 try
                 {
+                    // Ensure the process never outlives the iterator, even if the iterator was abandoned
                     await commandTask.ConfigureAwait(false);
                 }
-                catch
+                catch (OperationCanceledException ex)
+                    when (ex.CancellationToken == forcefulCancellationOrDisposeCts.Token
+                        && !forcefulCancellationToken.IsCancellationRequested
+                    )
                 {
-                    // The process has been terminated; the exception is expected here
+                    // Cancellation triggered specifically by the consumer abandoning the iterator.
+                    // Don't report internal cancellations.
                 }
             }
         }
 
-        /// <summary>
-        /// Executes the command as a pull-based event stream.
-        /// </summary>
-        /// <remarks>
-        /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-        /// </remarks>
+        /// <inheritdoc cref="ListenAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
@@ -160,24 +169,13 @@ public static partial class EventStreamCommandExtensions
                 CancellationToken.None
             );
 
-        /// <summary>
-        /// Executes the command as a pull-based event stream.
-        /// </summary>
-        /// <remarks>
-        /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-        /// </remarks>
+        /// <inheritdoc cref="ListenAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             Encoding encoding,
             CancellationToken cancellationToken = default
         ) => command.ListenAsync(encoding, encoding, cancellationToken);
 
-        /// <summary>
-        /// Executes the command as a pull-based event stream.
-        /// Uses <see cref="Encoding.Default" /> for decoding.
-        /// </summary>
-        /// <remarks>
-        /// Use pattern matching to handle specific instances of <see cref="CommandEvent" />.
-        /// </remarks>
+        /// <inheritdoc cref="ListenAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             CancellationToken cancellationToken = default
         ) => command.ListenAsync(Encoding.Default, cancellationToken);

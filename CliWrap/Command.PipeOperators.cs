@@ -42,11 +42,7 @@ public partial class Command
         Func<string, CancellationToken, Task> target
     ) => source | PipeTarget.ToDelegate(target);
 
-    /// <summary>
-    /// Creates a new command that pipes its standard output line-by-line to the specified
-    /// asynchronous delegate.
-    /// Uses <see cref="Encoding.Default" /> for decoding.
-    /// </summary>
+    /// <inheritdoc cref="op_BitwiseOr(Command, Func{string, CancellationToken, Task})" />
     [Pure]
     public static Command operator |(Command source, Func<string, Task> target) =>
         source | PipeTarget.ToDelegate(target);
@@ -91,11 +87,7 @@ public partial class Command
         source
         | (PipeTarget.ToStringBuilder(targets.stdOut), PipeTarget.ToStringBuilder(targets.stdErr));
 
-    /// <summary>
-    /// Creates a new command that pipes its standard output and standard error line-by-line
-    /// to the specified asynchronous delegates.
-    /// Uses <see cref="Encoding.Default" /> for decoding.
-    /// </summary>
+    /// <inheritdoc cref="op_BitwiseOr(Command, ValueTuple{Func{string, CancellationToken, Task}, Func{string, CancellationToken, Task}})" />
     [Pure]
     public static Command operator |(
         Command source,
@@ -148,9 +140,7 @@ public partial class Command
     public static Command operator |(ReadOnlyMemory<byte> source, Command target) =>
         PipeSource.FromBytes(source) | target;
 
-    /// <summary>
-    /// Creates a new command that pipes its standard input from the specified byte array.
-    /// </summary>
+    /// <inheritdoc cref="op_BitwiseOr(ReadOnlyMemory{byte}, Command)" />
     [Pure]
     public static Command operator |(byte[] source, Command target) =>
         PipeSource.FromBytes(source) | target;

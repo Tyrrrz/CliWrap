@@ -31,22 +31,26 @@ public static class BufferedCommandExtensions
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
 
-            var stdOutPipe = PipeTarget.Merge(
-                command.StandardOutputPipe,
-                PipeTarget.ToStringBuilder(stdOutBuffer, standardOutputEncoding)
-            );
-
-            var stdErrPipe = PipeTarget.Merge(
-                command.StandardErrorPipe,
-                PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
-            );
-
-            // Execute the command with the pipes extended to capture the output and error streams into buffers
             return command
-                .WithStandardOutputPipe(stdOutPipe)
-                .WithStandardErrorPipe(stdErrPipe)
+                // Extend the existing standard output pipe to also write data to a buffer
+                .WithStandardOutputPipe(
+                    PipeTarget.Merge(
+                        command.StandardOutputPipe,
+                        PipeTarget.ToStringBuilder(stdOutBuffer, standardOutputEncoding)
+                    )
+                )
+                // Extend the existing standard error pipe to also write data to a buffer
+                .WithStandardErrorPipe(
+                    PipeTarget.Merge(
+                        command.StandardErrorPipe,
+                        PipeTarget.ToStringBuilder(stdErrBuffer, standardErrorEncoding)
+                    )
+                )
                 .ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken)
-                .Bind(async task =>
+                // CommandTask<> doesn't have a method builder, so we wrap it manually to
+                // transform the result into an object that also includes the contents of
+                // the standard output and standard error buffers.
+                .Wrap(async task =>
                 {
                     try
                     {
@@ -62,6 +66,8 @@ public static class BufferedCommandExtensions
                     }
                     catch (CommandExecutionException ex)
                     {
+                        // In case of a command exception (i.e., non-zero exit code), we can also include the
+                        // standard error output in the exception for better diagnostics.
                         throw new CommandExecutionException(
                             ex.Command,
                             ex.ExitCode,
@@ -77,14 +83,7 @@ public static class BufferedCommandExtensions
                 });
         }
 
-        /// <summary>
-        /// Executes the command asynchronously with buffering.
-        /// Data written to the standard output and standard error streams is decoded as text
-        /// and returned as part of the result object.
-        /// </summary>
-        /// <remarks>
-        /// This method can be awaited.
-        /// </remarks>
+        /// <inheritdoc cref="ExecuteBufferedAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
@@ -97,28 +96,13 @@ public static class BufferedCommandExtensions
                 CancellationToken.None
             );
 
-        /// <summary>
-        /// Executes the command asynchronously with buffering.
-        /// Data written to the standard output and standard error streams is decoded as text
-        /// and returned as part of the result object.
-        /// </summary>
-        /// <remarks>
-        /// This method can be awaited.
-        /// </remarks>
+        /// <inheritdoc cref="ExecuteBufferedAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             Encoding encoding,
             CancellationToken cancellationToken = default
         ) => command.ExecuteBufferedAsync(encoding, encoding, cancellationToken);
 
-        /// <summary>
-        /// Executes the command asynchronously with buffering.
-        /// Data written to the standard output and standard error streams is decoded as text
-        /// and returned as part of the result object.
-        /// Uses <see cref="Encoding.Default" /> for decoding.
-        /// </summary>
-        /// <remarks>
-        /// This method can be awaited.
-        /// </remarks>
+        /// <inheritdoc cref="ExecuteBufferedAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             CancellationToken cancellationToken = default
         ) => command.ExecuteBufferedAsync(Encoding.Default, cancellationToken);
