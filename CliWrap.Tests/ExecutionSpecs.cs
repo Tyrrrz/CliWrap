@@ -1,7 +1,11 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using PowerKit.Extensions;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -89,6 +93,87 @@ public class ExecutionSpecs
 
         // Act & assert
         await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_cancel_it_immediately()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var stdOutBuffer = new StringBuilder();
+
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | stdOutBuffer;
+
+        // Act
+        var task = cmd.ExecuteAsync(cts.Token);
+        var act = async () => await task;
+
+        // Assert
+        (await act.Should().ThrowAsync<OperationCanceledException>())
+            .Which.CancellationToken.Should()
+            .Be(cts.Token);
+
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
+        stdOutBuffer.ToString().Should().NotContain("Done.");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_cancel_it_after_a_delay()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+
+        var stdOutBuffer = new StringBuilder();
+
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]) | stdOutBuffer;
+
+        // Act
+        var task = cmd.ExecuteAsync(cts.Token);
+        var act = async () => await task;
+
+        // Assert
+        (await act.Should().ThrowAsync<OperationCanceledException>())
+            .Which.CancellationToken.Should()
+            .Be(cts.Token);
+
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
+        stdOutBuffer.ToString().Should().NotContain("Done.");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_cancel_it_gracefully_after_a_delay()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        var stdOutBuffer = new StringBuilder();
+
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"])
+            | PipeTarget.Merge(
+                PipeTarget.ToDelegate(line =>
+                {
+                    if (line.Contains("Sleeping for", StringComparison.OrdinalIgnoreCase))
+                        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+                }),
+                PipeTarget.ToStringBuilder(stdOutBuffer)
+            );
+
+        // Act
+        var task = cmd.ExecuteAsync(CancellationToken.None, cts.Token);
+        var act = async () => await task;
+
+        // Assert
+        (await act.Should().ThrowAsync<OperationCanceledException>())
+            .Which.CancellationToken.Should()
+            .Be(cts.Token);
+
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
+        stdOutBuffer.ToString().Should().Contain("Canceled.").And.NotContain("Done.");
     }
 
     [Fact]

@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Buffered;
 using FluentAssertions;
@@ -95,5 +98,65 @@ public class BufferingSpecs
         // Assert
         result.StandardOutput.Should().NotBeNullOrWhiteSpace();
         result.StandardError.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_cancel_it_immediately()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act
+        var act = async () => await cmd.ExecuteBufferedAsync(cts.Token);
+
+        // Assert
+        (await act.Should().ThrowAsync<OperationCanceledException>())
+            .Which.CancellationToken.Should()
+            .Be(cts.Token);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_cancel_it_after_a_delay()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act
+        var act = async () => await cmd.ExecuteBufferedAsync(cts.Token);
+
+        // Assert
+        (await act.Should().ThrowAsync<OperationCanceledException>())
+            .Which.CancellationToken.Should()
+            .Be(cts.Token);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_cancel_it_gracefully_after_a_delay()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(0.2));
+
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act
+        var act = async () =>
+            await cmd.ExecuteBufferedAsync(
+                Encoding.Default,
+                Encoding.Default,
+                CancellationToken.None,
+                cts.Token
+            );
+
+        // Assert
+        (await act.Should().ThrowAsync<OperationCanceledException>())
+            .Which.CancellationToken.Should()
+            .Be(cts.Token);
     }
 }
