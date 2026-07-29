@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils.Extensions;
 using FluentAssertions;
-using PowerKit;
+using PowerKit.Extensions;
 using Xunit;
 
 namespace CliWrap.Tests;
@@ -26,7 +26,14 @@ public class EnvironmentSpecs
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
-        Path.GetFullPath(result.StandardOutput.Trim()).Should().Be(Path.GetFullPath(dir.Path));
+        Path.GetFullPath(
+                result
+                    .StandardOutput.Trim()
+                    // macOS symlinks /tmp to /private/tmp
+                    .TrimPrefix("/private")
+            )
+            .Should()
+            .Be(Path.GetFullPath(dir.Path));
     }
 
     [Fact(Timeout = 15000)]
