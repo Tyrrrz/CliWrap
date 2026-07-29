@@ -2,10 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Native;
-using PowerKit.Extensions;
 
 namespace CliWrap.Utils;
 
