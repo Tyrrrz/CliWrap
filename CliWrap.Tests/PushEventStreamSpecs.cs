@@ -98,11 +98,14 @@ public class PushEventStreamSpecs
         var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
 
         // Assert
-
-        // The observable returns synchronously but the process gets terminated asynchronously
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        using var process = Process.GetProcessById(startedEvent.ProcessId);
-        await process.WaitForExitAsync(cts.Token);
+        try
+        {
+            // The observable returns synchronously but the process gets terminated asynchronously
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using var process = Process.GetProcessById(startedEvent.ProcessId);
+            await process.WaitForExitAsync(cts.Token);
+        }
+        catch { }
 
         Process.IsRunning(startedEvent.ProcessId).Should().BeFalse();
     }
