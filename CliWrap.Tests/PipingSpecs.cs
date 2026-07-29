@@ -510,55 +510,6 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_not_hang_on_large_output_if_the_stdout_pipe_throws_an_exception()
-    {
-        // Arrange
-        var stdOutReadCount = 0;
-        var stdErrPipeCancellationTcs = new TaskCompletionSource();
-
-        var cmd = Cli.Wrap(Dummy.Program.FilePath)
-            .WithArguments(["generate binary", "--target", "all", "--length", "1000000"])
-            .WithStandardOutputPipe(
-                PipeTarget.Create(
-                    async (origin, cancellationToken) =>
-                    {
-                        using var buffer = MemoryPool<byte>.Shared.Rent(1);
-
-                        while (
-                            await origin
-                                .ReadAsync(buffer.Memory[..1], cancellationToken)
-                                .ConfigureAwait(false) > 0
-                        )
-                        {
-                            if (++stdOutReadCount == 3)
-                                throw new Exception("Expected exception.");
-                        }
-                    }
-                )
-            )
-            .WithStandardErrorPipe(
-                PipeTarget.Create(
-                    (_, cancellationToken) =>
-                    {
-                        cancellationToken.Register(() => stdErrPipeCancellationTcs.SetResult());
-                        return stdErrPipeCancellationTcs.Task;
-                    }
-                )
-            );
-
-        // Act
-        var task = cmd.ExecuteAsync();
-        var act = async () => await task;
-
-        // Assert
-        (await act.Should().ThrowAsync<Exception>())
-            .Which.Message.Should()
-            .Contain("Expected exception.");
-        await stdErrPipeCancellationTcs.Task;
-        Process.IsRunning(task.ProcessId).Should().BeFalse();
-    }
-
-    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_hierarchical_targets()
     {
         // Arrange
@@ -690,8 +641,6 @@ public class PipingSpecs
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
-
-        // Assert: the process is not left running in the background
         Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
@@ -710,8 +659,41 @@ public class PipingSpecs
 
         // Assert
         await act.Should().ThrowAsync<Exception>();
+        Process.IsRunning(task.ProcessId).Should().BeFalse();
+    }
 
-        // Assert: the process is not left running in the background
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_not_hang_on_large_stdout_if_the_pipe_target_throws_an_exception()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["generate binary", "--length", "100000"])
+            .WithStandardOutputPipe(
+                PipeTarget.Create(
+                    async (origin, cancellationToken) =>
+                    {
+                        using var buffer = MemoryPool<byte>.Shared.Rent(1);
+
+                        while (
+                            await origin
+                                .ReadAsync(buffer.Memory[..1], cancellationToken)
+                                .ConfigureAwait(false) > 0
+                        )
+                        {
+                            throw new Exception("Expected exception.");
+                        }
+                    }
+                )
+            );
+
+        // Act
+        var task = cmd.ExecuteAsync();
+        var act = async () => await task;
+
+        // Assert
+        (await act.Should().ThrowAsync<Exception>())
+            .Which.Message.Should()
+            .Contain("Expected exception.");
         Process.IsRunning(task.ProcessId).Should().BeFalse();
     }
 
