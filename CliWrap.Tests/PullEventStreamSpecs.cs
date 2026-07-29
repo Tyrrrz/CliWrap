@@ -104,6 +104,33 @@ public class PullEventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_an_event_stream_and_cancel_it_by_abandoning_it()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act
+        var processId = -1;
+        await foreach (var cmdEvent in cmd.ListenAsync())
+        {
+            if (cmdEvent is StartedCommandEvent startedEvent)
+            {
+                processId = startedEvent.ProcessId;
+                break;
+            }
+            else if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
+            {
+                stdOutEvent.Text.Should().NotContain("Done.");
+            }
+        }
+
+        // Assert
+        Process.IsRunning(processId).Should().BeFalse();
+
+        // No exception in this scenario
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_as_an_event_stream_and_cancel_it_immediately()
     {
         // Arrange
@@ -151,33 +178,6 @@ public class PullEventStreamSpecs
         (await act.Should().ThrowAsync<OperationCanceledException>())
             .Which.CancellationToken.Should()
             .Be(cts.Token);
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_as_an_event_stream_and_cancel_it_by_abandoning_it()
-    {
-        // Arrange
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
-
-        // Act
-        var processId = -1;
-        await foreach (var cmdEvent in cmd.ListenAsync())
-        {
-            if (cmdEvent is StartedCommandEvent startedEvent)
-            {
-                processId = startedEvent.ProcessId;
-                break;
-            }
-            else if (cmdEvent is StandardOutputCommandEvent stdOutEvent)
-            {
-                stdOutEvent.Text.Should().NotContain("Done.");
-            }
-        }
-
-        // Assert
-        Process.IsRunning(processId).Should().BeFalse();
-
-        // No exception in this scenario
     }
 
     [Fact(Timeout = 15000)]

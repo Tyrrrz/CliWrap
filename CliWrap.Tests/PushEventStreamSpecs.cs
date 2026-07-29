@@ -89,6 +89,25 @@ public class PushEventStreamSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_as_an_event_stream_and_cancel_it_by_unsubscribing_from_it()
+    {
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
+
+        // Act
+        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
+
+        // Assert
+
+        // The observable returns synchronously but the process gets terminated asynchronously
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var process = Process.GetProcessById(startedEvent.ProcessId);
+        await process.WaitForExitAsync(cts.Token);
+
+        Process.IsRunning(startedEvent.ProcessId).Should().BeFalse();
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_as_an_event_stream_and_cancel_it_immediately()
     {
         // Arrange
@@ -113,25 +132,6 @@ public class PushEventStreamSpecs
         (await act.Should().ThrowAsync<OperationCanceledException>())
             .Which.CancellationToken.Should()
             .Be(cts.Token);
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_as_an_event_stream_and_cancel_it_by_unsubscribing_from_it()
-    {
-        // Arrange
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep", "00:00:20"]);
-
-        // Act
-        var startedEvent = await cmd.Observe().OfType<StartedCommandEvent>().FirstAsync();
-
-        // Assert
-
-        // The observable returns synchronously but the process gets terminated asynchronously
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        using var process = Process.GetProcessById(startedEvent.ProcessId);
-        await process.WaitForExitAsync(cts.Token);
-
-        Process.IsRunning(startedEvent.ProcessId).Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
