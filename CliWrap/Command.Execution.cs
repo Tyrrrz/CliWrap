@@ -335,7 +335,38 @@ public partial class Command
             // Extract this before the process is disposed
             var processId = process.Id;
 
-            // Apply user-provided configuration (must happen after start)
+            // Apply resource policy (must happen after start)
+            try
+            {
+#pragma warning disable CA1416
+                if (ResourcePolicy.Priority is not null)
+                    process.PriorityClass = ResourcePolicy.Priority.Value;
+
+                if (ResourcePolicy.Affinity is not null)
+                    process.ProcessorAffinity = ResourcePolicy.Affinity.Value;
+
+                if (ResourcePolicy.MinWorkingSet is not null)
+                    process.MinWorkingSet = ResourcePolicy.MinWorkingSet.Value;
+
+                if (ResourcePolicy.MaxWorkingSet is not null)
+                    process.MaxWorkingSet = ResourcePolicy.MaxWorkingSet.Value;
+#pragma warning restore CA1416
+            }
+            catch (NotSupportedException ex)
+            {
+                throw new NotSupportedException(
+                    "Cannot start a process with the provided resource policy. "
+                        + "Setting custom priority, affinity, and/or working set limits is not supported on this platform.",
+                    ex
+                );
+            }
+            catch (InvalidOperationException)
+            {
+                // This exception could indicate that the process has exited before we had a chance to set the policy.
+                // This is not an exceptional situation, so we don't need to do anything here.
+            }
+
+            // Apply user-provided configuration (must happen after resource policy)
             configureProcess?.Invoke(process);
 
             return ExecuteAsync(process, forcefulCancellationToken, gracefulCancellationToken)
