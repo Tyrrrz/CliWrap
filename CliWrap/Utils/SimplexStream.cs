@@ -1,4 +1,6 @@
 using System;
+using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -11,8 +13,9 @@ internal partial class SimplexStream : Stream
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly SemaphoreSlim _readLock = new(0, 1);
 
-    private ReadOnlyMemory<byte> _buffer;
-    private int _bufferBytesRead;
+    private IMemoryOwner<byte>? _buffer;
+    private int _bufferWritten;
+    private int _bufferRead;
 
     // While we do have Span/Memory polyfilled on all targets, Stream doesn't have intrinsic
     // Span/Memory-based overloads until .NET Standard 2.1 and .NET Core 2.1.
@@ -28,15 +31,18 @@ internal partial class SimplexStream : Stream
     {
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        _buffer = buffer;
-        _bufferBytesRead = 0;
+        if (_buffer is null || _buffer.Memory.Length < buffer.Length)
+        {
+            _buffer?.Dispose();
+            _buffer = MemoryPool<byte>.Shared.Rent(buffer.Length);
+        }
+
+        buffer.CopyTo(_buffer.Memory);
+
+        _bufferWritten = buffer.Length;
+        _bufferRead = 0;
 
         _readLock.Release();
-
-        // Wait until the reader consumes the buffer, so it is safe for the caller
-        // to reuse its memory once this method completes.
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        _writeLock.Release();
     }
 
     // While we do have Span/Memory polyfilled on all targets, Stream doesn't have intrinsic
@@ -53,13 +59,18 @@ internal partial class SimplexStream : Stream
     {
         await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        var length = Math.Min(buffer.Length, _buffer.Length - _bufferBytesRead);
-        _buffer.Slice(_bufferBytesRead, length).CopyTo(buffer);
-        _bufferBytesRead += length;
+        Debug.Assert(
+            _buffer is not null,
+            "Buffer should not be null by the time a read is allowed"
+        );
+
+        var length = Math.Min(buffer.Length, _bufferWritten - _bufferRead);
+        _buffer.Memory.Slice(_bufferRead, length).CopyTo(buffer);
+        _bufferRead += length;
 
         // Release the write lock if the consumer has finished reading all of
         // the previously written data.
-        if (_bufferBytesRead >= _buffer.Length)
+        if (_bufferRead >= _bufferWritten)
         {
             _writeLock.Release();
         }
@@ -99,6 +110,7 @@ internal partial class SimplexStream : Stream
         {
             _readLock.Dispose();
             _writeLock.Dispose();
+            _buffer?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -120,12 +132,12 @@ internal partial class SimplexStream
     [ExcludeFromCodeCoverage]
     public override long Position
     {
-        get => _bufferBytesRead;
+        get => _bufferRead;
         set => throw new NotSupportedException();
     }
 
     [ExcludeFromCodeCoverage]
-    public override long Length => _buffer.Length;
+    public override long Length => _bufferWritten;
 
     [ExcludeFromCodeCoverage]
     public override int Read(byte[] buffer, int offset, int count) =>
