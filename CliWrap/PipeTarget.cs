@@ -108,7 +108,7 @@ public partial class PipeTarget
                     foreach (var (_, subStream) in targetSubStreams)
                     {
                         await subStream
-                            .ReportCompletionAsync(cancellationOrPanicCts.Token)
+                            .CloseAsync(cancellationOrPanicCts.Token)
                             .ConfigureAwait(false);
                     }
                 }
