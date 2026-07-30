@@ -732,11 +732,11 @@ public class PipingSpecs
             PipeSource.Create(
                 async (destination, cancellationToken) =>
                 {
-                    var buffer = new byte[256];
+                    using var buffer = MemoryPool<byte>.Shared.Rent(256);
                     while (true)
                     {
-                        random.NextBytes(buffer);
-                        await destination.WriteAsync(buffer, cancellationToken);
+                        random.NextBytes(buffer.Memory.Span);
+                        await destination.WriteAsync(buffer.Memory, cancellationToken);
                     }
                 }
             )
@@ -795,13 +795,13 @@ public class PipingSpecs
             PipeSource.Create(
                 async (destination, cancellationToken) =>
                 {
-                    var buffer = new byte[256];
+                    using var buffer = MemoryPool<byte>.Shared.Rent(256);
                     while (bytesRemaining > 0)
                     {
-                        random.NextBytes(buffer);
+                        random.NextBytes(buffer.Memory.Span);
 
-                        var count = Math.Min(bytesRemaining, buffer.Length);
-                        await destination.WriteAsync(buffer.AsMemory()[..count], cancellationToken);
+                        var count = Math.Min(bytesRemaining, buffer.Memory.Length);
+                        await destination.WriteAsync(buffer.Memory[..count], cancellationToken);
 
                         bytesRemaining -= count;
                     }
