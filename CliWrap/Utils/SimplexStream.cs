@@ -118,10 +118,14 @@ internal partial class SimplexStream
     public override bool CanWrite => true;
 
     [ExcludeFromCodeCoverage]
-    public override long Position { get; set; }
+    public override long Position
+    {
+        get => _bufferBytesRead;
+        set => throw new NotSupportedException();
+    }
 
     [ExcludeFromCodeCoverage]
-    public override long Length => throw new NotSupportedException();
+    public override long Length => _buffer.Length;
 
     [ExcludeFromCodeCoverage]
     public override int Read(byte[] buffer, int offset, int count) =>
