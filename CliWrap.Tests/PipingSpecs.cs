@@ -582,13 +582,11 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_pipe_the_stdout_into_multiple_targets_and_not_hang_if_one_of_them_reads_past_the_end_of_stream()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets_and_not_hang_if_one_of_them_reads_past_the_end_of_stream()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/346
 
         // Arrange
-        using var origin = new MemoryStream(new byte[4096]);
-
         var overReadingTarget = PipeTarget.Create(
             async (stream, cancellationToken) =>
             {
@@ -602,10 +600,12 @@ public class PipingSpecs
             }
         );
 
-        var merged = PipeTarget.Merge(overReadingTarget, PipeTarget.ToStream(Stream.Null));
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate binary", "--length", "4096"])
+            | PipeTarget.Merge(overReadingTarget, PipeTarget.ToStream(Stream.Null));
 
         // Act & assert
-        await merged.CopyFromAsync(origin);
+        await cmd.ExecuteAsync();
     }
 
     [Fact(Timeout = 15000)]
@@ -623,16 +623,18 @@ public class PipingSpecs
             .Concat("æ"u8.ToArray())
             .ToArray();
 
-        using var origin = new MemoryStream(payload);
         var buffer = new StringBuilder();
 
-        var merged = PipeTarget.Merge(
-            PipeTarget.ToStringBuilder(buffer, Encoding.UTF8),
-            PipeTarget.ToStream(Stream.Null)
-        );
+        var cmd =
+            payload
+            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin")
+            | PipeTarget.Merge(
+                PipeTarget.ToStringBuilder(buffer, Encoding.UTF8),
+                PipeTarget.ToStream(Stream.Null)
+            );
 
         // Act
-        await merged.CopyFromAsync(origin);
+        await cmd.ExecuteAsync();
 
         // Assert
         buffer.ToString().Should().Be(Encoding.UTF8.GetString(payload));
