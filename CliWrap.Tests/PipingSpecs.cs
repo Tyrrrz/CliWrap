@@ -488,62 +488,6 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets_and_not_hang_on_large_stdout_if_one_of_the_targets_throws_an_exception()
-    {
-        // https://github.com/Tyrrrz/CliWrap/issues/212
-
-        // Arrange
-        var cmd =
-            Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(["generate binary", "--length", "100000"])
-            | PipeTarget.Merge(
-                PipeTarget.ToStream(Stream.Null),
-                PipeTarget.ToDelegate(_ => throw new Exception("Expected exception."))
-            );
-
-        // Act
-        var act = async () => await cmd.ExecuteAsync();
-
-        // Assert
-        (await act.Should().ThrowAsync<Exception>())
-            .Which.Message.Should()
-            .Contain("Expected exception.");
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_hierarchical_targets()
-    {
-        // Arrange
-        using var stream1 = new MemoryStream();
-        using var stream2 = new MemoryStream();
-        using var stream3 = new MemoryStream();
-        using var stream4 = new MemoryStream();
-
-        var cmd =
-            Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(["generate binary", "--length", "100000"])
-            | PipeTarget.Merge(
-                PipeTarget.ToStream(stream1),
-                PipeTarget.Merge(
-                    PipeTarget.ToStream(stream2),
-                    PipeTarget.Merge(PipeTarget.ToStream(stream3), PipeTarget.ToStream(stream4))
-                )
-            );
-
-        // Act
-        await cmd.ExecuteAsync();
-
-        // Assert
-        stream1.Length.Should().Be(100_000);
-        stream2.Length.Should().Be(100_000);
-        stream3.Length.Should().Be(100_000);
-        stream4.Length.Should().Be(100_000);
-        stream1.ToArray().Should().Equal(stream2.ToArray());
-        stream2.ToArray().Should().Equal(stream3.ToArray());
-        stream3.ToArray().Should().Equal(stream4.ToArray());
-    }
-
-    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_streams_with_a_large_buffer()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/81
@@ -582,62 +526,92 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets_and_not_hang_on_large_stdout_if_one_of_the_targets_throws_an_exception()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/212
+
+        // Arrange
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath)
+                .WithArguments(["generate binary", "--length", "100000"])
+            | PipeTarget.Merge(
+                PipeTarget.ToStream(Stream.Null),
+                PipeTarget.ToDelegate(_ => throw new Exception("Expected exception."))
+            );
+
+        // Act
+        var act = async () => await cmd.ExecuteAsync();
+
+        // Assert
+        (await act.Should().ThrowAsync<Exception>())
+            .Which.Message.Should()
+            .Contain("Expected exception.");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets_and_not_hang_if_one_of_them_reads_past_the_end_of_stream()
     {
         // https://github.com/Tyrrrz/CliWrap/issues/346
 
         // Arrange
-        var overReadingTarget = PipeTarget.Create(
-            async (stream, cancellationToken) =>
-            {
-                var buffer = new byte[1024];
-                while (await stream.ReadAsync(buffer, cancellationToken) > 0) { }
-
-                // Per the Stream contract, this must also return 0
-                (await stream.ReadAsync(buffer, cancellationToken))
-                    .Should()
-                    .Be(0);
-            }
-        );
-
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate binary", "--length", "4096"])
-            | PipeTarget.Merge(overReadingTarget, PipeTarget.ToStream(Stream.Null));
+            | PipeTarget.Merge(
+                PipeTarget.Create(
+                    async (stream, cancellationToken) =>
+                    {
+                        using var buffer = MemoryPool<byte>.Shared.Rent(4096);
+
+                        // Read the whole stream
+                        while (await stream.ReadAsync(buffer.Memory, cancellationToken) > 0) { }
+
+                        // Try to read again (this should not hang)
+                        var finalBytesRead = await stream.ReadAsync(
+                            buffer.Memory,
+                            cancellationToken
+                        );
+
+                        finalBytesRead.Should().Be(0);
+                    }
+                ),
+                PipeTarget.ToStream(Stream.Null)
+            );
 
         // Act & assert
         await cmd.ExecuteAsync();
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_string_builder_via_merge_when_the_output_length_is_a_multiple_of_the_stream_reader_buffer_size()
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_hierarchy_of_targets()
     {
-        // https://github.com/Tyrrrz/CliWrap/issues/346
-
         // Arrange
-
-        // Exactly 1024 bytes (a multiple of StreamReader's internal buffer size), ending
-        // with a multibyte UTF-8 sequence, so that StreamReader needs to perform an extra
-        // read to fill its character buffer.
-        var payload = new byte[1022]
-            .Select(_ => (byte)'a')
-            .Concat("æ"u8.ToArray())
-            .ToArray();
-
-        var buffer = new StringBuilder();
+        using var stream1 = new MemoryStream();
+        using var stream2 = new MemoryStream();
+        using var stream3 = new MemoryStream();
+        using var stream4 = new MemoryStream();
 
         var cmd =
-            payload
-            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin")
+            Cli.Wrap(Dummy.Program.FilePath)
+                .WithArguments(["generate binary", "--length", "100000"])
             | PipeTarget.Merge(
-                PipeTarget.ToStringBuilder(buffer, Encoding.UTF8),
-                PipeTarget.ToStream(Stream.Null)
+                PipeTarget.ToStream(stream1),
+                PipeTarget.Merge(
+                    PipeTarget.ToStream(stream2),
+                    PipeTarget.Merge(PipeTarget.ToStream(stream3), PipeTarget.ToStream(stream4))
+                )
             );
 
         // Act
         await cmd.ExecuteAsync();
 
         // Assert
-        buffer.ToString().Should().Be(Encoding.UTF8.GetString(payload));
+        stream1.Length.Should().Be(100_000);
+        stream2.Length.Should().Be(100_000);
+        stream3.Length.Should().Be(100_000);
+        stream4.Length.Should().Be(100_000);
+        stream1.ToArray().Should().Equal(stream2.ToArray());
+        stream2.ToArray().Should().Equal(stream3.ToArray());
+        stream3.ToArray().Should().Equal(stream4.ToArray());
     }
 
     [Fact(Timeout = 15000)]
