@@ -18,10 +18,10 @@ internal partial class SimplexStream : Stream
     private int _bufferRead;
 
     // Once the stream has been closed (i.e. an empty buffer has been written to signal the
-    // end of stream) and that signal has been consumed by a read, every subsequent read
-    // must also report the end of stream. This flag is used to latch that state, because
-    // the read semaphore itself can only deliver the end-of-stream signal once.
-    private bool _isCompleted;
+    // end of stream), every subsequent read must also report the end of stream. This flag
+    // is used to latch that state, because the read semaphore itself can only deliver the
+    // end-of-stream signal once.
+    private volatile bool _isCompleted;
 
     // While we do have Span/Memory polyfilled on all targets, Stream doesn't have intrinsic
     // Span/Memory-based overloads until .NET Standard 2.1 and .NET Core 2.1.
