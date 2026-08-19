@@ -17,6 +17,12 @@ internal partial class SimplexStream : Stream
     private int _bufferWritten;
     private int _bufferRead;
 
+    // Once the stream has been closed (i.e. an empty buffer has been written to signal the
+    // end of stream), every subsequent read must also report the end of stream. This flag
+    // is used to latch that state, because the read semaphore itself can only deliver the
+    // end-of-stream signal once.
+    private volatile bool _isCompleted;
+
     // While we do have Span/Memory polyfilled on all targets, Stream doesn't have intrinsic
     // Span/Memory-based overloads until .NET Standard 2.1 and .NET Core 2.1.
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
@@ -42,6 +48,13 @@ internal partial class SimplexStream : Stream
         _bufferWritten = buffer.Length;
         _bufferRead = 0;
 
+        // An empty buffer is only ever written by CloseAsync(...), to signal the end of
+        // stream. Latch that so that reads past this point can be resolved immediately.
+        if (buffer.IsEmpty)
+        {
+            _isCompleted = true;
+        }
+
         _readLock.Release();
     }
 
@@ -57,6 +70,14 @@ internal partial class SimplexStream : Stream
         CancellationToken cancellationToken = default
     )
     {
+        // The stream has already reported the end of stream once, and per the Stream
+        // contract every subsequent read must also return 0, without waiting on the
+        // read lock (which will never be released again).
+        if (_isCompleted)
+        {
+            return 0;
+        }
+
         await _readLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         Debug.Assert(
@@ -72,7 +93,13 @@ internal partial class SimplexStream : Stream
         // the previously written data.
         if (_bufferRead >= _bufferWritten)
         {
-            _writeLock.Release();
+            // If the stream has been closed, don't release the write lock (no more writes
+            // are expected) and instead leave the end-of-stream state latched so that any
+            // further reads return 0 immediately, rather than blocking on the read lock.
+            if (!_isCompleted)
+            {
+                _writeLock.Release();
+            }
         }
         // Otherwise, release the read lock again so that the consumer can finish
         // reading the remaining data.

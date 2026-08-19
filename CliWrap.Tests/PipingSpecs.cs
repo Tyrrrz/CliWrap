@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -578,6 +579,65 @@ public class PipingSpecs
         unmergedStream.Length.Should().Be(1_000_000);
         mergedStream1.ToArray().Should().Equal(unmergedStream.ToArray());
         mergedStream2.ToArray().Should().Equal(unmergedStream.ToArray());
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_multiple_targets_and_not_hang_if_one_of_them_reads_past_the_end_of_stream()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/346
+
+        // Arrange
+        var overReadingTarget = PipeTarget.Create(
+            async (stream, cancellationToken) =>
+            {
+                var buffer = new byte[1024];
+                while (await stream.ReadAsync(buffer, cancellationToken) > 0) { }
+
+                // Per the Stream contract, this must also return 0
+                (await stream.ReadAsync(buffer, cancellationToken))
+                    .Should()
+                    .Be(0);
+            }
+        );
+
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath).WithArguments(["generate binary", "--length", "4096"])
+            | PipeTarget.Merge(overReadingTarget, PipeTarget.ToStream(Stream.Null));
+
+        // Act & assert
+        await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_string_builder_via_merge_when_the_output_length_is_a_multiple_of_the_stream_reader_buffer_size()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/346
+
+        // Arrange
+
+        // Exactly 1024 bytes (a multiple of StreamReader's internal buffer size), ending
+        // with a multibyte UTF-8 sequence, so that StreamReader needs to perform an extra
+        // read to fill its character buffer.
+        var payload = new byte[1022]
+            .Select(_ => (byte)'a')
+            .Concat("æ"u8.ToArray())
+            .ToArray();
+
+        var buffer = new StringBuilder();
+
+        var cmd =
+            payload
+            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin")
+            | PipeTarget.Merge(
+                PipeTarget.ToStringBuilder(buffer, Encoding.UTF8),
+                PipeTarget.ToStream(Stream.Null)
+            );
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        buffer.ToString().Should().Be(Encoding.UTF8.GetString(payload));
     }
 
     [Fact(Timeout = 15000)]
