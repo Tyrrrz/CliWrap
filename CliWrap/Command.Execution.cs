@@ -73,19 +73,13 @@ public partial class Command
     }
 
     private async Task PipeStandardInputAsync(
-        Process process,
+        NativeProcess process,
         CancellationToken cancellationToken = default
     )
     {
-        if (!process.StartInfo.RedirectStandardInput)
-            return;
-
-        await using (process.StandardInput.BaseStream.ToAsyncDisposable())
+        await using (process.StandardInput.ToAsyncDisposable())
         {
-            var copyTask = StandardInputPipe.CopyToAsync(
-                process.StandardInput.BaseStream,
-                cancellationToken
-            );
+            var copyTask = StandardInputPipe.CopyToAsync(process.StandardInput, cancellationToken);
 
             try
             {
@@ -120,43 +114,42 @@ public partial class Command
                 // It's not an exceptional situation because the process may not need the entire
                 // stdin to complete successfully.
             }
+            catch (ObjectDisposedException)
+            {
+                // PTY streams may be disposed during process teardown before the cancellation
+                // signal propagates; treat this the same as a broken pipe.
+            }
         }
     }
 
     private async Task PipeStandardOutputAsync(
-        Process process,
+        NativeProcess process,
         CancellationToken cancellationToken = default
     )
     {
-        if (!process.StartInfo.RedirectStandardOutput)
-            return;
-
-        await using (process.StandardOutput.BaseStream.ToAsyncDisposable())
+        await using (process.StandardOutput.ToAsyncDisposable())
         {
             await StandardOutputPipe
-                .CopyFromAsync(process.StandardOutput.BaseStream, cancellationToken)
+                .CopyFromAsync(process.StandardOutput, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 
     private async Task PipeStandardErrorAsync(
-        Process process,
+        NativeProcess process,
         CancellationToken cancellationToken = default
     )
     {
-        if (!process.StartInfo.RedirectStandardError)
-            return;
-
-        await using (process.StandardError.BaseStream.ToAsyncDisposable())
+        await using (process.StandardError.ToAsyncDisposable())
         {
             await StandardErrorPipe
-                .CopyFromAsync(process.StandardError.BaseStream, cancellationToken)
+                .CopyFromAsync(process.StandardError, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 
     private async Task<int> ExecuteAsync(
-        Process process,
+        NativeProcess process,
         CancellationToken forcefulCancellationToken = default,
         CancellationToken gracefulCancellationToken = default
     )
@@ -178,12 +171,12 @@ public partial class Command
 
         // Kill the process when forceful termination (via cancellation or panic) is requested
         await using var _1 = forcefulCancellationOrPanicCts
-            .Token.Register(() => process.TryKill())
+            .Token.Register(() => process.Kill())
             .ToAsyncDisposable();
 
         // Send an interrupt signal to the process when graceful termination is requested
         await using var _2 = gracefulCancellationToken
-            .Register(() => process.TryInterrupt())
+            .Register(() => process.Interrupt())
             .ToAsyncDisposable();
 
         // Start piping streams in the background. In the event that any of the tasks fail,
@@ -259,7 +252,7 @@ public partial class Command
         {
             throw new OperationCanceledException(
                 "Command execution canceled. "
-                    + $"Underlying process ({process.FileName}#{process.Id}) was forcefully terminated.",
+                    + $"Underlying process ({process.Name}#{process.Id}) was forcefully terminated.",
                 forcefulCancellationToken
             );
         }
@@ -269,7 +262,7 @@ public partial class Command
         {
             throw new OperationCanceledException(
                 "Command execution canceled. "
-                    + $"Underlying process ({process.FileName}#{process.Id}) was gracefully terminated.",
+                    + $"Underlying process ({process.Name}#{process.Id}) was gracefully terminated.",
                 gracefulCancellationToken
             );
         }
@@ -281,7 +274,7 @@ public partial class Command
                 this,
                 process.ExitCode,
                 $"""
-                Command execution failed because the underlying process ({process.FileName}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
+                Command execution failed because the underlying process ({process.Name}#{process.Id}) returned a non-zero exit code ({process.ExitCode}).
 
                 Command:
                 {TargetFilePath} {Arguments}
@@ -330,9 +323,6 @@ public partial class Command
                 );
             }
 
-            var startTime = DateTimeOffset.Now;
-
-            // Extract this before the process is disposed
             var processId = process.Id;
 
             // Apply resource policy (must happen after start)
@@ -369,14 +359,18 @@ public partial class Command
             // Apply user-provided configuration (must happen after resource policy)
             configureProcess?.Invoke(process);
 
-            return ExecuteAsync(process, forcefulCancellationToken, gracefulCancellationToken)
+            // Wrap in NativeProcess so the unified execution loop can drive I/O without knowing
+            // the underlying mechanism.  NativeProcess takes ownership of the BCL Process.
+            var nativeProcess = NativeProcess.FromProcess(process);
+
+            return ExecuteAsync(nativeProcess, forcefulCancellationToken, gracefulCancellationToken)
                 // Convert normal task to our task
                 .Pipe(task => new CommandTask<int>(task, processId))
                 // Transform the exit code into a proper result object
                 .Wrap(async task => new CommandResult(
                     await task.ConfigureAwait(false),
-                    startTime,
-                    DateTimeOffset.Now
+                    nativeProcess.StartTime,
+                    nativeProcess.ExitTime
                 ));
         }
         catch
@@ -384,6 +378,31 @@ public partial class Command
             process.Dispose();
             throw;
         }
+    }
+
+    private CommandTask<CommandResult> ExecuteAsyncPty(
+        CancellationToken forcefulCancellationToken = default,
+        CancellationToken gracefulCancellationToken = default
+    )
+    {
+        var startInfo = new NativeProcessStartInfo(
+            GetOptimallyQualifiedTargetFilePath(),
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            PseudoConsoleOptions
+        );
+
+        // This may throw synchronously (e.g., PlatformNotSupportedException on older Windows).
+        var nativeProcess = NativeProcess.CreatePty(startInfo);
+
+        return ExecuteAsync(nativeProcess, forcefulCancellationToken, gracefulCancellationToken)
+            .Pipe(task => new CommandTask<int>(task, nativeProcess.Id))
+            .Wrap(async task => new CommandResult(
+                await task.ConfigureAwait(false),
+                nativeProcess.StartTime,
+                nativeProcess.ExitTime
+            ));
     }
 
     /// <summary>
@@ -484,12 +503,14 @@ public partial class Command
         CancellationToken forcefulCancellationToken,
         CancellationToken gracefulCancellationToken
     ) =>
-        ExecuteAsync(
-            (Action<ProcessStartInfo>?)null,
-            null,
-            forcefulCancellationToken,
-            gracefulCancellationToken
-        );
+        PseudoConsoleOptions is not null
+            ? ExecuteAsyncPty(forcefulCancellationToken, gracefulCancellationToken)
+            : ExecuteAsync(
+                (Action<ProcessStartInfo>?)null,
+                null,
+                forcefulCancellationToken,
+                gracefulCancellationToken
+            );
 
     /// <inheritdoc cref="ExecuteAsync(CancellationToken, CancellationToken)" />
     public CommandTask<CommandResult> ExecuteAsync(CancellationToken cancellationToken = default) =>
