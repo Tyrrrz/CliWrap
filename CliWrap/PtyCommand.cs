@@ -9,36 +9,54 @@ using CliWrap.Builders;
 namespace CliWrap;
 
 /// <summary>
-/// Instructions for running a process.
+/// Instructions for running a process under a pseudo-terminal (PTY).
 /// </summary>
-public partial class Command(
+/// <remarks>
+/// <para>
+/// Pseudo-terminal mode makes CLI applications behave as if running in an interactive terminal,
+/// enabling colored output, progress indicators, and other TTY-dependent features.
+/// </para>
+/// <para>
+/// Platform support:
+/// <list type="bullet">
+///   <item>Windows 10 version 1809 (build 17763) or later via ConPTY</item>
+///   <item>Linux via openpty/posix_spawn with full PTY I/O</item>
+///   <item>macOS via openpty/posix_spawn with full PTY I/O</item>
+/// </list>
+/// </para>
+/// <para>
+/// stderr is merged into stdout on all platforms. Configuration that does not apply to PTY
+/// execution (resource policy, credentials, separate stderr pipe) is intentionally not exposed.
+/// </para>
+/// </remarks>
+public partial class PtyCommand(
     string targetFilePath,
     string arguments,
     string workingDirPath,
-    ResourcePolicy resourcePolicy,
-    Credentials credentials,
     IReadOnlyDictionary<string, string?> environmentVariables,
     CommandResultValidation validation,
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
-    PipeTarget standardErrorPipe
-) : ICommandConfiguration, ICommand
+    PipeTarget standardErrorPipe,
+    int columns,
+    int rows
+) : ICommand
 {
     /// <summary>
-    /// Initializes an instance of <see cref="Command" />.
+    /// Initializes an instance of <see cref="PtyCommand" />.
     /// </summary>
-    public Command(string targetFilePath)
+    public PtyCommand(string targetFilePath)
         : this(
             targetFilePath,
             string.Empty,
             Directory.GetCurrentDirectory(),
-            ResourcePolicy.Default,
-            Credentials.Default,
             new Dictionary<string, string?>(),
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
-            PipeTarget.Null
+            PipeTarget.Null,
+            80,
+            24
         ) { }
 
     /// <inheritdoc />
@@ -49,12 +67,6 @@ public partial class Command(
 
     /// <inheritdoc />
     public string WorkingDirPath { get; } = workingDirPath;
-
-    /// <inheritdoc />
-    public ResourcePolicy ResourcePolicy { get; } = resourcePolicy;
-
-    /// <inheritdoc />
-    public Credentials Credentials { get; } = credentials;
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; } =
@@ -69,25 +81,51 @@ public partial class Command(
     /// <inheritdoc />
     public PipeTarget StandardOutputPipe { get; } = standardOutputPipe;
 
-    /// <inheritdoc />
-    public PipeTarget StandardErrorPipe { get; } = standardErrorPipe;
+    // Hidden from the concrete API but available through the interface.
+    PipeTarget ICommand.StandardErrorPipe => _standardErrorPipe;
+
+    private readonly PipeTarget _standardErrorPipe = standardErrorPipe;
+
+    /// <summary>
+    /// Terminal width in columns.
+    /// </summary>
+    public int Columns { get; } =
+        columns > 0
+            ? columns
+            : throw new ArgumentOutOfRangeException(
+                nameof(columns),
+                columns,
+                "Terminal columns must be positive."
+            );
+
+    /// <summary>
+    /// Terminal height in rows.
+    /// </summary>
+    public int Rows { get; } =
+        rows > 0
+            ? rows
+            : throw new ArgumentOutOfRangeException(
+                nameof(rows),
+                rows,
+                "Terminal rows must be positive."
+            );
 
     /// <summary>
     /// Creates a copy of this command, setting the target file path to the specified value.
     /// </summary>
     [Pure]
-    public Command WithTargetFile(string targetFilePath) =>
+    public PtyCommand WithTargetFile(string targetFilePath) =>
         new(
             targetFilePath,
             Arguments,
             WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
 
     /// <summary>
@@ -98,18 +136,18 @@ public partial class Command(
     /// Formatting errors may lead to unexpected bugs and security vulnerabilities.
     /// </remarks>
     [Pure]
-    public Command WithArguments(string arguments) =>
+    public PtyCommand WithArguments(string arguments) =>
         new(
             TargetFilePath,
             arguments,
             WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
 
     /// <summary>
@@ -117,20 +155,15 @@ public partial class Command(
     /// obtained by formatting the specified enumeration.
     /// </summary>
     [Pure]
-    public Command WithArguments(IEnumerable<string> arguments, bool escape) =>
+    public PtyCommand WithArguments(IEnumerable<string> arguments, bool escape = true) =>
         WithArguments(args => args.Add(arguments, escape));
-
-    /// <inheritdoc cref="WithArguments(IEnumerable{string}, bool)" />
-    // TODO: (breaking change) remove in favor of optional parameter
-    [Pure]
-    public Command WithArguments(IEnumerable<string> arguments) => WithArguments(arguments, true);
 
     /// <summary>
     /// Creates a copy of this command, setting the arguments to the value
     /// configured by the specified delegate.
     /// </summary>
     [Pure]
-    public Command WithArguments(Action<ArgumentsBuilder> configure)
+    public PtyCommand WithArguments(Action<ArgumentsBuilder> configure)
     {
         var builder = new ArgumentsBuilder();
         configure(builder);
@@ -142,100 +175,38 @@ public partial class Command(
     /// Creates a copy of this command, setting the working directory path to the specified value.
     /// </summary>
     [Pure]
-    public Command WithWorkingDirectory(string workingDirPath) =>
+    public PtyCommand WithWorkingDirectory(string workingDirPath) =>
         new(
             TargetFilePath,
             Arguments,
             workingDirPath,
-            ResourcePolicy,
-            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
-
-    /// <summary>
-    /// Creates a copy of this command, setting the resource policy to the specified value.
-    /// </summary>
-    [Pure]
-    public Command WithResourcePolicy(ResourcePolicy resourcePolicy) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            resourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
-
-    /// <summary>
-    /// Creates a copy of this command, setting the resource policy to the value
-    /// configured by the specified delegate.
-    /// </summary>
-    [Pure]
-    public Command WithResourcePolicy(Action<ResourcePolicyBuilder> configure)
-    {
-        var builder = new ResourcePolicyBuilder();
-        configure(builder);
-
-        return WithResourcePolicy(builder.Build());
-    }
-
-    /// <summary>
-    /// Creates a copy of this command, setting the user credentials to the specified value.
-    /// </summary>
-    [Pure]
-    public Command WithCredentials(Credentials credentials) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            StandardErrorPipe
-        );
-
-    /// <summary>
-    /// Creates a copy of this command, setting the user credentials to the value
-    /// configured by the specified delegate.
-    /// </summary>
-    [Pure]
-    public Command WithCredentials(Action<CredentialsBuilder> configure)
-    {
-        var builder = new CredentialsBuilder();
-        configure(builder);
-
-        return WithCredentials(builder.Build());
-    }
 
     /// <summary>
     /// Creates a copy of this command, setting the environment variables to the specified value.
     /// </summary>
     [Pure]
-    public Command WithEnvironmentVariables(
+    public PtyCommand WithEnvironmentVariables(
         IReadOnlyDictionary<string, string?> environmentVariables
     ) =>
         new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
             environmentVariables,
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
 
     /// <summary>
@@ -243,7 +214,7 @@ public partial class Command(
     /// configured by the specified delegate.
     /// </summary>
     [Pure]
-    public Command WithEnvironmentVariables(Action<EnvironmentVariablesBuilder> configure)
+    public PtyCommand WithEnvironmentVariables(Action<EnvironmentVariablesBuilder> configure)
     {
         var builder = new EnvironmentVariablesBuilder();
         configure(builder);
@@ -255,91 +226,58 @@ public partial class Command(
     /// Creates a copy of this command, setting the validation options to the specified value.
     /// </summary>
     [Pure]
-    public Command WithValidation(CommandResultValidation validation) =>
+    public PtyCommand WithValidation(CommandResultValidation validation) =>
         new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
             EnvironmentVariables,
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
 
     /// <summary>
     /// Creates a copy of this command, setting the standard input pipe to the specified source.
     /// </summary>
     [Pure]
-    public Command WithStandardInputPipe(PipeSource source) =>
+    public PtyCommand WithStandardInputPipe(PipeSource source) =>
         new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
             EnvironmentVariables,
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
 
     /// <summary>
     /// Creates a copy of this command, setting the standard output pipe to the specified target.
     /// </summary>
     [Pure]
-    public Command WithStandardOutputPipe(PipeTarget target) =>
+    public PtyCommand WithStandardOutputPipe(PipeTarget target) =>
         new(
             TargetFilePath,
             Arguments,
             WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
             EnvironmentVariables,
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe
+            _standardErrorPipe,
+            Columns,
+            Rows
         );
 
-    /// <summary>
-    /// Creates a copy of this command, setting the standard error pipe to the specified target.
-    /// </summary>
     [Pure]
-    public Command WithStandardErrorPipe(PipeTarget target) =>
-        new(
-            TargetFilePath,
-            Arguments,
-            WorkingDirPath,
-            ResourcePolicy,
-            Credentials,
-            EnvironmentVariables,
-            Validation,
-            StandardInputPipe,
-            StandardOutputPipe,
-            target
-        );
-
-    /// <summary>
-    /// Creates a <see cref="PtyCommand" /> from this command, with the specified terminal dimensions.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Pseudo-terminal (PTY) mode makes CLI applications behave as if running in an interactive terminal,
-    /// enabling colored output, progress indicators, and other TTY-dependent features.
-    /// </para>
-    /// <para>
-    /// Note: When PTY is enabled, stderr is merged into stdout on all platforms.
-    /// The <see cref="StandardErrorPipe" /> will receive an empty stream.
-    /// Configuration that does not apply to PTY execution (resource policy, credentials)
-    /// is intentionally not carried over.
-    /// </para>
-    /// </remarks>
-    [Pure]
-    public PtyCommand WithPseudoTerminal(int columns = 80, int rows = 24) =>
+    private PtyCommand WithStandardErrorPipe(PipeTarget target) =>
         new(
             TargetFilePath,
             Arguments,
@@ -348,10 +286,40 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe,
+            target,
+            Columns,
+            Rows
+        );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the terminal dimensions.
+    /// </summary>
+    [Pure]
+    public PtyCommand WithSize(int columns, int rows) =>
+        new(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            _standardErrorPipe,
             columns,
             rows
         );
+
+    /// <summary>
+    /// Creates a copy of this command, setting the terminal width in columns.
+    /// </summary>
+    [Pure]
+    public PtyCommand WithColumns(int columns) => WithSize(columns, Rows);
+
+    /// <summary>
+    /// Creates a copy of this command, setting the terminal height in rows.
+    /// </summary>
+    [Pure]
+    public PtyCommand WithRows(int rows) => WithSize(Columns, rows);
 
     ICommand ICommand.WithStandardOutputPipe(PipeTarget target) => WithStandardOutputPipe(target);
 

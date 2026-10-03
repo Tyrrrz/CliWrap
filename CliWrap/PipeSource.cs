@@ -135,7 +135,7 @@ public partial class PipeSource
     /// Creates a pipe source that reads from the standard output of the specified command.
     /// </summary>
     public static PipeSource FromCommand(
-        Command command,
+        ICommand command,
         Func<Stream, Stream, CancellationToken, Task> copyStreamAsync
     ) =>
         // cmdA | <transform> | cmdB
@@ -155,11 +155,20 @@ public partial class PipeSource
                     .ConfigureAwait(false)
         );
 
-    /// <inheritdoc cref="FromCommand(Command, Func{Stream, Stream, CancellationToken, Task})" />
-    public static PipeSource FromCommand(Command command) =>
+    /// <inheritdoc cref="FromCommand(ICommand, Func{Stream, Stream, CancellationToken, Task})" />
+    public static PipeSource FromCommand(ICommand command) =>
         FromCommand(
             command,
             async (source, destination, cancellationToken) =>
                 await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false)
         );
+
+    /// <inheritdoc cref="FromCommand(ICommand, Func{Stream, Stream, CancellationToken, Task})" />
+    public static PipeSource FromCommand(
+        Command command,
+        Func<Stream, Stream, CancellationToken, Task> copyStreamAsync
+    ) => FromCommand((ICommand)command, copyStreamAsync);
+
+    /// <inheritdoc cref="FromCommand(ICommand)" />
+    public static PipeSource FromCommand(Command command) => FromCommand((ICommand)command);
 }
