@@ -1,0 +1,6 @@
+# Contributing
+
+## Local Development
+
+This project relies on [DevContainers](https://containers.dev) for setting up the local development environment in a consistent and reproducible manner.
+Make sure you use VS Code or any other [compatible IDE or tooling](https://containers.dev/supporting) for it to work.

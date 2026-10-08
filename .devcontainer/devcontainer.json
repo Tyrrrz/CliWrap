@@ -1,0 +1,21 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/dotnet",
+  "updateRemoteUserUID": false,
+  // CSharpier needs to be separately installed as a tool for the extension to work
+  "postCreateCommand": "dotnet tool install -g csharpier",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "csharpier.csharpier-vscode",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "[csharp][xml]": {
+          "editor.defaultFormatter": "csharpier.csharpier-vscode"
+        }
+      }
+    }
+  }
+}
