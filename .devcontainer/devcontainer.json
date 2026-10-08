@@ -2,7 +2,7 @@
   "image": "mcr.microsoft.com/devcontainers/dotnet",
   "updateRemoteUserUID": false,
   // CSharpier needs to be separately installed as a tool for the extension to work
-  "postCreateCommand": "dotnet tool install -g csharpier",
+  "postCreateCommand": "dotnet restore && dotnet tool install -g csharpier",
   "customizations": {
     "vscode": {
       "extensions": [
