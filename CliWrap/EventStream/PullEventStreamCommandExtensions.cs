@@ -17,6 +17,47 @@ public static partial class EventStreamCommandExtensions
     /// <inheritdoc cref="EventStreamCommandExtensions" />
     extension(Command command)
     {
+        /// <inheritdoc cref="ListenAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        public IAsyncEnumerable<CommandEvent> ListenAsync(
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken forcefulCancellationToken,
+            CancellationToken gracefulCancellationToken
+        ) =>
+            ((ICommand)command).ListenAsync(
+                standardOutputEncoding,
+                standardErrorEncoding,
+                forcefulCancellationToken,
+                gracefulCancellationToken
+            );
+
+        /// <inheritdoc cref="ListenAsync(ICommand, Encoding, Encoding, CancellationToken)" />
+        public IAsyncEnumerable<CommandEvent> ListenAsync(
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken cancellationToken = default
+        ) =>
+            ((ICommand)command).ListenAsync(
+                standardOutputEncoding,
+                standardErrorEncoding,
+                cancellationToken
+            );
+
+        /// <inheritdoc cref="ListenAsync(ICommand, Encoding, CancellationToken)" />
+        public IAsyncEnumerable<CommandEvent> ListenAsync(
+            Encoding encoding,
+            CancellationToken cancellationToken = default
+        ) => ((ICommand)command).ListenAsync(encoding, cancellationToken);
+
+        /// <inheritdoc cref="ListenAsync(ICommand, CancellationToken)" />
+        public IAsyncEnumerable<CommandEvent> ListenAsync(
+            CancellationToken cancellationToken = default
+        ) => ((ICommand)command).ListenAsync(cancellationToken);
+    }
+
+    /// <inheritdoc cref="EventStreamCommandExtensions" />
+    extension(ICommand command)
+    {
         /// <summary>
         /// Executes the command as a pull-based event stream.
         /// </summary>
@@ -156,7 +197,7 @@ public static partial class EventStreamCommandExtensions
             }
         }
 
-        /// <inheritdoc cref="ListenAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="ListenAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
@@ -169,13 +210,13 @@ public static partial class EventStreamCommandExtensions
                 CancellationToken.None
             );
 
-        /// <inheritdoc cref="ListenAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="ListenAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             Encoding encoding,
             CancellationToken cancellationToken = default
         ) => command.ListenAsync(encoding, encoding, cancellationToken);
 
-        /// <inheritdoc cref="ListenAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="ListenAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IAsyncEnumerable<CommandEvent> ListenAsync(
             CancellationToken cancellationToken = default
         ) => command.ListenAsync(Encoding.Default, cancellationToken);
