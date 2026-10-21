@@ -20,7 +20,8 @@ public partial class Command(
     CommandResultValidation validation,
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
-    PipeTarget standardErrorPipe
+    PipeTarget standardErrorPipe,
+    PseudoConsoleOptions? pseudoConsoleOptions
 ) : ICommandConfiguration
 {
     /// <summary>
@@ -37,7 +38,8 @@ public partial class Command(
             CommandResultValidation.ZeroExitCode,
             PipeSource.Null,
             PipeTarget.Null,
-            PipeTarget.Null
+            PipeTarget.Null,
+            null
         ) { }
 
     /// <inheritdoc />
@@ -71,6 +73,9 @@ public partial class Command(
     /// <inheritdoc />
     public PipeTarget StandardErrorPipe { get; } = standardErrorPipe;
 
+    /// <inheritdoc />
+    public PseudoConsoleOptions? PseudoConsoleOptions { get; } = pseudoConsoleOptions;
+
     /// <summary>
     /// Creates a copy of this command, setting the target file path to the specified value.
     /// </summary>
@@ -86,7 +91,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -108,7 +114,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -152,7 +159,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -170,7 +178,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -201,7 +210,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -234,7 +244,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -265,7 +276,8 @@ public partial class Command(
             validation,
             StandardInputPipe,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -283,7 +295,8 @@ public partial class Command(
             Validation,
             source,
             StandardOutputPipe,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -301,7 +314,8 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             target,
-            StandardErrorPipe
+            StandardErrorPipe,
+            PseudoConsoleOptions
         );
 
     /// <summary>
@@ -319,8 +333,51 @@ public partial class Command(
             Validation,
             StandardInputPipe,
             StandardOutputPipe,
-            target
+            target,
+            PseudoConsoleOptions
         );
+
+    /// <summary>
+    /// Creates a copy of this command, enabling pseudo-terminal (PTY) mode with default options.
+    /// </summary>
+    /// <remarks>
+    /// See <see cref="PseudoConsoleOptions" /> for details on behavior and platform requirements.
+    /// </remarks>
+    [Pure]
+    public Command WithPseudoConsole() => WithPseudoConsole(PseudoConsoleOptions.Default);
+
+    /// <summary>
+    /// Creates a copy of this command, enabling pseudo-terminal (PTY) mode with the specified options.
+    /// </summary>
+    /// <remarks>
+    /// See <see cref="PseudoConsoleOptions" /> for details on behavior and platform requirements.
+    /// </remarks>
+    [Pure]
+    public Command WithPseudoConsole(PseudoConsoleOptions options) =>
+        new(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            ResourcePolicy,
+            Credentials,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            options
+        );
+
+    /// <summary>
+    /// Creates a copy of this command, enabling pseudo-terminal (PTY) mode with the specified
+    /// terminal dimensions.
+    /// </summary>
+    /// <remarks>
+    /// See <see cref="PseudoConsoleOptions" /> for details on behavior and platform requirements.
+    /// </remarks>
+    [Pure]
+    public Command WithPseudoConsole(int columns, int rows) =>
+        WithPseudoConsole(new PseudoConsoleOptions(columns, rows));
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]
