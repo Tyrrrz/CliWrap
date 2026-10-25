@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using CliWrap.Buffered;
 using CliWrap.Tests.Utils.Extensions;
-using FluentAssertions;
 using PowerKit;
 using Xunit;
 

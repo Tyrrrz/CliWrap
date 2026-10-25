@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
-using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 

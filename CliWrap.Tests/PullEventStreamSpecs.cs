@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using CliWrap.EventStream;
-using FluentAssertions;
 using PowerKit.Extensions;
 using Xunit;
 

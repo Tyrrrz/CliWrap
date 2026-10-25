@@ -2,8 +2,8 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using CliWrap.Buffered;
-using FluentAssertions;
 using Xunit;
 
 namespace CliWrap.Tests;
