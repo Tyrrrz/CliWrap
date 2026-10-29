@@ -237,7 +237,7 @@ Sets the working directory of the child process.
 
 ```csharp
 var cmd = Cli.Wrap("git")
-    .WithWorkingDirectory("c:/projects/my project/");
+    .WithWorkingDirectory("/home/john/Projects/");
 ```
 
 #### `WithEnvironmentVariables(...)`
