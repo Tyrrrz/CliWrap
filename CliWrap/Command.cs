@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Threading;
 using CliWrap.Builders;
 
 namespace CliWrap;
@@ -21,7 +22,7 @@ public partial class Command(
     PipeSource standardInputPipe,
     PipeTarget standardOutputPipe,
     PipeTarget standardErrorPipe
-) : ICommandConfiguration
+) : ICommandConfiguration, ICommand
 {
     /// <summary>
     /// Initializes an instance of <see cref="Command" />.
@@ -321,6 +322,48 @@ public partial class Command(
             StandardOutputPipe,
             target
         );
+
+    /// <summary>
+    /// Creates a <see cref="PtyCommand" /> from this command, with the specified terminal dimensions.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Pseudo-terminal (PTY) mode makes CLI applications behave as if running in an interactive terminal,
+    /// enabling colored output, progress indicators, and other TTY-dependent features.
+    /// </para>
+    /// <para>
+    /// Note: When PTY is enabled, stderr is merged into stdout on all platforms.
+    /// The <see cref="StandardErrorPipe" /> will receive an empty stream.
+    /// Configuration that does not apply to PTY execution (resource policy, credentials)
+    /// is intentionally not carried over.
+    /// </para>
+    /// </remarks>
+    [Pure]
+    public PtyCommand WithPseudoTerminal(int columns = 80, int rows = 24) =>
+        new(
+            TargetFilePath,
+            Arguments,
+            WorkingDirPath,
+            EnvironmentVariables,
+            Validation,
+            StandardInputPipe,
+            StandardOutputPipe,
+            StandardErrorPipe,
+            columns,
+            rows
+        );
+
+    ICommand ICommand.WithStandardOutputPipe(PipeTarget target) => WithStandardOutputPipe(target);
+
+    ICommand ICommand.WithStandardErrorPipe(PipeTarget target) => WithStandardErrorPipe(target);
+
+    CommandTask<CommandResult> ICommand.ExecuteAsync(CancellationToken cancellationToken) =>
+        ExecuteAsync(cancellationToken);
+
+    CommandTask<CommandResult> ICommand.ExecuteAsync(
+        CancellationToken forcefulCancellationToken,
+        CancellationToken gracefulCancellationToken
+    ) => ExecuteAsync(forcefulCancellationToken, gracefulCancellationToken);
 
     /// <inheritdoc />
     [ExcludeFromCodeCoverage]

@@ -12,6 +12,47 @@ public static class BufferedCommandExtensions
     /// <inheritdoc cref="BufferedCommandExtensions" />
     extension(Command command)
     {
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken forcefulCancellationToken,
+            CancellationToken gracefulCancellationToken
+        ) =>
+            ((ICommand)command).ExecuteBufferedAsync(
+                standardOutputEncoding,
+                standardErrorEncoding,
+                forcefulCancellationToken,
+                gracefulCancellationToken
+            );
+
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, Encoding, Encoding, CancellationToken)" />
+        public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken cancellationToken = default
+        ) =>
+            ((ICommand)command).ExecuteBufferedAsync(
+                standardOutputEncoding,
+                standardErrorEncoding,
+                cancellationToken
+            );
+
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, Encoding, CancellationToken)" />
+        public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
+            Encoding encoding,
+            CancellationToken cancellationToken = default
+        ) => ((ICommand)command).ExecuteBufferedAsync(encoding, cancellationToken);
+
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, CancellationToken)" />
+        public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
+            CancellationToken cancellationToken = default
+        ) => ((ICommand)command).ExecuteBufferedAsync(cancellationToken);
+    }
+
+    /// <inheritdoc cref="BufferedCommandExtensions" />
+    extension(ICommand command)
+    {
         /// <summary>
         /// Executes the command asynchronously with buffering.
         /// Data written to the standard output and standard error streams is decoded as text
@@ -83,7 +124,7 @@ public static class BufferedCommandExtensions
                 });
         }
 
-        /// <inheritdoc cref="ExecuteBufferedAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
@@ -96,13 +137,13 @@ public static class BufferedCommandExtensions
                 CancellationToken.None
             );
 
-        /// <inheritdoc cref="ExecuteBufferedAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             Encoding encoding,
             CancellationToken cancellationToken = default
         ) => command.ExecuteBufferedAsync(encoding, encoding, cancellationToken);
 
-        /// <inheritdoc cref="ExecuteBufferedAsync(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="ExecuteBufferedAsync(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public CommandTask<BufferedCommandResult> ExecuteBufferedAsync(
             CancellationToken cancellationToken = default
         ) => command.ExecuteBufferedAsync(Encoding.Default, cancellationToken);
