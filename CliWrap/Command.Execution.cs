@@ -208,6 +208,7 @@ public partial class Command
             // Check on the background tasks as they complete
             await foreach (
                 var completedTask in Task.WhenEach(stdInTask, stdOutTask, stdErrTask, processTask)
+                    .ConfigureAwait(false)
             )
             {
                 // If the process task has finished, trigger the corresponding signal to cancel the

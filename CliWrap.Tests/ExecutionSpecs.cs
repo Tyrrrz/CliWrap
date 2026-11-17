@@ -190,4 +190,40 @@ public class ExecutionSpecs
         // https://github.com/Tyrrrz/CliWrap/issues/139
         act.Should().Throw<Win32Exception>();
     }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_wait_for_it_on_a_thread_whose_synchronization_context_is_blocked()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/352
+
+        // Arrange
+        var cmd = Cli.Wrap(Dummy.Program.FilePath);
+        var context = new NonPumpingSynchronizationContext();
+        var isCompleted = false;
+
+        // Act
+        // Like a UI thread that blocks on async work: callbacks posted to its context never run
+        var thread = new Thread(() =>
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+            isCompleted = cmd.ExecuteAsync().Task.Wait(TimeSpan.FromSeconds(10));
+        });
+
+        thread.Start();
+        await Task.Run(thread.Join);
+
+        // Assert
+        isCompleted.Should().BeTrue();
+        context.PostCount.Should().Be(0);
+    }
+
+    private sealed class NonPumpingSynchronizationContext : SynchronizationContext
+    {
+        private int _postCount;
+
+        public int PostCount => _postCount;
+
+        public override void Post(SendOrPostCallback d, object? state) =>
+            Interlocked.Increment(ref _postCount);
+    }
 }
