@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils;
+using Microsoft.Win32.SafeHandles;
 using PowerKit.Extensions;
 
 namespace CliWrap;
@@ -84,6 +85,15 @@ public partial class PipeSource
     /// <inheritdoc cref="FromStream(Stream, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
+
+    /// <summary>
+    /// Creates a pipe source that reads from the specified file handle.
+    /// </summary>
+    /// <remarks>
+    /// The caller is responsible for disposing the handle after piping is complete.
+    /// </remarks>
+    public static PipeSource FromFileHandle(SafeFileHandle handle) =>
+        FromStream(new FileStream(handle, FileAccess.Read));
 
     /// <summary>
     /// Creates a pipe source that reads from the specified file.

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils;
+using Microsoft.Win32.SafeHandles;
 using PowerKit.Extensions;
 
 namespace CliWrap;
@@ -178,6 +179,15 @@ public partial class PipeTarget
     /// <inheritdoc cref="ToStream(Stream, bool)" />
     // TODO: (breaking change) remove in favor of optional parameter
     public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
+
+    /// <summary>
+    /// Creates a pipe target that writes to the specified file handle.
+    /// </summary>
+    /// <remarks>
+    /// The caller is responsible for disposing the handle after piping is complete.
+    /// </remarks>
+    public static PipeTarget ToFileHandle(SafeFileHandle handle) =>
+        ToStream(new FileStream(handle, FileAccess.Write));
 
     /// <summary>
     /// Creates a pipe target that writes to the specified file.

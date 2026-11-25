@@ -463,6 +463,7 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
 - `PipeSource`:
   - `PipeSource.Null` — represents an empty pipe source.
   - `PipeSource.FromStream(...)` — pipes data from any readable stream.
+  - `PipeSource.FromFileHandle(...)` — pipes data from a readable file handle.
   - `PipeSource.FromFile(...)` — pipes data from a file.
   - `PipeSource.FromBytes(...)` — pipes data from a byte array.
   - `PipeSource.FromString(...)` — pipes data from a text string.
@@ -470,10 +471,13 @@ Both `PipeSource` and `PipeTarget` have many factory methods that let you create
 - `PipeTarget`:
   - `PipeTarget.Null` — represents a pipe target that discards all data.
   - `PipeTarget.ToStream(...)` — pipes data to any writable stream.
+  - `PipeTarget.ToFileHandle(...)` — pipes data to a writable file handle.
   - `PipeTarget.ToFile(...)` — pipes data to a file.
   - `PipeTarget.ToStringBuilder(...)` — pipes data as text into a `StringBuilder`.
   - `PipeTarget.ToDelegate(...)` — pipes data as text, line-by-line, into an `Action<string>`, or a `Func<string, Task>`, or a `Func<string, CancellationToken, Task>` delegate.
   - `PipeTarget.Merge(...)` — merges multiple outbound pipes by replicating the same data across all of them.
+
+File handles passed to `FromFileHandle` and `ToFileHandle` must be disposed by the caller after piping is complete. For anonymous pipes, closing the write handle signals the end of the stream to the reader.
 
 > [!WARNING]
 > Using `PipeTarget.Null` results in the corresponding stream (stdout or stderr) not being opened for the underlying process at all.
