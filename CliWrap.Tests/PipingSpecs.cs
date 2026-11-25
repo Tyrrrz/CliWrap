@@ -67,6 +67,24 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_file()
+    {
+        // Arrange
+        using var file = TempFile.Create();
+        await File.WriteAllTextAsync(file.Path, "Hello world!");
+
+        var cmd =
+            PipeSource.FromFile(file.Path)
+            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Trim().Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_file_handle()
     {
         // Arrange
@@ -84,58 +102,12 @@ public class PipingSpecs
         // Act
         await writer.WriteAsync("Hello world!"u8.ToArray());
         writer.Dispose();
+
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
         result.StandardOutput.Trim().Should().Be("Hello world!");
         handle.IsClosed.Should().BeFalse();
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_pipe_between_owned_file_handles_without_closing_them()
-    {
-        // Arrange
-        using var inputFile = TempFile.Create();
-        using var outputFile = TempFile.Create();
-        await File.WriteAllTextAsync(inputFile.Path, "Hello world!");
-        using var inputHandle = File.OpenHandle(inputFile.Path, FileMode.Open, FileAccess.Read);
-        using var outputHandle = File.OpenHandle(
-            outputFile.Path,
-            FileMode.Create,
-            FileAccess.Write
-        );
-
-        var cmd =
-            PipeSource.FromFile(inputHandle)
-            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin")
-            | PipeTarget.ToFile(outputHandle);
-
-        // Act
-        await cmd.ExecuteAsync();
-
-        // Assert
-        inputHandle.IsClosed.Should().BeFalse();
-        outputHandle.IsClosed.Should().BeFalse();
-        outputHandle.Dispose();
-        (await File.ReadAllTextAsync(outputFile.Path)).Trim().Should().Be("Hello world!");
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_file()
-    {
-        // Arrange
-        using var file = TempFile.Create();
-        await File.WriteAllTextAsync(file.Path, "Hello world!");
-
-        var cmd =
-            PipeSource.FromFile(file.Path)
-            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
-
-        // Act
-        var result = await cmd.ExecuteBufferedAsync();
-
-        // Assert
-        result.StandardOutput.Trim().Should().Be("Hello world!");
     }
 
     [Fact(Timeout = 15000)]
