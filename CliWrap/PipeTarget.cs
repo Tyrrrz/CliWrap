@@ -181,15 +181,6 @@ public partial class PipeTarget
     public static PipeTarget ToStream(Stream stream) => ToStream(stream, true);
 
     /// <summary>
-    /// Creates a pipe target that writes to the specified file handle.
-    /// </summary>
-    /// <remarks>
-    /// The caller is responsible for disposing the handle after piping is complete.
-    /// </remarks>
-    public static PipeTarget ToFile(SafeFileHandle handle) =>
-        ToStream(new FileStream(handle, FileAccess.Write));
-
-    /// <summary>
     /// Creates a pipe target that writes to the specified file.
     /// </summary>
     public static PipeTarget ToFile(string filePath) =>
@@ -204,6 +195,18 @@ public partial class PipeTarget
                     BufferSizes.Stream,
                     FileOptions.Asynchronous
                 );
+
+                await using (file.ToAsyncDisposable())
+                    await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
+            }
+        );
+
+    /// <inheritdoc cref="ToFile(string)" />
+    public static PipeTarget ToFile(SafeFileHandle handle) =>
+        Create(
+            async (origin, cancellationToken) =>
+            {
+                var file = new FileStream(handle, FileAccess.Write);
 
                 await using (file.ToAsyncDisposable())
                     await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
