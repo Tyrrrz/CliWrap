@@ -267,6 +267,25 @@ public class PipingSpecs
     }
 
     [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_file()
+    {
+        // Arrange
+        using var file = TempFile.Create();
+
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath)
+                .WithArguments(["generate binary", "--length", "100000"])
+            | PipeTarget.ToFile(file.Path);
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        File.Exists(file.Path).Should().BeTrue();
+        new FileInfo(file.Path).Length.Should().Be(100_000);
+    }
+
+    [Fact(Timeout = 15000)]
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_file_handle()
     {
         // Arrange
@@ -287,29 +306,11 @@ public class PipingSpecs
         await cmd.ExecuteAsync();
         handle.IsClosed.Should().BeFalse();
         pipe.ClientSafePipeHandle.Dispose();
+
         await readTask;
 
         // Assert
         output.Length.Should().Be(100_000);
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_file()
-    {
-        // Arrange
-        using var file = TempFile.Create();
-
-        var cmd =
-            Cli.Wrap(Dummy.Program.FilePath)
-                .WithArguments(["generate binary", "--length", "100000"])
-            | PipeTarget.ToFile(file.Path);
-
-        // Act
-        await cmd.ExecuteAsync();
-
-        // Assert
-        File.Exists(file.Path).Should().BeTrue();
-        new FileInfo(file.Path).Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]
