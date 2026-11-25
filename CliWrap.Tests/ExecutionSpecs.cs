@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using CliWrap.Tests.Utils;
 using PowerKit.Extensions;
 using Xunit;
 
@@ -93,6 +94,52 @@ public class ExecutionSpecs
 
         // Act & assert
         await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_not_hang_when_waiting_on_it_synchronously()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/352
+
+        // Arrange
+        // Hold stdin open until the execution has started, so that the command can't finish
+        // before the execution reaches its first pending await
+        var stdInGate = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+
+        var cmd =
+            PipeSource.Create(
+                async (destination, cancellationToken) =>
+                {
+                    await stdInGate.Task.ConfigureAwait(false);
+                    await destination
+                        .WriteAsync("Hello world!"u8.ToArray(), cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            ) | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
+
+        var context = new NonPumpingSynchronizationContext();
+        var isCompleted = false;
+
+        // Act
+        // Like a UI thread that blocks on async work: callbacks posted to its context never run
+        var thread = new Thread(() =>
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+
+            var task = cmd.ExecuteAsync().Task;
+            stdInGate.SetResult();
+
+            isCompleted = task.Wait(TimeSpan.FromSeconds(10));
+        });
+
+        thread.Start();
+        await Task.Run(thread.Join);
+
+        // Assert
+        isCompleted.Should().BeTrue();
+        context.PostCount.Should().Be(0);
     }
 
     [Fact(Timeout = 15000)]
@@ -189,41 +236,5 @@ public class ExecutionSpecs
         // Should throw synchronously
         // https://github.com/Tyrrrz/CliWrap/issues/139
         act.Should().Throw<Win32Exception>();
-    }
-
-    [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_and_wait_for_it_on_a_thread_whose_synchronization_context_is_blocked()
-    {
-        // https://github.com/Tyrrrz/CliWrap/issues/352
-
-        // Arrange
-        var cmd = Cli.Wrap(Dummy.Program.FilePath);
-        var context = new NonPumpingSynchronizationContext();
-        var isCompleted = false;
-
-        // Act
-        // Like a UI thread that blocks on async work: callbacks posted to its context never run
-        var thread = new Thread(() =>
-        {
-            SynchronizationContext.SetSynchronizationContext(context);
-            isCompleted = cmd.ExecuteAsync().Task.Wait(TimeSpan.FromSeconds(10));
-        });
-
-        thread.Start();
-        await Task.Run(thread.Join);
-
-        // Assert
-        isCompleted.Should().BeTrue();
-        context.PostCount.Should().Be(0);
-    }
-
-    private sealed class NonPumpingSynchronizationContext : SynchronizationContext
-    {
-        private int _postCount;
-
-        public int PostCount => _postCount;
-
-        public override void Post(SendOrPostCallback d, object? state) =>
-            Interlocked.Increment(ref _postCount);
     }
 }
