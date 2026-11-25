@@ -186,7 +186,7 @@ public partial class PipeTarget
     /// <remarks>
     /// The caller is responsible for disposing the handle after piping is complete.
     /// </remarks>
-    public static PipeTarget ToFileHandle(SafeFileHandle handle) =>
+    public static PipeTarget ToFile(SafeFileHandle handle) =>
         ToStream(new FileStream(handle, FileAccess.Write));
 
     /// <summary>

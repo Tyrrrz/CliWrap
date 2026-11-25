@@ -92,7 +92,7 @@ public partial class PipeSource
     /// <remarks>
     /// The caller is responsible for disposing the handle after piping is complete.
     /// </remarks>
-    public static PipeSource FromFileHandle(SafeFileHandle handle) =>
+    public static PipeSource FromFile(SafeFileHandle handle) =>
         FromStream(new FileStream(handle, FileAccess.Read));
 
     /// <summary>

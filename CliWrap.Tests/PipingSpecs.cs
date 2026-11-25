@@ -78,7 +78,7 @@ public class PipingSpecs
         );
 
         var cmd =
-            PipeSource.FromFileHandle(handle)
+            PipeSource.FromFile(handle)
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
@@ -106,9 +106,9 @@ public class PipingSpecs
         );
 
         var cmd =
-            PipeSource.FromFileHandle(inputHandle)
+            PipeSource.FromFile(inputHandle)
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin")
-            | PipeTarget.ToFileHandle(outputHandle);
+            | PipeTarget.ToFile(outputHandle);
 
         // Act
         await cmd.ExecuteAsync();
@@ -308,7 +308,7 @@ public class PipingSpecs
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments(["generate binary", "--length", "100000"])
-            | PipeTarget.ToFileHandle(handle);
+            | PipeTarget.ToFile(handle);
 
         // Act
         var readTask = pipe.CopyToAsync(output);
