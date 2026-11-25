@@ -87,15 +87,6 @@ public partial class PipeSource
     public static PipeSource FromStream(Stream stream) => FromStream(stream, true);
 
     /// <summary>
-    /// Creates a pipe source that reads from the specified file handle.
-    /// </summary>
-    /// <remarks>
-    /// The caller is responsible for disposing the handle after piping is complete.
-    /// </remarks>
-    public static PipeSource FromFile(SafeFileHandle handle) =>
-        FromStream(new FileStream(handle, FileAccess.Read));
-
-    /// <summary>
     /// Creates a pipe source that reads from the specified file.
     /// </summary>
     public static PipeSource FromFile(string filePath) =>
@@ -113,6 +104,18 @@ public partial class PipeSource
 
                 await using (file.ToAsyncDisposable())
                     await file.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+            }
+        );
+
+    /// <inheritdoc cref="FromFile(string)" />
+    public static PipeSource FromFile(SafeFileHandle handle) =>
+        Create(
+            async (destination, cancellationToken) =>
+            {
+                var file = new FileStream(handle, FileAccess.Read);
+        
+                await using (file.ToAsyncDisposable())
+                            await file.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
             }
         );
 
