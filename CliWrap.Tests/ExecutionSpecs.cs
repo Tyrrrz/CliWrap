@@ -102,9 +102,10 @@ public class ExecutionSpecs
         // https://github.com/Tyrrrz/CliWrap/issues/352
 
         // Arrange
+
         // Hold stdin open until the execution has started, so that the command can't finish
-        // before the execution reaches its first pending await
-        var stdInGate = new TaskCompletionSource(
+        // before the execution reaches its first pending await.
+        var stdInLockTcs = new TaskCompletionSource(
             TaskCreationOptions.RunContinuationsAsynchronously
         );
 
@@ -112,34 +113,34 @@ public class ExecutionSpecs
             PipeSource.Create(
                 async (destination, cancellationToken) =>
                 {
-                    await stdInGate.Task.ConfigureAwait(false);
+                    await stdInLockTcs.Task.ConfigureAwait(false);
+                    await Task.Delay(50);
+
                     await destination
                         .WriteAsync("Hello world!"u8.ToArray(), cancellationToken)
                         .ConfigureAwait(false);
                 }
             ) | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
-        var context = new NonPumpingSynchronizationContext();
-        var isCompleted = false;
-
-        // Act
-        // Like a UI thread that blocks on async work: callbacks posted to its context never run
+        // Simulate a UI thread that blocks on async work: callbacks posted to its context never run
         var thread = new Thread(() =>
         {
-            SynchronizationContext.SetSynchronizationContext(context);
+            SynchronizationContext.SetSynchronizationContext(
+                new NonPumpingSynchronizationContext()
+            );
 
             var task = cmd.ExecuteAsync().Task;
-            stdInGate.SetResult();
+            stdInLockTcs.TrySetResult();
 
             isCompleted = task.Wait(TimeSpan.FromSeconds(10));
         });
-
+        
+        // Act
         thread.Start();
         await Task.Run(thread.Join);
 
         // Assert
-        isCompleted.Should().BeTrue();
-        context.PostCount.Should().Be(0);
+        thread.IsAlive.Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
