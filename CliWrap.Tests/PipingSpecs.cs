@@ -101,6 +101,7 @@ public class PipingSpecs
 
         // Assert
         result.StandardOutput.Trim().Should().Be("Hello world!");
+        fileHandle.IsClosed.Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -301,6 +302,7 @@ public class PipingSpecs
         // Assert
         File.Exists(file.Path).Should().BeTrue();
         new FileInfo(file.Path).Length.Should().Be(100_000);
+        fileHandle.IsClosed.Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]

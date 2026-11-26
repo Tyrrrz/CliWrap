@@ -93,7 +93,7 @@ public partial class PipeSource
         Create(
             async (destination, cancellationToken) =>
             {
-                var file = new FileStream(
+                using var file = new FileStream(
                     filePath,
                     FileMode.Open,
                     FileAccess.Read,
@@ -112,10 +112,31 @@ public partial class PipeSource
         Create(
             async (destination, cancellationToken) =>
             {
-                var file = new FileStream(handle, FileAccess.Read);
+                var isRefAdded = false;
+                handle.DangerousAddRef(ref isRefAdded);
 
-                await using (file.ToAsyncDisposable())
-                    await file.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    using var borrowedHandle = new SafeFileHandle(
+                        handle.DangerousGetHandle(),
+                        false
+                    );
+
+                    using var file = new FileStream(
+                        borrowedHandle,
+                        FileAccess.Read,
+                        BufferSizes.Stream
+                    );
+
+                    await using (file.ToAsyncDisposable())
+                        await file.CopyToAsync(destination, cancellationToken)
+                            .ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (isRefAdded)
+                        handle.DangerousRelease();
+                }
             }
         );
 

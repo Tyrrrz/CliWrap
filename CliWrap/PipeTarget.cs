@@ -187,7 +187,7 @@ public partial class PipeTarget
         Create(
             async (origin, cancellationToken) =>
             {
-                var file = new FileStream(
+                using var file = new FileStream(
                     filePath,
                     FileMode.Create,
                     FileAccess.Write,
@@ -206,10 +206,30 @@ public partial class PipeTarget
         Create(
             async (origin, cancellationToken) =>
             {
-                var file = new FileStream(handle, FileAccess.Write);
+                var isRefAdded = false;
+                handle.DangerousAddRef(ref isRefAdded);
 
-                await using (file.ToAsyncDisposable())
-                    await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    using var borrowedHandle = new SafeFileHandle(
+                        handle.DangerousGetHandle(),
+                        false
+                    );
+
+                    using var file = new FileStream(
+                        borrowedHandle,
+                        FileAccess.Write,
+                        BufferSizes.Stream
+                    );
+
+                    await using (file.ToAsyncDisposable())
+                        await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (isRefAdded)
+                        handle.DangerousRelease();
+                }
             }
         );
 
