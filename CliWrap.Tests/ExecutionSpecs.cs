@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using CliWrap.Tests.Utils;
 using PowerKit.Extensions;
 using Xunit;
 
@@ -93,6 +94,55 @@ public class ExecutionSpecs
 
         // Act & assert
         await cmd.ExecuteAsync();
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_not_hang_when_waiting_on_it_synchronously()
+    {
+        // https://github.com/Tyrrrz/CliWrap/issues/352
+
+        // Arrange
+
+        // Hold stdin open until the execution has started, so that the command can't finish
+        // before the execution reaches its first pending await.
+        var stdInLockTcs = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+
+        var cmd =
+            PipeSource.Create(
+                async (destination, cancellationToken) =>
+                {
+                    await stdInLockTcs.Task.ConfigureAwait(false);
+                    await Task.Delay(50);
+
+                    await destination
+                        .WriteAsync("Hello world!"u8.ToArray(), cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            ) | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
+
+        // Simulate a UI thread that blocks on async work: callbacks posted to its context never run
+        var isCompleted = false;
+        var thread = new Thread(() =>
+        {
+            SynchronizationContext.SetSynchronizationContext(
+                new NonPumpingSynchronizationContext()
+            );
+
+            var task = cmd.ExecuteAsync().Task;
+            stdInLockTcs.TrySetResult();
+
+            isCompleted = task.Wait(TimeSpan.FromSeconds(10));
+        });
+
+        // Act
+        thread.Start();
+        await Task.Run(thread.Join);
+
+        // Assert
+        thread.IsAlive.Should().BeFalse();
+        isCompleted.Should().BeTrue();
     }
 
     [Fact(Timeout = 15000)]
