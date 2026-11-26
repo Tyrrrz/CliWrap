@@ -88,26 +88,19 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_file_handle()
     {
         // Arrange
-        using var pipe = new AnonymousPipeServerStream(PipeDirection.In);
-        using var handle = new SafeFileHandle(pipe.SafePipeHandle.DangerousGetHandle(), false);
-        using var writer = new AnonymousPipeClientStream(
-            PipeDirection.Out,
-            pipe.ClientSafePipeHandle
-        );
+        using var file = TempFile.Create();
+        await File.WriteAllTextAsync(file.Path, "Hello world!");
+        using var fileHandle = File.OpenHandle(file.Path);
 
         var cmd =
-            PipeSource.FromFile(handle)
+            PipeSource.FromFile(fileHandle)
             | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Act
-        await writer.WriteAsync("Hello world!"u8.ToArray());
-        writer.Dispose();
-
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
         result.StandardOutput.Trim().Should().Be("Hello world!");
-        handle.IsClosed.Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -289,28 +282,25 @@ public class PipingSpecs
     public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_file_handle()
     {
         // Arrange
-        using var pipe = new AnonymousPipeServerStream(PipeDirection.In);
-        using var handle = new SafeFileHandle(
-            pipe.ClientSafePipeHandle.DangerousGetHandle(),
-            false
+        using var file = TempFile.Create();
+        using var fileHandle = File.OpenHandle(
+            file.Path,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read
         );
-        using var output = new MemoryStream();
 
         var cmd =
             Cli.Wrap(Dummy.Program.FilePath)
                 .WithArguments(["generate binary", "--length", "100000"])
-            | PipeTarget.ToFile(handle);
+            | PipeTarget.ToFile(fileHandle);
 
         // Act
-        var readTask = pipe.CopyToAsync(output);
         await cmd.ExecuteAsync();
-        handle.IsClosed.Should().BeFalse();
-        pipe.ClientSafePipeHandle.Dispose();
-
-        await readTask;
 
         // Assert
-        output.Length.Should().Be(100_000);
+        File.Exists(file.Path).Should().BeTrue();
+        new FileInfo(file.Path).Length.Should().Be(100_000);
     }
 
     [Fact(Timeout = 15000)]

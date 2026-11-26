@@ -113,9 +113,9 @@ public partial class PipeSource
             async (destination, cancellationToken) =>
             {
                 var file = new FileStream(handle, FileAccess.Read);
-        
+
                 await using (file.ToAsyncDisposable())
-                            await file.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+                    await file.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
             }
         );
 
