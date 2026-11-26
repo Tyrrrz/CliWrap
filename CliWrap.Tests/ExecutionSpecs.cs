@@ -123,6 +123,7 @@ public class ExecutionSpecs
             ) | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
 
         // Simulate a UI thread that blocks on async work: callbacks posted to its context never run
+        var isCompleted = false;
         var thread = new Thread(() =>
         {
             SynchronizationContext.SetSynchronizationContext(
@@ -134,13 +135,14 @@ public class ExecutionSpecs
 
             isCompleted = task.Wait(TimeSpan.FromSeconds(10));
         });
-        
+
         // Act
         thread.Start();
         await Task.Run(thread.Join);
 
         // Assert
         thread.IsAlive.Should().BeFalse();
+        isCompleted.Should().BeTrue();
     }
 
     [Fact(Timeout = 15000)]
