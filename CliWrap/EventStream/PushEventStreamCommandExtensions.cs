@@ -15,6 +15,46 @@ public static partial class EventStreamCommandExtensions
     /// <inheritdoc cref="EventStreamCommandExtensions" />
     extension(Command command)
     {
+        /// <inheritdoc cref="Observe(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        public IObservable<CommandEvent> Observe(
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken forcefulCancellationToken,
+            CancellationToken gracefulCancellationToken
+        ) =>
+            ((ICommand)command).Observe(
+                standardOutputEncoding,
+                standardErrorEncoding,
+                forcefulCancellationToken,
+                gracefulCancellationToken
+            );
+
+        /// <inheritdoc cref="Observe(ICommand, Encoding, Encoding, CancellationToken)" />
+        public IObservable<CommandEvent> Observe(
+            Encoding standardOutputEncoding,
+            Encoding standardErrorEncoding,
+            CancellationToken cancellationToken = default
+        ) =>
+            ((ICommand)command).Observe(
+                standardOutputEncoding,
+                standardErrorEncoding,
+                cancellationToken
+            );
+
+        /// <inheritdoc cref="Observe(ICommand, Encoding, CancellationToken)" />
+        public IObservable<CommandEvent> Observe(
+            Encoding encoding,
+            CancellationToken cancellationToken = default
+        ) => ((ICommand)command).Observe(encoding, cancellationToken);
+
+        /// <inheritdoc cref="Observe(ICommand, CancellationToken)" />
+        public IObservable<CommandEvent> Observe(CancellationToken cancellationToken = default) =>
+            ((ICommand)command).Observe(cancellationToken);
+    }
+
+    /// <inheritdoc cref="EventStreamCommandExtensions" />
+    extension(ICommand command)
+    {
         /// <summary>
         /// Executes the command as a push-based event stream.
         /// </summary>
@@ -123,7 +163,7 @@ public static partial class EventStreamCommandExtensions
                 });
             });
 
-        /// <inheritdoc cref="Observe(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="Observe(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IObservable<CommandEvent> Observe(
             Encoding standardOutputEncoding,
             Encoding standardErrorEncoding,
@@ -136,13 +176,13 @@ public static partial class EventStreamCommandExtensions
                 CancellationToken.None
             );
 
-        /// <inheritdoc cref="Observe(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="Observe(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IObservable<CommandEvent> Observe(
             Encoding encoding,
             CancellationToken cancellationToken = default
         ) => command.Observe(encoding, encoding, cancellationToken);
 
-        /// <inheritdoc cref="Observe(Command, Encoding, Encoding, CancellationToken, CancellationToken)" />
+        /// <inheritdoc cref="Observe(ICommand, Encoding, Encoding, CancellationToken, CancellationToken)" />
         public IObservable<CommandEvent> Observe(CancellationToken cancellationToken = default) =>
             command.Observe(Encoding.Default, cancellationToken);
     }

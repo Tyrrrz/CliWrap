@@ -1,0 +1,173 @@
+using System;
+using System.Diagnostics.Contracts;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace CliWrap;
+
+public partial class PtyCommand
+{
+    /// <summary>
+    /// Creates a new command that pipes its standard output to the specified target.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(PtyCommand source, PipeTarget target) =>
+        source.WithStandardOutputPipe(target);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output to the specified stream.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(PtyCommand source, Stream target) =>
+        source | PipeTarget.ToStream(target);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output to the specified string builder.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(PtyCommand source, StringBuilder target) =>
+        source | PipeTarget.ToStringBuilder(target);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output line-by-line to the specified
+    /// asynchronous delegate.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        Func<string, CancellationToken, Task> target
+    ) => source | PipeTarget.ToDelegate(target);
+
+    /// <inheritdoc cref="op_BitwiseOr(PtyCommand, Func{string, CancellationToken, Task})" />
+    [Pure]
+    public static PtyCommand operator |(PtyCommand source, Func<string, Task> target) =>
+        source | PipeTarget.ToDelegate(target);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output line-by-line to the specified
+    /// synchronous delegate. Uses <see cref="Encoding.Default" /> for decoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(PtyCommand source, Action<string> target) =>
+        source | PipeTarget.ToDelegate(target);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output and empty standard error stream to
+    /// the specified targets.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        (PipeTarget stdOut, PipeTarget stdErr) targets
+    ) => source.WithStandardOutputPipe(targets.stdOut).WithStandardErrorPipe(targets.stdErr);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output and empty standard error stream to
+    /// the specified streams.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        (Stream stdOut, Stream stdErr) targets
+    ) => source | (PipeTarget.ToStream(targets.stdOut), PipeTarget.ToStream(targets.stdErr));
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output and empty standard error stream to
+    /// the specified string builders. Uses <see cref="Encoding.Default" /> for decoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        (StringBuilder stdOut, StringBuilder stdErr) targets
+    ) =>
+        source
+        | (PipeTarget.ToStringBuilder(targets.stdOut), PipeTarget.ToStringBuilder(targets.stdErr));
+
+    /// <inheritdoc cref="op_BitwiseOr(PtyCommand, ValueTuple{Func{string, CancellationToken, Task}, Func{string, CancellationToken, Task}})" />
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        (
+            Func<string, CancellationToken, Task> stdOut,
+            Func<string, CancellationToken, Task> stdErr
+        ) targets
+    ) => source | (PipeTarget.ToDelegate(targets.stdOut), PipeTarget.ToDelegate(targets.stdErr));
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output and empty standard error stream
+    /// line-by-line to the specified asynchronous delegates.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        (Func<string, Task> stdOut, Func<string, Task> stdErr) targets
+    ) => source | (PipeTarget.ToDelegate(targets.stdOut), PipeTarget.ToDelegate(targets.stdErr));
+
+    /// <summary>
+    /// Creates a new command that pipes its standard output and empty standard error stream
+    /// line-by-line to the specified synchronous delegates.
+    /// Uses <see cref="Encoding.Default" /> for decoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(
+        PtyCommand source,
+        (Action<string> stdOut, Action<string> stdErr) targets
+    ) => source | (PipeTarget.ToDelegate(targets.stdOut), PipeTarget.ToDelegate(targets.stdErr));
+
+    /// <summary>
+    /// Creates a new command that pipes its standard input from the specified source.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(PipeSource source, PtyCommand target) =>
+        target.WithStandardInputPipe(source);
+
+    /// <summary>
+    /// Creates a new command that pipes its standard input from the specified stream.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(Stream source, PtyCommand target) =>
+        PipeSource.FromStream(source) | target;
+
+    /// <summary>
+    /// Creates a new command that pipes its standard input from the specified memory buffer.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(ReadOnlyMemory<byte> source, PtyCommand target) =>
+        PipeSource.FromBytes(source) | target;
+
+    /// <inheritdoc cref="op_BitwiseOr(ReadOnlyMemory{byte}, PtyCommand)" />
+    [Pure]
+    public static PtyCommand operator |(byte[] source, PtyCommand target) =>
+        PipeSource.FromBytes(source) | target;
+
+    /// <summary>
+    /// Creates a new command that pipes its standard input from the specified string.
+    /// Uses <see cref="Console.InputEncoding" /> for encoding.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(string source, PtyCommand target) =>
+        PipeSource.FromString(source) | target;
+
+    /// <summary>
+    /// Creates a new command that pipes its standard input from the standard output of the
+    /// specified command.
+    /// </summary>
+    [Pure]
+    public static PtyCommand operator |(Command source, PtyCommand target) =>
+        PipeSource.FromCommand(source) | target;
+
+    /// <inheritdoc cref="op_BitwiseOr(Command, PtyCommand)" />
+    [Pure]
+    public static PtyCommand operator |(PtyCommand source, PtyCommand target) =>
+        PipeSource.FromCommand(source) | target;
+
+    /// <inheritdoc cref="op_BitwiseOr(Command, PtyCommand)" />
+    [Pure]
+    public static Command operator |(PtyCommand source, Command target) =>
+        PipeSource.FromCommand(source) | target;
+}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -295,5 +296,81 @@ public class ConfigurationSpecs
         // Assert
         original.Should().BeEquivalentTo(modified, o => o.Excluding(c => c.StandardErrorPipe));
         original.StandardErrorPipe.Should().NotBeSameAs(modified.StandardErrorPipe);
+    }
+
+    [Fact]
+    public void I_can_create_a_pseudo_terminal_command_from_a_command()
+    {
+        // Arrange
+        var command = Cli.Wrap("foo")
+            .WithArguments("bar")
+            .WithWorkingDirectory("/tmp")
+            .WithValidation(CommandResultValidation.None);
+
+        // Act
+        var pty = command.WithPseudoTerminal();
+
+        // Assert
+        pty.TargetFilePath.Should().Be("foo");
+        pty.Arguments.Should().Be("bar");
+        pty.WorkingDirPath.Should().Be("/tmp");
+        pty.Validation.Should().Be(CommandResultValidation.None);
+        pty.Columns.Should().Be(80);
+        pty.Rows.Should().Be(24);
+    }
+
+    [Fact]
+    public void I_can_configure_pseudo_terminal_pipelines_with_operators()
+    {
+        var regular = Cli.Wrap("foo");
+        var pty = regular.WithPseudoTerminal();
+
+        PtyCommand fromSource = PipeSource.FromString("input") | pty;
+        PtyCommand fromRegularCommand = regular | pty;
+        PtyCommand fromPtyCommand = pty | pty;
+        Command intoRegularCommand = pty | regular;
+        PtyCommand intoTarget = pty | Stream.Null;
+
+        fromSource.StandardInputPipe.Should().NotBeSameAs(pty.StandardInputPipe);
+        fromRegularCommand.StandardInputPipe.Should().NotBeSameAs(pty.StandardInputPipe);
+        fromPtyCommand.StandardInputPipe.Should().NotBeSameAs(pty.StandardInputPipe);
+        intoRegularCommand.StandardInputPipe.Should().NotBeSameAs(regular.StandardInputPipe);
+        intoTarget.StandardOutputPipe.Should().NotBeSameAs(pty.StandardOutputPipe);
+    }
+
+    [Fact]
+    public void I_can_configure_the_pseudo_terminal_dimensions()
+    {
+        // Act
+        var pty = Cli.Wrap("foo").WithPseudoTerminal(columns: 120, rows: 40);
+
+        // Assert
+        pty.Columns.Should().Be(120);
+        pty.Rows.Should().Be(40);
+    }
+
+    [Fact]
+    public void I_can_configure_the_pseudo_terminal_dimensions_with_with_size()
+    {
+        // Arrange
+        var original = Cli.Wrap("foo").WithPseudoTerminal();
+
+        // Act
+        var modified = original.WithSize(160, 48);
+
+        // Assert
+        modified.Columns.Should().Be(160);
+        modified.Rows.Should().Be(48);
+    }
+
+    [Fact]
+    public void Pseudo_terminal_command_rejects_non_positive_dimensions()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Cli.Wrap("foo").WithPseudoTerminal(columns: 0, rows: 24)
+        );
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Cli.Wrap("foo").WithPseudoTerminal(columns: 80, rows: -1)
+        );
     }
 }
