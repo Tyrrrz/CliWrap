@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils;
+using Microsoft.Win32.SafeHandles;
 using PowerKit.Extensions;
 
 namespace CliWrap;
@@ -92,7 +93,7 @@ public partial class PipeSource
         Create(
             async (destination, cancellationToken) =>
             {
-                var file = new FileStream(
+                using var file = new FileStream(
                     filePath,
                     FileMode.Open,
                     FileAccess.Read,
@@ -103,6 +104,39 @@ public partial class PipeSource
 
                 await using (file.ToAsyncDisposable())
                     await file.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+            }
+        );
+
+    /// <inheritdoc cref="FromFile(string)" />
+    public static PipeSource FromFile(SafeFileHandle handle) =>
+        Create(
+            async (destination, cancellationToken) =>
+            {
+                var isRefAdded = false;
+                handle.DangerousAddRef(ref isRefAdded);
+
+                try
+                {
+                    using var borrowedHandle = new SafeFileHandle(
+                        handle.DangerousGetHandle(),
+                        false
+                    );
+
+                    using var file = new FileStream(
+                        borrowedHandle,
+                        FileAccess.Read,
+                        BufferSizes.Stream
+                    );
+
+                    await using (file.ToAsyncDisposable())
+                        await file.CopyToAsync(destination, cancellationToken)
+                            .ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (isRefAdded)
+                        handle.DangerousRelease();
+                }
             }
         );
 

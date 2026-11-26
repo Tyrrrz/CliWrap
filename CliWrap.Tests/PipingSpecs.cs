@@ -3,12 +3,14 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using CliWrap.Buffered;
+using Microsoft.Win32.SafeHandles;
 using PowerKit;
 using PowerKit.Extensions;
 using Xunit;
@@ -80,6 +82,26 @@ public class PipingSpecs
 
         // Assert
         result.StandardOutput.Trim().Should().Be("Hello world!");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdin_from_a_file_handle()
+    {
+        // Arrange
+        using var file = TempFile.Create();
+        await File.WriteAllTextAsync(file.Path, "Hello world!");
+        using var fileHandle = File.OpenHandle(file.Path);
+
+        var cmd =
+            PipeSource.FromFile(fileHandle)
+            | Cli.Wrap(Dummy.Program.FilePath).WithArguments("echo stdin");
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        result.StandardOutput.Trim().Should().Be("Hello world!");
+        fileHandle.IsClosed.Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]
@@ -255,6 +277,32 @@ public class PipingSpecs
         // Assert
         File.Exists(file.Path).Should().BeTrue();
         new FileInfo(file.Path).Length.Should().Be(100_000);
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_and_pipe_the_stdout_into_a_file_handle()
+    {
+        // Arrange
+        using var file = TempFile.Create();
+        using var fileHandle = File.OpenHandle(
+            file.Path,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read
+        );
+
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath)
+                .WithArguments(["generate binary", "--length", "100000"])
+            | PipeTarget.ToFile(fileHandle);
+
+        // Act
+        await cmd.ExecuteAsync();
+
+        // Assert
+        File.Exists(file.Path).Should().BeTrue();
+        new FileInfo(file.Path).Length.Should().Be(100_000);
+        fileHandle.IsClosed.Should().BeFalse();
     }
 
     [Fact(Timeout = 15000)]

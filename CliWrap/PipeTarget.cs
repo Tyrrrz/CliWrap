@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Utils;
+using Microsoft.Win32.SafeHandles;
 using PowerKit.Extensions;
 
 namespace CliWrap;
@@ -186,7 +187,7 @@ public partial class PipeTarget
         Create(
             async (origin, cancellationToken) =>
             {
-                var file = new FileStream(
+                using var file = new FileStream(
                     filePath,
                     FileMode.Create,
                     FileAccess.Write,
@@ -197,6 +198,38 @@ public partial class PipeTarget
 
                 await using (file.ToAsyncDisposable())
                     await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
+            }
+        );
+
+    /// <inheritdoc cref="ToFile(string)" />
+    public static PipeTarget ToFile(SafeFileHandle handle) =>
+        Create(
+            async (origin, cancellationToken) =>
+            {
+                var isRefAdded = false;
+                handle.DangerousAddRef(ref isRefAdded);
+
+                try
+                {
+                    using var borrowedHandle = new SafeFileHandle(
+                        handle.DangerousGetHandle(),
+                        false
+                    );
+
+                    using var file = new FileStream(
+                        borrowedHandle,
+                        FileAccess.Write,
+                        BufferSizes.Stream
+                    );
+
+                    await using (file.ToAsyncDisposable())
+                        await origin.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (isRefAdded)
+                        handle.DangerousRelease();
+                }
             }
         );
 
