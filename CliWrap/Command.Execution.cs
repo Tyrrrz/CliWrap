@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap.Exceptions;
@@ -70,6 +71,189 @@ public partial class Command
                 from extension in new[] { "exe", "cmd", "bat" }
                 select Path.ChangeExtension(baseFilePath, extension)
             ).FirstOrDefault(File.Exists) ?? TargetFilePath;
+    }
+
+    // On Windows, BAT and CMD files are run by the command shell (cmd.exe), which reads the
+    // command line again with its own syntax: characters like &, |, <, > and ^ act as operators,
+    // and %VAR% is expanded even inside quotes. Escaping for argv alone lets an argument
+    // inject commands, so the arguments are re-escaped for the shell instead.
+    // https://github.com/Tyrrrz/CliWrap/issues/359
+    private static bool IsCmdScript(string filePath) =>
+        OperatingSystem.IsWindows()
+        && (
+            string.Equals(Path.GetExtension(filePath), ".bat", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+                Path.GetExtension(filePath),
+                ".cmd",
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
+
+    private static string GetCmdFilePath() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
+
+    // Runs the script through the shell explicitly, as Rust does, instead of leaving it to
+    // CreateProcess (which runs "cmd.exe /c" with the user's settings):
+    // /e:ON keeps command extensions on, which the %cd:~,% escape relies on;
+    // /v:OFF turns delayed expansion off, so !VAR! is not expanded even if the registry enables it;
+    // /d skips the AutoRun commands set in the registry.
+    // The whole command after /c is wrapped in one more pair of quotes, which cmd.exe strips.
+    private static string GetCmdArgumentsForScript(string scriptFilePath, string arguments)
+    {
+        var escapedArguments = GetEscapedArgumentsForCmd(arguments);
+
+        return escapedArguments.Length > 0
+            ? $"/e:ON /v:OFF /d /c \"\"{scriptFilePath}\" {escapedArguments}\""
+            : $"/e:ON /v:OFF /d /c \"\"{scriptFilePath}\"\"";
+    }
+
+    private static string GetEscapedArgumentsForCmd(string arguments)
+    {
+        // Implementation reference (the fix for CVE-2024-24576):
+        // https://github.com/rust-lang/rust/blob/1.77.2/library/std/src/sys/pal/windows/args.rs#L280-L345
+        // MIT License, The Rust Project Developers
+
+        static bool NeedsQuotes(string argument)
+        {
+            // An empty argument would vanish, and a trailing backslash would escape a closing
+            // quote the script adds itself (e.g. "%~1").
+            if (argument.Length == 0 || argument[argument.Length - 1] == '\\')
+                return true;
+
+            // Rather than listing every character the shell treats specially, assume that
+            // any ASCII symbol needs quoting unless it's known to be safe.
+            foreach (var c in argument)
+            {
+                if (char.IsControl(c))
+                    return true;
+
+                if (c <= 0x7F && !char.IsLetterOrDigit(c) && "#$*+-./:?@\\_".IndexOf(c) < 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        var buffer = new StringBuilder();
+
+        foreach (var argument in SplitCommandLine(arguments))
+        {
+            if (buffer.Length > 0)
+                buffer.Append(' ');
+
+            var quote = NeedsQuotes(argument);
+            if (quote)
+                buffer.Append('"');
+
+            var backslashCount = 0;
+            foreach (var c in argument)
+            {
+                if (c == '\\')
+                {
+                    backslashCount++;
+                }
+                else
+                {
+                    if (c == '"')
+                    {
+                        // Double the backslashes before an inner quote, then double the quote:
+                        // the shell has no escape character inside quotes, but a doubled quote
+                        // keeps it inside the quoted section and still reads as one quote in argv.
+                        buffer.Append('\\', backslashCount).Append('"');
+                    }
+                    else if (c is '%' or '\r')
+                    {
+                        // %cd:~,% expands to an empty substring of the current directory,
+                        // which keeps the shell from expanding a %VAR% that follows.
+                        buffer.Append("%%cd:~,");
+                    }
+
+                    backslashCount = 0;
+                }
+
+                buffer.Append(c);
+            }
+
+            if (quote)
+                buffer.Append('\\', backslashCount).Append('"');
+        }
+
+        return buffer.ToString();
+    }
+
+    // Splits a command line into arguments the way the C runtime does (and the way
+    // ArgumentsBuilder.Escape(...) expects them to be read back).
+    // https://learn.microsoft.com/cpp/c-language/parsing-c-command-line-arguments
+    private static IEnumerable<string> SplitCommandLine(string commandLine)
+    {
+        var buffer = new StringBuilder();
+        var inArgument = false;
+        var inQuotes = false;
+
+        for (var i = 0; i < commandLine.Length; i++)
+        {
+            var c = commandLine[i];
+
+            if (c == '\\')
+            {
+                var backslashCount = 1;
+                while (i + 1 < commandLine.Length && commandLine[i + 1] == '\\')
+                {
+                    backslashCount++;
+                    i++;
+                }
+
+                inArgument = true;
+
+                if (i + 1 < commandLine.Length && commandLine[i + 1] == '"')
+                {
+                    // 2n backslashes and a quote: n backslashes, and the quote is a delimiter.
+                    // 2n+1 backslashes and a quote: n backslashes and a literal quote.
+                    buffer.Append('\\', backslashCount / 2);
+                    if (backslashCount % 2 == 1)
+                    {
+                        buffer.Append('"');
+                        i++;
+                    }
+                }
+                else
+                {
+                    buffer.Append('\\', backslashCount);
+                }
+            }
+            else if (c == '"')
+            {
+                inArgument = true;
+
+                // A doubled quote inside a quoted section is a literal quote.
+                if (inQuotes && i + 1 < commandLine.Length && commandLine[i + 1] == '"')
+                {
+                    buffer.Append('"');
+                    i++;
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (char.IsWhiteSpace(c) && !inQuotes)
+            {
+                if (inArgument)
+                {
+                    yield return buffer.ToString();
+                    buffer.Clear();
+                    inArgument = false;
+                }
+            }
+            else
+            {
+                inArgument = true;
+                buffer.Append(c);
+            }
+        }
+
+        if (inArgument)
+            yield return buffer.ToString();
     }
 
     private async Task PipeStandardInputAsync(
@@ -403,10 +587,15 @@ public partial class Command
         CancellationToken gracefulCancellationToken = default
     )
     {
+        var targetFilePath = GetOptimallyQualifiedTargetFilePath();
+        var isCmdScript = IsCmdScript(targetFilePath);
+
         var processStartInfo = new ProcessStartInfo
         {
-            FileName = GetOptimallyQualifiedTargetFilePath(),
-            Arguments = Arguments,
+            FileName = isCmdScript ? GetCmdFilePath() : targetFilePath,
+            Arguments = isCmdScript
+                ? GetCmdArgumentsForScript(targetFilePath, Arguments)
+                : Arguments,
             WorkingDirectory = WorkingDirPath,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
