@@ -229,24 +229,64 @@ public class ExecutionSpecs
     }
 
     [Fact(Timeout = 15000)]
-    public async Task I_can_execute_a_command_bound_to_the_shutdown_signal_and_it_gets_killed_when_the_current_process_exits()
+    public async Task I_can_execute_a_command_bound_to_the_shutdown_token_and_it_gets_killed_when_the_current_process_exits()
     {
         // Arrange
-        // The dummy starts a child process bound to Cli.Shutdown, prints its ID, and exits without waiting for it
-        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep-wrapped", "00:00:20"]);
+        // The dummy spawns a child process bound to the shutdown token, prints its ID, and exits without waiting for it
+        var cmd = Cli.Wrap(Dummy.Program.FilePath)
+            .WithArguments(["spawn", Dummy.Program.FilePath, "sleep", "00:00:20"]);
 
         // Act
         var result = await cmd.ExecuteBufferedAsync();
 
         // Assert
         var childProcessId = int.Parse(result.StandardOutput.Trim(), CultureInfo.InvariantCulture);
+        (await WaitForExitAsync(childProcessId)).Should().BeTrue();
+    }
 
-        // The kill signal is sent before the parent exits, but the OS may need a moment to tear the process down
+    [SkippableFact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_bound_to_the_shutdown_token_and_it_gets_killed_when_the_current_process_receives_SIGTERM()
+    {
+        Skip.If(OperatingSystem.IsWindows(), "SIGTERM is only supported on Unix-like systems.");
+
+        // Arrange
+        var childProcessIdTcs = new TaskCompletionSource<int>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+
+        // The dummy spawns a child process bound to the shutdown token, prints its ID, and waits for it
+        var cmd =
+            Cli.Wrap(Dummy.Program.FilePath)
+                .WithArguments(["spawn", Dummy.Program.FilePath, "sleep", "00:00:20", "--wait"])
+                .WithValidation(CommandResultValidation.None)
+            | PipeTarget.ToDelegate(line =>
+                childProcessIdTcs.TrySetResult(int.Parse(line, CultureInfo.InvariantCulture))
+            );
+
+        var task = cmd.ExecuteAsync();
+        var childProcessId = await childProcessIdTcs.Task;
+
+        // Act
+        await Cli.Wrap("kill")
+            .WithArguments(["-TERM", task.ProcessId.ToString(CultureInfo.InvariantCulture)])
+            .ExecuteAsync();
+
+        await task;
+
+        // Assert
+        (await WaitForExitAsync(childProcessId))
+            .Should()
+            .BeTrue();
+    }
+
+    // The kill signal is sent before the parent exits, but the OS may need a moment to tear the process down
+    private static async Task<bool> WaitForExitAsync(int processId)
+    {
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        while (Process.IsRunning(childProcessId) && !timeoutCts.IsCancellationRequested)
+        while (Process.IsRunning(processId) && !timeoutCts.IsCancellationRequested)
             await Task.Delay(TimeSpan.FromSeconds(0.1));
 
-        Process.IsRunning(childProcessId).Should().BeFalse();
+        return !Process.IsRunning(processId);
     }
 
     [Fact]

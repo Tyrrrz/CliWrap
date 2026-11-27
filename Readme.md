@@ -862,15 +862,19 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 > [!NOTE]
 > Similarly to `ExecuteAsync()`, both cancellation mechanisms are also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
-If you start a command without awaiting it until the end, the underlying process may keep running after your application exits.
-To prevent that, pass `Cli.Shutdown` as the cancellation token.
-It's triggered when the current process exits in a managed way (for example, by returning from `Main` or calling `Environment.Exit(...)`), which kills the underlying process:
+### Avoid orphan processes
+
+If your application exits while a command is still running, the underlying process may keep running on its own.
+This can happen, for example, when the application gets terminated with `SIGTERM` or when some other part of it calls `Environment.Exit(...)`.
+
+To prevent that, pass `Cli.ShutdownToken` as the cancellation token.
+It's triggered when the current process is shutting down (by returning from `Main`, calling `Environment.Exit(...)`, or receiving `SIGTERM`), which kills the underlying process:
 
 ```csharp
-// The server process is killed when the application exits
-var task = Cli.Wrap("my-dev-server")
+// The server process is killed when the application shuts down
+await Cli.Wrap("my-dev-server")
     .WithArguments(["--port", "8080"])
-    .ExecuteAsync(Cli.Shutdown);
+    .ExecuteAsync(Cli.ShutdownToken);
 ```
 
 You can also combine it with your own cancellation token:
@@ -878,7 +882,7 @@ You can also combine it with your own cancellation token:
 ```csharp
 using var cts = CancellationTokenSource.CreateLinkedTokenSource(
     cancellationToken,
-    Cli.Shutdown
+    Cli.ShutdownToken
 );
 
 await Cli.Wrap("ffmpeg")
@@ -886,8 +890,8 @@ await Cli.Wrap("ffmpeg")
     .ExecuteAsync(cts.Token);
 ```
 
-> [!NOTE]
-> `Cli.Shutdown` is not triggered when your application is terminated by a signal it doesn't handle, killed forcefully, or crashes.
+> [!WARNING]
+> `Cli.ShutdownToken` is not triggered when your application is killed forcefully (e.g. with `SIGKILL` or from the task manager) or crashes.
 > On .NET 11 and higher, you can use `ExecuteAsync(startInfo => startInfo.KillOnParentExit = true)` to have the operating system enforce this on Windows and Linux.
 
 ### Process information
