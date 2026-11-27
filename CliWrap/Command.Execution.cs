@@ -89,6 +89,24 @@ public partial class Command
             )
         );
 
+    private static string GetCmdFilePath() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
+
+    // Runs the script through the shell explicitly, as Rust does, instead of leaving it to
+    // CreateProcess (which runs "cmd.exe /c" with the user's settings):
+    // /e:ON keeps command extensions on, which the %cd:~,% escape relies on;
+    // /v:OFF turns delayed expansion off, so !VAR! is not expanded even if the registry enables it;
+    // /d skips the AutoRun commands set in the registry.
+    // The whole command after /c is wrapped in one more pair of quotes, which cmd.exe strips.
+    private static string GetCmdArgumentsForScript(string scriptFilePath, string arguments)
+    {
+        var escapedArguments = GetEscapedArgumentsForCmd(arguments);
+
+        return escapedArguments.Length > 0
+            ? $"/e:ON /v:OFF /d /c \"\"{scriptFilePath}\" {escapedArguments}\""
+            : $"/e:ON /v:OFF /d /c \"\"{scriptFilePath}\"\"";
+    }
+
     private static string GetEscapedArgumentsForCmd(string arguments)
     {
         // Implementation reference (the fix for CVE-2024-24576):
@@ -569,12 +587,13 @@ public partial class Command
     )
     {
         var targetFilePath = GetOptimallyQualifiedTargetFilePath();
+        var isCmdScript = IsCmdScript(targetFilePath);
 
         var processStartInfo = new ProcessStartInfo
         {
-            FileName = targetFilePath,
-            Arguments = IsCmdScript(targetFilePath)
-                ? GetEscapedArgumentsForCmd(Arguments)
+            FileName = isCmdScript ? GetCmdFilePath() : targetFilePath,
+            Arguments = isCmdScript
+                ? GetCmdArgumentsForScript(targetFilePath, Arguments)
                 : Arguments,
             WorkingDirectory = WorkingDirPath,
             RedirectStandardInput = true,

@@ -24,6 +24,7 @@ public class ScriptEscapingSpecs
         "100%",
         "caret^",
         "bang!",
+        "!PATH!",
         "two words",
         "(paren)",
         "semi;colon",
