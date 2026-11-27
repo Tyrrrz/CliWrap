@@ -1,10 +1,12 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using CliWrap.Buffered;
 using CliWrap.Tests.Utils;
 using PowerKit.Extensions;
 using Xunit;
@@ -224,6 +226,27 @@ public class ExecutionSpecs
 
         Process.IsRunning(task.ProcessId).Should().BeFalse();
         stdOutBuffer.ToString().Should().Contain("Canceled.").And.NotContain("Done.");
+    }
+
+    [Fact(Timeout = 15000)]
+    public async Task I_can_execute_a_command_bound_to_the_shutdown_signal_and_it_gets_killed_when_the_current_process_exits()
+    {
+        // Arrange
+        // The dummy starts a child process bound to Cli.Shutdown, prints its ID, and exits without waiting for it
+        var cmd = Cli.Wrap(Dummy.Program.FilePath).WithArguments(["sleep-wrapped", "00:00:20"]);
+
+        // Act
+        var result = await cmd.ExecuteBufferedAsync();
+
+        // Assert
+        var childProcessId = int.Parse(result.StandardOutput.Trim(), CultureInfo.InvariantCulture);
+
+        // The kill signal is sent before the parent exits, but the OS may need a moment to tear the process down
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (Process.IsRunning(childProcessId) && !timeoutCts.IsCancellationRequested)
+            await Task.Delay(TimeSpan.FromSeconds(0.1));
+
+        Process.IsRunning(childProcessId).Should().BeFalse();
     }
 
     [Fact]

@@ -8,4 +8,8 @@
     <PackageReference Include="CliFx" />
     <PackageReference Include="CSharpier.MsBuild" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CliWrap/CliWrap.csproj" />
+  </ItemGroup>
 </Project>
