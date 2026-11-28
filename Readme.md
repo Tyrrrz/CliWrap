@@ -862,6 +862,38 @@ public async Task GitPushAsync(CancellationToken cancellationToken = default)
 > [!NOTE]
 > Similarly to `ExecuteAsync()`, both cancellation mechanisms are also supported by `ExecuteBufferedAsync()`, `ListenAsync()`, and `Observe()`.
 
+### Avoid orphan processes
+
+If your application exits while a command is still running, the underlying process may keep running on its own.
+This can happen, for example, when the application gets terminated with `SIGTERM` or when some other part of it calls `Environment.Exit(...)`.
+
+To prevent that, pass `Cli.ShutdownToken` as the cancellation token.
+It's triggered when the current process is shutting down (by returning from `Main`, calling `Environment.Exit(...)`, or receiving `SIGTERM`), which kills the underlying process:
+
+```csharp
+// The server process is killed when the application shuts down
+await Cli.Wrap("my-dev-server")
+    .WithArguments(["--port", "8080"])
+    .ExecuteAsync(Cli.ShutdownToken);
+```
+
+You can also combine it with your own cancellation token:
+
+```csharp
+using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+    cancellationToken,
+    Cli.ShutdownToken
+);
+
+await Cli.Wrap("ffmpeg")
+    .WithArguments(["-i", "input.mp4", "output.webm"])
+    .ExecuteAsync(cts.Token);
+```
+
+> [!WARNING]
+> `Cli.ShutdownToken` is not triggered when your application is killed forcefully (e.g. with `SIGKILL` or from the task manager) or crashes.
+> On .NET 11 and higher, you can use `ExecuteAsync(startInfo => startInfo.KillOnParentExit = true)` to have the operating system enforce this on Windows and Linux.
+
 ### Process information
 
 The task returned by `ExecuteAsync()` and `ExecuteBufferedAsync()` is, in fact, not a regular `Task<T>`, but an instance of `CommandTask<T>`.
