@@ -21,9 +21,11 @@ public static class Program
     public static async Task<int> Main(string[] args)
     {
         // Make sure color codes are not produced because we rely on the output in tests
+        Environment.SetEnvironmentVariable("FORCE_COLOR", null);
+        Environment.SetEnvironmentVariable("NO_COLOR", "1");
         Environment.SetEnvironmentVariable(
             "DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION",
-            "false"
+            null
         );
 
         return await new CommandLineApplicationBuilder()
