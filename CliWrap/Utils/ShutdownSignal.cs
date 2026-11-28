@@ -26,19 +26,16 @@ internal static class ShutdownSignal
         // The runtime doesn't raise ProcessExit when the process is terminated by an unhandled SIGTERM,
         // so we need to listen to it separately. The signal context is left untouched, so the default
         // handling (or the handling configured by the user) still applies afterwards.
-        if (!OperatingSystem.IsBrowser() && !OperatingSystem.IsIOS() && !OperatingSystem.IsTvOS())
+        try
         {
-            try
-            {
-                SigTermRegistration = PosixSignalRegistration.Create(
-                    PosixSignal.SIGTERM,
-                    _ => Trigger()
-                );
-            }
-            catch (PlatformNotSupportedException)
-            {
-                // Not every platform supports signal handling
-            }
+            SigTermRegistration = PosixSignalRegistration.Create(
+                PosixSignal.SIGTERM,
+                _ => Trigger()
+            );
+        }
+        catch (PlatformNotSupportedException)
+        {
+            // Not every platform supports signal handling
         }
 #endif
     }
